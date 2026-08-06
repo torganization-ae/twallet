@@ -31,6 +31,7 @@ import { round } from '../../../../util/round';
 import { getExplorerName, getExplorerTokenUrl } from '../../../../util/url';
 import { IS_IOS } from '../../../../util/windowEnvironment';
 import { calculateTokenCardColor } from '../../helpers/cardColors';
+import { getCardGradientStyle, TOKEN_CARD_GRADIENTS } from '../../../../util/cardColor';
 
 import useFlag from '../../../../hooks/useFlag';
 import useForceUpdate from '../../../../hooks/useForceUpdate';
@@ -266,7 +267,8 @@ function ChartCard({
   return (
     <div
       ref={ref}
-      className={buildClassName(styles.container, styles.chartCard, classNames, color, 'chart-card')}
+      className={buildClassName(styles.container, styles.chartCard, classNames, 'chart-card')}
+      style={getCardGradientStyle(TOKEN_CARD_GRADIENTS[color] ?? TOKEN_CARD_GRADIENTS.blue)}
       data-chart-mode={tokenChartMode}
     >
       <div className={styles.tokenInfo}>

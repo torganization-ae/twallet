@@ -10,6 +10,7 @@ import WalletContext
 import UIComponents
 import SwiftUI
 import Perception
+import Dependencies
 
 final class WalletSettingsGridCell: UICollectionViewCell, ReorderableCell {
     private var hostingController: UIHostingController<_Content>?
@@ -118,6 +119,7 @@ private struct _Content: View {
     let accountContext: AccountContext
     let model: _CellModel
     let onClearHighlight: () -> Void
+    @Dependency(\.accountSettings) private var accountSettingsStore
     
     var body: some View {
         WithPerceptionTracking {
@@ -125,9 +127,15 @@ private struct _Content: View {
                 Color.clear
                     .aspectRatio(SMALL_CARD_RATIO, contentMode: .fit)
                     .overlay {
-                        Image(uiImage: .homeCard)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
+                        LinearGradient(
+                            colors: cardGradientColors(
+                                for: accountSettingsStore
+                                    .for(accountId: accountContext.account.accountId)
+                                    .resolvedAccentColorIndex
+                            ),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     }
                     .overlay {
                         _BalanceView(accountContext: accountContext, onClearHighlight: onClearHighlight)

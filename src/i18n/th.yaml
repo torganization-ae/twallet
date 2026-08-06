@@ -899,7 +899,7 @@ DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: กรุณาใช้ %app_name% %mobileAppButton% หรือ %browserExtensionButton% เพื่อหลีกเลี่ยงคำเตือนนี้
 $reopen_in_iab_explore: โปรดใช้ส่วน %exploreTab% เมื่อเรียกดูแอปเพื่อหลีกเลี่ยงคำเตือนนี้
-My Wallet Browser: เบราว์เซอร์ My Wallet
+tWallet Browser: เบราว์เซอร์ tWallet
 mobile app: แอปมือถือ
 browser extension: ส่วนขยายเบราว์เซอร์
 Exit all wallets: ออกจากกระเป๋าทั้งหมด
@@ -1105,7 +1105,7 @@ Adding wallets is not available in explorer mode: การเพิ่มวอ
 $explorer_mode_warning: "โหมดสำรวจ: กำลังรอลิงก์ลึก View เพื่อเปิดที่อยู่"
 This command is not supported in explorer mode: คำสั่งนี้ไม่รองรับในโหมดสำรวจ
 $saved_addresses_header: บันทึกแล้ว
-confirm an action in My Wallet: ยืนยันการดำเนินการใน My Wallet
+confirm an action in tWallet: ยืนยันการดำเนินการใน tWallet
 Timed out waiting for account to be ready: หมดเวลารอให้บัญชีพร้อมใช้งาน
 $connected_apps:
   otherValue: "%1$d เชื่อมต่อแล้ว"
@@ -1171,7 +1171,7 @@ Show All Wallets: แสดงทั้งหมด
 Ask a Question: ถามคำถาม
 Learn more: เรียนรู้เพิ่มเติม
 Unsupported link: ลิงก์นี้ไม่รองรับ
-My Wallet Features: ฟีเจอร์ My Wallet
+tWallet Features: ฟีเจอร์ tWallet
 Notifications: การแจ้งเตือน
 Wrong passcode, please try again: รหัสไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง
 Use biometric authentication or create a passcode to protect it.: ใช้การยืนยันตัวตนด้วยชีวมาตรหรือสร้างรหัสผ่านเพื่อป้องกัน
@@ -1276,7 +1276,7 @@ Screen Recording: การบันทึกหน้าจอ
 Disable Screen Record Warning: ปิดคำเตือนการบันทึกหน้าจอ
 I Understand, Proceed: เข้าใจแล้ว ดำเนินการต่อ
 Waiting for Network: กำลังรอสัญญาณเครือข่าย
-My Wallet: My Wallet
+tWallet: tWallet
 $no_activity_history: |
   กระเป๋านี้ยังไม่มี
   ประวัติการทำรายการ
@@ -1359,7 +1359,7 @@ Connecting your wallet: กำลังเชื่อมต่อกระเ�
 Action is not possible on a view-only wallet.: ไม่สามารถทำรายการนี้ในกระเป๋าแบบดูข้อมูลเท่านั้น
 No matching chains: ไม่มีเครือข่ายที่รองรับ
 Select multichain wallet: เลือกกระเป๋ามัลติเชน
-Logged in with My Wallet: เข้าสู่ระบบด้วย My Wallet
+Logged in with tWallet: เข้าสู่ระบบด้วย tWallet
 You have no apps connected to this wallet.: ยังไม่มีแอปที่เชื่อมกับกระเป๋านี้
 Asset: สินทรัพย์
 Sent to: ส่งไปยัง
@@ -1406,7 +1406,7 @@ Payment Address: ที่อยู่ชำระเงิน
 "Install Palette": ติดตั้งพาเลต
 Ledger: Ledger
 "Moving to staking balance": กำลังย้ายไปยังยอดสเตก
-My Wallet uses biometric authentication to unlock and authorize transactions: My Wallet ใช้การยืนยันตัวตนด้วยชีวมิติเพื่อปลดล็อกและอนุมัติธุรกรรม
+tWallet uses biometric authentication to unlock and authorize transactions: tWallet ใช้การยืนยันตัวตนด้วยชีวมิติเพื่อปลดล็อกและอนุมัติธุรกรรม
 "Network error": ข้อผิดพลาดของเครือข่าย
 "No Camera Access": ไม่มีสิทธิ์ใช้กล้อง
 "Not all transactions were sent successfully.": ธุรกรรมบางรายการส่งไม่สำเร็จ

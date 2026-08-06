@@ -82,43 +82,13 @@ $signSizeDiff: 0.375rem;
 
   background-clip: border-box, padding-box, padding-box;
   background-origin: border-box;
-  background-size: cover, cover;
-
-  @include mixins.card-image("../../../../assets/cards/", "card", v.$defaultCardGradient);
+  background-image: linear-gradient(
+    125deg,
+    var(--card-gradient-from, #27B1FA),
+    var(--card-gradient-to, #0874F8)
+  );
 
   @include mixins.transition('transform var(--slide-transition), filter var(--slide-transition) !important');
-
-  &:global(.gram) {
-    @include mixins.card-image("../../../../assets/cards/", "card_gram", v.$gramCardGradient);
-  }
-
-  &:global(.tegro) {
-    @include mixins.card-image("../../../../assets/cards/", "card_tegro", v.$tegroCardGradient);
-  }
-
-  &:global(.red) {
-    @include mixins.card-image("../../../../assets/cards/", "card_red", v.$redCardGradient);
-  }
-
-  &:global(.orange) {
-    @include mixins.card-image("../../../../assets/cards/", "card_orange", v.$orangeCardGradient);
-  }
-
-  &:global(.green) {
-    @include mixins.card-image("../../../../assets/cards/", "card_green", v.$greenCardGradient);
-  }
-
-  &:global(.sea) {
-    @include mixins.card-image("../../../../assets/cards/", "card_sea", v.$seaCardGradient);
-  }
-
-  &:global(.purple) {
-    @include mixins.card-image("../../../../assets/cards/", "card_purple", v.$purpleCardGradient);
-  }
-
-  &:global(.pink) {
-    @include mixins.card-image("../../../../assets/cards/", "card_pink", v.$pinkCardGradient);
-  }
 
   &.backstage {
     transform: translateY(-0.5625rem) scale(0.9);

@@ -1399,6 +1399,7 @@ export interface ActionPayloads {
   // Account Settings
   setAccentColor: { index: number };
   clearAccentColor: undefined;
+  ensureAccentColor: undefined;
 
   // TON Connect common
   apiUpdateDappLoading: ApiUpdateDappLoading;

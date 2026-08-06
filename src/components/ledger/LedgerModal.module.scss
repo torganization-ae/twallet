@@ -1,7 +1,5 @@
 @use "../../styles/mixins";
 
-@use "../../styles/scssVariables" as v;
-
 .modalDialog {
   height: 35rem;
 
@@ -213,15 +211,9 @@
   opacity: 0.84;
   background-clip: padding-box, padding-box;
   background-origin: border-box;
-  background-size: cover, cover;
+  background-image: linear-gradient(125deg, #27B1FA, #0874F8);
 
   transition: opacity 200ms;
-
-  @include mixins.card-image("../../assets/", "account_button_bg", v.$defaultCardGradient);
-
-  &:global(.gram) {
-    @include mixins.card-image("../../assets/", "account_button_gram_bg", v.$gramCardGradient);
-  }
 
   &_connected {
     cursor: not-allowed;

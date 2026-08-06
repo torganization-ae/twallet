@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -25,9 +26,11 @@ import app.twallet.air.uicomponents.widgets.sensitiveDataContainer.WSensitiveDat
 import app.twallet.air.uicomponents.widgets.setBackgroundColor
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.theme.WColor
+import app.twallet.air.walletbasecontext.theme.cardGradientColors
 import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.toBigInteger
 import app.twallet.air.walletcontext.utils.colorWithAlpha
+import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.stores.AccountStore
@@ -155,7 +158,12 @@ class MiniCardView(context: Context, private val containerWidth: Int) : WView(co
 
     fun updateCardImage() {
         updateTheme()
-        imageView.loadRes(app.twallet.air.uicomponents.R.drawable.img_card)
+        imageView.background = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            cardGradientColors(account?.accountId?.let(WGlobalStorage::getAccentColorIndex))
+        ).apply {
+            cornerRadius = 12.dp.toFloat()
+        }
     }
 
     private fun setLabelColors(primaryColor: Int, secondaryColor: Int, drawGradient: Boolean) {

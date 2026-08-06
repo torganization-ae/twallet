@@ -28,11 +28,11 @@ export const IS_MY_WALLET_BRAND = !IS_TWALLETGRAM_WALLET && !IS_TON_BRAND;
 // domain) but ships the full feature set, so feature gates must check this axis, never IS_CORE_WALLET.
 export const IS_FEATURE_LIMITED = IS_TON_BRAND;
 export const APP_NAME = process.env.APP_NAME
-  || (IS_TWALLETGRAM_WALLET ? 'Twallet Gram' : IS_TON_BRAND ? 'TON Wallet' : 'Twallet');
+  || (IS_TWALLETGRAM_WALLET ? 'tWallet Gram' : IS_TON_BRAND ? 'TON Wallet' : 'tWallet');
 export const APP_VERSION = process.env.APP_VERSION!;
 export const APP_COMMIT_HASH = process.env.APP_COMMIT_HASH!;
 export const APP_ENV_MARKER = APP_ENV === 'staging' ? 'Beta' : APP_ENV === 'development' ? 'Dev' : undefined;
-export const EXTENSION_NAME = IS_TON_BRAND ? 'TON Wallet' : 'My Wallet • Crypto & Web3';
+export const EXTENSION_NAME = IS_TON_BRAND ? 'TON Wallet' : 'tWallet • Crypto & Web3';
 export const EXTENSION_DESCRIPTION = IS_TON_BRAND
   ? 'Set up your own TON Wallet on The Open Network'
   : 'Self-custodial wallet for TON, TRON, Solana, Ethereum and more. Swap, stake, buy crypto, manage NFTs and explore dapps.';
@@ -92,7 +92,7 @@ export const DEBUG_ALERT_MSG = 'Shoot!\nSomething went wrong, please see the err
 export const PIN_LENGTH = 4;
 export const NATIVE_BIOMETRICS_USERNAME = IS_CORE_WALLET ? 'TonWallet' : 'Twallet';
 export const NATIVE_BIOMETRICS_SERVER = IS_CORE_WALLET ? 'https://wallet.ton.org' : 'https://web.mywallet.io';
-export const NATIVE_BIOMETRICS_PROMPT_KEY = 'confirm an action in Twallet';
+export const NATIVE_BIOMETRICS_PROMPT_KEY = 'confirm an action in tWallet';
 
 /**
  * If `true`, a wallet created by this build gets a TON-specific mnemonic, which can never derive a foreign address.

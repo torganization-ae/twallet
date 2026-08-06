@@ -1,5 +1,8 @@
 package app.twallet.air.walletbasecontext.theme
 
+import android.graphics.Color
+import androidx.core.graphics.ColorUtils
+
 object NftAccentColors {
     val light = listOf(
         "#31AFC7", "#35C759", "#FF9500", "#FF2C55",
@@ -26,4 +29,11 @@ object NftAccentColors {
         0xFFC3C5C6.toInt(), // Silver color in Dark theme = Light Gray
         0xFFFFFFFF.toInt()  // BNW color in Dark theme = White
     )
+}
+
+fun cardGradientColors(index: Int?): IntArray {
+    val color = NftAccentColors.light.getOrNull(index ?: -1) ?: "#27B1FA"
+    val startColor = Color.parseColor(color)
+
+    return intArrayOf(startColor, ColorUtils.blendARGB(startColor, Color.WHITE, 0.35f))
 }

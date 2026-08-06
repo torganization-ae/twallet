@@ -17,10 +17,10 @@ import type {
 import type { LangFn } from '../../../../hooks/useLang';
 import type { DropdownItem } from '../../../ui/Dropdown';
 
-import { IS_TWALLETGRAM_WALLET } from '../../../../config';
 import {
   selectAccountStakingStates, selectCurrentAccount,
   selectCurrentAccountId,
+  selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectIsCurrentAccountViewMode,
@@ -31,6 +31,7 @@ import {
 import buildClassName from '../../../../util/buildClassName';
 import { calculateFullBalance } from '../../../../util/calculateFullBalance';
 import captureEscKeyListener from '../../../../util/captureEscKeyListener';
+import { getCardGradient, getCardGradientStyle } from '../../../../util/cardColor';
 import { formatCurrency, formatCurrencyExtended, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { round } from '../../../../util/math';
 import { DEFAULT_PORTFOLIO_TIME_RANGE } from '../../../../util/portfolio/timeRange';
@@ -82,6 +83,7 @@ interface StateProps {
   portfolioPnlChange?: PortfolioPnlChange;
   isPnlChangeUpdating?: boolean;
   isPortfolioOpen?: boolean;
+  accentColorIndex?: number;
 }
 
 let mainKey = 0;
@@ -137,9 +139,10 @@ function Card({
   portfolioPnlChange,
   isPnlChangeUpdating,
   isPortfolioOpen,
+  accentColorIndex,
 }: OwnProps & StateProps) {
   const {
-    toggleSeasonalTheming, showToast, switchToPortfolio,
+    ensureAccentColor, toggleSeasonalTheming, showToast, switchToPortfolio,
     loadPortfolioPnlChange,
   } = getActions();
   const lang = useLang();
@@ -158,6 +161,10 @@ function Card({
       mainKey += 1;
     }
   }, [currentAccountId, isTemporaryAccount]);
+
+  useEffect(() => {
+    ensureAccentColor();
+  }, [currentAccountId]);
 
   const [currencyMenuAnchor, setCurrencyMenuAnchor] = useState<IAnchorPosition>();
 
@@ -355,13 +362,8 @@ function Card({
       </Transition>
 
       <div
-        className={
-          buildClassName(
-            styles.container,
-            currentTokenSlug && styles.backstage,
-            IS_TWALLETGRAM_WALLET && 'gram',
-          )
-        }
+        className={buildClassName(styles.container, currentTokenSlug && styles.backstage)}
+        style={getCardGradientStyle(getCardGradient(accentColorIndex))}
       >
         <SeasonalTheming
           animationLevel={animationLevel}
@@ -440,6 +442,7 @@ export default memo(
         portfolioPnlChange,
         isPnlChangeUpdating,
         isPortfolioOpen: global.isPortfolioOpen,
+        accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,
       };
     },
     (global, _, stickToFirst) => stickToFirst(selectCurrentAccountId(global)),

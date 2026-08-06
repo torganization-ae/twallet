@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name" translatable="false">My Wallet</string>
-    <string name="app_locale_name_key" translatable="false">My Wallet</string>
+    <string name="app_name" translatable="false">tWallet</string>
+    <string name="app_locale_name_key" translatable="false">tWallet</string>
     <string name="app_url_scheme" translatable="false">mtw</string>
     <string name="app_tc_url_scheme" translatable="false">mytonwallet-tc</string>
     <string name="app_website_url" translatable="false">https://mywallet.io</string>

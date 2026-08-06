@@ -443,8 +443,8 @@ function Settings({
           {IS_FEATURE_LIMITED && (
             <div className={styles.block}>
               <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleClickInstallApp}>
-                <img className={styles.menuIcon} src={upgradeImg} alt={lang('Upgrade to My Wallet')} />
-                <span className={styles.itemTitle}>{lang('Upgrade to My Wallet')}</span>
+                <img className={styles.menuIcon} src={upgradeImg} alt={lang('Upgrade to tWallet')} />
+                <span className={styles.itemTitle}>{lang('Upgrade to tWallet')}</span>
 
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
@@ -639,8 +639,8 @@ function Settings({
                     rel="noopener noreferrer"
                     className={buildClassName(styles.item, styles.itemMenu)}
                   >
-                    <img className={styles.menuIcon} src={tipsImg} alt={lang('My Wallet Features')} />
-                    <span className={styles.itemTitle}>{lang('My Wallet Features')}</span>
+                    <img className={styles.menuIcon} src={tipsImg} alt={lang('tWallet Features')} />
+                    <span className={styles.itemTitle}>{lang('tWallet Features')}</span>
 
                     <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
                   </a>

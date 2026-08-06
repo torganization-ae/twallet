@@ -1,9 +1,11 @@
 import React, { memo } from '../../lib/teact/teact';
+import { withGlobal } from '../../global';
 
 import type { Account, AccountType } from '../../global/types';
 
-import { IS_TWALLETGRAM_WALLET } from '../../config';
+import { selectAccountSettings } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { getCardGradient, getCardGradientStyle } from '../../util/cardColor';
 import { formatAccountAddresses } from '../../util/formatAccountAddress';
 
 import styles from './AccountButton.module.scss';
@@ -22,6 +24,10 @@ interface OwnProps {
   onClick?: NoneToVoidFunction;
 }
 
+interface StateProps {
+  accentColorIndex?: number;
+}
+
 function AccountButton({
   accountId,
   byChain,
@@ -34,13 +40,13 @@ function AccountButton({
   titleClassName,
   withCheckbox,
   onClick,
-}: OwnProps) {
+  accentColorIndex,
+}: OwnProps & StateProps) {
   const isHardware = accountType === 'hardware';
   const isViewMode = accountType === 'view';
   const fullClassName = buildClassName(
     className,
     styles.account,
-    IS_TWALLETGRAM_WALLET && 'gram',
     isActive && !withCheckbox && styles.account_current,
     isLoading && styles.account_disabled,
     !onClick && styles.account_inactive,
@@ -52,6 +58,7 @@ function AccountButton({
     <div
       key={accountId}
       className={fullClassName}
+      style={getCardGradientStyle(getCardGradient(accentColorIndex))}
       onClick={onClick}
       aria-label={ariaLabel}
     >
@@ -73,4 +80,6 @@ function AccountButton({
   );
 }
 
-export default memo(AccountButton);
+export default memo(withGlobal((global, { accountId }): StateProps => ({
+  accentColorIndex: selectAccountSettings(global, accountId)?.accentColorIndex,
+}))(AccountButton));

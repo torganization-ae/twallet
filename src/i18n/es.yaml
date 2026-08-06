@@ -900,7 +900,7 @@ DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: Por favor, use %app_name% %mobileAppButton% o %browserExtensionButton% para evitar esta advertencia.
 $reopen_in_iab_explore: Use la sección %exploreTab% al navegar por aplicaciones para evitar esta advertencia.
-My Wallet Browser: Navegador My Wallet
+tWallet Browser: Navegador tWallet
 mobile app: aplicación móvil
 browser extension: extensión del navegador
 Exit all wallets: Cerrar todas las billeteras
@@ -1112,7 +1112,7 @@ Adding wallets is not available in explorer mode: Agregar billeteras no está di
 $explorer_mode_warning: "Modo explorador: esperando un enlace profundo de View para abrir una dirección"
 This command is not supported in explorer mode: Este comando no es compatible en modo explorador
 $saved_addresses_header: Guardado
-confirm an action in My Wallet: confirmar una acción en My Wallet
+confirm an action in tWallet: confirmar una acción en tWallet
 Timed out waiting for account to be ready: Tiempo de espera agotado para la preparación de la cuenta
 $connected_apps:
   otherValue: "%1$d conectadas"
@@ -1178,7 +1178,7 @@ Show All Wallets: Mostrar todas las billeteras
 Ask a Question: Hacer una pregunta
 Learn more: Más información
 Unsupported link: Este enlace no es compatible
-My Wallet Features: Características de My Wallet
+tWallet Features: Características de tWallet
 Notifications: Notificaciones
 Enter Passcode: Introducir código
 Wrong passcode, please try again: Código incorrecto, por favor inténtelo de nuevo.
@@ -1287,7 +1287,7 @@ Screen Recording: Grabación de pantalla
 Disable Screen Record Warning: Desactivar advertencia de grabación de pantalla
 I Understand, Proceed: Entiendo, continuar
 Waiting for Network: Esperando la red
-My Wallet: My Wallet
+tWallet: tWallet
 $no_activity_history: |
   Aún no hay historial
   de actividades en esta cartera.
@@ -1370,7 +1370,7 @@ Connecting your wallet: Conectando tu cartera
 Action is not possible on a view-only wallet.: Esta acción no es posible en una cartera de solo lectura.
 No matching chains: No hay redes compatibles
 Select multichain wallet: Elegir billetera multichain
-Logged in with My Wallet: Sesión iniciada con My Wallet
+Logged in with tWallet: Sesión iniciada con tWallet
 You have no apps connected to this wallet.: No tienes apps conectadas a esta cartera.
 Asset: Activo
 Sent to: Enviado a
@@ -1417,7 +1417,7 @@ Payment Address: Dirección de pago
 "Install Palette": Instalar paleta
 Ledger: Ledger
 "Moving to staking balance": Moviendo al saldo de staking
-My Wallet uses biometric authentication to unlock and authorize transactions: My Wallet usa autenticación biométrica para desbloquear y autorizar transacciones
+tWallet uses biometric authentication to unlock and authorize transactions: tWallet usa autenticación biométrica para desbloquear y autorizar transacciones
 "Network error": Error de red
 "No Camera Access": Sin acceso a la cámara
 "Not all transactions were sent successfully.": No todas las transacciones se enviaron correctamente.

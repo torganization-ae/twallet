@@ -3,6 +3,7 @@ package app.twallet.uihome.home.views.header
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.Rect
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.TouchDelegate
 import android.view.View
@@ -66,6 +67,7 @@ import app.twallet.air.uiwidgets.configurations.WidgetsConfigurations
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.models.MBaseCurrency
 import app.twallet.air.walletbasecontext.theme.WColor
+import app.twallet.air.walletbasecontext.theme.cardGradientColors
 import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.getDrawableCompat
 import app.twallet.air.walletbasecontext.utils.requireDrawableCompat
@@ -117,6 +119,10 @@ class WalletCardView(
     // PRIVATE VARIABLES ///////////////////////////////////////////////////////////////////////////
     var account: MAccount? = null
         private set
+    private val cardGradient = GradientDrawable(
+        GradientDrawable.Orientation.TL_BR,
+        cardGradientColors(null)
+    )
     private var balanceAmount: BigInteger? = null
     private var isShowingSkeletons = false
     private var isPresentingImage = false
@@ -377,6 +383,10 @@ class WalletCardView(
         }
 
         v.addView(clippedContainer, LayoutParams(MATCH_CONSTRAINT, MATCH_CONSTRAINT))
+
+        v.setConstraints {
+            allEdges(clippedContainer)
+        }
 
         v.post {
             clippedContainer.setConstraints {
@@ -645,7 +655,8 @@ class WalletCardView(
 
     fun updateCardImage() {
         updateTheme()
-        img.set(Content(Content.Image.Res(app.twallet.air.uicomponents.R.drawable.img_card)))
+        cardGradient.colors = cardGradientColors(account?.accountId?.let(WGlobalStorage::getAccentColorIndex))
+        img.background = cardGradient
         clippedContainer.setConstraints {
             allEdges(img)
         }
@@ -704,7 +715,7 @@ class WalletCardView(
             return
         this.currentRadius = radius
         clippedContainer.setBackgroundColor(Color.TRANSPARENT, radius, true)
-        img.setBackgroundColor(Color.TRANSPARENT, radius, true)
+        cardGradient.cornerRadius = radius
         img.defaultRounding = Content.Rounding.Radius(radius)
         shiningView.radius = radius
     }

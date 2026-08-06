@@ -21,6 +21,7 @@ import app.twallet.air.walletbasecontext.models.MBaseCurrency
 import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import app.twallet.air.walletbasecontext.theme.ThemeManager.setDefaultAccentColor
 import app.twallet.air.walletbasecontext.theme.ThemeManager.setNftAccentColor
+import app.twallet.air.walletbasecontext.theme.NftAccentColors
 import app.twallet.air.walletcontext.WalletContextManager
 import app.twallet.air.walletcontext.cacheStorage.WCacheStorage
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
@@ -48,6 +49,7 @@ import app.twallet.air.walletcore.stores.PortfolioStore
 import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
 import java.lang.ref.WeakReference
+import kotlin.random.Random
 
 val TESTNET_SLUGS = setOf(TON_USDT_TESTNET_SLUG, TRON_USDT_TESTNET_SLUG)
 
@@ -329,10 +331,12 @@ object WalletCore {
 
     fun updateAccentColor(accountId: String?) {
         accountId?.let {
-            WGlobalStorage.getAccentColorIndex(accountId)?.let {
-                setNftAccentColor(it)
-                return
-            }
+            val accentColorIndex = WGlobalStorage.getAccentColorIndex(accountId)
+                ?: Random.nextInt(NftAccentColors.light.size).also {
+                    WGlobalStorage.setAccentColorIndex(accountId, it)
+                }
+            setNftAccentColor(accentColorIndex)
+            return
         }
         setDefaultAccentColor()
     }

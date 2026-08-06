@@ -1,10 +1,12 @@
 import React, { useLayoutEffect, useRef } from '../../../../lib/teact/teact';
+import { withGlobal } from '../../../../global';
 
 import type { Account, AccountType } from '../../../../global/types';
 import type { Layout } from '../../../../hooks/useMenuPosition';
 
-import { IS_TWALLETGRAM_WALLET } from '../../../../config';
+import { selectAccountSettings } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
+import { getCardGradient, getCardGradientStyle } from '../../../../util/cardColor';
 import { formatAccountAddresses } from '../../../../util/formatAccountAddress';
 import { OPEN_CONTEXT_MENU_CLASS_NAME } from './constants';
 
@@ -41,6 +43,10 @@ interface OwnProps {
   onLogOut: (accountId: string) => void;
 }
 
+interface StateProps {
+  accentColorIndex?: number;
+}
+
 const CONTEXT_MENU_VERTICAL_SHIFT_PX = 6;
 
 function AccountWalletCard({
@@ -57,7 +63,8 @@ function AccountWalletCard({
   onRename,
   onReorder,
   onLogOut,
-}: OwnProps) {
+  accentColorIndex,
+}: OwnProps & StateProps) {
   const lang = useLang();
   const balanceRef = useRef<HTMLDivElement>();
   const contentRef = useRef<HTMLDivElement>();
@@ -126,7 +133,6 @@ function AccountWalletCard({
 
   const buttonClassName = buildClassName(
     styles.button,
-    IS_TWALLETGRAM_WALLET && 'gram',
     isActive && styles.current,
     isContextMenuOpen && OPEN_CONTEXT_MENU_CLASS_NAME,
   );
@@ -141,6 +147,7 @@ function AccountWalletCard({
       <div ref={contentRef} className={styles.content}>
         <div
           className={buttonClassName}
+          style={getCardGradientStyle(getCardGradient(accentColorIndex))}
           aria-label={lang('Switch Account')}
           role="button"
           tabIndex={isActive ? -1 : 0}
@@ -216,4 +223,6 @@ function AccountWalletCard({
   );
 }
 
-export default AccountWalletCard;
+export default withGlobal((global, { accountId }): StateProps => ({
+  accentColorIndex: selectAccountSettings(global, accountId)?.accentColorIndex,
+}))(AccountWalletCard);

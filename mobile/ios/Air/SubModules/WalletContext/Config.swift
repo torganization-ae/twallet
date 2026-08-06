@@ -103,7 +103,7 @@ public let SMALL_CARD_RATIO: CGFloat = 116/80
 public let MEDIUM_CARD_RATIO: CGFloat = 110/75
 public let LARGE_CARD_RATIO: CGFloat = 274/176
 
-public var APP_NAME: String { IS_TWALLETGRAM_WALLET ? "Twallet Gram" : "Twallet" }
+public var APP_NAME: String { IS_TWALLETGRAM_WALLET ? "tWallet Gram" : "tWallet" }
 
 public enum DebugProductionMode {
     public static let userDefaultsKey = "debug_forceProductionMode"

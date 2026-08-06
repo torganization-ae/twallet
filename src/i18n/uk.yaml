@@ -908,7 +908,7 @@ DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: Будь ласка, використовуйте %app_name% %mobileAppButton% або %browserExtensionButton%, щоб уникнути цього попередження.
 $reopen_in_iab_explore: Будь ласка, використовуйте розділ %exploreTab% під час перегляду застосунків, щоб уникнути цього попередження.
-My Wallet Browser: браузері My Wallet
+tWallet Browser: браузері tWallet
 mobile app: мобільний додаток
 browser extension: розширення браузера
 Exit all wallets: Вийти з усіх гаманців
@@ -1127,7 +1127,7 @@ Adding wallets is not available in explorer mode: Додавання гаман�
 $explorer_mode_warning: "Режим дослідника: очікування диплінка View для відкриття адреси"
 This command is not supported in explorer mode: Ця команда не підтримується в режимі дослідника
 $saved_addresses_header: Збережені
-confirm an action in My Wallet: підтвердіть дію в My Wallet
+confirm an action in tWallet: підтвердіть дію в tWallet
 Timed out waiting for account to be ready: Таймаут очікування готовності акаунта
 $connected_apps:
   otherValue: "%1$d підключено"
@@ -1193,7 +1193,7 @@ Show All Wallets: Показати всі гаманці
 Ask a Question: Задати питання
 Learn more: Докладніше
 Unsupported link: Це посилання не підтримується
-My Wallet Features: Функції My Wallet
+tWallet Features: Функції tWallet
 Notifications: Сповіщення
 Wrong passcode, please try again: Неправильний код, будь ласка, спробуйте ще раз.
 Use biometric authentication or create a passcode to protect it.: Використовуйте біометричну аутентифікацію або створіть код для захисту.
@@ -1305,7 +1305,7 @@ Screen Recording: Запис екрана
 Disable Screen Record Warning: Вимкнути попередження про запис екрана
 I Understand, Proceed: Розумію, продовжити
 Waiting for Network: Очікування мережі
-My Wallet: My Wallet
+tWallet: tWallet
 $no_activity_history: |
   Історія операцій у цьому гаманці
   поки що порожня.
@@ -1388,7 +1388,7 @@ Connecting your wallet: З’єднання з гаманцем
 Action is not possible on a view-only wallet.: Дія недоступна в гаманці лише для перегляду.
 No matching chains: Немає сумісних мереж
 Select multichain wallet: Вибрати мультичейн-гаманець
-Logged in with My Wallet: Увійшли через My Wallet
+Logged in with tWallet: Увійшли через tWallet
 You have no apps connected to this wallet.: До цього гаманця не підключено застосунки.
 Asset: Актив
 Sent to: Надіслано на
@@ -1440,7 +1440,7 @@ Payment Address: Платіжна адреса
 "Install Palette": "Встановити палітру"
 Ledger: Ledger
 "Moving to staking balance": "Перенесення до балансу стейкінгу"
-My Wallet uses biometric authentication to unlock and authorize transactions: My Wallet використовує біометрію для розблокування та підтвердження транзакцій
+tWallet uses biometric authentication to unlock and authorize transactions: tWallet використовує біометрію для розблокування та підтвердження транзакцій
 "Network error": "Помилка мережі"
 "No Camera Access": "Немає доступу до камери"
 "Not all transactions were sent successfully.": "Не всі транзакції були надіслані успішно."

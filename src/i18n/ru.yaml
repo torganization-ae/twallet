@@ -908,7 +908,7 @@ DappurlTrustStatusDangerousTitle: Потенциально опасный сай
 $DappurlTrustStatusDangerousHelp: Домен помечен проверками безопасности как опасный. Подключение может подвергнуть риску ваши средства. Продолжайте только если полностью уверены.
 $reopen_in_iab: Пожалуйста, используйте %app_name% %mobileAppButton% или %browserExtensionButton%, чтобы избежать этого предупреждения.
 $reopen_in_iab_explore: Пожалуйста, используйте раздел %exploreTab% при просмотре приложений, чтобы избежать этого предупреждения.
-My Wallet Browser: браузере My Wallet
+tWallet Browser: браузере tWallet
 mobile app: мобильное приложение
 browser extension: расширение браузера
 Exit all wallets: Выйти из всех кошельков
@@ -1128,7 +1128,7 @@ Adding wallets is not available in explorer mode: Добавление коше�
 $explorer_mode_warning: "Режим обозревателя: ожидание диплинка View для открытия адреса"
 This command is not supported in explorer mode: Эта команда не поддерживается в режиме обозревателя
 $saved_addresses_header: Сохраненные
-confirm an action in My Wallet: подтвердить действие в My Wallet
+confirm an action in tWallet: подтвердить действие в tWallet
 Timed out waiting for account to be ready: Таймаут ожидания готовности аккаунта
 $connected_apps:
   otherValue: "%1$d подключено"
@@ -1194,7 +1194,7 @@ Show All Wallets: Показать все кошельки
 Ask a Question: Задать вопрос
 Learn more: Подробнее
 Unsupported link: Эта ссылка не поддерживается
-My Wallet Features: Возможности My Wallet
+tWallet Features: Возможности tWallet
 Notifications: Уведомления
 Wrong passcode, please try again: Неверный код, пожалуйста, попробуйте ещё раз.
 Use biometric authentication or create a passcode to protect it.: Используйте биометрическую аутентификацию или создайте код для защиты.
@@ -1306,7 +1306,7 @@ Screen Recording: Запись экрана
 Disable Screen Record Warning: Отключить предупреждение о записи экрана
 I Understand, Proceed: Понимаю, продолжить
 Waiting for Network: Ожидание сети
-My Wallet: My Wallet
+tWallet: tWallet
 $no_activity_history: |
   История операций в этом кошельке пока отсутствует.
 Standalone: Отдельный
@@ -1388,7 +1388,7 @@ Connecting your wallet: Подключение кошелька
 Action is not possible on a view-only wallet.: Действие невозможно на кошельке только для просмотра.
 No matching chains: Нет совместимых сетей
 Select multichain wallet: Выберите мультичейн-кошелёк
-Logged in with My Wallet: Вход выполнен через My Wallet
+Logged in with tWallet: Вход выполнен через tWallet
 You have no apps connected to this wallet.: У вас нет приложений, подключённых к этому кошельку.
 Asset: Актив
 Sent to: Отправлено на
@@ -1440,7 +1440,7 @@ Payment Address: Платёжный адрес
 "Install Palette": "Установить палитру"
 Ledger: Ledger
 "Moving to staking balance": "Перевод в баланс стейкинга"
-My Wallet uses biometric authentication to unlock and authorize transactions: My Wallet использует биометрию для разблокировки и подтверждения транзакций
+tWallet uses biometric authentication to unlock and authorize transactions: tWallet использует биометрию для разблокировки и подтверждения транзакций
 "Network error": "Сетевая ошибка"
 "No Camera Access": "Нет доступа к камере"
 "Not all transactions were sent successfully.": "Не все транзакции были отправлены успешно."

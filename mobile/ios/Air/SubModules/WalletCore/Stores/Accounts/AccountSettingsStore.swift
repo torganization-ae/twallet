@@ -113,6 +113,16 @@ public final class AccountSettings: Sendable {
         persist()
     }
 
+    public var resolvedAccentColorIndex: Int {
+        if let accentColorIndex {
+            return accentColorIndex
+        }
+
+        let index = Int.random(in: 0..<ACCENT_COLORS.count)
+        setAccentColorIndex(index)
+        return index
+    }
+
     public func setIsAllowSuspiciousActions(_ isEnabled: Bool) {
         isAllowSuspiciousActions = isEnabled
         persist()

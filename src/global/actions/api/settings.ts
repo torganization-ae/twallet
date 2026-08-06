@@ -1,4 +1,5 @@
 import { MFA_BOT_URL } from '../../../config';
+import { ACCENT_COLORS } from '../../../util/accentColor/constants';
 import { buildMfaStartParam } from '../../../util/mfa';
 import { callApi } from '../../../api';
 import { openSite } from '../../../components/explore/helpers/utils';
@@ -48,6 +49,23 @@ addActionHandler('clearAccentColor', (global) => {
     byAccountId: {
       ...global.settings.byAccountId,
       [accountId]: rest,
+    },
+  });
+  setGlobal(global);
+});
+
+addActionHandler('ensureAccentColor', (global) => {
+  const accountId = selectCurrentAccountId(global);
+  if (!accountId || global.settings.byAccountId[accountId]?.accentColorIndex !== undefined) return;
+
+  const accentColorIndex = Math.floor(Math.random() * ACCENT_COLORS.light.length);
+  global = updateSettings(global, {
+    byAccountId: {
+      ...global.settings.byAccountId,
+      [accountId]: {
+        ...global.settings.byAccountId[accountId],
+        accentColorIndex,
+      },
     },
   });
   setGlobal(global);

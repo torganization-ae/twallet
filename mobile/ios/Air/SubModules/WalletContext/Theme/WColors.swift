@@ -25,20 +25,50 @@ private let ACCENT_COLORS_LIGHT: [String] = [
     "#AF52DE", "#5856D7", "#73AAED", "#FFB07A",
     "#B76C78", "#9689D1", "#E572CC", "#6BA07A",
     "#338FCC", "#1FC863", "#929395", "#E4B102",
+    "#000000",
 ]
 private let ACCENT_COLORS_DARK: [String] = [
     "#3AB5CC", "#32D74B", "#FF9F0B", "#FF325A",
     "#BF5AF2", "#7977FF", "#73AAED", "#FFB07A",
     "#B76C78", "#9689D1", "#E572CC", "#6BA07A",
     "#338FCC", "#2CD36F", "#C3C5C6", "#DDBA00",
+    "#FFFFFF",
 ]
 
-public let ACCENT_COLORS: [UIColor] = zip(ACCENT_COLORS_LIGHT, ACCENT_COLORS_DARK).map { UIColor(light: $0, dark: $1) } + [UIColor.label]
+public let ACCENT_COLORS: [UIColor] = zip(ACCENT_COLORS_LIGHT, ACCENT_COLORS_DARK).map { UIColor(light: $0, dark: $1) }
 
 public let ACCENT_RADIOACTIVE_INDEX = 13
 public let ACCENT_SILVER_INDEX = 14
 public let ACCENT_GOLD_INDEX = 15
 public let ACCENT_BNW_INDEX = 16
+
+public func cardGradientColors(for accentColorIndex: Int?) -> [Color] {
+    let hex: String
+    if let accentColorIndex, ACCENT_COLORS_LIGHT.indices.contains(accentColorIndex) {
+        hex = ACCENT_COLORS_LIGHT[accentColorIndex]
+    } else {
+        hex = "#27B1FA"
+    }
+    let baseColor = UIColor(hex: hex)
+
+    var red: CGFloat = 0
+    var green: CGFloat = 0
+    var blue: CGFloat = 0
+    var alpha: CGFloat = 0
+    guard baseColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else {
+        return [Color(uiColor: baseColor), .white]
+    }
+
+    let whiteWeight: CGFloat = 0.35
+    let highlightedColor = UIColor(
+        red: red + (1 - red) * whiteWeight,
+        green: green + (1 - green) * whiteWeight,
+        blue: blue + (1 - blue) * whiteWeight,
+        alpha: alpha
+    )
+
+    return [Color(uiColor: baseColor), Color(uiColor: highlightedColor)]
+}
 
 public func closestAccentColor(for color: UIColor) -> UIColor {
     ACCENT_COLORS.min(by: { $0.distance(to: color) < $1.distance(to: color) })!

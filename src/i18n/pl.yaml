@@ -911,7 +911,7 @@ DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: Proszę użyć %app_name% %mobileAppButton% lub %browserExtensionButton%, aby uniknąć tego ostrzeżenia.
 $reopen_in_iab_explore: Podczas przeglądania aplikacji używaj sekcji %exploreTab%, aby uniknąć tego ostrzeżenia.
-My Wallet Browser: przeglądarce My Wallet
+tWallet Browser: przeglądarce tWallet
 mobile app: aplikacja mobilna
 browser extension: rozszerzenie przeglądarki
 Exit all wallets: Wyjdź ze wszystkich portfeli
@@ -1131,7 +1131,7 @@ Adding wallets is not available in explorer mode: Dodawanie portfeli jest niedos
 $explorer_mode_warning: "Tryb eksplorera: oczekiwanie na deeplink View do otwarcia adresu"
 This command is not supported in explorer mode: To polecenie nie jest obsługiwane w trybie eksplorera
 $saved_addresses_header: Zapisane
-confirm an action in My Wallet: potwierdź działanie w My Wallet
+confirm an action in tWallet: potwierdź działanie w tWallet
 Timed out waiting for account to be ready: Przekroczono czas oczekiwania na gotowość konta
 $connected_apps:
   otherValue: "%1$d połączonych"
@@ -1197,7 +1197,7 @@ Show All Wallets: Pokaż wszystkie portfele
 Ask a Question: Zadaj pytanie
 Learn more: Dowiedz się więcej
 Unsupported link: Ten link nie jest obsługiwany
-My Wallet Features: Funkcje My Wallet
+tWallet Features: Funkcje tWallet
 Notifications: Powiadomienia
 Wrong passcode, please try again: Błędny kod, spróbuj ponownie.
 Use biometric authentication or create a passcode to protect it.: Użyj uwierzytelniania biometrycznego lub utwórz kod, aby go chronić.
@@ -1309,7 +1309,7 @@ Screen Recording: Nagrywanie ekranu
 Disable Screen Record Warning: Wyłącz ostrzeżenie o nagrywaniu ekranu
 I Understand, Proceed: Rozumiem, kontynuuj
 Waiting for Network: Oczekiwanie na sieć
-My Wallet: My Wallet
+tWallet: tWallet
 $no_activity_history: |
   Historia transakcji w tym portfelu
   jest jeszcze pusta.
@@ -1392,7 +1392,7 @@ Connecting your wallet: Łączenie portfela
 Action is not possible on a view-only wallet.: To działanie nie jest dostępne w portfelu tylko do podglądu.
 No matching chains: Brak zgodnych sieci
 Select multichain wallet: Wybierz portfel multichain
-Logged in with My Wallet: Zalogowano przez My Wallet
+Logged in with tWallet: Zalogowano przez tWallet
 You have no apps connected to this wallet.: Nie masz aplikacji połączonych z tym portfelem.
 Asset: Aktywo
 Sent to: Wysłano do
@@ -1444,7 +1444,7 @@ Payment Address: Adres płatności
 "Install Palette": "Zainstaluj paletę"
 Ledger: Ledger
 "Moving to staking balance": "Przenoszenie do salda stakingu"
-My Wallet uses biometric authentication to unlock and authorize transactions: My Wallet korzysta z biometrii do odblokowywania i autoryzacji transakcji
+tWallet uses biometric authentication to unlock and authorize transactions: tWallet korzysta z biometrii do odblokowywania i autoryzacji transakcji
 "Network error": "Błąd sieci"
 "No Camera Access": "Brak dostępu do aparatu"
 "Not all transactions were sent successfully.": "Nie wszystkie transakcje zostały wysłane pomyślnie."

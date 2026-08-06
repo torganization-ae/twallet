@@ -894,7 +894,7 @@ DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: 请使用 %app_name% %mobileAppButton% 或 %browserExtensionButton% 以避免此警告。
 $reopen_in_iab_explore: 浏览应用时，请使用 %exploreTab% 栏目以避免此警告。
-My Wallet Browser: My Wallet 浏览器
+tWallet Browser: tWallet 浏览器
 mobile app: 移动应用
 browser extension: 浏览器扩展
 Exit all wallets: 退出所有钱包
@@ -1105,7 +1105,7 @@ Adding wallets is not available in explorer mode: 在浏览器模式下无法添
 $explorer_mode_warning: "浏览器模式：正在等待查看深层链接以打开地址"
 This command is not supported in explorer mode: 此命令在浏览器模式下不受支持
 $saved_addresses_header: 已保存
-confirm an action in My Wallet: 在 My Wallet 中确认操作
+confirm an action in tWallet: 在 tWallet 中确认操作
 Timed out waiting for account to be ready: 等待账户准备就绪超时
 $connected_apps:
   otherValue: "%1$d 已连接"
@@ -1171,7 +1171,7 @@ Show All Wallets: 显示所有钱包
 Ask a Question: 提问
 Learn more: 了解更多
 Unsupported link: 此链接不受支持
-My Wallet Features: My Wallet 功能
+tWallet Features: tWallet 功能
 Notifications: 通知
 Wrong passcode, please try again: 密码错误，请重试。
 Use biometric authentication or create a passcode to protect it.: 使用生物识别认证或创建密码进行保护。
@@ -1277,7 +1277,7 @@ Screen Recording: 屏幕录制
 Disable Screen Record Warning: 关闭屏幕录制警告
 I Understand, Proceed: 知道了，继续
 Waiting for Network: 正在等待网络
-My Wallet: My Wallet
+tWallet: tWallet
 $no_activity_history: |
   这个钱包还没有
   任何交易记录。
@@ -1360,7 +1360,7 @@ Connecting your wallet: 正在连接你的钱包
 Action is not possible on a view-only wallet.: 只读钱包无法执行此操作。
 No matching chains: 没有兼容的网络
 Select multichain wallet: 选择多链钱包
-Logged in with My Wallet: 已通过 My Wallet 登录
+Logged in with tWallet: 已通过 tWallet 登录
 You have no apps connected to this wallet.: 尚无应用连接到此钱包。
 Asset: 资产
 Sent to: 已发送至
@@ -1407,7 +1407,7 @@ Payment Address: 支付地址
 "Install Palette": 安装调色板
 Ledger: Ledger
 "Moving to staking balance": 正转入质押余额
-My Wallet uses biometric authentication to unlock and authorize transactions: My Wallet 使用生物识别来解锁并授权交易
+tWallet uses biometric authentication to unlock and authorize transactions: tWallet 使用生物识别来解锁并授权交易
 "Network error": 网络错误
 "No Camera Access": 无法访问相机
 "Not all transactions were sent successfully.": 并非所有交易都发送成功。

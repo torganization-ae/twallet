@@ -66,7 +66,7 @@ export function generateAccountTitle(params: {
     view: { prefix: 'Wallet', count: walletCounts.view + 1 },
     hardware: { prefix: 'Ledger', count: `#${walletCounts.hardware + 1}` },
     // Other brands fall back to the plain noun, the way Air names wallets outside My Wallet
-    mnemonic: { prefix: IS_MY_WALLET_BRAND ? 'My Wallet' : 'Wallet', count: walletCounts.mnemonic + 1 },
+    mnemonic: { prefix: IS_MY_WALLET_BRAND ? 'tWallet' : 'Wallet', count: walletCounts.mnemonic + 1 },
   };
 
   const config = walletTypeConfig[accountType];
