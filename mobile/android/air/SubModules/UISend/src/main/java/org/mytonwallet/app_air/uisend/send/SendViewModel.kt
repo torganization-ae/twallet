@@ -30,6 +30,7 @@ import org.mytonwallet.app_air.uisend.send.helpers.TransferHelpers
 import org.mytonwallet.app_air.walletbasecontext.localization.LocaleController
 import org.mytonwallet.app_air.walletbasecontext.models.MBaseCurrency
 import org.mytonwallet.app_air.walletcontext.helpers.DNSHelpers
+import org.mytonwallet.app_air.walletcontext.helpers.TmailHelpers
 import org.mytonwallet.app_air.walletcontext.utils.CoinUtils
 import org.mytonwallet.app_air.walletcore.JSWebViewBridge
 import org.mytonwallet.app_air.walletcore.TONCOIN_SLUG
@@ -60,6 +61,11 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 class SendViewModel : ViewModel(), WalletCore.EventObserver {
+
+    enum class AliasMode {
+        AUTO,
+        TMAIL
+    }
 
     /* Wallet */
 
@@ -94,8 +100,28 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
 
     /* Input Raw */
 
+    private val _aliasModeFlow = MutableStateFlow(AliasMode.AUTO)
+    val aliasModeFlow = _aliasModeFlow.asStateFlow()
+
     private val _inputStateFlow = MutableStateFlow(InputStateRaw())
     val inputStateFlow = _inputStateFlow.asStateFlow()
+
+    fun setAliasMode(mode: AliasMode) {
+        if (mode == _aliasModeFlow.value) return
+        _aliasModeFlow.value = mode
+        onInputDestination("")
+        onDestinationEntered("")
+    }
+
+    fun effectiveDestination(raw: String): String {
+        val trimmed = raw.trim()
+        if (_aliasModeFlow.value != AliasMode.TMAIL || trimmed.isEmpty()) return trimmed
+        val lower = trimmed.lowercase()
+        return if (lower.endsWith(TMAIL_SUFFIX)) lower else lower + TMAIL_SUFFIX
+    }
+
+    val isTmailMode: Boolean
+        get() = _aliasModeFlow.value == AliasMode.TMAIL
 
     data class InputStateRaw(
         val tokenSlug: String = TONCOIN_SLUG,
@@ -136,7 +162,7 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
     }
 
     fun onInputDestination(destination: String) {
-        _inputStateFlow.value = _inputStateFlow.value.copy(destination = destination)
+        _inputStateFlow.value = _inputStateFlow.value.copy(destination = effectiveDestination(destination))
     }
 
     fun onInputAmount(amount: String) {
@@ -209,7 +235,7 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
     private var addressInfoJob: Job? = null
 
     fun onDestinationEntered(address: String) {
-        val destination = address.trim()
+        val destination = effectiveDestination(address)
         if (destination.isEmpty()) {
             _addressInfoFlow.value = null
             return
@@ -253,7 +279,7 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
         }
         val isValid =
             chain.isValidAddress(destination) ||
-                (chain == MBlockchain.ton && DNSHelpers.isDnsDomain(destination))
+                (chain == MBlockchain.ton && (DNSHelpers.isDnsDomain(destination) || TmailHelpers.isTmailAlias(destination)))
         if (!isValid) return null
         val network = AccountStore.activeAccount?.network ?: return null
         return try {
@@ -731,6 +757,8 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
     }
 
     companion object {
+        private const val TMAIL_SUFFIX = "@tmail.ton"
+
         val INVALID_ADDRESS_ERRORS = setOf(
             MApiAnyDisplayError.DOMAIN_NOT_RESOLVED,
             MApiAnyDisplayError.INVALID_ADDRESS,
@@ -806,7 +834,7 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
                 destination != AccountStore.activeAccount?.tronAddress &&
                     (
                         chain?.isValidAddress(destination) != false ||
-                            (chain == MBlockchain.ton && DNSHelpers.isDnsDomain(destination))
+                            (chain == MBlockchain.ton && (DNSHelpers.isDnsDomain(destination) || TmailHelpers.isTmailAlias(destination)))
                         )
             if (!isValidAddress) {
                 return ButtonState(

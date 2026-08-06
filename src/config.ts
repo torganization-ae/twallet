@@ -1026,6 +1026,10 @@ export const RENEWABLE_TON_DNS_COLLECTIONS = new Set<string>(
   TON_DNS_ZONES.filter((zone) => zone.isRenewable).map((zone) => zone.resolver),
 );
 
+export const TMAIL_DNS_COLLECTION_ADDRESS = 'EQDPcCeltOvzIsxKWWwf08gUoGPh37ZzOSxKqhAPWTQi-VQc';
+export const TMAIL_DOMAIN_SUFFIX = '@tmail.ton';
+export const TMAIL_ALIAS_REGEX = /^[a-z0-9]([-_+a-z0-9]{0,62}[a-z0-9])?$/;
+
 export const DEFAULT_AUTOLOCK_OPTION: AutolockValueType = '3';
 export const WRONG_ATTEMPTS_BEFORE_LOG_OUT_SUGGESTION = 2;
 

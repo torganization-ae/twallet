@@ -189,6 +189,11 @@ No price data: No price data
 Price Copied: Price Copied
 Recipient Address: Recipient Address
 Wallet address or domain: Wallet address or domain
+"tmail or DNS": "tmail or DNS"
+Alias type: Alias type
+Address or TON DNS: Address or TON DNS
+"@tmail.ton alias": "@tmail.ton alias"
+Alias name: Alias name
 Incorrect address: Incorrect address
 Incorrect address.: Incorrect address.
 Paste: Paste

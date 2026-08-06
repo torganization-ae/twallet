@@ -20,6 +20,6 @@ public extension ApiChain {
 
     func isValidDomain(_ domain: String) -> Bool {
         guard isSupported else { return false }
-        return config.isDnsSupported && DNSHelpers.isDnsDomain(domain)
+        return config.isDnsSupported && (DNSHelpers.isDnsDomain(domain) || TmailHelpers.isTmailAlias(domain))
     }
 }

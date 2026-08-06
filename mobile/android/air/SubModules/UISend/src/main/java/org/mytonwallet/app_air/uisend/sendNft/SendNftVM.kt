@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.mytonwallet.app_air.walletbasecontext.localization.LocaleController
 import org.mytonwallet.app_air.walletcontext.helpers.DNSHelpers
+import org.mytonwallet.app_air.walletcontext.helpers.TmailHelpers
 import org.mytonwallet.app_air.walletcore.WalletCore
 import org.mytonwallet.app_air.walletcore.models.MAccount
 import org.mytonwallet.app_air.walletcore.models.MBridgeError
@@ -167,9 +168,9 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
         }
 
         val isValid =
-            chain.isValidAddress(destination) || (chain == MBlockchain.ton && DNSHelpers.isDnsDomain(
+            chain.isValidAddress(destination) || (chain == MBlockchain.ton && (DNSHelpers.isDnsDomain(
                 destination
-            ))
+            ) || TmailHelpers.isTmailAlias(destination)))
         if (!isValid) {
             return null
         }

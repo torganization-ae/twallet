@@ -25,7 +25,12 @@ struct RecipientAddressSection: View {
             } header: {
                 Text(lang("Recipient Address"))
             }
-            
+
+            if model.shouldShowAliasSelector {
+                AliasTypeSelector(model: model)
+                    .padding(.top, -4)
+            }
+
             Group {
                 if model.isFocused {
                     AddressSuggestions(model: model)
@@ -33,6 +38,51 @@ struct RecipientAddressSection: View {
                 }
             }
             .animation(.default, value: model.isFocused)
+        }
+    }
+}
+
+private struct AliasTypeSelector: View {
+
+    var model: AddressInputModel
+
+    var body: some View {
+        @Perception.Bindable var model = model
+        WithPerceptionTracking {
+            Menu {
+                ForEach(AliasMode.allCases) { mode in
+                    Button(action: { model.setAliasMode(mode) }) {
+                        if model.aliasMode == mode {
+                            Label(title(for: mode), systemImage: "checkmark")
+                        } else {
+                            Text(title(for: mode))
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Text(lang("Alias type"))
+                        .foregroundStyle(Color.air.primaryLabel)
+                    Text(title(for: model.aliasMode))
+                        .foregroundStyle(Color.air.secondaryLabel)
+                    Image(systemName: "chevron.down")
+                        .imageScale(.small)
+                        .foregroundStyle(Color.air.secondaryLabel)
+                }
+                .font(.subheadline)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(Color.air.secondaryBackground, in: .capsule)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16)
+        }
+    }
+
+    private func title(for mode: AliasMode) -> String {
+        switch mode {
+        case .auto: return lang("Address or TON DNS")
+        case .tmail: return lang("@tmail.ton alias")
         }
     }
 }
@@ -55,7 +105,7 @@ private struct Cell: View {
                 .offset(y: 1)
                 .background(alignment: .leading) {
                     if model.source.isEmpty {
-                        Text(lang("Wallet address or domain"))
+                        Text(model.aliasMode == .tmail ? lang("Alias name") : lang("Wallet address or domain"))
                             .foregroundStyle(Color(UIColor.placeholderText))
                     }
                 }
@@ -121,6 +171,9 @@ private struct Cell: View {
     func onClear() {
         model.source = .constant("")
         model.textFieldInput = ""
+        if model.aliasMode == .tmail {
+            model.setAliasMode(.auto)
+        }
     }
 }
 

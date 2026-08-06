@@ -2,6 +2,7 @@ import type { ApiChain } from '../api/types';
 
 import { getChainConfig, getSupportedChains } from './chain';
 import { isTonChainDns } from './dns';
+import { isTmailAlias } from './tmail';
 
 export function isValidAddress(address: string, chain: ApiChain, allowPrefix?: boolean) {
   if (!address) {
@@ -13,7 +14,7 @@ export function isValidAddress(address: string, chain: ApiChain, allowPrefix?: b
 
 export function isValidAddressOrDomain(address: string, chain: ApiChain, allowPrefix?: boolean) {
   return isValidAddress(address, chain, allowPrefix)
-    || (getChainConfig(chain).isDnsSupported && isTonChainDns(address));
+    || (getChainConfig(chain).isDnsSupported && (isTonChainDns(address) || isTmailAlias(address)));
 }
 
 export function getChainFromAddress(
