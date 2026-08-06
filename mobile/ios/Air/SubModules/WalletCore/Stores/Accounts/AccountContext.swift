@@ -107,9 +107,6 @@ public final class AccountContext: Sendable {
     public var balances: [String: BigInt] {
         balancesStore.getAccountBalances(accountId: accountId)
     }
-    public var nft: ApiNft? {
-        accountSettings.for(accountId: accountId).backgroundNft
-    }
     public var accentColor: UIColor {
         let index = accountSettings.for(accountId: accountId).accentColorIndex
         let color = getAccentColorByIndex(index)
@@ -139,9 +136,6 @@ public final class AccountContext: Sendable {
     }
     public var config: AccountConfig {
         accountConfigStore.for(accountId: accountId)
-    }
-    public var activePromotion: ApiPromotion? {
-        config.activePromotion
     }
     public var isMfaEnabled: Bool {
         config.isMfaEnabled

@@ -16,9 +16,6 @@ enum class DeeplinkOpenSource {
 
     val requiresFreshAuth: Boolean
         get() = this != INTERNAL_UI
-
-    val canRouteOfframp: Boolean
-        get() = this == OS_EXTERNAL || this == INTERNAL_UI
 }
 
 interface WalletContextManagerDelegate {

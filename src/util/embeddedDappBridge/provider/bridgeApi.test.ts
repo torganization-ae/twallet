@@ -35,7 +35,7 @@ describe('buildBridgeApi', () => {
 
   it('should mark window open deeplinks as in-app browser sourced', () => {
     const bridgeApi = buildBridgeApi('https://trusted.example');
-    const url = 'mtw://offramp?depositWalletAddress=UQAddress&baseCurrencyCode=ton';
+    const url = 'mtw://swap?in=ton&out=usdt';
 
     bridgeApi['window:open']({ url });
 

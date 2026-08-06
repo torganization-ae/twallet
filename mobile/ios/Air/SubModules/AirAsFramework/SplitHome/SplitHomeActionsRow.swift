@@ -276,24 +276,14 @@ private final class SplitHomeActionsViewModel: WalletCoreData.EventsObserver {
     }
     
     private func updateItems() {
-        _ = ConfigStore.shared.config
-        let shouldShowBuy = !ConfigStore.shared.shouldRestrictSwapsAndOnRamp
-        let shouldShowSell = !ConfigStore.shared.shouldRestrictSell
-        
         var updatedItems: [SplitHomeActionItem]
         if account.isView {
             updatedItems = [.deposit]
             updatedItems.append(.scan)
         } else {
             updatedItems = [.deposit]
-            if shouldShowBuy {
-                updatedItems.append(.buy)
-            }
             if account.supportsSend {
                 updatedItems.append(.send)
-            }
-            if account.supportsSend, shouldShowSell {
-                updatedItems.append(.sell)
             }
             if account.supportsSwap {
                 updatedItems.append(.swap)
@@ -303,7 +293,7 @@ private final class SplitHomeActionsViewModel: WalletCoreData.EventsObserver {
             }
             updatedItems.append(.scan)
         }
-        
+
         guard updatedItems != items else { return }
         items = updatedItems
         onItemsChanged?(updatedItems)

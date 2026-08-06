@@ -116,7 +116,6 @@ public extension MAccount {
             }
         }
 
-        /// Builds NSAttributedString similar to `MtwCardAddressLine` (list style)
         public func attributedString(font: UIFont, color: UIColor, maxChainCount: Int? = nil, multichainAddressCount: Int = 2) -> NSAttributedString {
             let result = NSMutableAttributedString()
             let iconSize: CGFloat = font.pointSize

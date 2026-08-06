@@ -50,67 +50,7 @@ $signSizeDiff: 0.375rem;
   margin-left: auto
 }
 
-.promoLayer {
-  pointer-events: none;
-
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-
-  overflow: visible;
-}
-
-.promoBg,
-.promoOverlay {
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-  right: 0;
-
-  &_img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
-.promoBg {
-  z-index: var(--z-card-promo);
-}
-
-.promoOverlay {
-  z-index: var(--z-card-promo-overlay);
-}
-
-.promoMascot {
-  pointer-events: auto;
-  cursor: var(--custom-cursor, pointer);
-
-  position: absolute;
-  z-index: var(--z-card-mascot);
-  top: 0;
-  right: 0;
-  transform: translate(
-    var(--promo-mascot-right, 0px),
-    calc(var(--promo-mascot-top, 0px) * -1)
-  ) rotate(var(--promo-mascot-rotation, 0deg));
-
-  overflow: visible;
-
-  width: var(--promo-mascot-width, 4rem);
-  height: var(--promo-mascot-height, 4rem);
-}
-
-.promoMascot img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.seasonalGarland {
+.seasonalPlaceholder {
   pointer-events: auto;
 
   position: absolute;
@@ -122,20 +62,6 @@ $signSizeDiff: 0.375rem;
   overflow: visible;
 
   width: 100%;
-}
-
-.seasonalValentine {
-  pointer-events: auto;
-
-  position: absolute;
-  z-index: var(--z-card-decoration);
-  top: 0.3125rem;
-  left: 0.125rem;
-
-  overflow: visible;
-
-  width: 4.375rem;
-  height: 3rem;
 }
 
 .container {
@@ -452,6 +378,7 @@ $signSizeDiff: 0.375rem;
   line-height: 1;
   color: var(--second-text);
 
+  background: transparent;
   outline: none;
 
   -webkit-touch-callout: none;
@@ -463,20 +390,6 @@ $signSizeDiff: 0.375rem;
   &:hover,
   &:focus-visible {
     color: var(--main-text);
-  }
-
-  &:not(:global(.gradientText)) {
-    background: transparent;
-  }
-
-  &:global(.gradientText) {
-    transition: opacity 150ms;
-
-    &:hover,
-    &:focus-visible {
-      color: var(--second-text);
-      opacity: 0.65;
-    }
   }
 
   @include mixins.respond-below(xs) {
@@ -1025,96 +938,4 @@ $signSizeDiff: 0.375rem;
   height: 0.375rem !important;
 
   opacity: 0.75 !important;
-}
-
-// Custom Card
-.cardCustomBackground {
-  pointer-events: none;
-
-  position: absolute;
-  // For gradient border positioning
-  z-index: 1;
-  top: 0;
-  left: 0;
-
-  width: 100%;
-  height: 100%;
-  border-radius: var(--border-radius-card);
-
-  opacity: 0;
-  background-image: var(--bg);
-  background-clip: border-box;
-  background-origin: border-box;
-  background-size: cover;
-
-  transition: opacity 300ms;
-
-  &.visible {
-    opacity: 1;
-  }
-
-  &::before {
-    content: "";
-
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-
-    padding: 0.125rem;
-    border-radius: var(--border-radius-card);
-
-    background: radial-gradient(24.09% 50.19% at 74.09% 0%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
-    linear-gradient(258.65deg, rgba(140, 148, 176, 0.5) 33.29%, rgba(186, 188, 194, 0.85) 48.38%);
-
-    /* Trim so that the gradient appears only on the borders */
-    mask:
-      linear-gradient(to right, #FFF 0%, #FFF 100%) content-box,
-      linear-gradient(to right, #FFF 0%, #FFF 100%);
-
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-  }
-
-  &:global(.MwCard__standard) {
-    background-clip: border-box, content-box;
-    background-origin: border-box, content-box;
-    background-size: cover, cover;
-  }
-}
-
-// Card's border with shine
-.black::before {
-  background-image: radial-gradient(30.47% 83.28% at 79.45% 3.2%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
-                    linear-gradient(258.65deg, #141518 33.29%, #292929 48.38%);
-}
-
-.platinum::before,
-.gold::before,
-.silver::before {
-  background-image: radial-gradient(24.09% 50.19% at 74.09% 0%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
-                    linear-gradient(258.65deg, rgba(140, 148, 176, 0.5) 33.29%, rgba(186, 188, 194, 0.85) 48.38%);
-}
-
-.borderShine_down::before {
-  background-image: radial-gradient(10.43% 49.81% at 50% 100%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
-                    linear-gradient(258.65deg, rgba(140, 148, 176, 0.5) 33.29%, rgba(186, 188, 194, 0.85) 48.38%);
-}
-
-.borderShine_left::before {
-  background-image: radial-gradient(50% 28.86% at 0% 50.19%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
-                    linear-gradient(258.65deg, rgba(140, 148, 176, 0.5) 33.29%, rgba(186, 188, 194, 0.85) 48.38%);
-}
-
-.borderShine_up::before {
-  background-image: radial-gradient(10.51% 50.19% at 50% 0%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
-                    linear-gradient(258.65deg, rgba(140, 148, 176, 0.5) 33.29%, rgba(186, 188, 194, 0.85) 48.38%);
-
-}
-
-.borderShine_right::before {
-  background-image: radial-gradient(50% 28.86% at 100% 50.19%, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%),
-                    linear-gradient(258.65deg, rgba(140, 148, 176, 0.5) 33.29%, rgba(186, 188, 194, 0.85) 48.38%);
 }

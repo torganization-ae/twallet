@@ -135,10 +135,6 @@ export interface BaseApiTransaction {
 
 export type ApiTransactionMetadata = ApiKnownAddressInfo;
 
-export type ApiMtwCardType = 'black' | 'platinum' | 'gold' | 'silver' | 'standard';
-export type ApiMtwCardTextType = 'light' | 'dark';
-export type ApiMtwCardBorderShineType = 'up' | 'down' | 'left' | 'right' | 'radioactive';
-
 export interface ApiNftAttribute {
   trait_type: string;
   value: string;
@@ -149,10 +145,6 @@ export interface ApiNftMetadata {
   lottie?: string;
   imageUrl?: string;
   fragmentUrl?: string;
-  mtwCardId?: number;
-  mtwCardType?: ApiMtwCardType;
-  mtwCardTextType?: ApiMtwCardTextType;
-  mtwCardBorderShineType?: ApiMtwCardBorderShineType;
 }
 
 export type EvmNftInterface = 'ERC721' | 'ERC1155';

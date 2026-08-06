@@ -30,7 +30,7 @@ public final class SendVC: WNavigationController {
         )
         
         switch sendModel.mode {
-        case .burnNft, .sellToMoonpay:
+        case .burnNft:
             rootVC = SendConfirmVC(model: sendModel)
         case .regular, .sendNft:
             rootVC = SendComposeVC(model: sendModel)

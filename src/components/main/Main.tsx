@@ -13,7 +13,6 @@ import {
   selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectIsCurrentAccountViewMode,
-  selectIsOffRampAllowed,
   selectIsStakingDisabled,
   selectIsSwapDisabled,
   selectToken,
@@ -53,7 +52,6 @@ import VestingModal from '../vesting/VestingModal';
 import VestingPasswordModal from '../vesting/VestingPasswordModal';
 import MainSkeleton from './MainSkeleton';
 import AccountSelectorModal from './modals/accountSelector/AccountSelectorModal';
-import PromotionModal from './modals/PromotionModal';
 import {
   LandscapeNavBar,
   LandscapeWalletList,
@@ -81,8 +79,6 @@ type StateProps = {
   isStakingInfoModalOpen?: boolean;
   isSwapDisabled?: boolean;
   isStakingDisabled?: boolean;
-  isOnRampDisabled?: boolean;
-  isOffRampAllowed?: boolean;
   isMediaViewerOpen?: boolean;
   isAppReady?: boolean;
   theme: Theme;
@@ -101,8 +97,6 @@ function Main({
   isStakingInfoModalOpen,
   isSwapDisabled,
   isStakingDisabled,
-  isOnRampDisabled,
-  isOffRampAllowed,
   isMediaViewerOpen,
   isAppReady,
   theme,
@@ -236,8 +230,6 @@ function Main({
               stakingStatus={stakingStatus}
               isStakingDisabled={isStakingDisabled}
               isSwapDisabled={isSwapDisabled}
-              isOnRampDisabled={isOnRampDisabled}
-              isOffRampDisabled={!isOffRampAllowed}
               onEarnClick={handleEarnClick}
             />
           )}
@@ -312,7 +304,6 @@ function Main({
       <VestingPasswordModal />
       <RenewDomainModal />
       <LinkingDomainModal />
-      <PromotionModal />
       {!IS_ELECTRON && <UpdateAvailable />}
       {!IS_FEATURE_LIMITED && <AccountSelectorModal />}
     </>
@@ -326,8 +317,6 @@ export default memo(
       const accountState = selectCurrentAccountState(global);
       const { currentTokenSlug, isAppReady } = accountState ?? {};
       const currentToken = currentTokenSlug ? selectToken(global, currentTokenSlug) : undefined;
-
-      const { isOnRampDisabled } = global.restrictions;
 
       const stakingState = currentAccountId
         ? selectAccountStakingState(global, currentAccountId)
@@ -343,8 +332,6 @@ export default memo(
         isMediaViewerOpen: Boolean(global.mediaViewer?.mediaId),
         isSwapDisabled: selectIsSwapDisabled(global),
         isStakingDisabled: selectIsStakingDisabled(global),
-        isOnRampDisabled,
-        isOffRampAllowed: selectIsOffRampAllowed(global),
         isAppReady,
         theme: global.settings.theme,
         accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,

@@ -130,7 +130,6 @@ extension ViewWalletWarningFooter {
 
 enum ReceiveItem: Hashable {
     case address
-    case buyWithCard
     case buyWithCrypto
     case depositLink
 
@@ -138,8 +137,6 @@ enum ReceiveItem: Hashable {
         switch self {
         case .address:
             ("", "")
-        case .buyWithCard:
-            ("CardIcon", lang("Buy with Card"))
         case .buyWithCrypto:
             ("CryptoIcon", lang("Buy with Crypto"))
         case .depositLink:

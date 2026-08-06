@@ -1,5 +1,4 @@
 import Foundation
-import WalletContext
 import WalletCoreTypes
 
 // Generated based on TypeScript definition. Do not edit manually.
@@ -11,8 +10,4 @@ public struct ApiNftCollection: Equatable, Hashable, Codable, Sendable {
         self.chain = chain
         self.address = address
     }
-}
-
-extension ApiNftCollection {
-    public static let mtwCardsCollection = ApiNftCollection(chain: .ton, address: MTW_CARDS_COLLECTION)
 }

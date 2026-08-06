@@ -568,9 +568,7 @@ Are you sure you want to disable biometrics?: Are you sure you want to disable b
 Biometric confirmation failed: Biometric confirmation failed
 No Activity: No Activity
 Fund: Fund
-Buy with Card: Buy with Card
 Buy with Crypto: Buy with Crypto
-Cannot load widget: Cannot load widget
 Error: Error
 Explore: Explore
 $lockdown_mode_enabled_title: Lockdown Mode Enabled
@@ -638,7 +636,6 @@ More actions: More actions
 Open on %explorer_name%: Open on %explorer_name%
 Swap is not supported in Testnet.: Swap is not supported in Testnet.
 Swap is not yet supported by Ledger.: Swap is not yet supported by Ledger.
-Buying with card is not supported in Testnet.: Buying with card is not supported in Testnet.
 Staking is not supported in Testnet.: Staking is not supported in Testnet.
 Get Support: Get Support
 $transfer_link_expired: Transfer link has expired
@@ -788,10 +785,6 @@ Add Tokens: Add Tokens
 No tokens yet: No tokens yet
 $no_tokens_description: Receive tokens from another wallet, or simply enable preferred tokens in the settings for monitoring.
 Exchange Rate: Exchange Rate
-Install Card: Install Card
-Reset Card: Reset Card
-Apply Palette: Install Palette
-Reset Palette: Reset Palette
 Notifications & Sounds: Notifications & Sounds
 Sounds: Sounds
 Push Notifications: Push Notifications
@@ -883,21 +876,6 @@ Receiving: Receiving
 $receive_action: Receive
 Change Palette: Change Palette
 Palette: Palette
-Unlock New Palettes: Unlock New Palettes
-Get a unique My Wallet Card to unlock new palettes.: Get a unique My Wallet Card to unlock new palettes.
-Mint Cards: Mint Cards
-Card has been upgraded!: Card has been upgraded!
-$mint_card_result: NFT Card will be **minted** and **installed automatically** within a minute.
-Unique: Unique
-Get a card with unique background and personalized palette for wallet interface.: Get a card with unique background and personalized palette for wallet interface.
-Transferable: Transferable
-Easily send your upgraded card to any of your friends.: Easily send your upgraded card to any of your friends.
-Tradable: Tradable
-Sell or auction your card on third-party NFT marketplaces.: Sell or auction your card on third-party NFT marketplaces.
-Upgrade for %amount% %currency%: Upgrade for %amount% %currency%
-"%amount% left": "%amount% left"
-"%amount% sold": "%amount% sold"
-This card has been sold out: This card has been sold out
 Import Existing Wallet: Import Existing Wallet
 View Any Address: View Any Address
 View Mode: View Mode
@@ -1104,16 +1082,6 @@ No Ledger wallets yet: No Ledger wallets yet
 No view wallets yet: No view wallets yet
 View wallets can receive assets, but you cannot use them to send or sign transactions.: View wallets can receive assets, but you cannot use them to send or sign transactions.
 Add the first one to track balances and activity for any address.: Add the first one to track balances and activity for any address.
-Customize Wallet: Customize Wallet
-"Select the card stored in this wallet:": "Select the card stored in this wallet:"
-This card will be installed for this wallet and will be displayed on the home screen and in the wallets list.: This card will be installed for this wallet and will be displayed on the home screen and in the wallets list.
-Get More Cards: Get More Cards
-Browse My Wallet Cards available for purchase.: Browse My Wallet Cards available for purchase.
-You don’t have any cards to customize yet: You don’t have any cards to customize yet
-My Wallet Cards can be installed for wallets and displayed on the home screen and in the wallet list.: My Wallet Cards can be installed for wallets and displayed on the home screen and in the wallet list.
-Get First Card: Get First Card
-Palette and Card: Palette and Card
-Customize the wallet's home screen and color accents the way you like.: Customize the wallet's home screen and color accents the way you like.
 Address doesn't exist: Address doesn't exist
 The address is not a token minter address: The address is not a token minter address
 $joining_comma: ", "
@@ -1126,11 +1094,8 @@ $no_valid_view_addresses: No valid addresses to view
 Account Saved: Account Saved
 Share Wallet Link: Share Wallet Link
 Remove: Remove
-$missing_offramp_deposit_address: Missing deposit address for off-ramp.
 Buy: Buy
 Sell: Sell
-Sell on Card: Sell on Card
-Sell %symbol%: Sell %symbol%
 $connect_dapp_description: Connected apps can only see your wallet address and will not be able to move your assets without permission.
 $connect_dapp_title: Connect to %name%?
 Choose Wallet: Choose Wallet
@@ -1151,7 +1116,7 @@ confirm an action in My Wallet: confirm an action in My Wallet
 Timed out waiting for account to be ready: Timed out waiting for account to be ready
 $connected_apps:
   otherValue: "%1$d connected"
-Night Mode, Palette, Card: Night Mode, Palette, Card
+Night Mode, Palette: Night Mode, Palette
 Back Up, Passcode, Auto-Lock: Back Up, Passcode, Auto-Lock
 Back Up, Password, Auto-Lock: Back Up, Password, Auto-Lock
 Base Currency, Token Order, Hidden NFTs: Base Currency, Token Order, Hidden NFTs
@@ -1331,7 +1296,6 @@ Add Crypto: Add Crypto
 Share QR Code: Share QR Code
 $send_only_ton: Send only Gram (GRAM) or TON-based assets to this address. Sending other tokens will result in loss.
 $send_only_chain: Send only %chain% (%symbol%) or %chain%-based assets to this address. Sending other tokens will result in loss.
-Buying with card is not supported for this account.: Buying with card is not supported for this account.
 Swapped at: Swapped at
 Price per: Price per
 Swap ID: Swap ID
@@ -1551,7 +1515,6 @@ Use 6-digit Passcode: Use 6-digit Passcode
 Authorize %token% Fee: Authorize %token% Fee
 Awaiting Previous Fee: Awaiting Previous Fee
 Lock: Lock
-My Wallet Cards can be installed for wallets and displayed on the home screen an in the wallet list.: My Wallet Cards can be installed for wallets and displayed on the home screen an in the wallet list.
 Receive: Receive
 Scan: Scan
 

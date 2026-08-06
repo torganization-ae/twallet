@@ -638,14 +638,6 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     cached.stateVersion = 56;
   }
   if (cached.stateVersion === 56) {
-    // `nfts.ownedMtwCardAddresses` renamed to `ownedMwCardAddresses` (MTW -> MW rebrand)
-    for (const accountId of Object.keys(cached.byAccountId)) {
-      const accountNfts = cached.byAccountId[accountId].nfts;
-      if (accountNfts && (accountNfts as any).ownedMtwCardAddresses !== undefined) {
-        accountNfts.ownedMwCardAddresses = (accountNfts as any).ownedMtwCardAddresses;
-        delete (accountNfts as any).ownedMtwCardAddresses;
-      }
-    }
     cached.stateVersion = 57;
   }
   if (cached.stateVersion === 57) {
@@ -805,11 +797,10 @@ function reduceByAccountId(global: GlobalState) {
       'dapps',
     ]);
 
-    if (state.nfts?.collectionTabs || state.nfts?.ownedMwCardAddresses) {
+    if (state.nfts?.collectionTabs || state.nfts?.wasTelegramGiftsAutoAdded) {
       acc[accountId].nfts = {
         collectionTabs: state.nfts.collectionTabs,
         wasTelegramGiftsAutoAdded: state.nfts.wasTelegramGiftsAutoAdded,
-        ownedMwCardAddresses: state.nfts.ownedMwCardAddresses,
       };
     }
 

@@ -34,10 +34,8 @@ import app.twallet.air.uicomponents.widgets.WFrameLayout
 import app.twallet.air.uicomponents.widgets.WProtectedView
 import app.twallet.air.uicomponents.widgets.WThemedView
 import app.twallet.air.uicomponents.widgets.fadeIn
-import app.twallet.air.uireceive.BuyWithCardLauncher
 import app.twallet.air.uireceive.ReceiveVC
 import app.twallet.air.uisend.send.MultisendLauncher
-import app.twallet.air.uisend.send.SellWithCardLauncher
 import app.twallet.air.uisend.send.SendVC
 import app.twallet.air.uistake.earn.EarnRootVC
 import app.twallet.air.uistake.earn.EarnViewModel
@@ -208,10 +206,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         WalletConnectPayController(window!!)
     }
 
-    private fun isSellAllowed(): Boolean {
-        return homeVM.showingAccount?.supportsBuyWithCard == true// && ConfigStore.isLimited != true
-    }
-
     private var prevActivityListView =
         ActivityListView(
             context,
@@ -309,11 +303,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         }
 
     var panelHeaderView: HomeHeaderView? = null
-        set(value) {
-            field = value
-            value?.updateMintIconVisibility()
-            value?.updatePromotion()
-        }
 
     val overrideAccountIds: Array<String>?
         get() = (mode as? MScreenMode.SingleWallet)?.let { arrayOf(it.accountId) }
@@ -407,16 +396,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         }
     private val actionsCellView: WCell get() = actionsView.asCell
 
-    private fun openSellWithCard(tokenSlug: String) {
-        if (!isSellAllowed()) return
-        val activeAccount = headerView.centerAccount ?: homeVM.showingAccount ?: return
-        SellWithCardLauncher.launch(
-            caller = WeakReference(this),
-            account = activeAccount,
-            tokenSlug = tokenSlug,
-        )
-    }
-
     override fun onHeaderAction(identifier: HeaderActionsView.Identifier) {
         onClick(identifier)
     }
@@ -433,11 +412,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
 
             HeaderActionsView.Identifier.TOGGLE_SENSITIVE_DATA_PROTECTION -> {
                 WGlobalStorage.toggleSensitiveDataHidden()
-            }
-
-            HeaderActionsView.Identifier.BUY -> {
-                val chain = homeVM.showingAccount?.firstChain ?: return
-                BuyWithCardLauncher.launch(WeakReference(this), chain.name)
             }
 
             HeaderActionsView.Identifier.RECEIVE -> {
@@ -460,10 +434,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
                 )
                 navVC.setRoot(SendVC(context))
                 window?.present(navVC)
-            }
-
-            HeaderActionsView.Identifier.SELL -> {
-                openSellWithCard(TONCOIN_SLUG)
             }
 
             HeaderActionsView.Identifier.MULTISEND -> {
@@ -1231,7 +1201,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         skipSkeletonOnCache: Boolean
     ) {
         stickyHeaderView.updateActions()
-        accountConfigChanged()
         val account = headerView.centerAccount ?: homeVM.showingAccount
         configureActivityLists(shouldLoadNewWallets, skipSkeletonOnCache)
         if (isWideHome) {
@@ -1260,13 +1229,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         phoneHeaderView.accountRenamed(accountId, accountName)
         if (headerView.centerAccount?.accountId == accountId)
             phoneHeaderView.updateAccountName(accountName)
-    }
-
-    override fun accountConfigChanged() {
-        phoneHeaderView.updateMintIconVisibility()
-        phoneHeaderView.updatePromotion()
-        panelHeaderView?.updateMintIconVisibility()
-        panelHeaderView?.updatePromotion()
     }
 
     override fun seasonalThemeChanged() {

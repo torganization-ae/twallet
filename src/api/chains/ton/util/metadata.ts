@@ -11,13 +11,8 @@ import type { JettonMetadata } from '../types';
 import {
   type ApiActivity,
   type ApiAnyDisplayError,
-  type ApiMtwCardBorderShineType,
-  type ApiMtwCardTextType,
-  type ApiMtwCardType,
   type ApiNetwork,
   type ApiNft,
-  type ApiNftAttribute,
-  type ApiNftMetadata,
   type ApiNftSuperCollection,
   type ApiParsedPayload,
   ApiTokenImportError,
@@ -26,13 +21,11 @@ import {
 import {
   DEBUG,
   LIQUID_JETTON,
-  MW_CARDS_COLLECTION,
   NFT_FRAGMENT_COLLECTIONS,
   NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX,
   TELEGRAM_GIFTS_SUPER_COLLECTION,
 } from '../../../../config';
 import { fetchJsonWithProxy, fixIpfsUrl, getProxiedLottieUrl } from '../../../../util/fetch';
-import isEmptyObject from '../../../../util/isEmptyObject';
 import { omitUndefined, pick, range } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import {
@@ -584,52 +577,6 @@ export function readSnakeBytes(slice: Slice) {
   return buffer;
 }
 
-export function buildMwCardsNftMetadata(metadata: {
-  image?: string;
-  id?: number;
-  attributes?: ApiNftAttribute[];
-}): ApiNftMetadata | undefined {
-  const { id, image, attributes } = metadata;
-
-  let mtwCardType: ApiMtwCardType | undefined;
-  let mtwCardTextType: ApiMtwCardTextType | undefined;
-  let result: ApiNftMetadata = {};
-  if (image) result.imageUrl = image;
-  if (id !== undefined) result.mtwCardId = id;
-
-  if (attributes && Array.isArray(attributes) && attributes.length) {
-    mtwCardType = attributes
-      .find((attribute) => attribute.trait_type === 'Card Type')?.value
-      // Clean non-ascii characters with regex
-      .replace(/[^\x20-\x7E]/g, '')
-      .trim()
-      .toLowerCase() as ApiMtwCardType;
-
-    if (mtwCardType) {
-      mtwCardTextType = attributes
-        .find((attribute) => attribute.trait_type === 'Text')?.value
-        .toLowerCase() as ApiMtwCardTextType;
-
-      result.mtwCardType = mtwCardType;
-      if (mtwCardType === 'standard') {
-        result.mtwCardBorderShineType = attributes
-          .find((attribute) => attribute.trait_type === 'Shine')?.value
-          .toLowerCase() as ApiMtwCardBorderShineType;
-      }
-
-      if (mtwCardTextType === 'dark' || mtwCardType === 'silver') {
-        result.mtwCardTextType = 'dark';
-      } else {
-        result.mtwCardTextType = 'light';
-      }
-
-      result = omitUndefined(result);
-    }
-  }
-
-  return !isEmptyObject(result) ? result : undefined;
-}
-
 export function parseTonapiioNft(
   network: ApiNetwork,
   rawNft: NftItem,
@@ -690,7 +637,6 @@ export function parseTonapiioNft(
         attributes: attributes.filter((a) => typeof a.value === 'string'),
       }),
       ...(isWhitelisted && lottie && { lottie: getProxiedLottieUrl(lottie) }),
-      ...(collectionAddress === MW_CARDS_COLLECTION && buildMwCardsNftMetadata(rawMetadata)),
       ...(isFragmentGift && { fragmentUrl: image!.replace(NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX, 'https://$1') }),
     };
 

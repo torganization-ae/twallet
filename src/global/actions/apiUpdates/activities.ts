@@ -1,13 +1,7 @@
-import type { ApiActivity, ApiChain, ApiTransactionActivity } from '../../../api/types';
+import type { ApiActivity, ApiChain } from '../../../api/types';
 import type { GlobalState } from '../../types';
 
-import {
-  IS_FEATURE_LIMITED,
-  IS_MY_WALLET_BRAND,
-  MINT_CARD_ADDRESS,
-  MINT_CARD_REFUND_COMMENT,
-  MW_CARDS_COLLECTION,
-} from '../../../config';
+import { IS_FEATURE_LIMITED } from '../../../config';
 import { getActivityIdReplacements, getIsHiddenNftActivity } from '../../../util/activities';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
 import { getIsTransactionWithPoisoning, updatePoisoningCacheFromActivities } from '../../../util/poisoningHash';
@@ -19,7 +13,6 @@ import { addActionHandler, getActions, getGlobal, setGlobal } from '../../index'
 import {
   addInitialActivities,
   addNewActivities,
-  addNft,
   applyIncomingNftFromActivity,
   applyOutgoingNftFromActivity,
   removeActivities,
@@ -28,12 +21,10 @@ import {
   replaceCurrentDomainRenewalId,
   replaceCurrentSwapId,
   replaceCurrentTransferId,
-  updateAccountState,
   updatePendingActivitiesToTrustedByReplacements,
   updatePendingActivitiesWithTrustedStatus,
 } from '../../reducers';
 import {
-  selectAccountSettings,
   selectAccountState,
   selectAccountTokens,
   selectLocalActivitiesSlow,
@@ -116,7 +107,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       if (!IS_FEATURE_LIMITED) {
         // NFT polling is executed at long intervals, so a transaction-event with an NFT can arrive
         // long before the next polling round. Apply the change to local NFT state immediately so the UI
-        // reflects new ownership (incl. MW-card auto-install) without waiting for polling.
+        // reflects new ownership without waiting for polling.
         // A subsequent `nftReceived`/`nftSent` socket update or polling round is idempotent here.
         for (const activity of newConfirmedActivities) {
           if (activity.kind !== 'transaction' || !activity.nft) continue;
@@ -127,27 +118,9 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
           if (isNftIncoming) {
             global = applyIncomingNftFromActivity(global, accountId, activity.nft);
-
-            // Auto-installing a card is only safe where the card can also be taken off: every removal surface
-            // (customization modal, accent picker, the NFT menu's reset action) belongs to the My Wallet brand
-            if (IS_MY_WALLET_BRAND && activity.nft.collectionAddress === MW_CARDS_COLLECTION) {
-              const settings = selectAccountSettings(global, accountId);
-
-              if (!settings?.cardBackgroundNft) {
-                getActions().setCardBackgroundNft({ nft: activity.nft, accountId });
-                getActions().installAccentColorFromNft({ nft: activity.nft, accountId });
-              }
-            }
           } else {
-            // `newOwnerAddress` is `unknown` from the sender's activity; `ownedSet` pruning is the meaningful effect
             global = applyOutgoingNftFromActivity(global, accountId, activity.nft);
           }
-        }
-
-        // Handles the `isCardMinting` flag reset and refund branch. `addNft`/`setCardBackgroundNft` are
-        // idempotent, so the small overlap with the loop above is harmless.
-        if (IS_MY_WALLET_BRAND) {
-          global = processCardMintingActivity(global, accountId, newConfirmedActivities);
         }
       }
 
@@ -183,40 +156,6 @@ function notifyAboutNewActivities(global: GlobalState, accountId: string, newAct
   if (shouldPlaySound) {
     playIncomingTransactionSound();
   }
-}
-
-function processCardMintingActivity(global: GlobalState, accountId: string, activities: ApiActivity[]): GlobalState {
-  const { isCardMinting } = selectAccountState(global, accountId) || {};
-
-  if (!isCardMinting || !activities.length) {
-    return global;
-  }
-
-  const mintCardActivity = activities.find((activity) => {
-    return activity.kind === 'transaction'
-      && activity.isIncoming
-      && activity?.nft?.collectionAddress === MW_CARDS_COLLECTION;
-  });
-
-  const refundActivity = activities.find((activity) => {
-    return activity.kind === 'transaction'
-      && activity.isIncoming
-      && activity.fromAddress === MINT_CARD_ADDRESS
-      && activity?.comment === MINT_CARD_REFUND_COMMENT;
-  });
-
-  if (mintCardActivity) {
-    const nft = (mintCardActivity as ApiTransactionActivity).nft!;
-
-    global = updateAccountState(global, accountId, { isCardMinting: undefined });
-    global = addNft(global, accountId, nft);
-    getActions().setCardBackgroundNft({ nft, accountId });
-    getActions().installAccentColorFromNft({ nft, accountId });
-  } else if (refundActivity) {
-    global = updateAccountState(global, accountId, { isCardMinting: undefined });
-  }
-
-  return global;
 }
 
 function findLocalToChainActivityMatches(

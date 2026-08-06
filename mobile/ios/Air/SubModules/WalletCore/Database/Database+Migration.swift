@@ -308,6 +308,17 @@ func makeMigrator() -> DatabaseMigrator {
             t.add(column: "appTabOrder", .jsonText).defaults(to: "[]").notNull()
         }
     }
+    migrator.registerMigration("v19") { db in
+        try db.alter(table: "account_settings") { t in
+            t.drop(column: "cardBackgroundNft")
+            t.drop(column: "accentColorNft")
+        }
+    }
+    migrator.registerMigration("v20") { db in
+        try db.alter(table: "account_assets_and_activity_data") { t in
+            t.drop(column: "ownedMtwCardAddresses")
+        }
+    }
 
     return migrator
 }

@@ -98,20 +98,13 @@ public final class _NftStore: Sendable {
         let addresses: Set<String>
     }
 
-    private typealias ValidationContext = AccountNftAvailabilityValidationContext
-
-    @PerceptionIgnored
-    private let _pendingNewMtwCardsByAccount: UnfairLock<[String: [ApiNft]]> = .init(initialState: [:])
-    
     private func received(
         accountId: String,
         newNfts: [ApiNft],
         removedNftIds: [String],
         mergeMode: NftsMergeMode = .prepend,
         preferExistingOnConflict: Bool = false,
-        streamPruneContext: StreamPruneContext? = nil,
-        shouldValidateAccountNftAvailability: Bool = false,
-        validationContext: ValidationContext? = nil
+        streamPruneContext: StreamPruneContext? = nil
     ) {
         var nfts = self.nfts[accountId, default: [:]]
         for removedNftId in removedNftIds {
@@ -155,9 +148,6 @@ public final class _NftStore: Sendable {
         _moveHiddenToEnd(accountId: accountId)
         _checkNftsOrder(accountId: accountId)
         saveToCache()
-        if shouldValidateAccountNftAvailability {
-            _removeAccountNftIfNoLongerAvailable(accountId: accountId, context: validationContext)
-        }
         WalletCoreData.notify(event: .nftsChanged(accountId: accountId))
     }
 
@@ -218,7 +208,6 @@ public final class _NftStore: Sendable {
     
     public func clean() {
         _nfts.withLock { $0 = [:] }
-        _pendingNewMtwCardsByAccount.withLock { $0 = [:] }
         saveToCache()
     }
     
@@ -417,81 +406,6 @@ public final class _NftStore: Sendable {
         return collectionNfts
     }
     
-    public func getAccountMtwCards(accountId: String) -> OrderedDictionary<String, ApiNft> {
-        getCollectionItems(accountId: accountId, collectionAddress: MTW_CARDS_COLLECTION, chain: .ton).mapValues(\.nft)
-    }
-
-    public func applyIncomingMtwCard(accountId: String, nft: ApiNft) {
-        guard nft.collectionAddress == MTW_CARDS_COLLECTION else {
-            return
-        }
-        Task {
-            let isNewCard = await AssetsAndActivityDataStore.addOwnedMtwCardAddressIfNeeded(
-                accountId: accountId,
-                address: nft.address
-            )
-            guard isNewCard else {
-                return
-            }
-            await installMtwCardIfNeeded(accountId: accountId, nft: nft)
-        }
-    }
-
-    public func pruneOwnedMtwCardAddress(accountId: String, nftAddress: String) {
-        Task {
-            await AssetsAndActivityDataStore.pruneOwnedMtwCardAddress(accountId: accountId, address: nftAddress)
-        }
-    }
-
-    private func appendPendingNewMtwCards(accountId: String, cards: [ApiNft]) {
-        guard !cards.isEmpty else {
-            return
-        }
-        _pendingNewMtwCardsByAccount.withLock {
-            $0[accountId, default: []].append(contentsOf: cards)
-        }
-    }
-
-    private func drainPendingNewMtwCards(accountId: String, currentNfts: some Collection<DisplayNft>) {
-        let candidates = _pendingNewMtwCardsByAccount.withLock {
-            $0.removeValue(forKey: accountId) ?? []
-        }
-        let ownedAddresses = currentNfts
-            .map(\.nft)
-            .filter { $0.collectionAddress == MTW_CARDS_COLLECTION }
-            .map(\.address)
-        let ownedAddressSet = Set(ownedAddresses)
-        Task {
-            await AssetsAndActivityDataStore.setOwnedMtwCardAddresses(
-                accountId: accountId,
-                addresses: ownedAddresses
-            )
-            guard let rarest = candidates
-                .filter({ ownedAddressSet.contains($0.address) })
-                .min(by: { mtwCardRank($0) < mtwCardRank($1) })
-            else {
-                return
-            }
-            await installMtwCardIfNeeded(accountId: accountId, nft: rarest)
-        }
-    }
-
-    private func mtwCardRank(_ nft: ApiNft) -> Int {
-        nft.metadata?.mtwCardId ?? nft.index ?? Int.max
-    }
-
-    @MainActor
-    private func installMtwCardIfNeeded(accountId: String, nft: ApiNft) {
-        @Dependency(\.accountSettings) var accountSettingsStore
-        let accountSettings = accountSettingsStore.for(accountId: accountId)
-        guard accountSettings.backgroundNft == nil else {
-            return
-        }
-        log.info("cardBackground.autoInstall accountId=\(accountId, .public) nftAddress=\(nft.address, .public) nftChain=\(nft.chain.rawValue, .public) nftMtwId=\(nft.metadata?.mtwCardId as Any, .public)")
-        accountSettings.setBackgroundNft(nft)
-        accountSettings.setAccentColorNft(nft)
-    }
-    
     // MARK: - Private
     
     private func _moveHiddenToEnd(accountId: String) {
@@ -522,47 +436,6 @@ public final class _NftStore: Sendable {
         }
     }
     
-    private func _removeAccountNftIfNoLongerAvailable(accountId: String, context: ValidationContext?) {
-        guard let context else {
-            log.info("accountNft.validationSkipped accountId=\(accountId, .public) reason=unknown skipReason=missingValidationContext")
-            return
-        }
-
-        if let nfts = self.nfts[accountId] {
-            let nftIds = Set(nfts.values.filter { $0.nft.chain == context.chain }.map(\.nft.id))
-            let nftAddresses = Set(nfts.values.filter { $0.nft.chain == context.chain }.map(\.nft.address))
-            let cachedCount = nfts.values.count { $0.nft.chain == context.chain }
-            Task { @MainActor in
-                @Dependency(\.accountSettings) var _accountSettings
-                let accountSettings = _accountSettings.for(accountId: accountId)
-                if let nft = accountSettings.backgroundNft,
-                   nft.chain == context.chain {
-                    if AccountNftAvailabilityValidator.shouldClearAccountNft(
-                        nft: nft,
-                        context: context,
-                        nftIds: nftIds,
-                        nftAddresses: nftAddresses
-                    ) {
-                        log.info("cardBackground.validationCleared accountId=\(accountId, .public) reason=\(context.reason, .public) validatedChain=\(context.chain.rawValue, .public) cardId=\(nft.id, .public) cardAddress=\(nft.address, .public) cardChain=\(nft.chain.rawValue, .public) cardMtwId=\(nft.metadata?.mtwCardId as Any, .public) cachedCount=\(cachedCount) streamedCount=\(context.authoritativeAddresses?.count as Any, .public) streamHasAddress=\((context.authoritativeAddresses?.contains(nft.address)) as Any, .public) cachedHasAddress=\(nftAddresses.contains(nft.address))")
-                        accountSettings.setBackgroundNft(nil)
-                    }
-                }
-                if let nft = accountSettings.accentColorNft,
-                   nft.chain == context.chain {
-                    if AccountNftAvailabilityValidator.shouldClearAccountNft(
-                        nft: nft,
-                        context: context,
-                        nftIds: nftIds,
-                        nftAddresses: nftAddresses
-                    ) {
-                        log.info("accentColorNft.validationCleared accountId=\(accountId, .public) reason=\(context.reason, .public) validatedChain=\(context.chain.rawValue, .public) nftId=\(nft.id, .public) nftAddress=\(nft.address, .public) nftChain=\(nft.chain.rawValue, .public) nftMtwId=\(nft.metadata?.mtwCardId as Any, .public) cachedCount=\(cachedCount) streamedCount=\(context.authoritativeAddresses?.count as Any, .public) streamHasAddress=\((context.authoritativeAddresses?.contains(nft.address)) as Any, .public) cachedHasAddress=\(nftAddresses.contains(nft.address))")
-                        accountSettings.setAccentColorNft(nil)
-                    }
-                }
-            }
-        }
-    }
-
     private func parseCollectionReference(_ value: String) -> (chain: ApiChain?, address: String) {
         let items = value.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
         if items.count == 2, !items[1].isEmpty {
@@ -586,22 +459,11 @@ extension _NftStore: WalletCoreData.EventsObserver {
         switch event {
         case .accountDeleted(let accountId):
             _nfts.withLock { $0[accountId] = nil }
-            _pendingNewMtwCardsByAccount.withLock { $0[accountId] = nil }
 
         case .updateNfts(let update):
             let shouldAppend = update.collectionAddress != nil || update.isFullLoading == true
             let streamPruneContext = update.streamedAddresses.map {
                 StreamPruneContext(chain: update.chain, addresses: Set($0))
-            }
-            if update.chain == .ton {
-                let ownedMtwCardAddresses = Set(
-                    AssetsAndActivityDataStore.ownedMtwCardAddresses(accountId: update.accountId)
-                )
-                let newMtwCards = update.nfts.filter {
-                    $0.collectionAddress == MTW_CARDS_COLLECTION
-                        && !ownedMtwCardAddresses.contains($0.address)
-                }
-                appendPendingNewMtwCards(accountId: update.accountId, cards: newMtwCards)
             }
             if let streamedAddresses = update.streamedAddresses {
                 log.info("nftStore.streamFinal accountId=\(update.accountId, .public) chain=\(update.chain.rawValue, .public) streamedCount=\(streamedAddresses.count) incomingCount=\(update.nfts.count) shouldAppend=\(shouldAppend)")
@@ -613,40 +475,18 @@ extension _NftStore: WalletCoreData.EventsObserver {
                 removedNftIds: [],
                 mergeMode: shouldAppend ? .append : .prepend,
                 preferExistingOnConflict: shouldAppend,
-                streamPruneContext: streamPruneContext,
-                shouldValidateAccountNftAvailability: streamPruneContext != nil,
-                validationContext: streamPruneContext.map {
-                    ValidationContext(
-                        reason: "streamFinal:\($0.chain.rawValue):count=\($0.addresses.count)",
-                        chain: $0.chain,
-                        authoritativeAddresses: $0.addresses,
-                        removedAddress: nil
-                    )
-                }
+                streamPruneContext: streamPruneContext
             )
-            if streamPruneContext != nil {
-                let currentNfts = nfts[update.accountId].map { Array($0.values) } ?? []
-                drainPendingNewMtwCards(accountId: update.accountId, currentNfts: currentNfts)
-            }
 
         case .nftReceived(let update):
             self.received(accountId: update.accountId, newNfts: [update.nft], removedNftIds: [])
-            applyIncomingMtwCard(accountId: update.accountId, nft: update.nft)
 
         case .nftSent(let update):
             self.received(
                 accountId: update.accountId,
                 newNfts: [],
-                removedNftIds: [ApiNft.id(chain: update.chain, address: update.nftAddress)],
-                shouldValidateAccountNftAvailability: true,
-                validationContext: ValidationContext(
-                    reason: "nftSent:\(update.chain.rawValue):\(update.nftAddress)",
-                    chain: update.chain,
-                    authoritativeAddresses: nil,
-                    removedAddress: update.nftAddress
-                )
+                removedNftIds: [ApiNft.id(chain: update.chain, address: update.nftAddress)]
             )
-            pruneOwnedMtwCardAddress(accountId: update.accountId, nftAddress: update.nftAddress)
 
         case .nftPutUpForSale(let update):
             markNftAsOnSale(accountId: update.accountId, nftId: update.nftAddress)
@@ -704,7 +544,7 @@ public struct UserCollectionsInfo {
 public extension _NftStore {
     @MainActor func configureForPreview() {
         _nfts.withLock {
-            $0[""] = [ApiNft.sample, ApiNft.sampleMtwCard]
+            $0[""] = [ApiNft.sample]
                 .map { DisplayNft(nft: $0, isHiddenByUser: false) } .orderedDictionaryByKey(\.id)
         }
     }

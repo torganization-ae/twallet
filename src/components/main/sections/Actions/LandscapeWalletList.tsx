@@ -93,7 +93,6 @@ function LandscapeWalletList({
           title={title}
           isSelected={accountId === currentAccountId}
           balanceData={balancesByAccountId[accountId]}
-          cardBackgroundNft={settingsByAccountId?.[accountId]?.cardBackgroundNft}
           isSensitiveDataHidden={isSensitiveDataHidden}
           className={styles.item}
           avatarClassName={styles.itemAvatar}

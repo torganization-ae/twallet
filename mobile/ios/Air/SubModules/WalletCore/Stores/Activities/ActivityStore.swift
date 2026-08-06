@@ -160,8 +160,7 @@ public actor _ActivityStore: WalletCoreData.EventsObserver {
         
         addNewActivities(accountId: accountId, newActivities: newConfirmedActivities, chain: nil)
         updatePoisoningCache(accountId: accountId, activities: newConfirmedActivities)
-        applyMtwCardsFromActivities(accountId: accountId, activities: newConfirmedActivities)
-        
+
         if let chain = update.chain {
             setIsInitialActivitiesLoadedTrue(accountId: accountId, chain: chain);
         }
@@ -1054,26 +1053,5 @@ public actor _ActivityStore: WalletCoreData.EventsObserver {
             return false
         }
         return NftStore.shouldHideTransaction(accountId: accountId, nft: nft)
-    }
-
-    private func applyMtwCardsFromActivities(accountId: String, activities: some Collection<ApiActivity>) {
-        for activity in activities {
-            guard activity.isConfirmedOrCompleted,
-                  !activity.isLocal,
-                  case .transaction(let transaction) = activity,
-                  let nft = transaction.nft
-            else {
-                continue
-            }
-            let isNftIncoming = if transaction.type == .nftTrade {
-                !transaction.isIncoming
-            } else {
-                transaction.isIncoming
-            }
-            guard isNftIncoming else {
-                continue
-            }
-            NftStore.applyIncomingMtwCard(accountId: accountId, nft: nft)
-        }
     }
 }

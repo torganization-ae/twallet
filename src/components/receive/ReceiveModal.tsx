@@ -17,7 +17,6 @@ type StateProps = {
   isLedger?: boolean;
   isTestnet?: boolean;
   isSwapDisabled: boolean;
-  isOnRampDisabled: boolean;
   isMultichainAccount: boolean;
 };
 
@@ -26,7 +25,6 @@ function ReceiveModal({
   isTestnet,
   isLedger,
   isSwapDisabled,
-  isOnRampDisabled,
   isMultichainAccount,
 }: StateProps) {
   const { closeReceiveModal } = getActions();
@@ -34,8 +32,7 @@ function ReceiveModal({
   const lang = useLang();
 
   const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
-  const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
-  const modalTitle = lang(isSwapAllowed || isOnRampAllowed ? 'Fund' : 'Add');
+  const modalTitle = lang(isSwapAllowed ? 'Fund' : 'Add');
 
   return (
     <Modal
@@ -57,7 +54,7 @@ function ReceiveModal({
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { isSwapDisabled, isOnRampDisabled } = global.restrictions;
+  const { isSwapDisabled } = global.restrictions;
   const currentAccountId = selectCurrentAccountId(global);
   const isLedger = selectIsHardwareAccount(global);
   const isMultichainAccount = selectIsMultichainAccount(global, currentAccountId!);
@@ -66,7 +63,6 @@ export default memo(withGlobal((global): StateProps => {
     isOpen: global.isReceiveModalOpen,
     isTestnet: global.settings.isTestnet,
     isSwapDisabled,
-    isOnRampDisabled,
     isLedger,
     isMultichainAccount,
   };

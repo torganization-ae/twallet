@@ -582,9 +582,7 @@ Are you sure you want to disable biometrics?: Ви впевнені, що хоч
 Biometric confirmation failed: Помилка авторизації
 No Activity: Немає активності
 Fund: Поповнити
-Buy with Card: Купівля з картки
 Buy with Crypto: Купівля за криптовалюту
-Cannot load widget: Неможливо завантажити віджет
 Explore: Огляд
 $lockdown_mode_enabled_title: Режим блокування ввімкнено
 $lockdown_mode_walletconnect_unavailable: "WalletConnect недоступний у режимі блокування. Щоб використовувати його, вимкніть режим блокування для %app_name% у Параметри > Приватність і безпека > Режим блокування > Налаштувати веб-перегляд."
@@ -653,7 +651,6 @@ More actions: Більше дій
 Open on %explorer_name%: Відкрити на %explorer_name%
 Swap is not supported in Testnet.: Обмін не підтримується в Testnet.
 Swap is not yet supported by Ledger.: Обмін ще не підтримується Ledger.
-Buying with card is not supported in Testnet.: Купівля за допомогою картки не підтримується в Testnet.
 Staking is not supported in Testnet.: Стейкінг не підтримується в Testnet.
 Get Support: Підтримка
 $transfer_link_expired: Термін дії посилання для переказу закінчився
@@ -797,10 +794,6 @@ Add Tokens: Додати токени
 No tokens yet: Ще немає токенів
 $no_tokens_description: Отримайте токени з іншого гаманця або просто увімкніть потрібні токени в налаштуваннях для моніторингу.
 Exchange Rate: Обмінний курс
-Install Card: Встановити карту
-Reset Card: Скинути карту
-Apply Palette: Застосувати палітру
-Reset Palette: Скинути палітру
 Notifications & Sounds: Сповіщення та звуки
 Sounds: Звуки
 Push Notifications: Сповіщення
@@ -892,21 +885,6 @@ Receiving: Отримання
 $receive_action: Отримання
 Change Palette: Змінити палітру
 Palette: Палітра
-Unlock New Palettes: Відкрити нові палітри
-Get a unique My Wallet Card to unlock new palettes.: Отримайте унікальну карту My Wallet, щоб відкрити нові палітри.
-Mint Cards: Створити карту
-Card has been upgraded!: Карту покращено!
-$mint_card_result: NFT-карта буде **створена** і **автоматично встановлена** протягом хвилини.
-Unique: Унікальність
-Get a card with unique background and personalized palette for wallet interface.: У карти з’явиться унікальний фон, а в гаманці розблокується нова палітра.
-Transferable: Можна передати
-Easily send your upgraded card to any of your friends.: Покращену карту можна легко надіслати будь-якому другові.
-Tradable: Можна продати
-Sell or auction your card on third-party NFT marketplaces.: Карту можна продати або виставити на аукціон на сторонніх NFT-майданчиках.
-Upgrade for %amount% %currency%: Оновлення за %amount% %currency%
-"%amount% left": Залишилося %amount%
-"%amount% sold": Продано %amount%
-This card has been sold out: Ця картка розпродана
 Import Existing Wallet: Імпорт існуючого гаманця
 View Any Address: Перегляд адреси
 View Mode: Режим перегляду
@@ -1119,16 +1097,6 @@ No Ledger wallets yet: Гаманців Ledger поки немає
 No view wallets yet: Гаманців у режимі перегляду поки немає
 View wallets can receive assets, but you cannot use them to send or sign transactions.: Гаманці в режимі перегляду можуть отримувати активи, але їх не можна використовувати для надсилання або підписання транзакцій.
 Додайте першу одну лінію балансів і діяльності для будь-якої адреси.: Додайте перший, щоб відстежувати баланс і активність будь-якої адреси.
-Customize Wallet: Налаштувати гаманець
-"Select the card stored in this wallet:": "Виберіть карту, збережену в цьому гаманці:"
-This card will be installed for this wallet and will be displayed on the home screen and in the wallets list.: Цю карту буде встановлено для гаманця й відображено на головному екрані та в списку гаманців.
-Get More Cards: Отримати більше карт
-Browse My Wallet Cards available for purchase.: Перегляньте доступні для покупки карти My Wallet.
-You don’t have any cards to customize yet: У вас ще немає карт для налаштування.
-My Wallet Cards can be installed for wallets and displayed on the home screen and in the wallet list.: Карти My Wallet можна встановлювати для гаманців і відображати на головному екрані та у списку гаманців.
-Get First Card: Отримати першу карту
-Palette and Card: Палітра і карта
-Customize the wallet's home screen and color accents the way you like.: Налаштуйте головний екран гаманця та кольорові акценти так, як вам подобається.
 Address doesn't exist: Адреса не існує
 The address is not a token minter address: Ця адреса не є адресою мінтера токена
 $joining_comma: ", "
@@ -1141,11 +1109,8 @@ $no_valid_view_addresses: Немає дійсних адрес для перег
 Account Saved: Акаунт успішно збережено
 Share Wallet Link: Поділитися посиланням на гаманець
 Remove: Видалити
-$missing_offramp_deposit_address: Відсутня адреса для депонування під час off-ramp.
 Buy: Купити
 Sell: Продати
-Sell on Card: Продати на картку
-Sell %symbol%: Продати %symbol%
 $connect_dapp_description: Підключені застосунки можуть бачити лише адресу вашого гаманця й не можуть переміщувати ваші активи без вашого дозволу.
 $connect_dapp_title: Підключити до %name%?
 Choose Wallet: Вибрати гаманець
@@ -1166,7 +1131,7 @@ confirm an action in My Wallet: підтвердіть дію в My Wallet
 Timed out waiting for account to be ready: Таймаут очікування готовності акаунта
 $connected_apps:
   otherValue: "%1$d підключено"
-Night Mode, Palette, Card: Нічний режим, Палітра, Карта
+Night Mode, Palette: Нічний режим, Палітра
 Back Up, Passcode, Auto-Lock: Резервна копія, Код, Автоблокування
 Back Up, Password, Auto-Lock: Резервна копія, Пароль, Автоблокування
 Base Currency, Token Order, Hidden NFTs: Базова валюта, Порядок токенів, Приховані NFT
@@ -1351,7 +1316,6 @@ Add Crypto: Додати криптовалюту
 Share QR Code: Поділитися QR-кодом
 $send_only_ton: Надсилайте на цю адресу лише Gram (GRAM) або активи мережі TON. Надсилання інших токенів призведе до їх втрати.
 $send_only_chain: Надсилайте на цю адресу лише %chain% (%symbol%) або активи мережі %chain%. Надсилання інших токенів призведе до їх втрати.
-Buying with card is not supported for this account.: Придбання карткою не підтримується для цього облікового запису.
 Swapped at: Обмін виконано о
 Price per: Ціна за
 Swap ID: ID обміну
@@ -1578,7 +1542,6 @@ Use 6-digit Passcode: Використати 6-значний код
 Authorize %token% Fee: Підтвердити комісію %token%
 Awaiting Previous Fee: Очікування попередньої комісії
 Lock: Заблокувати
-My Wallet Cards can be installed for wallets and displayed on the home screen an in the wallet list.: Картки My Wallet можна встановлювати для гаманців і показувати на головному екрані та у списку гаманців.
 Receive: Отримати
 Scan: Сканувати
 

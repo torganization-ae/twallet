@@ -5,8 +5,6 @@ import type { DropdownItem } from '../../../ui/Dropdown';
 
 import buildClassName from '../../../../util/buildClassName';
 
-import NewYearGarland from '../../../mintCard/NewYearGarland';
-import ValentineDecoration from '../../../mintCard/ValentineDecoration';
 import WithContextMenu from '../../../ui/WithContextMenu';
 
 import styles from './Card.module.scss';
@@ -30,55 +28,25 @@ function SeasonalTheming({
     return undefined;
   }
 
-  if (seasonalTheme === 'newYear') {
-    return (
-      <WithContextMenu
-        layout={{
-          isCenteredHorizontally: false,
-          doNotCoverTrigger: false,
-        }}
-        items={seasonalContextMenuItems}
-        onItemClick={onDisableSeasonalTheming}
-      >
-        {(menuProps) => (
-          <div
-            ref={menuProps.ref as ElementRef<HTMLDivElement>}
-            onMouseDown={menuProps.onMouseDown}
-            onContextMenu={menuProps.onContextMenu}
-            className={buildClassName(styles.seasonalGarland, menuProps.className)}
-          >
-            <NewYearGarland animationLevel={animationLevel} />
-          </div>
-        )}
-      </WithContextMenu>
-    );
-  }
-
-  if (seasonalTheme === 'valentine') {
-    return (
-      <WithContextMenu
-        layout={{
-          isCenteredHorizontally: false,
-          doNotCoverTrigger: false,
-        }}
-        items={seasonalContextMenuItems}
-        onItemClick={onDisableSeasonalTheming}
-      >
-        {(menuProps) => (
-          <div
-            ref={menuProps.ref as ElementRef<HTMLDivElement>}
-            onMouseDown={menuProps.onMouseDown}
-            onContextMenu={menuProps.onContextMenu}
-            className={buildClassName(styles.seasonalValentine, menuProps.className)}
-          >
-            <ValentineDecoration animationLevel={animationLevel} />
-          </div>
-        )}
-      </WithContextMenu>
-    );
-  }
-
-  return undefined;
+  return (
+    <WithContextMenu
+      layout={{
+        isCenteredHorizontally: false,
+        doNotCoverTrigger: false,
+      }}
+      items={seasonalContextMenuItems}
+      onItemClick={onDisableSeasonalTheming}
+    >
+      {(menuProps) => (
+        <div
+          ref={menuProps.ref as ElementRef<HTMLDivElement>}
+          onMouseDown={menuProps.onMouseDown}
+          onContextMenu={menuProps.onContextMenu}
+          className={buildClassName(styles.seasonalPlaceholder, menuProps.className)}
+        />
+      )}
+    </WithContextMenu>
+  );
 }
 
 export default memo(SeasonalTheming);

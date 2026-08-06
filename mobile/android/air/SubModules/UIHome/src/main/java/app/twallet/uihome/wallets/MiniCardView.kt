@@ -26,21 +26,16 @@ import app.twallet.air.uicomponents.widgets.setBackgroundColor
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
-import app.twallet.air.walletbasecontext.utils.getDrawableCompat
 import app.twallet.air.walletbasecontext.utils.toBigInteger
-import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.utils.colorWithAlpha
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.models.MAccount
-import app.twallet.air.walletcore.moshi.ApiNft
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.BalanceStore
 
 @SuppressLint("ViewConstructor")
 class MiniCardView(context: Context, private val containerWidth: Int) : WView(context),
     WThemedView {
-
-    private var cardNft: ApiNft? = null
 
     private val imageView = WImageView(context, 12.dp).apply {
         scaleType = ImageView.ScaleType.CENTER_CROP
@@ -112,11 +107,6 @@ class MiniCardView(context: Context, private val containerWidth: Int) : WView(co
 
     override fun updateTheme() {
         borderPaint.color = WColor.Tint.color
-        cardNft?.let {
-            val colors = cardNft?.metadata?.mtwCardColors ?: return@let
-            setLabelColors(colors.first, colors.second, drawGradient = true)
-            return
-        }
         setLabelColors(Color.WHITE, Color.WHITE.colorWithAlpha(191), drawGradient = false)
     }
 
@@ -164,23 +154,8 @@ class MiniCardView(context: Context, private val containerWidth: Int) : WView(co
     }
 
     fun updateCardImage() {
-        cardNft =
-            account?.accountId?.let { activeAccountId ->
-                WGlobalStorage.getCardBackgroundNft(activeAccountId)
-                    ?.let { ApiNft.fromJson(it) }
-            }
         updateTheme()
-
-        if (cardNft == null) {
-            imageView.loadRes(app.twallet.air.uicomponents.R.drawable.img_card)
-            return
-        }
-        imageView.hierarchy.setPlaceholderImage(
-            context.getDrawableCompat(
-                app.twallet.air.uicomponents.R.drawable.img_card
-            )
-        )
-        imageView.loadUrl(cardNft?.metadata?.cardImageUrl(false) ?: "")
+        imageView.loadRes(app.twallet.air.uicomponents.R.drawable.img_card)
     }
 
     private fun setLabelColors(primaryColor: Int, secondaryColor: Int, drawGradient: Boolean) {

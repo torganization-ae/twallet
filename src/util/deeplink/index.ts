@@ -58,8 +58,6 @@ export const enum DeeplinkCommand {
   CheckinWithR = 'r',
   Swap = 'swap',
   BuyWithCrypto = 'buy-with-crypto',
-  BuyWithCard = 'buy-with-card',
-  Offramp = 'offramp',
   Stake = 'stake',
   Transfer = 'transfer',
   Send = 'send',
@@ -754,80 +752,6 @@ export async function processSelfDeeplink(deeplink: string, isFromInAppBrowser =
         return true;
       }
 
-      case DeeplinkCommand.BuyWithCard: {
-        if (isTestnet) {
-          actions.showError({ error: 'Buying with card is not supported in Testnet.' });
-        } else {
-          actions.openOnRampWidgetModal({ chain: 'ton' });
-        }
-        return true;
-      }
-
-      case DeeplinkCommand.Offramp: {
-        if (isFromInAppBrowser) {
-          actions.showError({ error: '$unsupported_deeplink_parameter' });
-          return true;
-        }
-
-        const transactionId = searchParams.get('transactionId') ?? undefined;
-        const baseCurrencyCode = searchParams.get('baseCurrencyCode') ?? undefined;
-        const baseCurrencyAmount = searchParams.get('baseCurrencyAmount') ?? undefined;
-        const depositWalletAddress = searchParams.get('depositWalletAddress') ?? undefined;
-        const depositWalletAddressTag = searchParams.get('depositWalletAddressTag') ?? undefined;
-
-        logDebug('Processing offramp deeplink', {
-          transactionId,
-          baseCurrencyCode,
-          baseCurrencyAmount,
-          depositWalletAddress,
-          depositWalletAddressTag,
-        });
-
-        if (!depositWalletAddress) {
-          actions.showError({ error: '$missing_offramp_deposit_address' });
-          return false;
-        }
-
-        const mapping = getOfframpTokenMapping(baseCurrencyCode, global);
-
-        if (!mapping) {
-          actions.showError({ error: '$unsupported_deeplink_parameter' });
-          return false;
-        }
-
-        let amount: bigint | undefined;
-
-        if (baseCurrencyAmount) {
-          try {
-            const tokenInfo = global.tokenInfo.bySlug[mapping.tokenSlug];
-            const decimals = tokenInfo?.decimals;
-
-            if (decimals !== undefined) {
-              amount = fromDecimal(baseCurrencyAmount, decimals);
-            }
-          } catch (err) {
-            logDebugError('processSelfDeeplinkOfframpAmount', err);
-          }
-        }
-
-        actions.addSavedAddress({
-          address: depositWalletAddress,
-          name: 'MoonPay Off-Ramp',
-          chain: mapping.chain,
-        });
-
-        actions.startTransfer({
-          tokenSlug: mapping.tokenSlug,
-          toAddress: depositWalletAddress,
-          comment: depositWalletAddressTag ?? undefined,
-          amount,
-          isTransferReadonly: true,
-          isOfframp: true,
-        });
-
-        return true;
-      }
-
       case DeeplinkCommand.Stake: {
         if (isTestnet) {
           actions.showError({ error: 'Staking is not supported in Testnet.' });
@@ -1117,34 +1041,6 @@ function ensureNetwork(searchParams: URLSearchParams, currentNetwork: ApiNetwork
     isTestnet: newNetwork === 'testnet',
     network: newNetwork,
   };
-}
-
-function getOfframpTokenMapping(
-  baseCurrencyCode: string | undefined,
-  global: GlobalState,
-) {
-  if (!baseCurrencyCode) {
-    return undefined;
-  }
-
-  const normalizedCode = baseCurrencyCode.toLowerCase();
-
-  if (normalizedCode === 'ton' || normalizedCode === 'toncoin') {
-    return {
-      chain: 'ton' as ApiChain,
-      tokenSlug: TONCOIN.slug,
-    };
-  }
-
-  const tokenBySlug = global.tokenInfo.bySlug[normalizedCode];
-  if (tokenBySlug) {
-    return {
-      chain: tokenBySlug.chain,
-      tokenSlug: tokenBySlug.slug,
-    };
-  }
-
-  return undefined;
 }
 
 /**

@@ -59,19 +59,19 @@ class SendConfirmVC: WViewController, WalletCoreData.EventsObserver {
             .sendNftConfirmation
         case .burnNft:
             .burnNftConfirmation
-        case .regular, .sellToMoonpay:
+        case .regular:
             .sendConfirmation
         }
     }
-    
-    private func setupViews() {        
+
+    private func setupViews() {
         var continueTitle: String
         var title: String
 
         if model.isScamRecipient {
             continueButton = WButton(style: .destructive)
         }
-                
+
         switch model.mode {
         case .sendNft:
             title = lang("Is it all ok?")
@@ -85,9 +85,6 @@ class SendConfirmVC: WViewController, WalletCoreData.EventsObserver {
             continueTitle = lang("Confirm")
             goBackButton = WButton(style: .secondary)
             goBackButton?.setTitle(lang("Edit"), for: .normal)
-        case .sellToMoonpay:
-            title = lang("Sell")
-            continueTitle = lang("Sell %symbol%", arg1: model.token.symbol)
         }
 
         navigationItem.title = title

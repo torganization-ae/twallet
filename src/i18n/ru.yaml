@@ -581,9 +581,7 @@ Are you sure you want to disable biometrics?: Вы уверены, что хот
 "Yes": Да
 No Activity: Нет активности
 Fund: Пополнить
-Buy with Card: Покупка с карты
 Buy with Crypto: Покупка за криптовалюту
-Cannot load widget: Невозможно загрузить виджет
 Explore: Обзор
 $lockdown_mode_enabled_title: Режим изоляции включён
 $lockdown_mode_walletconnect_unavailable: "WalletConnect недоступен в режиме изоляции. Чтобы использовать его, отключите режим изоляции для %app_name% в Настройки > Конфиденциальность и безопасность > Режим изоляции > Настроить веб-браузинг."
@@ -649,7 +647,6 @@ More actions: Больше действий
 Open on %explorer_name%: Открыть на %explorer_name%
 Swap is not supported in Testnet.: Обмен не поддерживается в Testnet.
 Swap is not yet supported by Ledger.: Обмен ещё не поддерживается Ledger.
-Buying with card is not supported in Testnet.: Покупка с помощью карты не поддерживается в Testnet.
 Staking is not supported in Testnet.: Стейкинг не поддерживается в Testnet.
 Get Support: Поддержка
 $transfer_link_expired: Ссылка для перевода устарела
@@ -797,10 +794,6 @@ Add Tokens: Добавить токены
 No tokens yet: Токенов пока нет
 $no_tokens_description: Получите токены из другого кошелька или просто включите нужные токены в настройках для мониторинга.
 Exchange Rate: Обменный курс
-Install Card: Установить карту
-Reset Card: Сбросить карту
-Apply Palette: Применить палитру
-Reset Palette: Сбросить палитру
 Notifications & Sounds: Уведомления и звуки
 Sounds: Звуки
 Push Notifications: Уведомления
@@ -892,21 +885,6 @@ Receiving: Получение
 $receive_action: Получение
 Change Palette: Изменить палитру
 Palette: Палитра
-Unlock New Palettes: Открыть новые палитры
-Get a unique My Wallet Card to unlock new palettes.: Получите уникальную карту My Wallet, чтобы открыть новые палитры.
-Mint Cards: Создать карту
-Card has been upgraded!: Карта улучшена!
-$mint_card_result: NFT-карта будет **создана** и **автоматически установлена** в течение минуты.
-Unique: Уникальность
-Get a card with unique background and personalized palette for wallet interface.: У карты появится уникальный фон, а в кошельке разблокируется новая палитра.
-Transferable: Можно передать
-Easily send your upgraded card to any of your friends.: Улучшенную карту можно легко отправить любому другу.
-Tradable: Можно продать
-Sell or auction your card on third-party NFT marketplaces.: Карту можно продать или выставить на аукцион на сторонних NFT-площадках.
-Upgrade for %amount% %currency%: Улучшить за %amount% %currency%
-"%amount% left": Осталось %amount%
-"%amount% sold": Продано %amount%
-This card has been sold out: Эта карта распродана
 Import Existing Wallet: Импортировать существующий
 View Any Address: Просмотр адреса
 View Mode: Режим просмотра
@@ -1120,16 +1098,6 @@ No Ledger wallets yet: Кошельков Ledger пока нет
 No view wallets yet: Кошельков в режиме просмотра пока нет
 View wallets can receive assets, but you cannot use them to send or sign transactions.: Кошельки в режиме просмотра могут получать активы, но их нельзя использовать для отправки или подписания транзакций.
 Add the first one to track balances and activity for any address.: Добавьте первый, чтобы отслеживать баланс и активность любого адреса.
-Customize Wallet: Настроить кошелёк
-"Select the card stored in this wallet:": "Выберите карту, сохранённую в этом кошельке:"
-This card will be installed for this wallet and will be displayed on the home screen and in the wallets list.: Эта карта будет установлена для кошелька и отображаться на главном экране и в списке кошельков.
-Get More Cards: Получить больше карт
-Browse My Wallet Cards available for purchase.: Просмотрите доступные для покупки карты My Wallet.
-You don’t have any cards to customize yet: У вас пока нет карт для настройки.
-My Wallet Cards can be installed for wallets and displayed on the home screen and in the wallet list.: Карты My Wallet можно устанавливать для кошельков и отображать на главном экране и в списке кошельков.
-Get First Card: Получить первую карту
-Palette and Card: Палитра и карта
-Customize the wallet's home screen and color accents the way you like.: Настройте главный экран кошелька и цветовые акценты по своему вкусу.
 Address doesn't exist: Адрес не существует
 The address is not a token minter address: Этот адрес не является адресом минтера токена
 $joining_comma: ", "
@@ -1142,11 +1110,8 @@ $no_valid_view_addresses: Нет доступных адресов для про
 Account Saved: Аккаунт успешно сохранён
 Share Wallet Link: Ссылка на кошелёк
 Remove: Удалить
-$missing_offramp_deposit_address: Отсутствует адрес для депозита при выводе.
 Buy: Купить
 Sell: Продать
-Sell on Card: Продать на карту
-Sell %symbol%: Продать %symbol%
 $connect_dapp_description: Подключённые приложения могут видеть только адрес вашего кошелька и не смогут перемещать ваши активы без вашего разрешения.
 $connect_dapp_title: Подключить к %name%?
 Choose Wallet: Выбрать кошелёк
@@ -1167,7 +1132,7 @@ confirm an action in My Wallet: подтвердить действие в My Wa
 Timed out waiting for account to be ready: Таймаут ожидания готовности аккаунта
 $connected_apps:
   otherValue: "%1$d подключено"
-Night Mode, Palette, Card: Ночной режим, палитра, карта
+Night Mode, Palette: Ночной режим, палитра
 Back Up, Passcode, Auto-Lock: Резервная копия, код, автоблокировка
 Back Up, Password, Auto-Lock: Резервная копия, пароль, автоблокировка
 Base Currency, Token Order, Hidden NFTs: Базовая валюта, порядок токенов, NFT
@@ -1351,7 +1316,6 @@ Add Crypto: Пополнить
 Share QR Code: Поделиться QR кодом
 $send_only_ton: Отправляйте только Gram (GRAM) или активы на базе TON на этот адрес. Отправка других токенов приведёт к их потере.
 $send_only_chain: Отправляйте только %chain% (%symbol%) или активы на базе %chain% на этот адрес. Отправка других токенов приведёт к их потере.
-Buying with card is not supported for this account.: Покупка с карты не поддерживается для этого аккаунта.
 Swapped at: Обмен выполнен в
 Price per: Цена за
 Swap ID: ID обмена
@@ -1578,7 +1542,6 @@ Use 6-digit Passcode: Использовать 6-значный код
 Authorize %token% Fee: Подтвердить комиссию %token%
 Awaiting Previous Fee: Ожидание предыдущей комиссии
 Lock: Заблокировать
-My Wallet Cards can be installed for wallets and displayed on the home screen an in the wallet list.: Карты My Wallet можно устанавливать для кошельков и отображать на главном экране и в списке кошельков.
 Receive: Получить
 Scan: Сканировать
 

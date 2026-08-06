@@ -8,29 +8,25 @@ public struct MAccountAssetsAndActivityData: Equatable, Hashable, Codable, Senda
     public var importedSlugs: [String]
     public var pinnedSlugs: [String]?
     public var didAutoPinStaking: Bool
-    public var ownedMtwCardAddresses: [String]
 
     public init(
         accountId: String,
         alwaysHiddenSlugs: [String],
         importedSlugs: [String],
         pinnedSlugs: [String]?,
-        didAutoPinStaking: Bool,
-        ownedMtwCardAddresses: [String] = []
+        didAutoPinStaking: Bool
     ) {
         self.accountId = accountId
         self.alwaysHiddenSlugs = alwaysHiddenSlugs
         self.importedSlugs = importedSlugs
         self.pinnedSlugs = pinnedSlugs
         self.didAutoPinStaking = didAutoPinStaking
-        self.ownedMtwCardAddresses = ownedMtwCardAddresses
     }
 
     public init(
         accountId: String,
         data: MAssetsAndActivityData,
-        didAutoPinStaking: Bool = false,
-        ownedMtwCardAddresses: [String] = []
+        didAutoPinStaking: Bool = false
     ) {
         let dict = data.toDictionary
         self.init(
@@ -38,8 +34,7 @@ public struct MAccountAssetsAndActivityData: Equatable, Hashable, Codable, Senda
             alwaysHiddenSlugs: dict["alwaysHiddenSlugs"] as? [String] ?? [],
             importedSlugs: dict["importedSlugs"] as? [String] ?? [],
             pinnedSlugs: dict["pinnedSlugs"] as? [String],
-            didAutoPinStaking: didAutoPinStaking,
-            ownedMtwCardAddresses: ownedMtwCardAddresses
+            didAutoPinStaking: didAutoPinStaking
         )
     }
 
@@ -62,6 +57,5 @@ extension MAccountAssetsAndActivityData {
         !alwaysHiddenSlugs.isEmpty
             || !importedSlugs.isEmpty
             || (pinnedSlugs?.isEmpty == false)
-            || !ownedMtwCardAddresses.isEmpty
     }
 }

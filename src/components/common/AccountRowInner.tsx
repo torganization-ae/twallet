@@ -1,7 +1,6 @@
 import type { TeactNode } from '../../lib/teact/teact';
 import React from '../../lib/teact/teact';
 
-import type { ApiNft } from '../../api/types';
 import type { Account, AccountType } from '../../global/types';
 import type { AccountBalance } from '../../hooks/useAccountsBalances';
 
@@ -12,7 +11,6 @@ import { formatAccountAddresses } from '../../util/formatAccountAddress';
 import { formatCurrency } from '../../util/formatNumber';
 import isViewAccount from '../../util/isViewAccount';
 
-import CustomCardPreview from '../main/modals/accountSelector/CustomCardPreview';
 import SensitiveData from '../ui/SensitiveData';
 import WalletAvatar from '../ui/WalletAvatar';
 
@@ -25,7 +23,6 @@ export interface AccountRowInnerProps {
   title?: string;
   isTestnet?: boolean;
   balanceData?: AccountBalance;
-  cardBackgroundNft?: ApiNft;
   isSensitiveDataHidden?: true;
   suffixIcon?: TeactNode;
   avatarClassName?: string;
@@ -43,7 +40,6 @@ function AccountRowInner({
   title,
   isTestnet,
   balanceData,
-  cardBackgroundNft,
   isSensitiveDataHidden,
   suffixIcon,
   avatarClassName,
@@ -67,9 +63,6 @@ function AccountRowInner({
       <div className={styles.info}>
         <div className={styles.titleRow}>
           <span className={styles.title}>{title}</span>
-          {cardBackgroundNft && (
-            <CustomCardPreview nft={cardBackgroundNft} className={styles.nftIndicator} />
-          )}
         </div>
         <div className={styles.address}>
           {isTestnet && <i className={buildClassName(styles.icon, 'icon-testnet')} aria-hidden />}

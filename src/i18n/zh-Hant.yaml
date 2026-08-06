@@ -572,9 +572,7 @@ Are you sure you want to disable biometrics?: 您確定要禁用生物識別技�
 Biometric confirmation failed: 生物辨識確認失敗
 No Activity: 無活動
 Fund: 儲值
-Buy with Card: 用卡購買
 Buy with Crypto: 用加密貨幣購買
-Cannot load widget: 無法加載小部件
 Explore: 探索
 $lockdown_mode_enabled_title: 鎖定模式已啟用
 $lockdown_mode_walletconnect_unavailable: "WalletConnect 在鎖定模式下無法使用。若要使用它，請在 設定 > 隱私權與安全性 > 鎖定模式 > 設定網頁瀏覽 中為 %app_name% 關閉鎖定模式。"
@@ -641,7 +639,6 @@ More actions: 更多操作
 Open on %explorer_name%: 在 %explorer_name% 上打開
 Swap is not supported in Testnet.: 測試網不支援共享。
 Swap is not yet supported by Ledger.: Ledger 尚不支援該交易所。
-Buying with card is not supported in Testnet.: 測試網不支援刷卡購買。
 Staking is not supported in Testnet.: 測試網不支援質押。
 Get Support: 得到支持
 $transfer_link_expired: 轉帳連結已過期
@@ -783,10 +780,6 @@ Add Tokens: 添加令牌
 No tokens yet: 尚無代幣
 $no_tokens_description: 從其他錢包接收代幣，或者在設定中啟用首選代幣進行監控。
 Exchange Rate: 匯率
-Install Card: 安裝卡片
-Reset Card: 重設卡片
-Apply Palette: 套用調色板
-Reset Palette: 重設調色板
 Notifications & Sounds: 通知和聲音
 Sounds: 聲音
 Push Notifications: 推送通知
@@ -878,21 +871,6 @@ Receiving: 接收中
 $receive_action: 接收
 Change Palette: 更改調色板
 Palette: 調色板
-Unlock New Palettes: 解鎖新調色板
-Get a unique My Wallet Card to unlock new palettes.: 獲取獨特的 My Wallet 卡片以解鎖新的調色板。
-Mint Cards: 鑄造卡片
-Card has been upgraded!: 卡片已升級！
-$mint_card_result: NFT 卡片將在一分鐘內**鑄造**並**自動安裝**。
-Unique: 獨特
-Get a card with unique background and personalized palette for wallet interface.: 獲取具有獨特背景和個性化調色板的卡片，用於錢包界面。
-Transferable: 可轉讓
-Easily send your upgraded card to any of your friends.: 輕鬆將您的升級卡片發送給任何朋友。
-Tradable: 可交易
-Sell or auction your card on third-party NFT marketplaces.: 在第三方 NFT 市場上出售或拍賣您的卡片。
-Upgrade for %amount% %currency%: 升級需 %amount% %currency%
-"%amount% left": 剩餘 %amount%
-"%amount% sold": 已售 %amount%
-This card has been sold out: 此卡片已售罄
 Import Existing Wallet: 導入現有錢包
 View Any Address: 查看任意地址
 View Mode: 查看模式
@@ -1097,16 +1075,6 @@ No Ledger wallets yet: 尚無 Ledger 錢包
 No view wallets yet: 尚無檢視錢包
 View wallets can receive assets, but you cannot use them to send or sign transactions.: 檢視錢包可以接收資產，但你無法用它來發送或簽署交易。
 Add the first one to track balances and activity for any address.: 新增第一個錢包以追蹤任何地址的餘額和活動。
-Customize Wallet: 自訂錢包
-"Select the card stored in this wallet:": 選擇此錢包中儲存的卡片：
-This card will be installed for this wallet and will be displayed on the home screen and in the wallets list.: 此卡片將安裝於該錢包，並顯示在主畫面及錢包列表中。
-Get More Cards: 獲取更多卡片
-Browse My Wallet Cards available for purchase.: 瀏覽可購買的 My Wallet 卡片。
-You don’t have any cards to customize yet: 您目前沒有可自訂的卡片。
-My Wallet Cards can be installed for wallets and displayed on the home screen and in the wallet list.: My Wallet 卡片可安裝於錢包，並顯示於主畫面與錢包列表中。
-Get First Card: 獲取第一張卡片
-Palette and Card: 調色盤與卡片
-Customize the wallet's home screen and color accents the way you like.: 依照您的喜好自訂錢包主畫面與顏色強調。
 Address doesn't exist: 地址不存在
 The address is not a token minter address: 該地址不是代幣鑄造者地址
 $joining_comma: 、
@@ -1119,11 +1087,8 @@ $no_valid_view_addresses: 沒有可查看的有效地址
 Account Saved: 帳戶已成功保存
 Share Wallet Link: 分享錢包連結
 Remove: 移除
-$missing_offramp_deposit_address: 缺少 off-ramp 的充值地址。
 Buy: 購買
 Sell: 出售
-Sell on Card: 出售到卡
-Sell %symbol%: 出售 %symbol%
 $connect_dapp_description: 已連接的應用程式只能查看你的錢包地址，未經你的許可無法轉移你的資產。
 $connect_dapp_title: 連接到 %name%？
 Choose Wallet: 選擇錢包
@@ -1144,7 +1109,7 @@ confirm an action in My Wallet: 在 My Wallet 中確認操作
 Timed out waiting for account to be ready: 等待帳戶準備就緒逾時
 $connected_apps:
   otherValue: "%1$d 已連接"
-Night Mode, Palette, Card: 夜間模式、調色盤、卡片
+Night Mode, Palette: 夜間模式、調色盤
 Back Up, Passcode, Auto-Lock: 備份、密碼、自動鎖定
 Back Up, Password, Auto-Lock: 備份、密碼、自動鎖定
 Base Currency, Token Order, Hidden NFTs: 基礎貨幣、代幣順序、隱藏的 NFT
@@ -1322,7 +1287,6 @@ Add Crypto: 新增加密貨幣
 Share QR Code: 分享 QR Code
 $send_only_ton: 請僅將 Gram (GRAM) 或 TON 網路資產傳送到此地址。傳送其他代幣會導致損失。
 $send_only_chain: 請僅將 %chain% (%symbol%) 或 %chain% 網路資產傳送到此地址。傳送其他代幣會導致損失。
-Buying with card is not supported for this account.: 此帳戶不支援信用卡購買。
 Swapped at: 兌換時間
 Price per: 單價
 Swap ID: 兌換 ID
@@ -1535,7 +1499,6 @@ Use 6-digit Passcode: 使用六位 PIN 碼
 Authorize %token% Fee: 授權 %token% 手續費
 Awaiting Previous Fee: 等候前一筆手續費
 Lock: 鎖定
-My Wallet Cards can be installed for wallets and displayed on the home screen an in the wallet list.: My Wallet 卡片可安裝至錢包，並顯示在主畫面與錢包列表。
 Receive: 收款
 Scan: 掃描
 

@@ -49,7 +49,6 @@ import Transition from '../ui/Transition';
 import CommentSection from './CommentSection';
 import NftChips from './NftChips';
 import NftInfo from './NftInfo';
-import SentTabs from './SentTabs';
 
 import modalStyles from '../ui/Modal.module.scss';
 import styles from './Transfer.module.scss';
@@ -481,13 +480,9 @@ function TransferInitial({
             <i className={buildClassName(modalStyles.closeIcon, 'icon-close')} aria-hidden />
           </Button>
 
-          {isNftTransfer ? (
-            <div className={styles.transferTitle}>
-              {lang(nfts.length > 1 ? 'Send Collectibles' : 'Send Collectible')}
-            </div>
-          ) : (
-            <SentTabs />
-          )}
+          <div className={styles.transferTitle}>
+            {lang(isNftTransfer ? (nfts.length > 1 ? 'Send Collectibles' : 'Send Collectible') : 'Send')}
+          </div>
 
           {nfts?.length === 1 && <NftInfo nft={nfts[0]} withMediaViewer />}
           {Boolean(nfts?.length) && nfts.length > 1 && <NftChips nfts={nfts} />}

@@ -4,7 +4,6 @@ import org.json.JSONObject
 import app.twallet.air.walletcore.models.InAppBrowserConfig
 import app.twallet.air.walletcore.moshi.ApiDapp
 import app.twallet.air.walletcore.moshi.ApiNft
-import app.twallet.air.walletcore.moshi.ApiPromotion
 import app.twallet.air.walletcore.moshi.MApiTransaction
 
 sealed class WalletEvent {
@@ -100,9 +99,7 @@ sealed class WalletEvent {
         val nfts: List<ApiNft>
     ) : WalletEvent()
 
-    data object NftCardUpdated : WalletEvent()
     data object NftDomainDataUpdated : WalletEvent()
-    data class CardMintingStateChanged(val accountId: String) : WalletEvent()
     data class LedgerDeviceModelRequest(
         val onResponse: (response: JSONObject?) -> Unit
     ) : WalletEvent()
@@ -111,8 +108,6 @@ sealed class WalletEvent {
         val apdu: String,
         val onResponse: (response: String?) -> Unit
     ) : WalletEvent()
-
-    data class ShowPromotion(val promotion: ApiPromotion) : WalletEvent()
 
     data object ConfigReceived : WalletEvent()
     data object AccountConfigReceived : WalletEvent()

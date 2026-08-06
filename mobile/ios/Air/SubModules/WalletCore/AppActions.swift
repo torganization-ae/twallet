@@ -38,11 +38,9 @@ import WalletCoreTypes
     static func showAnyAccountTx(accountId: String, chain: ApiChain, txId: String, showError: Bool)
     static func showAssets(accountSource: AccountSource, selectedTab: DisplayAssetTab, collectionsFilter: NftCollectionFilter)
     static func showAssetsAndActivity()
-    static func showBuyWithCard(accountContext: AccountContext, chain: ApiChain?, push: Bool?)
     static func showConnectedDapps(push: Bool)
     static func showCrossChainSwapVC(_ transaction: ApiActivity, accountId: String?)
     static func showCustomizeAppTabs()
-    static func showCustomizeWallet(accountId: String?)
     static func showDebugView()
     static func showDeleteAccount(accountId: String)
     static func showEarn(accountContext: AccountContext, tokenSlug: String?)
@@ -55,7 +53,6 @@ import WalletCoreTypes
     static func showLinkDomain(accountSource: AccountSource, nftAddress: String, nft: ApiNft?)
     static func showNft(accountContext: AccountContext, nft: ApiNft, isExpanded: Bool)
     static func showNftByAddress(_ nftAddress: String)
-    static func showPromotion(_ promotion: ApiPromotion)
     static func showPortfolio(accountContext: AccountContext)
     static func showReceive(accountContext: AccountContext, chain: ApiChain?)
     static func showRenewDomain(accountSource: AccountSource, nftsToRenew: [String])
@@ -63,14 +60,12 @@ import WalletCoreTypes
     static func showSaveAddressDialog(accountContext: AccountContext, chain: ApiChain, address: String)
     static func showSettings(section: AppSettingsSection?)
     static func showSend(accountContext: AccountContext, prefilledValues: SendPrefilledValues)
-    static func showSell(accountContext: AccountContext, tokenSlug: String?)
     static func showSwap(accountContext: AccountContext, defaultSellingToken: String?, defaultBuyingToken: String?, defaultSellingAmount: Double?, push: Bool?)
     static func showTemporaryViewAccount(network: ApiNetwork, addressOrDomainByChain: [String: String])
     static func showToast(_ config: ToastConfig)
     static func showToken(accountSource: AccountSource, token: ApiToken, isInModal: Bool)
     static func showTokenByAddress(chain: ApiChain, tokenAddress: String)
     static func showTokenBySlug(_ slug: String)
-    static func showUpgradeCard()
     static func showWalletSettings()
     static func transitionToRootState(_ rootState: AppRootState, animationDuration: Double?)
 }
@@ -166,10 +161,8 @@ private class DummyAppActionProtocolImpl: AppActionsProtocol {
     static func showAnyAccountTx(accountId: String, chain: ApiChain, txId: String, showError: Bool) { }
     static func showAssets(accountSource: AccountSource, selectedTab: DisplayAssetTab, collectionsFilter: NftCollectionFilter) { }
     static func showAssetsAndActivity() { }
-    static func showBuyWithCard(accountContext: AccountContext, chain: ApiChain?, push: Bool?) { }
     static func showConnectedDapps(push: Bool) { }
     static func showCrossChainSwapVC(_ transaction: ApiActivity, accountId: String?) { }
-    static func showCustomizeWallet(accountId: String?) { }
     static func showCustomizeAppTabs() { }
     static func showDebugView() { }
     static func showDeleteAccount(accountId: String) { }
@@ -183,7 +176,6 @@ private class DummyAppActionProtocolImpl: AppActionsProtocol {
     static func showLinkDomain(accountSource: AccountSource, nftAddress: String, nft: ApiNft?) { }
     static func showNft(accountContext: AccountContext, nft: ApiNft, isExpanded: Bool) { }
     static func showNftByAddress(_ nftAddress: String) { }
-    static func showPromotion(_ promotion: ApiPromotion) { }
     static func showPortfolio(accountContext: AccountContext) { }
     static func showReceive(accountContext: AccountContext, chain: ApiChain?) { }
     static func showRenewDomain(accountSource: AccountSource, nftsToRenew: [String]) { }
@@ -191,14 +183,12 @@ private class DummyAppActionProtocolImpl: AppActionsProtocol {
     static func showSaveAddressDialog(accountContext: AccountContext, chain: ApiChain, address: String) { }
     static func showSettings(section: AppSettingsSection?) { }
     static func showSend(accountContext: AccountContext, prefilledValues: SendPrefilledValues) { }
-    static func showSell(accountContext: AccountContext, tokenSlug: String?) { }
     static func showSwap(accountContext: AccountContext, defaultSellingToken: String?, defaultBuyingToken: String?, defaultSellingAmount: Double?, push: Bool?) { }
     static func showTemporaryViewAccount(network: ApiNetwork, addressOrDomainByChain: [String: String]) { }
     static func showToast(_ config: ToastConfig) { }
     static func showToken(accountSource: AccountSource, token: ApiToken, isInModal: Bool) { }
     static func showTokenByAddress(chain: ApiChain, tokenAddress: String) { }
     static func showTokenBySlug(_ slug: String) { }
-    static func showUpgradeCard() { }
     static func showWalletSettings() { }
     static func transitionToRootState(_ rootState: AppRootState, animationDuration: Double?) { }
 }

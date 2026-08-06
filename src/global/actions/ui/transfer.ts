@@ -8,8 +8,6 @@ import { resetHardware, setCurrentTransferAddress, updateCurrentTransfer } from 
 import { selectIsHardwareAccount } from '../../selectors';
 
 addActionHandler('startTransfer', (global, actions, payload) => {
-  const { isOfframp, ...rest } = payload ?? {};
-
   const nftTokenSlug = Symbol('nft');
   const previousFeeTokenSlug = global.currentTransfer.nfts?.length ? nftTokenSlug : global.currentTransfer.tokenSlug;
   const nextFeeTokenSlug = payload?.nfts?.length ? nftTokenSlug : payload?.tokenSlug;
@@ -19,19 +17,8 @@ addActionHandler('startTransfer', (global, actions, payload) => {
     state: TransferState.Initial,
     error: undefined,
     ...(shouldClearFee ? { explainedFee: undefined, diesel: undefined } : {}),
-    ...rest,
-    isOfframp,
+    ...payload,
   }));
-
-  // For offramp mode, automatically submit to calculate fee and go to Confirm screen
-  if (isOfframp && payload?.tokenSlug && payload?.amount && payload?.toAddress) {
-    actions.submitTransferInitial({
-      tokenSlug: payload.tokenSlug,
-      amount: payload.amount,
-      toAddress: payload.toAddress,
-      comment: payload.comment,
-    });
-  }
 });
 
 addActionHandler('changeTransferToken', (global, actions, { tokenSlug, withResetAmount }) => {

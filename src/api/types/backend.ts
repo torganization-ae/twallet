@@ -1,7 +1,7 @@
 import type { DieselStatus } from '../../global/types';
 import type { StakingPoolConfig } from '../chains/ton/contracts/JettonStaking/StakingPool';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
-import type { ApiChain, ApiCountryCode, ApiLoyaltyType, ApiMtwCardType, ApiTokenWithPrice } from './misc';
+import type { ApiChain, ApiLoyaltyType, ApiTokenWithPrice } from './misc';
 
 export type ApiTokenDetails = Pick<ApiTokenWithPrice, 'slug' | 'type' | 'priceUsd' | 'percentChange24h'>;
 
@@ -376,58 +376,17 @@ export type ApiVestingInfo = {
   }[];
 };
 
-export type ApiCardInfo = {
-  all: number;
-  notMinted: number;
-  price: number;
-};
-
-export type ApiCardsInfo = Record<ApiMtwCardType, ApiCardInfo>;
-
 export type ApiAccountConfig = {
-  cardsInfo?: ApiCardsInfo;
-  activePromotion?: ApiPromotion;
   isMfaEnabled?: boolean;
 };
 
 export type ApiSwapVersion = 2 | 3;
-
-export type ApiPromotion = {
-  id: string;
-  kind: 'cardOverlay';
-  cardOverlay: {
-    mascotIcon?: {
-      url: string;
-      top: number;
-      right: number;
-      height: number;
-      width: number;
-      rotation: number;
-    };
-    onClickAction: 'openPromotionModal' | 'openMintCardModal';
-  };
-  modal?: {
-    backgroundImageUrl: string;
-    backgroundFallback: string;
-    heroImageUrl?: string;
-    title: string;
-    titleColor?: string;
-    description: string;
-    descriptionColor?: string;
-    availabilityIndicator?: string;
-    actionButton?: {
-      title: string;
-      url: string;
-    };
-  };
-};
 
 export type ApiBackendConfig = {
   isLimited: boolean;
   isCopyStorageEnabled?: boolean;
   supportAccountsCount?: number;
   now: number;
-  country: ApiCountryCode;
   isUpdateRequired: boolean;
   isVestingEnabled?: boolean;
   isWebSocketEnabled?: boolean;

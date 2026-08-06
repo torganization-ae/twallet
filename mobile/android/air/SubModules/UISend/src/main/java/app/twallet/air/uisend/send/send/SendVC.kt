@@ -87,7 +87,6 @@ import app.twallet.air.walletcore.models.MSavedAddress
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.moshi.MApiTransaction
 import app.twallet.air.walletcore.stores.AccountStore
-import app.twallet.air.walletcore.stores.ConfigStore
 import app.twallet.air.walletcore.stores.TokenStore
 import java.lang.ref.WeakReference
 import kotlin.math.max
@@ -98,7 +97,6 @@ class SendVC(
     context: Context,
     private val initialTokenSlug: String? = null,
     private val initialValues: InitialValues? = null,
-    private val isSell: Boolean = false,
     private val shouldRequireFreshAuth: Boolean = false,
 ) : WViewControllerWithModelStore(context), WalletCore.EventObserver {
     override val TAG = "Send"
@@ -120,41 +118,14 @@ class SendVC(
         val init: String? = null,
     )
 
-    private val isOffRampAllowed: Boolean
-        get() {
-            return activeAccount?.supportsBuyWithCard == true && ConfigStore.isLimited != true
-        }
-
     private val supportsCommentEncryption: Boolean
         get() {
             return AccountStore.activeAccount?.supportsCommentEncryption == true &&
                 TokenStore.getToken(viewModel.getTokenSlug())?.mBlockchain?.isEncryptedCommentSupported == true
         }
 
-    private val shouldShowSellTab: Boolean
-        get() {
-            if (isSell || !isOffRampAllowed) return false
-            val tokenSlug = viewModel.getTokenSlug()
-            val chain = TokenStore.getToken(tokenSlug)?.mBlockchain ?: return false
-            return chain.isOfframpSupported
-        }
-
-    private var didAutoConfirm = false
-
     private val segmentedDelegate = object : WClearSegmentedControl.Delegate {
-        override fun onIndexChanged(to: Int, animated: Boolean) {
-            if (shouldShowSellTab && to == 1) {
-                openSellWithCard()
-                navSegmentedControl.updateThumbPosition(
-                    position = 0f,
-                    targetPosition = 0,
-                    animated = false,
-                    force = true,
-                    isAnimatingToPosition = false
-                )
-            }
-        }
-
+        override fun onIndexChanged(to: Int, animated: Boolean) {}
         override fun onItemMoved(from: Int, to: Int) {}
         override fun enterReorderingMode() {}
     }
@@ -860,44 +831,42 @@ class SendVC(
             openConfirmIfPossible()
         }
 
-        if (!isSell) {
-            updateAliasSelectorVisibility()
-            updateAliasTypeSelector()
+        updateAliasSelectorVisibility()
+        updateAliasTypeSelector()
 
-            addressInputView.addTextChangedListener(onInputDestinationTextWatcher)
-            addressInputView.doAfterQrCodeScanned { address ->
-                switchTokenBasedOnChain(address)
-                viewModel.onDestinationEntered(address)
+        addressInputView.addTextChangedListener(onInputDestinationTextWatcher)
+        addressInputView.doAfterQrCodeScanned { address ->
+            switchTokenBasedOnChain(address)
+            viewModel.onDestinationEntered(address)
+        }
+
+        commentInputView.addTextChangedListener(onInputCommentTextWatcher)
+
+        amountInputView.doOnMaxButtonClick(viewModel::onInputMaxButton)
+        amountInputView.doOnEquivalentButtonClick(viewModel::onInputToggleFiatMode)
+        amountInputView.doOnFeeButtonClick {
+            val explainedFee = viewModel.getConfirmationPageConfig()?.explainedFee
+                ?: return@doOnFeeButtonClick
+            if (!explainedFee.supportsLegacyDetailsView) return@doOnFeeButtonClick
+            val feeToken = TokenStore.getToken(viewModel.getTokenSlug())
+                ?: return@doOnFeeButtonClick
+            lateinit var dialogRef: WDialog
+            dialogRef = FeeDetailsDialog.create(
+                context,
+                feeToken,
+                explainedFee
+            ) {
+                dialogRef.dismiss()
             }
-
-            commentInputView.addTextChangedListener(onInputCommentTextWatcher)
-
-            amountInputView.doOnMaxButtonClick(viewModel::onInputMaxButton)
-            amountInputView.doOnEquivalentButtonClick(viewModel::onInputToggleFiatMode)
-            amountInputView.doOnFeeButtonClick {
-                val explainedFee = viewModel.getConfirmationPageConfig()?.explainedFee
-                    ?: return@doOnFeeButtonClick
-                if (!explainedFee.supportsLegacyDetailsView) return@doOnFeeButtonClick
-                val feeToken = TokenStore.getToken(viewModel.getTokenSlug())
-                    ?: return@doOnFeeButtonClick
-                lateinit var dialogRef: WDialog
-                dialogRef = FeeDetailsDialog.create(
-                    context,
-                    feeToken,
-                    explainedFee
-                ) {
-                    dialogRef.dismiss()
+            dialogRef.presentOn(this)
+        }
+        amountInputView.amountEditText.addTextChangedListener(onAmountTextWatcher)
+        amountInputView.tokenSelectorView.setOnClickListener {
+            push(SendTokenVC(context).apply {
+                setOnAssetSelectListener {
+                    onAssetSelected(it.slug)
                 }
-                dialogRef.presentOn(this)
-            }
-            amountInputView.amountEditText.addTextChangedListener(onAmountTextWatcher)
-            amountInputView.tokenSelectorView.setOnClickListener {
-                push(SendTokenVC(context).apply {
-                    setOnAssetSelectListener {
-                        onAssetSelected(it.slug)
-                    }
-                })
-            }
+            })
         }
 
         collectFlow(viewModel.inputStateFlow) {
@@ -919,14 +888,6 @@ class SendVC(
             }
             if (it.uiButton.status == SendViewModel.ButtonStatus.NotEnoughNativeToken) {
                 showScamWarningIfRequired()
-            }
-
-            if (isSell &&
-                !didAutoConfirm &&
-                it.uiButton.status == SendViewModel.ButtonStatus.Ready
-            ) {
-                didAutoConfirm = true
-                openConfirmIfPossible()
             }
             suggestionsBoxView.isEnabled = it.uiAddressSearch.enabled
         }
@@ -956,28 +917,21 @@ class SendVC(
 
         updateTheme()
         setInitialValues()
-        if (isSell) {
-            applyReadonlyMode()
-        }
     }
 
     private fun buildSegmentedItems(): List<WClearSegmentedControl.Item> {
-        val items = mutableListOf(
+        return listOf(
             WClearSegmentedControl.Item(
                 LocaleController.getString("Send"),
                 null,
-                if (isSell) null else { anchorView ->
-                    presentOffRampSendMenu(anchorView)
+                { anchorView ->
+                    presentSendMenu(anchorView)
                 }
             )
         )
-        if (shouldShowSellTab) {
-            items.add(WClearSegmentedControl.Item(LocaleController.getString("Sell"), null, null))
-        }
-        return items
     }
 
-    private fun presentOffRampSendMenu(anchorView: View) {
+    private fun presentSendMenu(anchorView: View) {
         WMenuPopup.present(
             anchorView,
             listOf(
@@ -989,16 +943,6 @@ class SendVC(
                 }
             ),
             positioning = WMenuPopup.Positioning.BELOW
-        )
-    }
-
-    private fun openSellWithCard() {
-        if (!isOffRampAllowed || isSell) return
-        val activeAccount = activeAccount ?: return
-        SellWithCardLauncher.launch(
-            caller = WeakReference(this),
-            account = activeAccount,
-            tokenSlug = viewModel.getTokenSlug(),
         )
     }
 
@@ -1026,7 +970,6 @@ class SendVC(
                 viewModel.getTokenSlug(),
                 name = addressInputView.autocompleteResult?.name,
                 isScam = viewModel.addressInfoFlow.value?.isScam ?: false,
-                isSell = isSell,
                 shouldRequireFreshAuth = shouldRequireFreshAuth
             )
             val isHardware = AccountStore.activeAccount?.isHardware == true
@@ -1133,7 +1076,6 @@ class SendVC(
         updateCommentViews()
         showServiceTokenWarningIfRequired()
 
-        if (isSell) return
         navSegmentedControl.setItems(
             buildSegmentedItems(),
             0,

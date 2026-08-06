@@ -75,7 +75,6 @@ interface StateProps {
   }>;
   isTestnet?: boolean;
   isTemporary?: boolean;
-  withTextGradient?: boolean;
   selectedExplorerIds?: Partial<Record<ApiChain, string>>;
 }
 
@@ -85,7 +84,6 @@ function CardAddress({
   byChain,
   isTestnet,
   accountType,
-  withTextGradient,
   isMinimized,
   isTemporary,
   selectedExplorerIds,
@@ -158,7 +156,6 @@ function CardAddress({
       <AddressMenuButton
         chains={chains}
         byChain={byChain}
-        withTextGradient={withTextGradient}
         isMinimized={isMinimized}
         isTinyFormat={isTinyFormat}
         openMenu={openMenu}

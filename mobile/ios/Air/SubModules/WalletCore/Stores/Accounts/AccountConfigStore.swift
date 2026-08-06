@@ -19,15 +19,9 @@ public actor AccountConfigStore: WalletCoreData.EventsObserver {
 
     @MainActor public func `for`(accountId: String) -> AccountConfig {
         let value = byAccountId.for(accountId: accountId)
-#if DEBUG
-        if DebugPromotionPreset.isEnabled || isMfaEnabledOverrideActive {
-            value.refreshDebugOverrides()
-        }
-#else
         if isMfaEnabledOverrideActive {
             value.refreshDebugOverrides()
         }
-#endif
         return value
     }
 
@@ -65,14 +59,8 @@ extension DependencyValues {
 @Perceptible
 public final class AccountConfig: Sendable {
     public let accountId: String
-    public private(set) var cardsInfo: ApiCardsInfo?
-    public private(set) var activePromotion: ApiPromotion?
     public private(set) var isMfaEnabled: Bool = false
 
-    @PerceptionIgnored
-    private var serverCardsInfo: ApiCardsInfo?
-    @PerceptionIgnored
-    private var serverActivePromotion: ApiPromotion?
     @PerceptionIgnored
     private var serverIsMfaEnabled: Bool = false
 
@@ -81,8 +69,6 @@ public final class AccountConfig: Sendable {
     }
 
     fileprivate func replace(config: ApiAccountConfig?) {
-        serverCardsInfo = config?.cardsInfo
-        serverActivePromotion = config?.activePromotion
         serverIsMfaEnabled = config?.isMfaEnabled ?? false
         applyResolvedConfig()
     }
@@ -92,13 +78,7 @@ public final class AccountConfig: Sendable {
     }
 
     private func applyResolvedConfig() {
-        cardsInfo = serverCardsInfo
         isMfaEnabled = serverIsMfaEnabled || isMfaEnabledOverrideActive
-#if DEBUG
-        activePromotion = DebugPromotionPreset.isEnabled ? DebugPromotionPreset.airPromotion : serverActivePromotion
-#else
-        activePromotion = serverActivePromotion
-#endif
     }
 }
 

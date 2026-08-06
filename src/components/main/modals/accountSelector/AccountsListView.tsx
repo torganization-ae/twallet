@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useRef } from '../../../../lib/teact/teact';
 
-import type { Account, AccountSettings } from '../../../../global/types';
+import type { Account } from '../../../../global/types';
 import type { AccountBalance } from '../../../../hooks/useAccountsBalances';
 import type { AccountTab } from './constants';
 
@@ -27,7 +27,6 @@ interface OwnProps {
   filteredAccounts: Array<[string, Account]>;
   activeTab: AccountTab;
   balancesByAccountId: Record<string, AccountBalance>;
-  settingsByAccountId?: Record<string, AccountSettings>;
   currentAccountId: string;
   isSensitiveDataHidden?: true;
   onSwitchAccount: (accountId: string) => void;
@@ -51,7 +50,6 @@ function AccountsListView({
   filteredAccounts,
   activeTab,
   balancesByAccountId,
-  settingsByAccountId,
   currentAccountId,
   isSensitiveDataHidden,
   onSwitchAccount,
@@ -107,7 +105,6 @@ function AccountsListView({
             byChain,
             type,
           }], index) => {
-            const { cardBackgroundNft } = settingsByAccountId?.[accountId] || {};
             const isCurrentAccount = accountId === currentAccountId;
             const balanceData = balancesByAccountId[accountId];
 
@@ -135,7 +132,6 @@ function AccountsListView({
                 isSelected={isCurrentAccount}
                 title={title}
                 balanceData={balanceData}
-                cardBackgroundNft={cardBackgroundNft}
                 withContextMenu={!IS_FEATURE_LIMITED && !isReorder}
                 isSensitiveDataHidden={isSensitiveDataHidden}
                 onClick={onSwitchAccount}

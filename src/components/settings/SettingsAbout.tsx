@@ -9,8 +9,8 @@ import {
   APP_WEBSITE_HOST,
   IS_EXTENSION,
   IS_FEATURE_LIMITED,
-  IS_TWALLETGRAM_WALLET,
   IS_MY_WALLET_BRAND,
+  IS_TWALLETGRAM_WALLET,
 } from '../../config';
 import { getHelpCenterUrl } from '../../global/helpers/getHelpCenterUrl';
 import renderText from '../../global/helpers/renderText';

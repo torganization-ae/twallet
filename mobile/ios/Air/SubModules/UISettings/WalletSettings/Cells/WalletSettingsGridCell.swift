@@ -122,18 +122,20 @@ private struct _Content: View {
     var body: some View {
         WithPerceptionTracking {
             VStack(spacing: layoutGeometry.vStackSpacing) {
-                MtwCard(aspectRatio: SMALL_CARD_RATIO)
-                    .background {
-                        MtwCardBackground(nft: accountContext.nft, hideBorder: true)
+                Color.clear
+                    .aspectRatio(SMALL_CARD_RATIO, contentMode: .fit)
+                    .overlay {
+                        Image(uiImage: .homeCard)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
                     }
                     .overlay {
                         _BalanceView(accountContext: accountContext, onClearHighlight: onClearHighlight)
                     }
                     .overlay(alignment: .bottom) {
-                        GridAddressLine(addressLine: accountContext.addressLine, nft: accountContext.nft)
+                        AccountAddressLine(addressLine: accountContext.addressLine, style: .card)
                             .foregroundStyle(.white)
                             .padding(8)
-                        
                     }
                     .overlay(alignment: .topTrailing) {
                         if let isSelected = model.isSelected {
@@ -142,8 +144,13 @@ private struct _Content: View {
                                 .transition(.opacity.combined(with: .scale(scale: 0.85)))
                         }
                     }
+                    .overlay {
+                        if accountContext.isCurrent {
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(.tint, lineWidth: layoutGeometry.borderWidth)
+                        }
+                    }
                     .clipShape(.containerRelative)
-                    .mtwCardSelection(isSelected: accountContext.isCurrent, cornerRadius: 12, lineWidth: layoutGeometry.borderWidth)
                     .containerShape(.rect(cornerRadius: 12))
                     .scaleEffect(model.isHighlighted && model.isSelected != nil ? 0.95 : 1)
                     .animation(.smooth(duration: 0.25), value: model.isHighlighted)
@@ -192,28 +199,15 @@ private struct _BalanceView: View {
     
     var body: some View {
         WithPerceptionTracking {
-            MtwCardBalanceView(
+            CardBalanceView(
                 balance: accountContext.balance,
                 style: .grid,
                 onSensitiveDataReveal: onClearHighlight
             )
-                .frame(height: 24, alignment: .center)
-                .padding(.leading, 6)
-                .padding(.trailing, 5)
-                .padding(.bottom, 6)
-                .sourceAtop {
-                    MtwCardBalanceGradient(nft: accountContext.nft)
-                }
+            .frame(height: 24, alignment: .center)
+            .padding(.leading, 6)
+            .padding(.trailing, 5)
+            .padding(.bottom, 6)
         }
-    }
-}
-
-private struct GridAddressLine: View {
-    
-    var addressLine: MAccount.AddressLine
-    var nft: ApiNft?
-    
-    var body: some View {
-        MtwCardAddressLine(addressLine: addressLine, style: .card, gradient: MtwCardCenteredGradient(nft: nft))
     }
 }

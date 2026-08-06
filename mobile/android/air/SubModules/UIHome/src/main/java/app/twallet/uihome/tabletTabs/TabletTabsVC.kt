@@ -602,11 +602,6 @@ class TabletTabsVC(context: Context) : BaseTabsVC(context), WThemedView,
                 sidePanel.setAccounts(WalletCore.getAllAccounts())
             }
 
-            WalletEvent.NftCardUpdated -> {
-                sidePanel.setAccounts(WalletCore.getAllAccounts())
-                routeWalletEvent(walletEvent)
-            }
-
             WalletEvent.SideGuttersChanged -> {
                 applyPanelInsets()
                 applyPanelWidth()

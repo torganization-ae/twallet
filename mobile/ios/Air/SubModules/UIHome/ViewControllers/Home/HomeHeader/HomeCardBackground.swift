@@ -14,7 +14,7 @@ struct HomeCardBackground: View {
     
     var body: some View {
         WithPerceptionTracking {
-            _StaticBackground(accountContext: accountContext)
+            _StaticBackground()
                 .opacity(headerViewModel.isCardHidden ? 0 : 1)
         }
     }
@@ -22,14 +22,15 @@ struct HomeCardBackground: View {
 
 private struct _StaticBackground: View {
     
-    let accountContext: AccountContext
-    
     var body: some View {
-        WithPerceptionTracking {
-            MtwCardBackground(nft: accountContext.nft, hideBorder: false)
-                .aspectRatio(1/CARD_RATIO, contentMode: .fit)
-                .clipShape(.rect(cornerRadius: 26))
-                .containerShape(.rect(cornerRadius: 26))
-        }
+        Color.air.groupedBackground
+            .overlay {
+                Image(uiImage: .homeCard)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .transition(.opacity.animation(.smooth(duration: 0.15)))
+            }
+            .clipShape(.rect(cornerRadius: 26))
+            .containerShape(.rect(cornerRadius: 26))
     }
 }

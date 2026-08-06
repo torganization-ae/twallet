@@ -8,7 +8,7 @@ import { getTranslation } from '../../../../../util/langProvider';
 import { openUrl } from '../../../../../util/openUrl';
 import { getHostnameFromUrl } from '../../../../../util/url';
 
-export type MenuHandler = 'send' | 'sell' | 'multisend';
+export type MenuHandler = 'send' | 'multisend';
 
 export const SEND_CONTEXT_MENU_ITEMS: DropdownItem<MenuHandler>[] = [{
   name: 'Send',
@@ -18,10 +18,6 @@ export const SEND_CONTEXT_MENU_ITEMS: DropdownItem<MenuHandler>[] = [{
   name: 'Multisend',
   fontIcon: 'menu-multisend',
   value: 'multisend',
-}, {
-  name: 'Sell',
-  fontIcon: 'menu-sell',
-  value: 'sell',
 }];
 
 export function handleSendMenuItemClick(value: MenuHandler) {
@@ -37,11 +33,6 @@ export function handleSendMenuItemClick(value: MenuHandler) {
         title: getTranslation('Multisend'),
         subtitle: getHostnameFromUrl(MULTISEND_DAPP_URL),
       });
-      break;
-
-    case 'sell':
-      vibrate();
-      getActions().openOffRampWidgetModal();
       break;
   }
 }

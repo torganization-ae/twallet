@@ -579,9 +579,7 @@ Are you sure you want to disable biometrics?: Sind Sie sicher, dass Sie die Biom
 Biometric confirmation failed: Biometrische Bestätigung fehlgeschlagen
 No Activity: Keine aktivität
 Fund: Aufladen
-Buy with Card: Mit Karte kaufen
 Buy with Crypto: Mit Krypto kaufen
-Cannot load widget: Widget kann nicht geladen werden
 Explore: Erkunden
 $lockdown_mode_enabled_title: Blockierungsmodus aktiviert
 $lockdown_mode_walletconnect_unavailable: "WalletConnect ist im Blockierungsmodus nicht verfügbar. Um es zu verwenden, deaktivieren Sie den Blockierungsmodus für %app_name% unter Einstellungen > Datenschutz & Sicherheit > Blockierungsmodus > Web-Browsing konfigurieren."
@@ -648,7 +646,6 @@ More actions: Mehr Aktionen
 Open on %explorer_name%: Auf %explorer_name% öffnen
 Swap is not supported in Testnet.: Swap wird in Testnet nicht unterstützt.
 Swap is not yet supported by Ledger.: Swap wird von Ledger noch nicht unterstützt.
-Buying with card is not supported in Testnet.: Der Kauf mit Karte wird in Testnet nicht unterstützt.
 Staking is not supported in Testnet.: Das Abstecken wird in Testnet nicht unterstützt.
 Get Support: Hole dir Unterstützung
 $transfer_link_expired: Transfer-Link ist abgelaufen
@@ -791,10 +788,6 @@ Add Tokens: Token Hinzufügen
 No tokens yet: Noch keine Token
 $no_tokens_description: Erhalten Sie Token von einer anderen Wallet oder aktivieren Sie einfach bevorzugte Token in den Einstellungen zur Überwachung.
 Exchange Rate: Wechselkurs
-Install Card: Karte installieren
-Reset Card: Karte zurücksetzen
-Apply Palette: Palette anwenden
-Reset Palette: Palette zurücksetzen
 Notifications & Sounds: Benachrichtigungen & Töne
 Sounds: Töne
 Push Notifications: Push-Benachrichtigungen
@@ -886,21 +879,6 @@ Receiving: Empfangen
 $receive_action: Empfangen
 Change Palette: Palette ändern
 Palette: Palette
-Unlock New Palettes: Neue Paletten freischalten
-Get a unique My Wallet Card to unlock new palettes.: Erhalte eine einzigartige My Wallet-Karte, um neue Paletten freizuschalten.
-Mint Cards: Karten prägen
-Card has been upgraded!: Karte wurde aktualisiert!
-$mint_card_result: Die NFT-Karte wird **geprägt** und **innerhalb einer Minute automatisch installiert**.
-Unique: Einzigartig
-Get a card with unique background and personalized palette for wallet interface.: Holen Sie sich eine Karte mit einzigartigem Hintergrund und personalisierter Palette für die Wallet-Oberfläche.
-Transferable: Übertragbar
-Easily send your upgraded card to any of your friends.: Sende deine aktualisierte Karte ganz einfach an deine Freunde.
-Tradable: Handelbar
-Sell or auction your card on third-party NFT marketplaces.: Verkaufe oder versteigere deine Karte auf Drittanbieter-NFT-Marktplätzen.
-Upgrade for %amount% %currency%: Upgrade für %amount% %currency%
-"%amount% left": "%amount% übrig"
-"%amount% sold": "%amount% verkauft"
-This card has been sold out: Diese Karte ist ausverkauft
 Import Existing Wallet: Vorhandene Wallet importieren
 View Any Address: Beliebige Adresse anzeigen
 View Mode: Ansichtsmodus
@@ -1106,16 +1084,6 @@ No Ledger wallets yet: Noch keine Ledger Wallets
 No view wallets yet: Noch keine View Wallets
 View wallets can receive assets, but you cannot use them to send or sign transactions.: View-Wallets können Assets empfangen, aber nicht zum Senden oder Signieren von Transaktionen verwendet werden.
 Add the first one to track balances and activity for any address.: Fügen Sie das erste Wallet hinzu, um Kontostände und Aktivitäten für jede Adresse zu verfolgen.
-Customize Wallet: Wallet anpassen
-"Select the card stored in this wallet:": "Wählen Sie die Karte aus, die in dieser Wallet gespeichert ist:"
-This card will be installed for this wallet and will be displayed on the home screen and in the wallets list.: Diese Karte wird für diese Wallet installiert und auf dem Startbildschirm sowie in der Wallet-Liste angezeigt.
-Get More Cards: Weitere Karten erhalten
-Browse My Wallet Cards available for purchase.: Durchsuchen Sie die verfügbaren My Wallet-Karten zum Kauf.
-You don’t have any cards to customize yet: Sie haben noch keine Karten zum Anpassen.
-My Wallet Cards can be installed for wallets and displayed on the home screen and in the wallet list.: My Wallet-Karten können für Wallets installiert und auf dem Startbildschirm sowie in der Wallet-Liste angezeigt werden.
-Get First Card: Erste Karte erhalten
-Palette and Card: Palette und Karte
-Customize the wallet's home screen and color accents the way you like.: Passen Sie den Startbildschirm und die Farbakzente Ihrer Wallet nach Ihrem Geschmack an.
 Address doesn't exist: Adresse existiert nicht
 The address is not a token minter address: Die Adresse ist keine Token-Minter-Adresse
 $joining_comma: ", "
@@ -1128,11 +1096,8 @@ $no_valid_view_addresses: Keine gültigen Adressen zur Ansicht
 Account Saved: Konto erfolgreich gespeichert
 Share Wallet Link: Wallet-Link teilen
 Remove: Entfernen
-$missing_offramp_deposit_address: Fehlende Einzahlungsadresse für Off-Ramp.
 Buy: Kaufen
 Sell: Verkaufen
-Sell on Card: Auf Karte verkaufen
-Sell %symbol%: "%symbol% verkaufen"
 $connect_dapp_description: Verbundene Apps können nur Ihre Wallet-Adresse sehen und können Ihre Assets ohne Ihre Zustimmung nicht bewegen.
 $connect_dapp_title: Mit %name% verbinden?
 Choose Wallet: Wallet auswählen
@@ -1153,7 +1118,7 @@ confirm an action in My Wallet: eine Aktion in My Wallet bestätigen
 Timed out waiting for account to be ready: Timeout beim Warten auf die Bereitschaft des Kontos
 $connected_apps:
   otherValue: "%1$d verbunden"
-Night Mode, Palette, Card: Nachtmodus, Farbpalette, Karte
+Night Mode, Palette: Nachtmodus, Farbpalette
 Back Up, Passcode, Auto-Lock: Backup, Passcode, Automatische Sperre
 Back Up, Password, Auto-Lock: Backup, Passwort, Automatische Sperre
 Base Currency, Token Order, Hidden NFTs: Basiswährung, Token-Reihenfolge, Versteckte NFTs
@@ -1336,7 +1301,6 @@ Add Crypto: Krypto hinzufügen
 Share QR Code: QR-Code teilen
 $send_only_ton: Sende an diese Adresse nur Gram (GRAM) oder TON-basierte Assets. Andere Token gehen verloren.
 $send_only_chain: Sende an diese Adresse nur %chain% (%symbol%) oder %chain%-basierte Assets. Andere Token gehen verloren.
-Buying with card is not supported for this account.: Für dieses Konto wird Kartenzahlung nicht unterstützt.
 Swapped at: Getauscht am
 Price per: Preis pro
 Swap ID: Swap-ID
@@ -1557,7 +1521,6 @@ Use 6-digit Passcode: 6-stelligen Passcode verwenden
 Authorize %token% Fee: "%token%-Gebühr autorisieren"
 Awaiting Previous Fee: Vorherige Gebühr ausstehend
 Lock: Sperren
-My Wallet Cards can be installed for wallets and displayed on the home screen an in the wallet list.: My Wallet-Karten können Wallets hinzugefügt und auf dem Startbildschirm sowie in der Wallet-Liste angezeigt werden.
 Receive: Empfangen
 Scan: Scannen
 

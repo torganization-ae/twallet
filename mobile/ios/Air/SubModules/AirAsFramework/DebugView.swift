@@ -23,7 +23,6 @@ struct DebugView: View {
     @AppStorage(DebugMfaEnabledOverride.userDefaultsKey) private var forceMfaEnabled = false
 #if DEBUG
     @AppStorage(DebugBypassLockscreen.userDefaultsKey) private var bypassLockscreen = false
-    @AppStorage(DebugPromotionPreset.userDefaultsKey) private var showAirPromotionPreset = false
 #endif
     @State private var isLimitedOverride: Bool? = ConfigStore.shared.isLimitedOverride
     @State private var seasonalThemeOverride: ApiUpdate.UpdateConfig.SeasonalTheme? = ConfigStore.shared.seasonalThemeOverride
@@ -187,17 +186,6 @@ struct DebugView: View {
                         if DebugBypassLockscreen.isEnabledFromEnvironment {
                             Text("The current launch environment is already bypassing the lockscreen.")
                         }
-                    }
-                }
-
-                Section {
-                    Toggle("Show Air promotion preset", isOn: $showAirPromotionPreset)
-                } footer: {
-                    Text("Overrides the current account promotion config with the built-in 2026 Air campaign sample.")
-                }
-                .onChange(of: showAirPromotionPreset) { _ in
-                    Task { @MainActor in
-                        AccountConfigStore.liveValue.refreshDebugOverrides()
                     }
                 }
 

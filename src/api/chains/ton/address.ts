@@ -9,8 +9,8 @@ import { dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
 import { getKnownAddressInfo } from '../../common/addresses';
 import { DnsCategory } from './constants';
-import { fetchAddressBook } from './toncenter';
 import { resolveTmailAlias } from './tmail';
+import { fetchAddressBook } from './toncenter';
 
 export async function resolveAddress(network: ApiNetwork, address: string, skipFormatSelection?: boolean): Promise<{
   address: string;

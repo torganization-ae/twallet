@@ -41,7 +41,6 @@ import app.twallet.air.uipasscode.viewControllers.passcodeConfirm.PasscodeConfir
 import app.twallet.air.uipasscode.viewControllers.passcodeConfirm.PasscodeViewState
 import app.twallet.air.uiportfolio.viewControllers.portfolio.PortfolioVC
 import app.twallet.air.uireceive.ReceiveVC
-import app.twallet.air.uisend.send.SellVC
 import app.twallet.air.uisend.send.SendVC
 import app.twallet.air.uisend.send.SendVC.InitialValues
 import app.twallet.air.uisettings.viewControllers.appInfo.AppInfoVC
@@ -929,122 +928,11 @@ class SplashVC(context: Context) : WViewController(context),
                 val receiveVC =
                     ReceiveVC.createIfAvailable(
                         context,
-                        AccountStore.activeAccount?.firstChain,
-                        false
+                        AccountStore.activeAccount?.firstChain
                     ) ?: return
                 val navVC = WNavigationController(window!!, PresentationConfig.PreferredFullScreen)
                 navVC.setRoot(receiveVC)
                 window?.present(navVC)
-            }
-
-            is Deeplink.BuyWithCard -> {
-                if (!account.supportsBuyWithCard) {
-                    showAlertOverTopVC(
-                        null,
-                        LocaleController.getString("Buying with card is not supported for this account.")
-                    )
-                    nextDeeplink = null
-                    return
-                }
-                val receiveVC =
-                    ReceiveVC.createIfAvailable(context, MBlockchain.ton, true) ?: return
-                val navVC = WNavigationController(window!!, PresentationConfig.PreferredFullScreen)
-                navVC.setRoot(receiveVC)
-                window?.present(navVC)
-            }
-
-            is Deeplink.Offramp -> {
-                if (!source.canRouteOfframp) {
-                    showAlertOverTopVC(
-                        LocaleController.getString("Error"),
-                        LocaleController.getString("\$unsupported_deeplink_parameter")
-                    )
-                    nextDeeplink = null
-                    return
-                }
-
-                if (!account.supportsBuyWithCard) {
-                    window?.topViewController?.showAlert(
-                        LocaleController.getString("Error"),
-                        LocaleController.getString("Action is not possible on a view-only wallet.")
-                    )
-                    nextDeeplink = null
-                    return
-                }
-
-                val depositAddress = deeplink.depositWalletAddress
-                if (depositAddress.isNullOrEmpty()) {
-                    showAlertOverTopVC(
-                        LocaleController.getString("Error"),
-                        LocaleController.getString("\$missing_offramp_deposit_address")
-                    )
-                    nextDeeplink = null
-                    return
-                }
-
-                val tokenSlug = mapOfframpTokenSlug(deeplink.baseCurrencyCode)
-                if (tokenSlug == null) {
-                    showAlertOverTopVC(
-                        LocaleController.getString("Error"),
-                        LocaleController.getString("\$unsupported_deeplink_parameter")
-                    )
-                    nextDeeplink = null
-                    return
-                }
-
-                val blockchain = TokenStore.getToken(tokenSlug)?.mBlockchain
-                if (blockchain?.isOfframpSupported != true) {
-                    showAlertOverTopVC(
-                        LocaleController.getString("Error"),
-                        LocaleController.getString("Selling is not supported for this token.")
-                    )
-                    nextDeeplink = null
-                    return
-                }
-
-                if (!blockchain.isValidAddress(depositAddress) && !blockchain.isValidDNS(
-                        depositAddress
-                    )
-                ) {
-                    showAlertOverTopVC(
-                        LocaleController.getString("Error"),
-                        LocaleController.getString("\$unsupported_deeplink_parameter")
-                    )
-                    nextDeeplink = null
-                    return
-                }
-
-                window?.dismissToRoot {
-                    val navVC =
-                        WNavigationController(window!!, PresentationConfig.PreferredFullScreen)
-                    if (source.requiresFreshAuth) {
-                        navVC.setRoot(
-                            SendVC(
-                                context,
-                                tokenSlug,
-                                InitialValues(
-                                    address = depositAddress,
-                                    amount = deeplink.baseCurrencyAmount,
-                                    comment = deeplink.depositWalletAddressTag
-                                ),
-                                shouldRequireFreshAuth = source.requiresFreshAuth
-                            )
-                        )
-                    } else {
-                        navVC.setRoot(
-                            SellVC(
-                                context,
-                                tokenSlug,
-                                SellVC.InitialValues(
-                                    address = depositAddress,
-                                    amount = deeplink.baseCurrencyAmount,
-                                    comment = deeplink.depositWalletAddressTag
-                                )
-                            )
-                        )
-                    }
-                    window?.present(navVC)
-                }
             }
 
             is Deeplink.Stake -> {
@@ -1475,14 +1363,6 @@ class SplashVC(context: Context) : WViewController(context),
                 }
             }
         }
-    }
-
-    private fun mapOfframpTokenSlug(baseCurrencyCode: String?): String? {
-        val normalizedCode = baseCurrencyCode?.lowercase() ?: return null
-        if (normalizedCode == "ton" || normalizedCode == "toncoin") {
-            return TONCOIN_SLUG
-        }
-        return TokenStore.getToken(normalizedCode)?.slug
     }
 
     private fun presentToken(tokenSlug: String) {

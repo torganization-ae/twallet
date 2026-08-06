@@ -1,25 +1,22 @@
 import React, { memo, useRef } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { Account, Theme } from '../../../../global/types';
+import type { Theme } from '../../../../global/types';
 import type { StakingStateStatus } from '../../../../util/staking';
 
 import { ANIMATED_STICKER_ICON_PX } from '../../../../config';
 import {
   selectAccountStakingState,
   selectAccountStakingStatesBySlug,
-  selectCurrentAccount,
   selectCurrentAccountId,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectIsCurrentAccountViewMode,
-  selectIsOffRampAllowed,
   selectIsStakingDisabled,
   selectIsSwapDisabled,
 } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
-import { CHAIN_ORDER } from '../../../../util/chain';
 import { vibrate } from '../../../../util/haptics';
 import { getStakingStateStatus } from '../../../../util/staking';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
@@ -56,9 +53,6 @@ interface StateProps {
   isViewMode: boolean;
   isSwapDisabled?: boolean;
   isEarnHidden: boolean;
-  isOnRampDisabled?: boolean;
-  isOffRampDisabled?: boolean;
-  accountByChain?: Account['byChain'];
   stakingStatus: StakingStateStatus;
   theme: Theme;
   accentColorIndex?: number;
@@ -68,9 +62,6 @@ function LandscapeTopActions({
   isViewMode,
   isSwapDisabled,
   isEarnHidden,
-  isOnRampDisabled,
-  isOffRampDisabled,
-  accountByChain,
   stakingStatus,
   theme,
   accentColorIndex,
@@ -80,8 +71,6 @@ function LandscapeTopActions({
     startTransfer,
     startSwap,
     openReceiveModal,
-    openOnRampWidgetModal,
-    openOffRampWidgetModal,
     openStakingInfoOrStart,
   } = getActions();
 
@@ -89,15 +78,9 @@ function LandscapeTopActions({
   const appTheme = useAppTheme(theme);
   const stickerPaths = ANIMATED_STICKERS_PATHS[appTheme];
   const accentColor = accentColorIndex ? ACCENT_COLORS[appTheme][accentColorIndex] : undefined;
-  const onRampChain = accountByChain && CHAIN_ORDER.find((chain) => accountByChain[chain]);
 
   const containerRef = useRef<HTMLDivElement>();
   useHorizontalScroll({ containerRef, shouldPreventDefault: true });
-
-  const handleBuyClick = useLastCallback(() => {
-    vibrate();
-    openOnRampWidgetModal({ chain: onRampChain! });
-  });
 
   const handleDepositClick = useLastCallback(() => {
     vibrate();
@@ -112,11 +95,6 @@ function LandscapeTopActions({
   const handleEarnClick = useLastCallback(() => {
     vibrate();
     openStakingInfoOrStart();
-  });
-
-  const handleSellClick = useLastCallback(() => {
-    vibrate();
-    openOffRampWidgetModal();
   });
 
   const handleSendClick = useLastCallback(() => {
@@ -140,15 +118,6 @@ function LandscapeTopActions({
 
   return (
     <div ref={containerRef} className={buildClassName(styles.root, 'no-scrollbar', className)}>
-      {!isOnRampDisabled && onRampChain && (
-        <ActionButton
-          label={lang('Buy')}
-          tgsUrl={stickerPaths.iconBuy}
-          previewUrl={stickerPaths.preview.iconBuy}
-          accentColor={accentColor}
-          onClick={handleBuyClick}
-        />
-      )}
       {depositButton}
       <ActionButton
         label={lang('Send')}
@@ -176,15 +145,6 @@ function LandscapeTopActions({
           onClick={handleEarnClick}
         />
       )}
-      {!isOffRampDisabled && (
-        <ActionButton
-          label={lang('Sell')}
-          tgsUrl={stickerPaths.iconSell}
-          previewUrl={stickerPaths.preview.iconSell}
-          accentColor={accentColor}
-          onClick={handleSellClick}
-        />
-      )}
     </div>
   );
 }
@@ -203,9 +163,6 @@ export default memo(
         isViewMode: selectIsCurrentAccountViewMode(global),
         isSwapDisabled: selectIsSwapDisabled(global),
         isEarnHidden,
-        isOnRampDisabled: global.restrictions.isOnRampDisabled,
-        isOffRampDisabled: !selectIsOffRampAllowed(global),
-        accountByChain: selectCurrentAccount(global)?.byChain,
         stakingStatus: stakingState ? getStakingStateStatus(stakingState) : 'inactive',
         theme: global.settings.theme,
         accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,

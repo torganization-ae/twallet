@@ -5,8 +5,6 @@ import {
   DEFAULT_STAKING_STATE,
   IS_CORE_WALLET,
   IS_FEATURE_LIMITED,
-  IS_MY_WALLET_BRAND,
-  MW_CARDS_COLLECTION,
   STAKING_SLUG_PREFIX,
   SWAP_API_VERSION,
   TELEGRAM_GIFTS_SUPER_COLLECTION,
@@ -17,8 +15,7 @@ import { buildCollectionByKey, unique } from '../../../util/iteratees';
 import { openUrl } from '../../../util/openUrl';
 import { getIsActiveStakingState } from '../../../util/staking';
 import { omitAccounts } from '../../helpers/auth';
-import { pinMwCardsFirst } from '../../helpers/nfts';
-import { addActionHandler, getGlobal, setGlobal } from '../../index';
+import { addActionHandler, setGlobal } from '../../index';
 import {
   addUnorderedNfts,
   applyIncomingNftFromActivity,
@@ -27,9 +24,7 @@ import {
   removeNft,
   updateAccount,
   updateAccountChain,
-  updateAccountOwnedMwCards,
   updateAccountSettings,
-  updateAccountSettingsBackgroundNft,
   updateAccountStaking,
   updateAccountState,
   updateBalances,
@@ -50,10 +45,6 @@ import {
   selectAccountState,
   selectVestingPartsReadyToUnfreeze,
 } from '../../selectors';
-
-// Accumulates new My Wallet Cards across multi-batch streaming rounds.
-// Drained on the round's final batch when `streamedAddresses` is present.
-const pendingNewMwCardsByAccount = new Map<string, ApiNft[]>();
 
 addActionHandler('apiUpdate', (global, actions, update) => {
   switch (update.type) {
@@ -193,8 +184,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         );
       }
 
-      orderedAddresses = pinMwCardsFirst(orderedAddresses, byAddress);
-
       global = updateAccountState(global, accountId, {
         nfts: {
           ...currentNfts,
@@ -215,28 +204,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         },
       });
 
-      if (IS_MY_WALLET_BRAND) {
-        // Diff against persistent `ownedSet` so a card the user removed (via `clearCardBackgroundNft`)
-        // isn't re-installed every polling round when it remains in the wallet
-        const ownedSet = new Set(currentNfts?.ownedMwCardAddresses ?? []);
-        const newCards = update.nfts.filter((nft) =>
-          nft.collectionAddress === MW_CARDS_COLLECTION
-          && !ownedSet.has(nft.address),
-        );
-        if (newCards.length) {
-          pendingNewMwCardsByAccount.set(accountId, [
-            ...(pendingNewMwCardsByAccount.get(accountId) ?? []),
-            ...newCards,
-          ]);
-        }
-
-        update.nfts.forEach((nft) => {
-          if (nft.collectionAddress === MW_CARDS_COLLECTION) {
-            global = updateAccountSettingsBackgroundNft(global, nft);
-          }
-        });
-      }
-
       const hasTelegramGifts = update.nfts.some((nft) => nft.isTelegramGift);
       if (hasTelegramGifts) {
         actions.addCollectionTab({
@@ -249,54 +216,19 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       }
 
       setGlobal(global);
-
-      // On the round's final batch: rebuild `ownedSet` from current ownership, then auto-install
-      // a new card if the user has none set
-      if (streamedAddresses && IS_MY_WALLET_BRAND) {
-        const candidates = pendingNewMwCardsByAccount.get(accountId);
-        pendingNewMwCardsByAccount.delete(accountId);
-
-        const byAddressNow = selectAccountState(getGlobal(), accountId)?.nfts?.byAddress;
-        if (byAddressNow) {
-          // Sync `ownedSet` BEFORE auto-install so subsequent rounds see the current ownership
-          const currentMwAddresses = Object.values(byAddressNow)
-            .filter((nft) => nft.collectionAddress === MW_CARDS_COLLECTION)
-            .map((nft) => nft.address);
-          global = updateAccountOwnedMwCards(getGlobal(), accountId, currentMwAddresses);
-          setGlobal(global);
-        }
-
-        if (candidates?.length) {
-          const settings = selectAccountSettings(getGlobal(), accountId);
-          if (!settings?.cardBackgroundNft) {
-            // Pick rarest = MIN by (metadata.mtwCardId ?? index) - earlier mints are typically rarer
-            const rarest = candidates.reduce((acc, candidate) => (
-              (candidate.metadata?.mtwCardId ?? candidate.index) < (acc.metadata?.mtwCardId ?? acc.index)
-                ? candidate
-                : acc
-            ));
-            actions.setCardBackgroundNft({ nft: rarest, accountId });
-            actions.installAccentColorFromNft({ nft: rarest, accountId });
-          }
-        }
-      }
-
-      actions.checkCardNftOwnership({ accountId });
       break;
     }
 
     case 'nftSent': {
-      const { accountId, nftAddress, newOwnerAddress } = update;
+      const { accountId, nftAddress } = update;
       const sentNft = selectAccountNftByAddress(global, accountId, nftAddress);
       if (sentNft) {
-        global = applyOutgoingNftFromActivity(global, accountId, sentNft, newOwnerAddress);
+        global = applyOutgoingNftFromActivity(global, accountId, sentNft);
       } else {
         // Fallback if NFT isn't in local state (e.g., startup race - socket event arrived before initial load)
         global = removeNft(global, accountId, nftAddress);
       }
       setGlobal(global);
-
-      actions.checkCardNftOwnership({ accountId });
       break;
     }
 
@@ -304,15 +236,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       const { accountId, nft } = update;
       global = applyIncomingNftFromActivity(global, accountId, nft);
       setGlobal(global);
-
-      if (IS_MY_WALLET_BRAND) {
-        actions.checkCardNftOwnership({ accountId });
-        const settings = selectAccountSettings(global, accountId);
-        if (nft.collectionAddress === MW_CARDS_COLLECTION && !settings?.cardBackgroundNft) {
-          actions.setCardBackgroundNft({ nft, accountId });
-          actions.installAccentColorFromNft({ nft, accountId });
-        }
-      }
       break;
     }
 
@@ -380,22 +303,18 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         isLimited: isLimitedRegion,
         isCopyStorageEnabled,
         supportAccountsCount,
-        countryCode,
         isAppUpdateRequired,
         swapVersion,
         seasonalTheme,
       } = update;
 
-      const shouldRestrictSwapsAndOnOffRamp = IS_FEATURE_LIMITED;
+      const shouldRestrictSwapsAndNftBuying = IS_FEATURE_LIMITED;
       global = updateRestrictions(global, {
         isLimitedRegion,
-        isSwapDisabled: shouldRestrictSwapsAndOnOffRamp,
-        isOnRampDisabled: shouldRestrictSwapsAndOnOffRamp,
-        isOffRampDisabled: shouldRestrictSwapsAndOnOffRamp,
-        isNftBuyingDisabled: shouldRestrictSwapsAndOnOffRamp,
+        isSwapDisabled: shouldRestrictSwapsAndNftBuying,
+        isNftBuyingDisabled: shouldRestrictSwapsAndNftBuying,
         isCopyStorageEnabled,
         supportAccountsCount,
-        countryCode,
       });
       global = {
         ...global,

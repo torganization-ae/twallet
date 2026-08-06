@@ -339,14 +339,6 @@ final class WalletSettingsListVC: SettingsBaseVC, WSegmentedControllerContent, R
                 AppActions.showRenameAccount(accountId: accountId)
             }
         )
-        
-        mainSectionItems += UIAction(
-            title: lang("Customize"),
-            image: UIImage(systemName: "wand.and.stars.inverse"),
-            handler: { _ in
-                AppActions.showCustomizeWallet(accountId: accountId)
-            }
-        )
         let mainSection = UIMenu(options: .displayInline, children: mainSectionItems)
         
         let delete = UIAction(

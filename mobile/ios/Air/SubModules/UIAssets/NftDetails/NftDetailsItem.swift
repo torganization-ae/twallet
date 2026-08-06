@@ -80,7 +80,7 @@ protocol NftDetailsItemModelDelegate: AnyObject {
 
 final class NftDetailsItemModel: Identifiable, Equatable, @unchecked Sendable, CustomStringConvertible {
 
-    enum Action: CaseIterable { case wear, send, share, more, showCollection, renewDomain }
+    enum Action: CaseIterable { case send, share, more, showCollection, renewDomain }
 
     init(item: NftDetailsItem, index: Int) {
         self.item = item

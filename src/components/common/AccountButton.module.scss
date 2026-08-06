@@ -104,9 +104,6 @@
     }
   }
 
-  &.customCard {
-    background-image: var(--bg), linear-gradient(125deg, #{v.$defaultCardGradient}) !important;
-  }
 }
 
 .accountName {

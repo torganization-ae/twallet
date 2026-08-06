@@ -576,9 +576,7 @@ Are you sure you want to disable biometrics?: คุณแน่ใจหรื�
 Biometric confirmation failed: การยืนยันข้อมูลชีวภาพล้มเหลว
 No Activity: ไม่มีกิจกรรม
 Fund: เติมเงิน
-Buy with Card: ซื้อด้วยบัตร
 Buy with Crypto: ซื้อด้วยคริปโต
-Cannot load widget: ไม่สามารถโหลดวิดเจ็ตได้
 Explore: สำรวจ
 $lockdown_mode_enabled_title: เปิดใช้งานโหมดล็อกดาวน์แล้ว
 $lockdown_mode_walletconnect_unavailable: "WalletConnect ไม่พร้อมใช้งานในโหมดล็อกดาวน์ หากต้องการใช้งาน ให้ปิดโหมดล็อกดาวน์สำหรับ %app_name% ใน การตั้งค่า > ความเป็นส่วนตัวและความปลอดภัย > โหมดล็อกดาวน์ > กำหนดค่าการท่องเว็บ"
@@ -644,7 +642,6 @@ More actions: เพิ่มเติม
 Open on %explorer_name%: เปิดบน %explorer_name%
 Swap is not supported in Testnet.: การสับเปลี่ยนยังไม่รองรับบน Testnet.
 Swap is not yet supported by Ledger.: การสับเปลี่ยนยังไม่รองรับบน Ledger.
-Buying with card is not supported in Testnet.: การซื้อด้วยบัตรยังไม่รองรับบน Testnet.
 Staking is not supported in Testnet.: การสเต็กยังไม่รองรับบน Testnet.
 Get Support: ขอความช่วยเหลือ
 $transfer_link_expired: ลิงก์การโอนหมดอายุแล้ว
@@ -788,10 +785,6 @@ Add Tokens: เพิ่มโทเค็น
 No tokens yet: ยังไม่มีโทเคน
 $no_tokens_description: รับโทเคนจากกระเป๋าเงินอื่น หรือเพียงแค่เปิดใช้งานโทเคนที่ต้องการในการตั้งค่าเพื่อการติดตาม
 Exchange Rate: อัตราแลกเปลี่ยน
-Install Card: ติดตั้งการ์ด
-Reset Card: รีเซ็ตการ์ด
-Apply Palette: ใช้พาเลต
-Reset Palette: รีเซ็ตพาเลต
 Notifications & Sounds: การแจ้งเตือนและเสียง
 Sounds: เสียง
 Push Notifications: การแจ้งเตือนแบบพุช
@@ -883,21 +876,6 @@ Receiving: กำลังรับ
 $receive_action: การรับ
 Change Palette: เปลี่ยนพาเลต
 Palette: พาเลต
-Unlock New Palettes: ปลดล็อกพาเลตใหม่
-Get a unique My Wallet Card to unlock new palettes.: รับบัตร My Wallet สุดพิเศษเพื่อปลดล็อกพาเลตใหม่
-Mint Cards: สร้างบัตร
-Card has been upgraded!: บัตรได้รับการอัปเกรดแล้ว!
-$mint_card_result: บัตร NFT จะถูก **สร้าง** และ **ติดตั้งโดยอัตโนมัติ** ภายในหนึ่งนาที
-Unique: ไม่ซ้ำใคร
-Get a card with unique background and personalized palette for wallet interface.: รับบัตรที่มีพื้นหลังไม่ซ้ำใครและพาเลทส่วนตัวสำหรับอินเทอร์เฟซกระเป๋าเงิน
-Transferable: โอนย้ายได้
-Easily send your upgraded card to any of your friends.: ส่งบัตรที่อัปเกรดแล้วของคุณไปยังเพื่อนของคุณได้อย่างง่ายดาย
-Tradable: ซื้อขายได้
-Sell or auction your card on third-party NFT marketplaces.: ขายหรือประมูลบัตรของคุณในตลาด NFT ของบุคคลที่สาม
-Upgrade for %amount% %currency%: อัปเกรดสำหรับ %amount% %currency%
-"%amount% left": เหลือ %amount%
-"%amount% sold": ขายแล้ว %amount%
-This card has been sold out: การ์ดนี้ขายหมดแล้ว
 Import Existing Wallet: นำเข้ากระเป๋าเงินที่มีอยู่
 View Any Address: ดูที่อยู่ใดก็ได้
 View Mode: โหมดดู
@@ -1097,16 +1075,6 @@ No Ledger wallets yet: ยังไม่มีวอลเล็ต Ledger
 No view wallets yet: ยังไม่มีวอลเล็ตสำหรับดู
 View wallets can receive assets, but you cannot use them to send or sign transactions.: กระเป๋าเงินสำหรับดูสามารถรับสินทรัพย์ได้ แต่ไม่สามารถใช้เพื่อส่งหรือเซ็นธุรกรรมได้
 Add the first one to track balances and activity for any address.: เพิ่มวอลเล็ตแรกเพื่อติดตามยอดเงินและกิจกรรมของที่อยู่ใด ๆ
-Customize Wallet: ปรับแต่งกระเป๋าเงิน
-"Select the card stored in this wallet:": "เลือกการ์ดที่เก็บไว้ในกระเป๋าเงินนี้:"
-This card will be installed for this wallet and will be displayed on the home screen and in the wallets list.: การ์ดนี้จะถูกติดตั้งให้กับกระเป๋าเงินนี้และจะแสดงบนหน้าหลักและในรายการกระเป๋าเงิน
-Get More Cards: รับการ์ดเพิ่มเติม
-Browse My Wallet Cards available for purchase.: เรียกดูการ์ด My Wallet ที่มีให้ซื้อ
-You don’t have any cards to customize yet: คุณยังไม่มีการ์ดให้ปรับแต่ง
-My Wallet Cards can be installed for wallets and displayed on the home screen and in the wallet list.: การ์ด My Wallet สามารถติดตั้งให้กับกระเป๋าเงินและแสดงบนหน้าหลักและในรายการกระเป๋าเงินได้
-Get First Card: รับการ์ดแรก
-Palette and Card: พาเลตและการ์ด
-Customize the wallet's home screen and color accents the way you like.: ปรับแต่งหน้าหลักและโทนสีของกระเป๋าเงินในแบบที่คุณต้องการ
 Address doesn't exist: ที่อยู่ไม่ถูกต้อง
 The address is not a token minter address: ที่อยู่นี้ไม่ใช่ที่อยู่ของผู้สร้างโทเค็น
 $joining_comma: ", "
@@ -1119,11 +1087,8 @@ $no_valid_view_addresses: ไม่มีที่อยู่ที่สาม
 Account Saved: บันทึกบัญชีสำเร็จแล้ว
 Share Wallet Link: แชร์ลิงก์วอลเล็ต
 Remove: ลบ
-$missing_offramp_deposit_address: ไม่มีที่อยู่ฝากสำหรับการถอนออก
 Buy: ซื้อ
 Sell: ขาย
-Sell on Card: ขายเข้าบัตร
-Sell %symbol%: ขาย %symbol%
 $connect_dapp_description: แอปที่เชื่อมต่อจะเห็นได้เฉพาะที่อยู่กระเป๋าเงินของคุณ และไม่สามารถย้ายสินทรัพย์ของคุณได้หากไม่ได้รับอนุญาต
 $connect_dapp_title: เชื่อมต่อกับ %name%?
 Choose Wallet: เลือกกระเป๋าเงิน
@@ -1144,7 +1109,7 @@ confirm an action in My Wallet: ยืนยันการดำเนินก
 Timed out waiting for account to be ready: หมดเวลารอให้บัญชีพร้อมใช้งาน
 $connected_apps:
   otherValue: "%1$d เชื่อมต่อแล้ว"
-Night Mode, Palette, Card: โหมดกลางคืน, จานสี, การ์ด
+Night Mode, Palette: โหมดกลางคืน, จานสี
 Back Up, Passcode, Auto-Lock: สำรองข้อมูล, รหัสผ่าน, ล็อกอัตโนมัติ
 Back Up, Password, Auto-Lock: สำรองข้อมูล, รหัสผ่าน, ล็อกอัตโนมัติ
 Base Currency, Token Order, Hidden NFTs: สกุลเงินหลัก, ลำดับโทเค็น, NFT ที่ซ่อน
@@ -1322,7 +1287,6 @@ Add Crypto: เพิ่มคริปโต
 Share QR Code: แชร์ QR โค้ด
 $send_only_ton: ส่ง Gram (GRAM) หรือสินทรัพย์บน TON เท่านั้นไปยังที่อยู่นี้ การส่งโทเคนอื่นจะทำให้สูญหาย
 $send_only_chain: ส่ง %chain% (%symbol%) หรือสินทรัพย์บน %chain% เท่านั้นไปยังที่อยู่นี้ การส่งโทเคนอื่นจะทำให้สูญหาย
-Buying with card is not supported for this account.: บัญชีนี้ไม่รองรับการซื้อด้วยบัตร
 Swapped at: แลกเปลี่ยนเมื่อ
 Price per: ราคาต่อ
 Swap ID: ID การสวอป
@@ -1543,7 +1507,6 @@ Use 6-digit Passcode: ใช้รหัส 6 หลัก
 Authorize %token% Fee: อนุมัติค่าธรรมเนียม %token%
 Awaiting Previous Fee: กำลังรอค่าธรรมเนียมก่อนหน้า
 Lock: ล็อก
-My Wallet Cards can be installed for wallets and displayed on the home screen an in the wallet list.: การ์ด My Wallet สามารถติดตั้งสำหรับกระเป๋าและแสดงบนหน้าจอหลักรวมถึงรายการกระเป๋า
 Receive: รับ
 Scan: สแกน
 

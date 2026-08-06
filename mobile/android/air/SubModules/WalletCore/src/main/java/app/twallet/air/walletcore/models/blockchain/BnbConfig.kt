@@ -29,8 +29,6 @@ object BnbConfig : MBlockchainConfig {
     override val isEncryptedCommentSupported = false
 
     override val burnAddress = null
-    override val isOnRampSupported = false
-    override val isOffRampSupported = false
     override val multiWalletSupport = MultiWalletSupport.PATH
 
     override val chainStandard = "ethereum"

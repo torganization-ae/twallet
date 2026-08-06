@@ -136,96 +136,10 @@ public class NftDetailsVC: NftDetailsBaseVC {
         return lhs == rhs
     }
 
-    override func nftDetailsDidSetActiveModel(_ model: NftDetailsItemModel) {
-        guard let nft = resolveNft(for: model), nft.isMtwCard, isOwnedByAccount(nft) else {
-            return
-        }
-        MtwCardImagePreloader.preload(nft)
-    }
-        
     override func ntfDetailsOnConfigureAction(forModel model: NftDetailsItemModel, action: NftDetailsItemModel.Action) -> NftDetailsActionConfig? {
         guard let nft = resolveNft(for: model) else { return nil }
         
         switch action {
-        case .wear:
-            guard nft.isMtwCard, isOwnedByAccount(nft) else { return nil }
-            return .init(
-                onMenuConfiguration: { [weak self] in
-                    guard let self else {
-                        return ContextMenuConfiguration(
-                            rootPage: ContextMenuPage(items: []),
-                            backdrop: .defaultBlurred(),
-                            style: ContextMenuStyle(minWidth: 180.0, maxWidth: 280.0)
-                        )
-                    }
-                    @Dependency(\.accountSettings) var _accountSettings
-                    let accountSettings = _accountSettings.for(accountId: self.accountId)
-                    let accountId = self.accountId
-                    var items: [ContextMenuItem] = []
-                    if let mtwCardId = nft.metadata?.mtwCardId {
-                        let isCurrent = mtwCardId == accountSettings.backgroundNft?.metadata?.mtwCardId
-                        if isCurrent {
-                            items.append(
-                                .action(
-                                    ContextMenuAction(
-                                        title: lang("Reset Card"),
-                                        icon: .airBundle("MenuInstallCard26"),
-                                        handler: {
-                                            log.info("cardBackground.uiReset source=nftDetails accountId=\(accountId, .public) nftAddress=\(nft.address, .public) nftChain=\(nft.chain.rawValue, .public) nftMtwId=\(mtwCardId)")
-                                            accountSettings.setBackgroundNft(nil)
-                                        }
-                                    )
-                                )
-                            )
-                        } else {
-                            items.append(
-                                .action(
-                                    ContextMenuAction(
-                                        title: lang("Install Card"),
-                                        icon: .airBundle("MenuInstallCard26"),
-                                        handler: {
-                                            log.info("cardBackground.uiInstall source=nftDetails accountId=\(accountId, .public) nftAddress=\(nft.address, .public) nftChain=\(nft.chain.rawValue, .public) nftMtwId=\(mtwCardId)")
-                                            accountSettings.setBackgroundNft(nft)
-                                            accountSettings.setAccentColorNft(nft)
-                                        }
-                                    )
-                                )
-                            )
-                        }
-                        let isCurrentAccent = mtwCardId == accountSettings.accentColorNft?.metadata?.mtwCardId
-                        if isCurrentAccent {
-                            items.append(
-                                .action(
-                                    ContextMenuAction(
-                                        title: lang("Reset Palette"),
-                                        icon: .airBundle("custom.paintbrush.badge.xmark"),
-                                        handler: {
-                                            accountSettings.setAccentColorNft(nil)
-                                        }
-                                    )
-                                )
-                            )
-                        } else {
-                            items.append(
-                                .action(
-                                    ContextMenuAction(
-                                        title: lang("Apply Palette"),
-                                        icon: .airBundle("MenuBrush26"),
-                                        handler: {
-                                            accountSettings.setAccentColorNft(nft)
-                                        }
-                                    )
-                                )
-                            )
-                        }
-                    }
-                    return ContextMenuConfiguration(
-                        rootPage: ContextMenuPage(items: items),
-                        backdrop: .defaultBlurred(),
-                        style: ContextMenuStyle(minWidth: 180.0, maxWidth: 280.0)
-                    )
-                }
-            )
         case .send:
             guard account.supportsSend, isOwnedByAccount(nft), !nft.isOnSale else { return nil }
             return .init(

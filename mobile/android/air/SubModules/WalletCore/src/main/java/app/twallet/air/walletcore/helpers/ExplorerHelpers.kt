@@ -5,7 +5,6 @@ import androidx.core.net.toUri
 import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.models.MBlockchainNetwork
-import app.twallet.air.walletcore.MTW_CARDS_COLLECTION
 import app.twallet.air.walletcore.models.IInAppBrowser
 import app.twallet.air.walletcore.models.InAppBrowserConfig
 import app.twallet.air.walletcore.models.MAccount
@@ -85,10 +84,6 @@ class ExplorerHelpers {
 
         fun getgemsUrl(network: MBlockchainNetwork): String {
             return MMarketplace.Getgems.homeUrl(network)
-        }
-
-        fun getMtwCardsUrl(network: MBlockchainNetwork): String {
-            return "${getgemsUrl(network)}collection/$MTW_CARDS_COLLECTION"
         }
 
         fun defaultNftMarketplace(account: MAccount): MMarketplace {

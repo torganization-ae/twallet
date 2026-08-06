@@ -47,12 +47,6 @@ struct HomeCardContent: View {
             .overlay(alignment: .top) {
                 SeasonalOverlay(seasonalTheme: headerViewModel.seasonalTheme)
             }
-            .overlay(alignment: .topTrailing) {
-                HomeCardPromotionHitArea(
-                    promotion: accountContext.activePromotion,
-                    cardSize: CGSize(width: layout.itemWidth, height: layout.itemHeight)
-                )
-            }
             .opacity(headerViewModel.isCardHidden ? 0 : 1)
         }
     }
@@ -97,7 +91,6 @@ private struct _BalanceView: View {
             _BalanceViewContent(
                 accountId: accountContext.accountId,
                 balance: accountContext.balance,
-                nft: accountContext.nft,
                 isCurrent: accountContext.isCurrent,
                 cardWidth: layout.itemWidth,
                 minimumHomeCardFontScale: minimumHomeCardFontScale
@@ -110,20 +103,18 @@ private struct _BalanceViewContent: View, Equatable {
 
     var accountId: String
     var balance: BaseCurrencyAmount?
-    var nft: ApiNft?
     var isCurrent: Bool
     var cardWidth: CGFloat
     var minimumHomeCardFontScale: CGFloat
     
     var body: some View {
-        MtwCardBalanceView(balance: balance, isNumericTranstionEnabled: isCurrent, style: .homeCard(cardWidth: cardWidth, minimumScale: minimumHomeCardFontScale), secondaryOpacity: nft?.metadata?.mtwCardType?.isPremium == true ? 1 : 0.75)
-            .padding(40)
-            .sourceAtop {
-                MtwCardBalanceGradient(nft: nft)
-            }
-            .padding(-40)
-            .contextMenuSource(configuration: makeBaseCurrencyMenuConfig(accountId: accountId))
-            .backportGeometryGroup()
+        CardBalanceView(
+            balance: balance,
+            isNumericTransitionEnabled: isCurrent,
+            style: .homeCard(cardWidth: cardWidth, minimumScale: minimumHomeCardFontScale)
+        )
+        .contextMenuSource(configuration: makeBaseCurrencyMenuConfig(accountId: accountId))
+        .backportGeometryGroup()
     }
     
 }
@@ -138,7 +129,6 @@ private struct _BalanceChange: View {
                 balance: accountContext.balance,
                 balance24h: accountContext.balance24h,
                 balanceChange: accountContext.balanceChange,
-                nft: accountContext.nft,
                 onTap: {
                     AppActions.showPortfolio(accountContext: accountContext)
                 }
@@ -149,7 +139,6 @@ private struct _BalanceChange: View {
 
 private struct _BalanceChangeContent: View, Equatable {
     let text: String?
-    let nft: ApiNft?
     let isPositive: Bool
     let onTap: () -> Void
     
@@ -157,11 +146,9 @@ private struct _BalanceChangeContent: View, Equatable {
         balance: BaseCurrencyAmount?,
         balance24h: BaseCurrencyAmount?,
         balanceChange: Double?,
-        nft: ApiNft?,
         onTap: @escaping () -> Void
     ) {
         self.text = Self.makeText(balance: balance, balance24h: balance24h, balanceChange: balanceChange)
-        self.nft = nft
         self.onTap = onTap
         if let balance, let balance24h, balance.amount > 0, balance24h.amount > 0 {
             self.isPositive = balance.amount > balance24h.amount
@@ -171,7 +158,7 @@ private struct _BalanceChangeContent: View, Equatable {
     }
     
     static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.text == rhs.text && lhs.nft == rhs.nft && lhs.isPositive == rhs.isPositive
+        lhs.text == rhs.text && lhs.isPositive == rhs.isPositive
     }
 
     var body: some View {
@@ -210,8 +197,8 @@ private struct _BalanceChangeContent: View, Equatable {
     }
     
     private func mainView(_ text: String) -> some View {
-        let usesPositiveColor = isPositive && nft == nil
-        let baseColor = usesPositiveColor ? .air.positiveBalance : getSecondaryForegroundColor(nft: nft)
+        let usesPositiveColor = isPositive
+        let baseColor: Color = usesPositiveColor ? .air.positiveBalance : .white
         let textColor = usesPositiveColor ? baseColor : baseColor.opacity(0.8)
         let bgColor = baseColor.opacity(usesPositiveColor ? 0.16 : 0.10)
         return Button(action: onTap) {
@@ -268,8 +255,7 @@ private struct _AddressLine: View {
                 accountId: account.id,
                 isTemporary: account.isTemporary == true,
                 addressLine: accountContext.addressLine,
-                accountContext: accountContext,
-                nft: accountContext.nft
+                accountContext: accountContext
             )
         }
     }
@@ -281,15 +267,14 @@ private struct _AddressLineContent: View {
     var isTemporary: Bool
     var addressLine: MAccount.AddressLine
     var accountContext: AccountContext
-    var nft: ApiNft?
     
     var body: some View {
         HStack(spacing: 8) {
             if isTemporary {
-                AddViewButton(accountId: accountId, foregroundStyle: getSecondaryForegroundColor(nft: nft))
+                AddViewButton(accountId: accountId, foregroundStyle: .white)
                     .padding(.vertical, -6)
             }
-            MtwCardAddressLine(addressLine: addressLine, style: .homeCard, gradient: MtwCardCenteredGradient(nft: nft))
+            AccountAddressLine(addressLine: addressLine, style: .homeCard)
                 .padding(.vertical, 8)
                 .padding(.trailing, 8)
                 .contextMenuSource(

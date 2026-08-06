@@ -275,12 +275,6 @@ private func parseMtwUrl(_ url: URL) -> Deeplink? {
     case "send":
         return parseSendUrl(url)
 
-    case "buy-with-card":
-        return .buyWithCard
-        
-    case Deeplink.Sell.urlHost:
-        return .sell(.init(url))
-
     case "stake":
         return .stake
 
@@ -431,41 +425,3 @@ private func parseSendUrl(_ url: URL) -> Deeplink? {
     )
 }
 
-public extension Deeplink {
-    struct Sell: Sendable {
-        public static let urlHost = "offramp"
-        
-        public let transactionId: String?
-        public let baseCurrencyCode: String?
-        public let baseCurrencyAmount: String?
-        public let depositWalletAddress: String?
-        public let depositWalletAddressTag: String?
-
-        public init(_ url: URL) {
-            let queryItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
-            var transactionId: String?
-            var baseCurrencyCode: String?
-            var baseCurrencyAmount: String?
-            var depositWalletAddress: String?
-            var depositWalletAddressTag: String?
-
-            for item in queryItems {
-                guard let value = item.value, !value.isEmpty else { continue }
-                switch item.name {
-                case "transactionId": transactionId = value
-                case "baseCurrencyCode": baseCurrencyCode = value
-                case "baseCurrencyAmount": baseCurrencyAmount = value
-                case "depositWalletAddress": depositWalletAddress = value
-                case "depositWalletAddressTag": depositWalletAddressTag = value
-                default: break
-                }
-            }
-            
-            self.transactionId = transactionId
-            self.baseCurrencyCode = baseCurrencyCode
-            self.baseCurrencyAmount = baseCurrencyAmount
-            self.depositWalletAddress = depositWalletAddress
-            self.depositWalletAddressTag = depositWalletAddressTag
-        }
-    }
-}

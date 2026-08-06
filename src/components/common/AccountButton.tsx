@@ -1,15 +1,10 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import type { ApiNft } from '../../api/types';
 import type { Account, AccountType } from '../../global/types';
 
 import { IS_TWALLETGRAM_WALLET } from '../../config';
 import buildClassName from '../../util/buildClassName';
-import buildStyle from '../../util/buildStyle';
 import { formatAccountAddresses } from '../../util/formatAccountAddress';
-
-import { useCachedImage } from '../../hooks/useCachedImage';
-import useCardCustomization from '../../hooks/useCardCustomization';
 
 import styles from './AccountButton.module.scss';
 
@@ -24,7 +19,6 @@ interface OwnProps {
   className?: string;
   titleClassName?: string;
   withCheckbox?: boolean;
-  cardBackgroundNft?: ApiNft;
   onClick?: NoneToVoidFunction;
 }
 
@@ -39,24 +33,14 @@ function AccountButton({
   className,
   titleClassName,
   withCheckbox,
-  cardBackgroundNft,
   onClick,
 }: OwnProps) {
-  const {
-    backgroundImageUrl,
-    withTextGradient,
-    classNames: mwCardClassNames,
-  } = useCardCustomization(cardBackgroundNft);
-  const { imageUrl } = useCachedImage(backgroundImageUrl);
-
   const isHardware = accountType === 'hardware';
   const isViewMode = accountType === 'view';
   const fullClassName = buildClassName(
     className,
     styles.account,
     IS_TWALLETGRAM_WALLET && 'gram',
-    imageUrl && styles.customCard,
-    imageUrl && mwCardClassNames,
     isActive && !withCheckbox && styles.account_current,
     isLoading && styles.account_disabled,
     !onClick && styles.account_inactive,
@@ -69,15 +53,14 @@ function AccountButton({
       key={accountId}
       className={fullClassName}
       onClick={onClick}
-      style={buildStyle(imageUrl && `--bg: url(${imageUrl})`)}
       aria-label={ariaLabel}
     >
       {title && (
-        <span className={buildClassName(styles.accountName, titleClassName, withTextGradient && 'gradientText')}>
+        <span className={buildClassName(styles.accountName, titleClassName)}>
           {title}
         </span>
       )}
-      <div className={buildClassName(styles.accountFooter, withTextGradient && 'gradientText')}>
+      <div className={styles.accountFooter}>
         {isViewMode && <i className={buildClassName('icon-eye-filled', styles.icon)} aria-hidden />}
         {isHardware && <i className={buildClassName('icon-ledger', styles.icon)} aria-hidden />}
         <span className={styles.accountAddress}>

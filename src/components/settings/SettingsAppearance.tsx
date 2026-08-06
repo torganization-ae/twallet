@@ -1,14 +1,9 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiNft } from '../../api/types';
 import type { AnimationLevel, Theme } from '../../global/types';
 
-import {
-  ANIMATION_LEVEL_MAX,
-  ANIMATION_LEVEL_MIN,
-  IS_MY_WALLET_BRAND,
-} from '../../config';
+import { ANIMATION_LEVEL_MAX, ANIMATION_LEVEL_MIN } from '../../config';
 import { selectCurrentAccountSettings } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import switchAnimationLevel from '../../util/switchAnimationLevel';
@@ -20,7 +15,7 @@ import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
 
-import CustomCardPreview from '../main/modals/accountSelector/CustomCardPreview';
+import AccentColorSelector from '../common/AccentColorSelector';
 import Switcher from '../ui/Switcher';
 import SettingsHeader from './SettingsHeader';
 
@@ -40,8 +35,7 @@ interface OwnProps {
 }
 
 interface StateProps {
-  cardBackgroundNft?: ApiNft;
-  isNftBuyingDisabled: boolean;
+  accentColorIndex?: number;
   isSeasonalThemingDisabled?: boolean;
 }
 
@@ -64,9 +58,8 @@ function SettingsAppearance({
   isActive,
   theme,
   animationLevel,
-  cardBackgroundNft,
+  accentColorIndex,
   isTrayIconEnabled,
-  isNftBuyingDisabled,
   isSeasonalThemingDisabled,
   onTrayIconEnabledToggle,
   onBackClick,
@@ -74,7 +67,6 @@ function SettingsAppearance({
   const {
     setTheme,
     setAnimationLevel,
-    openCustomizeWalletModal,
     toggleSeasonalTheming,
   } = getActions();
 
@@ -109,11 +101,6 @@ function SettingsAppearance({
     toggleSeasonalTheming({ isEnabled: isSeasonalThemingDisabled });
   });
 
-  const handleCustomizeWalletClick = useLastCallback(() => {
-    openCustomizeWalletModal({ returnTo: 'settings' });
-    return false;
-  });
-
   function renderThemes() {
     return THEME_OPTIONS.map(({ name, value, icon }) => {
       return (
@@ -131,16 +118,6 @@ function SettingsAppearance({
     });
   }
 
-  function renderPalleteIcon() {
-    return (
-      <div className={styles.palleteIcon}>
-        <div className={styles.miniCard}>
-          <CustomCardPreview nft={cardBackgroundNft} className={styles.miniCardPreview} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.slide}>
       <SettingsHeader title={lang('Appearance')} isScrolled={isScrolled} onBackClick={onBackClick} />
@@ -156,30 +133,10 @@ function SettingsAppearance({
           </div>
         </div>
 
-        {IS_MY_WALLET_BRAND && !isNftBuyingDisabled && (
-          <>
-            <p className={styles.blockTitle}>{lang('Palette and Card')}</p>
-            <div className={buildClassName(styles.block, styles.settingsBlockWithDescription)}>
-              <a
-                role="button"
-                tabIndex={0}
-                className={buildClassName(styles.item, styles.itemWithFixedHeight)}
-                onClick={handleCustomizeWalletClick}
-              >
-                {renderPalleteIcon()}
-
-                <span className={buildClassName(styles.itemTitle, styles.itemTitle_accent)}>
-                  {lang('Customize Wallet')}
-                </span>
-
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-              </a>
-            </div>
-            <p className={styles.blockDescription}>
-              {lang('Customize the wallet\'s home screen and color accents the way you like.')}
-            </p>
-          </>
-        )}
+        <p className={styles.blockTitle}>{lang('Palette')}</p>
+        <div className={styles.settingsBlock}>
+          <AccentColorSelector accentColorIndex={accentColorIndex} theme={theme} />
+        </div>
 
         <p className={styles.blockTitle}>{lang('Other')}</p>
         <div className={styles.settingsBlock}>
@@ -222,8 +179,7 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   const accountSettings = selectCurrentAccountSettings(global);
 
   return {
-    cardBackgroundNft: accountSettings?.cardBackgroundNft,
-    isNftBuyingDisabled: global.restrictions.isNftBuyingDisabled,
+    accentColorIndex: accountSettings?.accentColorIndex,
     isSeasonalThemingDisabled: global.settings.isSeasonalThemingDisabled,
   };
 })(SettingsAppearance));

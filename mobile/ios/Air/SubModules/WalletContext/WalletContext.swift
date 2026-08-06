@@ -18,17 +18,6 @@ public enum DeeplinkOpenSource: Equatable {
     case qrScan
 }
 
-public extension DeeplinkOpenSource {
-    var canRouteOfframp: Bool {
-        switch self {
-        case .generic, .exploreSearchBar:
-            true
-        case .inAppBrowser, .qrScan:
-            false
-        }
-    }
-}
-
 @MainActor public protocol WalletContextDelegate: NSObject, Sendable {
     func bridgeIsReady()
     func walletIsReady(isReady: Bool)

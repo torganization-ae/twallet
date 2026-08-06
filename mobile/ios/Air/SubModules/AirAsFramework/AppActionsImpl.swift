@@ -369,20 +369,6 @@ private class AppActionsImpl: AppActionsProtocol {
         topViewController()?.present(nc, animated: true)
     }
     
-    static func showBuyWithCard(accountContext: AccountContext, chain: ApiChain?, push: Bool?) {
-        guard accountContext.account.network == .mainnet else {
-            AppActions.showError(error: DisplayError(text: lang("Buying with card is not supported in Testnet.")))
-            return
-        }
-        let chain = chain ?? accountContext.account.firstChain
-        guard chain.isOnrampSupported else {
-            AppActions.showError(error: DisplayError(text: lang("Buying with card is not supported for this chain.")))
-            return
-        }
-        let buyWithCardVC = BuyWithCardVC(accountContext: accountContext, chain: chain)
-        pushIfNeeded(buyWithCardVC, push: push)
-    }
-    
     static func showConnectedDapps(push: Bool) {
         let vc = ConnectedAppsVC(isModal: !push)
         pushIfNeeded(vc, push: push)
@@ -392,16 +378,6 @@ private class AppActionsImpl: AppActionsProtocol {
         if let swap = transaction.swap {
             let vc = CrosschainToWalletVC(swap: swap, accountId: accountId)
             topViewController()?.present(WNavigationController(rootViewController: vc), animated: true)
-        }
-    }
-    
-    static func showCustomizeWallet(accountId: String?) {
-        let vc = CustomizeWalletVC(accountId: accountId)
-        if let settingsVC = topWViewController() as? AppearanceSettingsVC, let nc = settingsVC.navigationController {
-            nc.pushViewController(vc, animated: true)
-        } else {
-            let nc = WNavigationController(rootViewController: vc)
-            topViewController()?.present(nc, animated: true)
         }
     }
     
@@ -528,19 +504,6 @@ private class AppActionsImpl: AppActionsProtocol {
         }
     }
 
-    static func showPromotion(_ promotion: ApiPromotion) {
-        guard promotion.modal != nil else { return }
-        let vc = PromotionVC(promotion: promotion)
-        let nc = WNavigationController(rootViewController: vc)
-        if let sheet = nc.sheetPresentationController {
-            sheet.prefersGrabberVisible = false
-            if #available(iOS 26.1, *) {
-                sheet.backgroundEffect = UIColorEffect(color: .air.sheetBackground)
-            }
-        }
-        topViewController()?.present(nc, animated: true)
-    }
-
     static func showPortfolio(accountContext: AccountContext) {
         let vc = PortfolioVC(accountContext: accountContext)
         pushIfNeeded(vc, push: true)
@@ -592,16 +555,6 @@ private class AppActionsImpl: AppActionsProtocol {
             ),
             animated: true
         )
-    }
-    
-    static func showSell(accountContext: AccountContext, tokenSlug: String?) {
-        let tokenSlug = tokenSlug ?? TONCOIN_SLUG
-        guard getChainBySlug(tokenSlug)?.isOfframpSupported == true else {
-            AppActions.showError(error: DisplayError(text: lang("Selling is not supported for this token.")))
-            return
-        }
-        let vc = SellVC(accountContext: accountContext, tokenSlug: tokenSlug)
-        topViewController()?.present(WNavigationController(rootViewController: vc), animated: true)
     }
     
     static func showSwap(accountContext: AccountContext, defaultSellingToken: String?, defaultBuyingToken: String?, defaultSellingAmount: Double?, push: Bool?) {
@@ -691,11 +644,6 @@ private class AppActionsImpl: AppActionsProtocol {
                 topViewController()?.present(WNavigationController(rootViewController: tokenVC), animated: true)
             }
         }
-    }
-    
-    static func showUpgradeCard() {
-        log.info("showUpgradeCard")
-        AppActions.openInBrowser(URL(string:  "https://getgems.io/collection/EQCQE2L9hfwx1V8sgmF9keraHx1rNK9VmgR1ctVvINBGykyM")!, title: "My Wallet NFT Cards", injectDappConnect: true)
     }
     
     static func showWalletSettings() {

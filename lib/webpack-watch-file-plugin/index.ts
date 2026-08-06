@@ -1,12 +1,12 @@
 import { execSync, spawn } from 'child_process';
+import type { FSWatcher } from 'chokidar';
+import chokidar from 'chokidar';
 import crypto from 'crypto';
 import fs from 'fs';
-import path from 'path';
-
-import chokidar, { FSWatcher } from 'chokidar';
 import { glob, hasMagic } from 'glob';
 import globParent from 'glob-parent';
 import { Minimatch } from 'minimatch';
+import path from 'path';
 import type { Compiler } from 'webpack';
 
 interface WatchRule {
@@ -60,7 +60,7 @@ export default class WatchFilePlugin {
       if (!firstCompilation) return;
       firstCompilation = false;
       await this.handleFirstCompilation();
-    }
+    };
 
     compiler.hooks.beforeRun.tapPromise('WatchFilePlugin', onCompilation);
 
@@ -72,7 +72,7 @@ export default class WatchFilePlugin {
     this.createWatchers();
 
     compiler.hooks.shutdown.tap('WatchFilePlugin', () => {
-      this.watchers.forEach(w => w.close());
+      this.watchers.forEach((w) => w.close());
     });
   }
 
@@ -81,11 +81,11 @@ export default class WatchFilePlugin {
       this.logger?.info('Running first compilation');
     }
 
-    let activeActions: Promise<void>[] = [];
+    const activeActions: Promise<void>[] = [];
 
     this.rules
-      .filter(r => r.firstCompilation)
-      .forEach(rule => {
+      .filter((r) => r.firstCompilation)
+      .forEach((rule) => {
         const patterns = Array.isArray(rule.files) ? rule.files : [rule.files];
 
         for (const pattern of patterns) {
@@ -102,22 +102,22 @@ export default class WatchFilePlugin {
   }
 
   private createWatchers() {
-    this.rules.forEach(rule => {
+    this.rules.forEach((rule) => {
       const patterns = Array.isArray(rule.files) ? rule.files : [rule.files];
 
       const watchPaths = [...new Set(
-        patterns.map(p =>
+        patterns.map((p) =>
           path.resolve(this.cwd, hasMagic(p) ? globParent(p) : p),
         ),
       )];
 
-      const matchers = patterns.map(p =>
+      const matchers = patterns.map((p) =>
         hasMagic(p)
           ? new Minimatch(p, { dot: true, nocase: true })
           : {
-              match: (x: string) =>
-                path.resolve(this.cwd, x) === path.resolve(this.cwd, p),
-            },
+            match: (x: string) =>
+              path.resolve(this.cwd, x) === path.resolve(this.cwd, p),
+          },
       );
 
       const watcher = chokidar.watch(watchPaths, {
@@ -129,13 +129,13 @@ export default class WatchFilePlugin {
       let lastChangeTime = 0;
 
       const run = (file: string) => {
-        if (!matchers.some(m => m.match(file))) return;
+        if (!matchers.some((m) => m.match(file))) return;
         const now = Date.now();
         if (rule.sharedAction && now - lastChangeTime < WATCHER_DEBOUNCE) return;
         lastChangeTime = now;
 
         this.runAction(rule, file);
-      }
+      };
 
       watcher.on('change', run)
         .on('add', run)
@@ -186,7 +186,7 @@ export default class WatchFilePlugin {
       const hash = crypto.createHash('sha256');
       const stream = fs.createReadStream(file);
       stream.on('error', rej);
-      stream.on('data', chunk => hash.update(chunk));
+      stream.on('data', (chunk) => hash.update(chunk));
       stream.on('end', () => res(hash.digest('hex')));
     });
   }
@@ -199,7 +199,7 @@ export default class WatchFilePlugin {
     if (list.length > MAX_HASH_HISTORY) list.shift();
     this.lastTouchedHashes.set(file, list);
 
-    if (list.filter(h => h === hash).length >= CYCLE_DETECTION_THRESHOLD) {
+    if (list.filter((h) => h === hash).length >= CYCLE_DETECTION_THRESHOLD) {
       this.logger?.warn(`Possible infinite loop: "${file}" keeps changing`);
     }
   }

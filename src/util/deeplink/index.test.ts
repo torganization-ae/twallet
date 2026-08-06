@@ -280,7 +280,6 @@ describe('processSelfDeeplink', () => {
     mockActions = {
       startSwap: jest.fn(),
       showError: jest.fn(),
-      openOnRampWidgetModal: jest.fn(),
       startStaking: jest.fn(),
       startTransfer: jest.fn(),
       closeSettings: jest.fn(),
@@ -479,27 +478,6 @@ describe('processSelfDeeplink', () => {
     });
   });
 
-  describe('Buy with card command', () => {
-    it('should open on-ramp widget modal', async () => {
-      const result = await processSelfDeeplink('mtw://buy-with-card');
-
-      expect(result).toBe(true);
-      expect(mockActions.openOnRampWidgetModal).toHaveBeenCalledWith({ chain: 'ton' });
-    });
-
-    it('should show error when buy-with-card is requested in testnet', async () => {
-      mockGlobal.settings.isTestnet = true;
-
-      const result = await processSelfDeeplink('https://my.tt/buy-with-card');
-
-      expect(result).toBe(true);
-      expect(mockActions.showError).toHaveBeenCalledWith({
-        error: 'Buying with card is not supported in Testnet.',
-      });
-      expect(mockActions.openOnRampWidgetModal).not.toHaveBeenCalled();
-    });
-  });
-
   describe('Stake command', () => {
     it('should start staking', async () => {
       const result = await processSelfDeeplink('mtw://stake');
@@ -694,16 +672,6 @@ describe('processSelfDeeplink', () => {
   });
 
   describe('In-app browser source boundary', () => {
-    it('should not start offramp transfer from in-app browser self deeplink', async () => {
-      await processDeeplink(
-        `mtw://offramp?depositWalletAddress=${TEST_TON_ADDRESS}&baseCurrencyCode=ton&baseCurrencyAmount=1`,
-        true,
-      );
-
-      expect(mockActions.addSavedAddress).not.toHaveBeenCalled();
-      expect(mockActions.startTransfer).not.toHaveBeenCalled();
-    });
-
     it('should still process regular transfer deeplinks from in-app browser', async () => {
       await processDeeplink(`ton://transfer/${TEST_TON_ADDRESS}?amount=1&text=${TEST_COMMENT}`, true);
 
@@ -792,7 +760,6 @@ describe('processDeeplink TRON deeplinks', () => {
     mockActions = {
       startSwap: jest.fn(),
       showError: jest.fn(),
-      openOnRampWidgetModal: jest.fn(),
       startStaking: jest.fn(),
       openReceiveModal: jest.fn(),
       closeSettings: jest.fn(),
@@ -1232,7 +1199,6 @@ describe('View-only mode deeplink blocking', () => {
     mockActions = {
       startSwap: jest.fn(),
       showError: jest.fn(),
-      openOnRampWidgetModal: jest.fn(),
       startStaking: jest.fn(),
       startTransfer: jest.fn(),
       closeSettings: jest.fn(),
@@ -1274,10 +1240,8 @@ describe('View-only mode deeplink blocking', () => {
     it.each([
       { name: 'Swap', url: 'mtw://swap' },
       { name: 'BuyWithCrypto', url: 'mtw://buy-with-crypto' },
-      { name: 'BuyWithCard', url: 'mtw://buy-with-card' },
       { name: 'Stake', url: 'mtw://stake' },
       { name: 'Transfer', url: `mtw://transfer/${TEST_TON_ADDRESS}?amount=1` },
-      { name: 'Offramp', url: 'mtw://offramp?depositWalletAddress=addr&baseCurrencyCode=ton' },
       { name: 'Receive', url: 'mtw://receive' },
     ])('should block $name in view-only mode', async ({ url }) => {
       const result = await processSelfDeeplink(url);
@@ -1291,12 +1255,6 @@ describe('View-only mode deeplink blocking', () => {
     it('should not call startSwap in view-only mode', async () => {
       await processSelfDeeplink('mtw://swap');
       expect(mockActions.startSwap).not.toHaveBeenCalled();
-    });
-
-    it('should not call addSavedAddress for offramp in view-only mode', async () => {
-      await processSelfDeeplink('mtw://offramp?depositWalletAddress=addr&baseCurrencyCode=ton');
-      expect(mockActions.addSavedAddress).not.toHaveBeenCalled();
-      expect(mockActions.startTransfer).not.toHaveBeenCalled();
     });
   });
 

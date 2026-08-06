@@ -31,7 +31,6 @@ import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.TokenStore
 import app.twallet.uihome.home.HomeVC
-import app.twallet.uihome.home.promotion.PromotionVC
 import app.twallet.uihome.tabs.views.IBottomNavigationView
 
 /**
@@ -234,16 +233,6 @@ abstract class BaseTabsVC(context: Context) :
 
             is WalletEvent.OpenUrlWithConfig -> {
                 walletEvent.config?.let { openUrl(it) }
-                return true
-            }
-
-            is WalletEvent.ShowPromotion -> {
-                val nav = WNavigationController(
-                    window,
-                    PresentationConfig(style = WNavigationController.PresentationStyle.BottomSheet)
-                )
-                nav.setRoot(PromotionVC(context, walletEvent.promotion))
-                window.present(nav)
                 return true
             }
 

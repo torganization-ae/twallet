@@ -219,20 +219,6 @@ final class ActionsView: ButtonsToolbar {
             ),
         ]
 
-        if !ConfigStore.shared.shouldRestrictSell {
-            items.append(
-                .action(
-                    ContextMenuAction(
-                        title: lang("Sell"),
-                        icon: .airBundle("MenuSell26"),
-                        handler: {
-                            AppActions.showSell(accountContext: accountContext, tokenSlug: nil)
-                        }
-                    )
-                )
-            )
-        }
-
         return ContextMenuConfiguration(
             rootPage: ContextMenuPage(items: items),
             backdrop: .defaultBlurred(),

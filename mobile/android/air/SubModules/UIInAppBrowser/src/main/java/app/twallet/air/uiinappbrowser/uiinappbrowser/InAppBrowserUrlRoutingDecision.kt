@@ -1,7 +1,6 @@
 package app.twallet.air.uiinappbrowser
 
 import app.twallet.air.walletcontext.DeeplinkOpenSource
-import app.twallet.air.walletcontext.helpers.InAppBrowserDeeplinkHelpers
 
 internal enum class InAppBrowserUrlRoutingDecision {
     ALLOW_WEB_VIEW,
@@ -32,10 +31,6 @@ internal enum class InAppBrowserUrlRoutingDecision {
             url: String,
             handleDeeplink: (String, DeeplinkOpenSource) -> Boolean
         ): InAppBrowserUrlRoutingDecision {
-            if (InAppBrowserDeeplinkHelpers.checkIsInAppBrowserOfframpSelfDeeplink(url)) {
-                return CONSUME
-            }
-
             val isHandled = handleDeeplink(url, DeeplinkOpenSource.IN_APP_BROWSER)
             if (isHandled) {
                 return CONSUME

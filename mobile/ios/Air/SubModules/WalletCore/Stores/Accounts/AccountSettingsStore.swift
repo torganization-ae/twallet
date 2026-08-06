@@ -93,8 +93,6 @@ extension DependencyValues {
 @Perceptible
 public final class AccountSettings: Sendable {
     public let accountId: String
-    public private(set) var backgroundNft: ApiNft?
-    public private(set) var accentColorNft: ApiNft?
     public private(set) var accentColorIndex: Int?
     public private(set) var isAllowSuspiciousActions = false
     public private(set) var portfolioTimeRange: String?
@@ -103,29 +101,16 @@ public final class AccountSettings: Sendable {
         self.accountId = accountId
     }
 
-    public func setBackgroundNft(_ nft: ApiNft?) {
-        log.info("cardBackground.set accountId=\(accountId, .public) oldAddress=\(backgroundNft?.address as Any, .public) oldChain=\(backgroundNft?.chain.rawValue as Any, .public) oldMtwId=\(backgroundNft?.metadata?.mtwCardId as Any, .public) newAddress=\(nft?.address as Any, .public) newChain=\(nft?.chain.rawValue as Any, .public) newMtwId=\(nft?.metadata?.mtwCardId as Any, .public)")
-        backgroundNft = nft
-        persist()
-        WalletCoreData.notify(event: .cardBackgroundChanged(accountId, nft))
-    }
-
-    public func setAccentColorNft(_ nft: ApiNft?) {
-        log.info("accentColorNft.set accountId=\(accountId, .public) oldAddress=\(accentColorNft?.address as Any, .public) oldChain=\(accentColorNft?.chain.rawValue as Any, .public) oldMtwId=\(accentColorNft?.metadata?.mtwCardId as Any, .public) newAddress=\(nft?.address as Any, .public) newChain=\(nft?.chain.rawValue as Any, .public) newMtwId=\(nft?.metadata?.mtwCardId as Any, .public)")
-        accentColorNft = nft
-        persist()
-        installAccentColorFromNft(accountId: accountId, nft: nft)
-    }
-
-    private func installAccentColorFromNft(accountId: String, nft: ApiNft?) {
-        Task.detached {
-            let color: Int? = if let nft {
-                await getAccentColorIndexFromNft(nft: nft)
-            } else {
-                nil
+    public func setAccentColorIndex(_ index: Int?) {
+        accentColorIndex = index
+        @Dependency(\.accountStore) var accountStore
+        if accountId == accountStore.currentAccountId {
+            changeThemeColors(to: index)
+            DispatchQueue.main.async {
+                UIApplication.shared.sceneWindows.forEach { $0.updateTheme() }
             }
-            await self.setAccentColorIndex(index: color)
         }
+        persist()
     }
 
     public func setIsAllowSuspiciousActions(_ isEnabled: Bool) {
@@ -138,21 +123,7 @@ public final class AccountSettings: Sendable {
         persist()
     }
 
-    private func setAccentColorIndex(index newValue: Int?) {
-        accentColorIndex = newValue
-        @Dependency(\.accountStore) var accountStore
-        if accountId == accountStore.currentAccountId {
-            changeThemeColors(to: newValue)
-            DispatchQueue.main.async {
-                UIApplication.shared.sceneWindows.forEach { $0.updateTheme() }
-            }
-        }
-        persist()
-    }
-
     fileprivate func replace(row: MAccountSettings?) {
-        backgroundNft = row?.cardBackgroundNft
-        accentColorNft = row?.accentColorNft
         accentColorIndex = row?.accentColorIndex
         isAllowSuspiciousActions = row?.isAllowSuspiciousActions ?? false
         portfolioTimeRange = row?.portfolioTimeRange
@@ -161,8 +132,6 @@ public final class AccountSettings: Sendable {
     private var row: MAccountSettings {
         MAccountSettings(
             accountId: accountId,
-            cardBackgroundNft: backgroundNft,
-            accentColorNft: accentColorNft,
             accentColorIndex: accentColorIndex,
             isAllowSuspiciousActions: isAllowSuspiciousActions ? true : nil,
             portfolioTimeRange: portfolioTimeRange

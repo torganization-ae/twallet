@@ -22,7 +22,6 @@ import type { ApiAnyDisplayError } from './errors';
 import type {
   ApiBalanceBySlug,
   ApiChain,
-  ApiCountryCode,
   ApiCurrencyRates,
   ApiDappConnectionType,
   ApiDappTransfer,
@@ -368,7 +367,6 @@ export type ApiUpdateConfig = {
   isLimited: boolean;
   isCopyStorageEnabled: boolean;
   supportAccountsCount?: number;
-  countryCode?: ApiCountryCode;
   isAppUpdateRequired: boolean;
   swapVersion?: ApiSwapVersion;
   seasonalTheme: ApiBackendConfig['seasonalTheme'];

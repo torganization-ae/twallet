@@ -202,7 +202,6 @@ function WalletConnectPayOptionSelectionModal({
               const { title, byChain, type } = account;
               const isDisabled = !network || !doesAccountSupportWalletConnectPay(account, network);
               const isSelected = nextAccountId === selectedAccountId;
-              const { cardBackgroundNft } = settingsByAccountId?.[nextAccountId] || {};
               const balanceData = balancesByAccountId?.[nextAccountId];
 
               return (
@@ -212,7 +211,6 @@ function WalletConnectPayOptionSelectionModal({
                   byChain={byChain}
                   accountType={type}
                   title={title}
-                  cardBackgroundNft={cardBackgroundNft}
                   balanceData={balanceData}
                   isSelected={isSelected}
                   isDisabled={isDisabled}

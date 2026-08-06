@@ -136,7 +136,6 @@ function handleMfaApiUpdate(update: ApiUpdate) {
         isLimitedRegion: update.isLimited,
         isCopyStorageEnabled: update.isCopyStorageEnabled,
         supportAccountsCount: update.supportAccountsCount,
-        countryCode: update.countryCode,
       });
       global = {
         ...global,

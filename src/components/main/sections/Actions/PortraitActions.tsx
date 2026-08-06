@@ -23,8 +23,6 @@ interface OwnProps {
   stakingStatus: StakingStateStatus;
   isSwapDisabled?: boolean;
   isStakingDisabled?: boolean;
-  isOnRampDisabled?: boolean;
-  isOffRampDisabled?: boolean;
   containerRef: ElementRef<HTMLDivElement>;
   onEarnClick: NoneToVoidFunction;
 }
@@ -34,8 +32,6 @@ function PortraitActions({
   stakingStatus,
   isStakingDisabled,
   isSwapDisabled,
-  isOnRampDisabled,
-  isOffRampDisabled,
   containerRef,
   onEarnClick,
 }: OwnProps) {
@@ -45,16 +41,15 @@ function PortraitActions({
 
   const lang = useLang();
 
-  const isOnRampAllowed = !isTestnet && !isOnRampDisabled;
   const addBuyButtonName = IS_FEATURE_LIMITED
     ? lang('Receive')
-    : (!isSwapDisabled || isOnRampAllowed
+    : (!isSwapDisabled
       ? lang('Fund')
       : lang('Add')
     );
-  const sendButtonName = IS_FEATURE_LIMITED || isOffRampDisabled || lang.code !== 'en'
+  const sendButtonName = IS_FEATURE_LIMITED || lang.code !== 'en'
     ? lang('Send')
-    : <span className={styles.name}>{lang('Send')}<span className={styles.divider}>/</span>{lang('Sell')}</span>;
+    : <span className={styles.name}>{lang('Send')}</span>;
 
   const handleStartSwap = useLastCallback(() => {
     vibrate();

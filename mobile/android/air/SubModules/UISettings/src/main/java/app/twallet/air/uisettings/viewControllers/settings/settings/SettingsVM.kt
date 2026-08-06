@@ -60,12 +60,6 @@ class SettingsVM {
             title = LocaleController.getString("About"),
             children = listOf(
                 SettingsItem(
-                    identifier = SettingsItem.Identifier.MTW_CARDS_NFT,
-                    icon = R.drawable.ic_mtw_nft,
-                    title = LocaleController.getString("My Wallet Cards NFT"),
-                    hasTintColor = false
-                ),
-                SettingsItem(
                     identifier = SettingsItem.Identifier.INSTALL_ON_DESKTOP,
                     icon = R.drawable.ic_desktop,
                     title = LocaleController.getString("Install on Desktop"),
@@ -179,7 +173,7 @@ class SettingsVM {
                 identifier = SettingsItem.Identifier.APPEARANCE,
                 icon = R.drawable.ic_appearance,
                 title = LocaleController.getString("Appearance"),
-                subtitle = LocaleController.getString("Night Mode, Palette, Card"),
+                subtitle = LocaleController.getString("Night Mode, Palette"),
                 hasTintColor = false
             ),
             if (WGlobalStorage.isPasscodeSet())

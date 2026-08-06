@@ -6,27 +6,6 @@ import WalletCore
 @Suite("In-App Browser URL Routing")
 struct InAppBrowserUrlRoutingTests {
     @Test
-    func `navigation consumes Offramp before delegate routing`() throws {
-        let url = try #require(makeOfframpURL())
-
-        #expect(resolveInAppBrowserNavigationUrlRouting(url, isMainFrame: true, shouldOpenInNewPage: false) == .consume)
-    }
-
-    @Test
-    func `window open consumes Offramp before delegate routing`() throws {
-        let url = try #require(makeOfframpURL())
-
-        #expect(resolveInAppBrowserWindowOpenUrlRouting(url) == .consume)
-    }
-
-    @Test
-    func `WebKit popup consumes Offramp before page creation`() throws {
-        let url = try #require(makeOfframpURL())
-
-        #expect(resolveInAppBrowserWebKitPopupUrlRouting(url) == .consume)
-    }
-
-    @Test
     func `self deeplinks use in-app browser provenance`() throws {
         let url = try #require(URL(string: "\(SELF_PROTOCOL_SCHEME)://transfer"))
 
@@ -67,7 +46,4 @@ struct InAppBrowserUrlRoutingTests {
         #expect(resolveInAppBrowserMessageOrigin(scheme: "capacitor", host: "twallet.local", port: 0) == nil)
     }
 
-    private func makeOfframpURL() -> URL? {
-        URL(string: "\(SELF_PROTOCOL_SCHEME)://offramp?transactionId=test")
-    }
 }

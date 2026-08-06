@@ -71,12 +71,6 @@ public struct ChainConfig: Sendable {
     public var chainStandard: ApiChain? = nil
     /// Whether the chain supports domain names that resolve to regular addresses
     public var isDnsSupported: Bool
-    /// Whether MyTonWallet supports purchasing crypto in that blockchain with a bank card in Russia
-    public var canBuyWithCardInRussia: Bool
-    /// Whether on-ramp providers support this chain
-    public var isOnRampSupported: Bool = true
-    /// Whether off-ramp providers support this chain
-    public var isOffRampSupported: Bool = true
     /// Whether the chain supports on-chain swaps
     public var isOnchainSwapSupported: Bool = false
     /// Whether on-chain swaps can be estimated from the buy amount
@@ -347,8 +341,6 @@ private func makeEvmChainConfig(
     title: String,
     nativeToken: ApiToken,
     buySwapAmountIn: String,
-    isOnRampSupported: Bool = true,
-    isOffRampSupported: Bool = true,
     usdtSlug: String? = nil,
     defaultEnabledSlugs: [String],
     crosschainSwapSlugs: [String],
@@ -365,9 +357,6 @@ private func makeEvmChainConfig(
         title: title,
         chainStandard: .ethereum,
         isDnsSupported: false,
-        canBuyWithCardInRussia: false,
-        isOnRampSupported: isOnRampSupported,
-        isOffRampSupported: isOffRampSupported,
         isTransferPayloadSupported: false,
         isEncryptedCommentSupported: false,
         canTransferFullNativeBalance: false,
@@ -418,7 +407,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
     .ton: ChainConfig(
         title: "TON",
         isDnsSupported: true,
-        canBuyWithCardInRussia: true,
         isOnchainSwapSupported: true,
         canSwapByBuyAmount: true,
         isTransferPayloadSupported: true,
@@ -530,7 +518,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
     .tron: ChainConfig(
         title: "TRON",
         isDnsSupported: false,
-        canBuyWithCardInRussia: false,
         isTransferPayloadSupported: false,
         isEncryptedCommentSupported: false,
         canTransferFullNativeBalance: false,
@@ -577,7 +564,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
     .solana: ChainConfig(
         title: "Solana",
         isDnsSupported: false,
-        canBuyWithCardInRussia: false,
         isOnchainSwapSupported: true,
         canSwapByBuyAmount: false,
         isTransferPayloadSupported: true,
@@ -632,7 +618,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
         title: "Ethereum",
         chainStandard: .ethereum,
         isDnsSupported: false,
-        canBuyWithCardInRussia: false,
         isTransferPayloadSupported: false,
         isEncryptedCommentSupported: false,
         canTransferFullNativeBalance: false,
@@ -697,7 +682,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
         title: "Base",
         chainStandard: .ethereum,
         isDnsSupported: false,
-        canBuyWithCardInRussia: false,
         isTransferPayloadSupported: false,
         isEncryptedCommentSupported: false,
         canTransferFullNativeBalance: false,
@@ -762,8 +746,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
         title: "BNB",
         nativeToken: .BNB,
         buySwapAmountIn: "1",
-        isOnRampSupported: false,
-        isOffRampSupported: false,
         usdtSlug: BSC_USDT_MAINNET_SLUG,
         defaultEnabledSlugs: [BNB_SLUG],
         crosschainSwapSlugs: [BNB_SLUG],
@@ -823,8 +805,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
        title: "Monad",
        nativeToken: .MONAD,
        buySwapAmountIn: "10",
-       isOnRampSupported: false,
-       isOffRampSupported: false,
        defaultEnabledSlugs: [],
        crosschainSwapSlugs: [MONAD_SLUG],
        tokenInfo: [
@@ -865,8 +845,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
         title: "Hyperliquid",
         nativeToken: .HYPERLIQUID,
         buySwapAmountIn: "0.1",
-        isOnRampSupported: false,
-        isOffRampSupported: false,
         usdtSlug: HYPERLIQUID_USDC_MAINNET_SLUG,
         defaultEnabledSlugs: [HYPERLIQUID_SLUG],
         crosschainSwapSlugs: [HYPERLIQUID_SLUG, HYPERLIQUID_USDC_MAINNET_SLUG],
@@ -898,7 +876,6 @@ private func makeOtherChainConfig(for chain: ApiChain) -> ChainConfig {
     return ChainConfig(
         title: title,
         isDnsSupported: false,
-        canBuyWithCardInRussia: false,
         isTransferPayloadSupported: false,
         isEncryptedCommentSupported: false,
         canTransferFullNativeBalance: false,

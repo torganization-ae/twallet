@@ -28,9 +28,8 @@ import app.twallet.air.uicomponents.widgets.menu.WMenuPopup
 import app.twallet.air.uicomponents.widgets.menu.WMenuPopup.BackgroundStyle
 import app.twallet.air.uicomponents.widgets.setBackgroundColor
 import app.twallet.air.uisettings.R
-import app.twallet.air.uisettings.viewControllers.appearance.views.palette.AppearancePaletteAndCardView
+import app.twallet.air.uisettings.viewControllers.appearance.views.palette.AppearancePaletteView
 import app.twallet.air.uisettings.viewControllers.appearance.views.theme.AppearanceAppThemeView
-import app.twallet.air.uisettings.viewControllers.walletCustomization.WalletCustomizationVC
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.logger.Logger
 import app.twallet.air.walletbasecontext.theme.ViewConstants
@@ -55,18 +54,8 @@ class AppearanceVC(context: Context) : WViewController(context), WalletCore.Even
         v
     }
 
-    private val appPaletteView: AppearancePaletteAndCardView by lazy {
-        AppearancePaletteAndCardView(context).apply {
-            onCustomizePressed = {
-                AccountStore.activeAccountId?.let { accountId ->
-                    navigationController?.push(
-                        WalletCustomizationVC(
-                            context,
-                            accountId
-                        )
-                    )
-                }
-            }
+    private val appPaletteView: AppearancePaletteView by lazy {
+        AppearancePaletteView(context).apply {
             configure(AccountStore.activeAccount)
         }
     }
@@ -426,16 +415,11 @@ class AppearanceVC(context: Context) : WViewController(context), WalletCore.Even
         WalletCore.unregisterObserver(this)
         scrollView.setOnScrollChangeListener(null)
         animationsRow.setOnClickListener(null)
-        appPaletteView.onCustomizePressed = null
     }
 
     override fun onWalletEvent(walletEvent: WalletEvent) {
         when (walletEvent) {
             is WalletEvent.AccountChanged -> {
-                appPaletteView.configure(AccountStore.activeAccount)
-            }
-
-            WalletEvent.NftCardUpdated -> {
                 appPaletteView.configure(AccountStore.activeAccount)
             }
 

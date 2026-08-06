@@ -97,7 +97,7 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
             switch item {
             case .address:
                 collectionView.dequeueConfiguredReusableCell(using: addressRegistration, for: indexPath, item: ())
-            case .buyWithCard, .buyWithCrypto, .depositLink:
+            case .buyWithCrypto, .depositLink:
                 collectionView.dequeueConfiguredReusableCell(using: buyCryptoRegistration, for: indexPath, item: item)
             }
         }
@@ -120,16 +120,10 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
         snapshot.appendSections([.address])
         snapshot.appendItems([.address], toSection: .address)
 
-        if !ConfigStore.shared.shouldRestrictSwapsAndOnRamp && !isViewWalletMode {
+        if !ConfigStore.shared.shouldRestrictSwaps && !isViewWalletMode && !account.isHardware {
             snapshot.appendSections([.buyCrypto])
 
-            var buyCryptoItems: [ReceiveItem] = []
-            if chain.isOnrampSupported {
-                buyCryptoItems.append(.buyWithCard)
-            }
-            if !account.isHardware {
-                buyCryptoItems.append(.buyWithCrypto)
-            }
+            var buyCryptoItems: [ReceiveItem] = [.buyWithCrypto]
             if chain.formatTransferUrl != nil {
                 buyCryptoItems.append(.depositLink)
             }
@@ -150,8 +144,6 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
         switch item {
         case .address:
             break
-        case .buyWithCard:
-            AppActions.showBuyWithCard(accountContext: $account, chain: chain, push: true)
         case .buyWithCrypto:
             AppActions.showSwap(
                 accountContext: $account,

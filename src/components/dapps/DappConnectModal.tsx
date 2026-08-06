@@ -199,7 +199,6 @@ function DappConnectModal({
     if (!account) return undefined;
 
     const { title, byChain, type } = account;
-    const { cardBackgroundNft } = settingsByAccountId?.[selectedAccount] || {};
     const balanceData = balancesByAccountId?.[selectedAccount];
 
     return (
@@ -210,7 +209,6 @@ function DappConnectModal({
           byChain={byChain}
           accountType={type}
           title={title}
-          cardBackgroundNft={cardBackgroundNft}
           balanceData={balanceData}
           className={styles.accountSelectorButton}
           suffixIcon={<i className={buildClassName(styles.accountSelectorChevron, 'icon-chevron-right')} aria-hidden />}
@@ -245,7 +243,6 @@ function DappConnectModal({
               const accountHasMfa = Boolean(byChain.ton?.mfa);
               const isDisabled = !isCompatible || ((!!requiredProof || accountHasMfa) && isViewAccount(type));
               const isSelected = accountId === selectedAccount;
-              const { cardBackgroundNft } = settingsByAccountId?.[accountId] || {};
               const balanceData = balancesByAccountId?.[accountId];
 
               return (
@@ -255,7 +252,6 @@ function DappConnectModal({
                   byChain={byChain}
                   accountType={type}
                   title={title}
-                  cardBackgroundNft={cardBackgroundNft}
                   balanceData={balanceData}
                   isSelected={isSelected}
                   isDisabled={isDisabled}

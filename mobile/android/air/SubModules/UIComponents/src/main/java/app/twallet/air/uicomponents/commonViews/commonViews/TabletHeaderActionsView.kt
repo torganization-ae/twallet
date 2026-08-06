@@ -140,7 +140,7 @@ class TabletHeaderActionsView(
                 itemView.setOnLongClickListener {
                     if (alpha > 0) {
                         Haptics.play(this, HapticType.LIGHT_TAP)
-                        presentSendSellMenu(itemView)
+                        presentSendMenu(itemView)
                         return@setOnLongClickListener true
                     }
                     return@setOnLongClickListener false
@@ -194,11 +194,7 @@ class TabletHeaderActionsView(
         updateTextSizes()
     }
 
-    private fun isSellAllowed(): Boolean {
-        return account?.supportsBuyWithCard == true// && ConfigStore.isLimited != true
-    }
-
-    private fun presentSendSellMenu(anchorView: View) {
+    private fun presentSendMenu(anchorView: View) {
         val items = mutableListOf<WMenuPopup.Item>()
         items.add(
             WMenuPopup.Item(
@@ -216,16 +212,6 @@ class TabletHeaderActionsView(
                 onClick?.invoke(HeaderActionsView.Identifier.MULTISEND)
             }
         )
-        if (isSellAllowed()) {
-            items.add(
-                WMenuPopup.Item(
-                    R.drawable.ic_header_popup_menu_sell_outline,
-                    LocaleController.getString("Sell"),
-                ) {
-                    onClick?.invoke(HeaderActionsView.Identifier.SELL)
-                }
-            )
-        }
         WMenuPopup.present(
             anchorView,
             items,
@@ -379,8 +365,6 @@ class TabletHeaderActionsView(
         this.account = account
         val isMainNet = account?.isMainnet == true
         val isLpToken = TokenStore.getToken(tokenSlug)?.isLpToken == true
-        setBuyVisibility(isSellAllowed())
-        setSellVisibility(isSellAllowed())
         setReceiveVisibility(account?.supportsReceiveScreen == true)
         setSendVisibility(account?.accountType != MAccount.AccountType.VIEW)
         setEarnVisibility(isMainNet)
@@ -406,14 +390,6 @@ class TabletHeaderActionsView(
         }
         label.text = title
         updateTextSizes()
-    }
-
-    private fun setBuyVisibility(visible: Boolean) {
-        actionViews[HeaderActionsView.Identifier.BUY]?.visibility = if (visible) VISIBLE else GONE
-    }
-
-    private fun setSellVisibility(visible: Boolean) {
-        actionViews[HeaderActionsView.Identifier.SELL]?.visibility = if (visible) VISIBLE else GONE
     }
 
     private fun setReceiveVisibility(visible: Boolean) {
@@ -497,13 +473,6 @@ class TabletHeaderActionsView(
             return mutableListOf<Item>().apply {
                 add(
                     Item(
-                        HeaderActionsView.Identifier.BUY,
-                        context.requireDrawableCompat(R.drawable.ic_header_buy_outline),
-                        LocaleController.getString("Buy")
-                    )
-                )
-                add(
-                    Item(
                         HeaderActionsView.Identifier.RECEIVE,
                         context.requireDrawableCompat(R.drawable.ic_header_deposit_outline),
                         LocaleController.getString("Deposit")
@@ -525,13 +494,6 @@ class TabletHeaderActionsView(
                         )
                     )
                 }
-                add(
-                    Item(
-                        HeaderActionsView.Identifier.SELL,
-                        context.requireDrawableCompat(R.drawable.ic_header_sell_outline),
-                        LocaleController.getString("Sell")
-                    )
-                )
                 add(
                     Item(
                         HeaderActionsView.Identifier.SEND,

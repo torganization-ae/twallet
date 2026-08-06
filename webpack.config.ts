@@ -1,7 +1,6 @@
 import './dev/loadEnv';
 import 'webpack-dev-server';
 
-import WatchFilePlugin from './lib/webpack-watch-file-plugin/index';
 // @ts-ignore
 import PreloadWebpackPlugin from '@vue/preload-webpack-plugin';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
@@ -13,6 +12,7 @@ import path from 'path';
 import type { Compiler, Configuration } from 'webpack';
 import { EnvironmentPlugin, IgnorePlugin, ProvidePlugin } from 'webpack';
 
+import WatchFilePlugin from './lib/webpack-watch-file-plugin/index';
 import { convertI18nYamlToJson } from './dev/locales/convertI18nYamlToJson';
 import {
   APP_COMMIT_HASH,
@@ -31,11 +31,11 @@ import {
   IS_EXTENSION,
   IS_FEATURE_LIMITED,
   IS_FIREFOX_EXTENSION,
-  IS_TWALLETGRAM_WALLET,
   IS_OPERA_EXTENSION,
   IS_PACKAGED_ELECTRON,
   IS_TELEGRAM_APP,
   IS_TON_BRAND,
+  IS_TWALLETGRAM_WALLET,
   MFA_API_BASE_URL,
   MW_STATIC_BASE_URL,
   PORTFOLIO_API_URL,
@@ -66,13 +66,6 @@ const cspConnectSrcExtra = APP_ENV === 'development'
   : '';
 const cspScriptSrcExtra = IS_TELEGRAM_APP ? 'https://telegram.org' : '';
 const cspFrameSrcExtra = IS_FEATURE_LIMITED ? '' : [
-  'https://buy-sandbox.moonpay.com/',
-  'https://buy.moonpay.com/',
-  'https://sell.moonpay.com/',
-  'https://sell-sandbox.moonpay.com/',
-  'https://*.onetrust.com/', // This is a GDPR cookie consent widget from Moonpay
-  'https://dreamwalkers.io/',
-  'https://avanchange.com/',
   ...WALLET_CONNECT_PAY_FRAME_ORIGINS,
   ...IFRAME_WHITELIST,
   SUBPROJECT_URL_MASK,

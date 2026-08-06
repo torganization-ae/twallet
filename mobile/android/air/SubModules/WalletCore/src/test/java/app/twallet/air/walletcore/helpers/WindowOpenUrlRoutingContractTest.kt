@@ -6,24 +6,6 @@ import app.twallet.air.walletcontext.DeeplinkOpenSource
 
 class WindowOpenUrlRoutingContractTest {
     @Test
-    fun windowOpenWalletOfframpIsConsumedBeforeDelegate() {
-        val handledSources = mutableListOf<String>()
-
-        val mtwDecision = resolveRouting("mtw://offramp?depositWalletAddress=UQAddress") { _, source ->
-            handledSources.add(source.toString())
-            false
-        }
-        val gramDecision = resolveRouting("gramwallet://offramp?depositWalletAddress=UQAddress") { _, source ->
-            handledSources.add(source.toString())
-            false
-        }
-
-        assertEquals("CONSUME", mtwDecision)
-        assertEquals("CONSUME", gramDecision)
-        assertEquals(emptyList<String>(), handledSources)
-    }
-
-    @Test
     fun windowOpenCustomSchemeDeeplinksCarryInAppBrowserSource() {
         val handled = mutableListOf<Pair<String, String>>()
         val url = "ton://transfer/UQAddress?amount=1"

@@ -44,7 +44,6 @@ import app.twallet.air.uicomponents.widgets.WThemedView
 import app.twallet.air.uicomponents.widgets.fadeOut
 import app.twallet.air.uireceive.ReceiveVC
 import app.twallet.air.uisend.send.MultisendLauncher
-import app.twallet.air.uisend.send.SellWithCardLauncher
 import app.twallet.air.uisend.send.SendVC
 import app.twallet.air.uistake.earn.EarnRootVC
 import app.twallet.air.uistake.staking.StakingVC
@@ -62,7 +61,6 @@ import app.twallet.air.walletcore.models.MToken
 import app.twallet.air.walletcore.moshi.MApiSwapAsset
 import app.twallet.air.walletcore.moshi.MApiTransaction
 import app.twallet.air.walletcore.stores.AccountStore
-import app.twallet.air.walletcore.stores.ConfigStore
 import app.twallet.air.walletcore.stores.TokenStore
 import java.lang.ref.WeakReference
 import java.util.Date
@@ -115,19 +113,6 @@ class TokenVC(context: Context, private val account: MAccount, var token: MToken
 
     private val tokenVM by lazy {
         TokenVM(context, account.accountId, token, WeakReference(this))
-    }
-
-    private fun isSellAllowed(): Boolean {
-        return account.supportsBuyWithCard && ConfigStore.isLimited != true
-    }
-
-    private fun openSellWithCard(tokenSlug: String) {
-        if (!isSellAllowed()) return
-        SellWithCardLauncher.launch(
-            caller = WeakReference(this),
-            account = account,
-            tokenSlug = tokenSlug,
-        )
     }
 
     @Volatile
@@ -449,10 +434,6 @@ class TokenVC(context: Context, private val account: MAccount, var token: MToken
                 )
                 navVC.setRoot(SendVC(context, token.slug))
                 window?.present(navVC)
-            }
-
-            HeaderActionsView.Identifier.SELL -> {
-                openSellWithCard(token.slug)
             }
 
             HeaderActionsView.Identifier.MULTISEND -> {

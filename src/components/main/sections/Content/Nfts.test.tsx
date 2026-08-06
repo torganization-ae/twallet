@@ -4,7 +4,7 @@ import '../../../../global/actions/ui/nfts';
 
 import React from '../../../../lib/teact/teact';
 import TeactDOM from '../../../../lib/teact/teact-dom';
-import { addActionHandler, getActions, getGlobal, setGlobal } from '../../../../global';
+import { getActions, getGlobal, setGlobal } from '../../../../global';
 
 import { MAIN_ACCOUNT_ID } from '../../../../config';
 import { INITIAL_STATE } from '../../../../global/initialState';
@@ -14,9 +14,6 @@ import { pause } from '../../../../util/schedulers';
 import Nfts from './Nfts';
 
 const COLLECTION = { address: 'EQCollectionAddress', chain: 'ton' } as const;
-
-// The `updateNfts` handler triggers this API-layer action; the tests don't need its effects
-addActionHandler('checkCardNftOwnership', () => {});
 
 // TeactN flushes container updates on a microtask, Teact re-renders on rAF;
 // a generous macrotask pause covers both

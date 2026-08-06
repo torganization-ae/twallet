@@ -81,7 +81,7 @@ class SendComposeVC: WViewController, WSensitiveDataProtocol {
     
     private func buildNavigationItem() {
         switch model.mode {
-        case .burnNft, .sellToMoonpay:
+        case .burnNft:
             assertionFailure("Should not be available on this screen")
             fallthrough
         case .sendNft:
@@ -89,8 +89,6 @@ class SendComposeVC: WViewController, WSensitiveDataProtocol {
         case .regular:
             navigationItem.titleView = HostingView {
                 SendComposeTitleView(
-                    isSellSupported: model.token.chain.isOfframpSupported,
-                    onSellTapped: { [weak self] in self?.showSell() },
                     onMultisendTapped: { [weak self] in self?.showMultisend() }
                 )
             }
@@ -213,11 +211,6 @@ class SendComposeVC: WViewController, WSensitiveDataProtocol {
         )
     }
 
-    private func showSell() {
-        dismiss(animated: true)
-        AppActions.showSell(accountContext: model.$account, tokenSlug: model.token.slug)
-    }
-    
     private func showMultisend() {
         dismiss(animated: true)
         AppActions.showMultisend()

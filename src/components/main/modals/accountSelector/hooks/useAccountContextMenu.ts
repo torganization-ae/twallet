@@ -1,5 +1,4 @@
 import { type ElementRef } from '../../../../../lib/teact/teact';
-import { getActions } from '../../../../../global';
 
 import type { DropdownItem } from '../../../../ui/Dropdown';
 
@@ -8,7 +7,7 @@ import { vibrate } from '../../../../../util/haptics';
 import useContextMenuHandlers from '../../../../../hooks/useContextMenuHandlers';
 import useLastCallback from '../../../../../hooks/useLastCallback';
 
-export type MenuHandler = 'reorder' | 'rename' | 'customize' | 'remove';
+export type MenuHandler = 'reorder' | 'rename' | 'remove';
 
 const items: DropdownItem<MenuHandler>[] = [{
   name: 'Reorder',
@@ -19,10 +18,6 @@ const items: DropdownItem<MenuHandler>[] = [{
   fontIcon: 'menu-rename',
   value: 'rename',
 }, {
-  name: 'Customize',
-  fontIcon: 'menu-magic',
-  value: 'customize',
-}, {
   name: 'Remove',
   fontIcon: 'menu-trash',
   value: 'remove',
@@ -32,21 +27,13 @@ const items: DropdownItem<MenuHandler>[] = [{
 function useAccountContextMenu(ref: ElementRef<HTMLElement>, options: {
   isPortrait?: boolean;
   withContextMenu?: boolean;
-  accountId: string;
   onReorderClick: NoneToVoidFunction;
   onRenameClick: NoneToVoidFunction;
   onRemoveClick: NoneToVoidFunction;
 }) {
   const {
-    openCustomizeWalletModal,
-    closeAccountSelector,
-    switchAccount,
-  } = getActions();
-
-  const {
     isPortrait,
     withContextMenu,
-    accountId,
     onReorderClick,
     onRenameClick,
     onRemoveClick,
@@ -73,12 +60,6 @@ function useAccountContextMenu(ref: ElementRef<HTMLElement>, options: {
 
       case 'rename':
         onRenameClick();
-        break;
-
-      case 'customize':
-        closeAccountSelector();
-        switchAccount({ accountId });
-        openCustomizeWalletModal({ returnTo: 'accountSelector' });
         break;
 
       case 'remove':

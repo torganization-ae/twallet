@@ -218,8 +218,6 @@ export const NFT_MARKETPLACE_TITLES: Record<ApiNftMarketplace, string> = {
   opensea: 'OpenSea',
 };
 export const MW_STATIC_BASE_URL = 'https://static.mytonwallet.org';
-export const MW_CARDS_BASE_URL = `${MW_STATIC_BASE_URL}/cards/v2/cards/`;
-export const MW_CARDS_MINT_BASE_URL = `${MW_STATIC_BASE_URL}/mint-cards/`;
 // Every outbound link the app puts in front of a user follows its brand. The blog and the help center stay on the
 // My Wallet domain for all brands, since that is the only place they are published (Air links them the same way).
 export const APP_PROMO_URL = IS_TWALLETGRAM_WALLET ? 'https://gramwallet.io/' : 'https://mywallet.io/';
@@ -377,9 +375,6 @@ export const NFT_FRAGMENT_COLLECTIONS = [
 ];
 export const NFT_FRAGMENT_GIFT_IMAGE_TO_URL_REGEX = /^https?:\/\/nft\.(fragment\.com\/gift\/[\w-]+-\d+)\.\w+$/i;
 export const TELEGRAM_GIFTS_SUPER_COLLECTION = 'super:telegram-gifts';
-
-export const MW_CARDS_WEBSITE = 'https://cards.mytonwallet.io';
-export const MW_CARDS_COLLECTION = 'EQCQE2L9hfwx1V8sgmF9keraHx1rNK9VmgR1ctVvINBGykyM';
 
 export const TON_DNS_RENEWAL_WARNING_DAYS = 14;
 export const TON_DNS_RENEWAL_NFT_WARNING_DAYS = 30;
@@ -857,10 +852,6 @@ export const NOTCOIN_EXCHANGERS = [
 export const CLAIM_ADDRESS = 'EQB3zOTvPi1PmwdcTpqSfFKZnhi1GNKEVJM-LdoAirdLtash';
 export const CLAIM_AMOUNT = 30000000n; // 0.03 TON
 export const CLAIM_COMMENT = 'claim';
-
-export const MINT_CARD_ADDRESS = 'EQBpst3ZWJ9Dqq5gE2YH-yPsFK_BqMOmgi7Z_qK6v7WbrPWv';
-export const MINT_CARD_COMMENT = 'Mint card';
-export const MINT_CARD_REFUND_COMMENT = 'Refund';
 
 export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z][-a-zA-Z0-9]{1,62})\b([-a-zA-Z0-9()@:%_+.,~#?&/=]*)/g;
 

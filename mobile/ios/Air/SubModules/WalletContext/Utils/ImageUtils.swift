@@ -19,6 +19,14 @@ extension UIImage {
         UIImage(named: named, in: .main, compatibleWith: nil)
     }
 
+    public static let homeCard: UIImage = {
+        if let image = UIImage.mainBundleOptional("HomeCard") {
+            return image
+        }
+        assertionFailure("Missing HomeCard asset")
+        return UIImage()
+    }()
+
     /// Resizes the image (useful in SwiftUI Text where .font() does not scale asset images).
     /// Uses aspect fit to preserve proportions.
     public func resizedToFit(size: CGSize) -> UIImage {

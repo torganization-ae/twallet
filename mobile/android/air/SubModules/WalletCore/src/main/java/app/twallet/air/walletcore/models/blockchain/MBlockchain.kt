@@ -166,9 +166,6 @@ enum class MBlockchain(
     fun nftExplorer() =
         config?.nftExplorer()
 
-    val isOnrampSupported get() = isSupported && config?.isOnRampSupported == true
-    val isOfframpSupported get() = isSupported && config?.isOffRampSupported == true
-
     val burnAddress: String
         get() {
             return config?.burnAddress ?: ""

@@ -132,7 +132,6 @@ class NftDetailsPageView: UIView {
                 }
             }
             
-            add(.wear, lang("Wear"), "WearIconBold" )
             add(.send, lang("Send"), "SendIconBold" )
             add(.share, lang("Share"), "ShareIconBold" )
             add(.more, lang("More"), "MoreIconBold")

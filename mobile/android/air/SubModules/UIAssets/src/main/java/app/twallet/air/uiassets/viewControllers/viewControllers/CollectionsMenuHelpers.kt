@@ -14,7 +14,6 @@ import app.twallet.air.uicomponents.base.WNavigationController
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.extensions.getLocationInWindow
 import app.twallet.air.uicomponents.extensions.getLocationOnScreen
-import app.twallet.air.uicomponents.helpers.palette.ImagePaletteHelpers
 import app.twallet.air.uicomponents.widgets.INavigationPopup
 import app.twallet.air.uicomponents.widgets.menu.WMenuPopup
 import app.twallet.air.uicomponents.widgets.menu.WMenuPopup.BackgroundStyle
@@ -26,8 +25,6 @@ import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.x
-import app.twallet.air.walletcontext.WalletContextManager
-import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.models.MBlockchainNetwork
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
@@ -363,7 +360,6 @@ object CollectionsMenuHelpers {
         onReorderTapped: (() -> Unit)?,
         onSelectTapped: (() -> Unit)?
     ): MutableList<WMenuPopup.Item> {
-        val wearItems = buildNftWearItems(showingAccountId, nft)
         val actionItems = buildNftActionItems(nft, navigationController)
         val infoItems = buildNftInfoItems(
             showingAccountId,
@@ -373,9 +369,6 @@ object CollectionsMenuHelpers {
         )
         val modeItems = buildNftModeItems(onReorderTapped, onSelectTapped)
 
-        if (wearItems.isNotEmpty() && (actionItems.isNotEmpty() || infoItems.isNotEmpty())) {
-            wearItems.last().hasSeparator = true
-        }
         if (actionItems.isNotEmpty() && infoItems.isNotEmpty()) {
             actionItems.last().hasSeparator = true
         }
@@ -383,66 +376,14 @@ object CollectionsMenuHelpers {
             when {
                 infoItems.isNotEmpty() -> infoItems.last().hasSeparator = true
                 actionItems.isNotEmpty() -> actionItems.last().hasSeparator = true
-                wearItems.isNotEmpty() -> wearItems.last().hasSeparator = true
             }
         }
 
         return mutableListOf<WMenuPopup.Item>().apply {
-            addAll(wearItems)
             addAll(actionItems)
             addAll(infoItems)
             addAll(modeItems)
         }
-    }
-
-    private fun buildNftWearItems(
-        showingAccountId: String,
-        nft: ApiNft
-    ): MutableList<WMenuPopup.Item> {
-        if (!nft.isMtwCard) {
-            return mutableListOf()
-        }
-        return mutableListOf(
-            WMenuPopup.Item(
-                WMenuPopup.Item.Config.Item(
-                    icon = Icon(
-                        app.twallet.air.uiassets.R.drawable.ic_card_install,
-                        WColor.PrimaryLightText
-                    ),
-                    title = LocaleController.getString(
-                        if (nft.isInstalledMtwCard) "Reset Card" else "Install Card"
-                    )
-                )
-            ) {
-                if (nft.isInstalledMtwCard) {
-                    WGlobalStorage.setCardBackgroundNft(showingAccountId, null)
-                    resetPalette(showingAccountId)
-                } else {
-                    WGlobalStorage.setCardBackgroundNft(showingAccountId, nft.toDictionary())
-                    if (!nft.isInstalledMtwCardPalette) {
-                        installPalette(showingAccountId, nft)
-                    }
-                }
-                WalletCore.notifyEvent(WalletEvent.NftCardUpdated)
-            },
-            WMenuPopup.Item(
-                WMenuPopup.Item.Config.Item(
-                    icon = Icon(
-                        app.twallet.air.uiassets.R.drawable.ic_card_pallete,
-                        WColor.PrimaryLightText
-                    ),
-                    title = LocaleController.getString(
-                        if (nft.isInstalledMtwCardPalette) "Reset Palette" else "Install Palette"
-                    )
-                )
-            ) {
-                if (nft.isInstalledMtwCardPalette) {
-                    resetPalette(showingAccountId)
-                } else {
-                    installPalette(showingAccountId, nft)
-                }
-            }
-        )
     }
 
     private fun buildNftActionItems(
@@ -863,25 +804,4 @@ object CollectionsMenuHelpers {
         }
     }
 
-    private fun installPalette(showingAccountId: String, nft: ApiNft) {
-        ImagePaletteHelpers.extractPaletteFromNft(nft) { colorIndex ->
-            if (colorIndex != null) {
-                WGlobalStorage.setNftAccentColor(
-                    showingAccountId,
-                    colorIndex,
-                    nft.toDictionary()
-                )
-            }
-            WalletContextManager.delegate?.get()?.themeChanged()
-        }
-    }
-
-    private fun resetPalette(showingAccountId: String) {
-        WGlobalStorage.setNftAccentColor(
-            showingAccountId,
-            null,
-            null
-        )
-        WalletContextManager.delegate?.get()?.themeChanged()
-    }
 }

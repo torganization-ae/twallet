@@ -73,7 +73,6 @@ function TransferConfirm({
     isGaslessWithStars,
     diesel,
     stateInit,
-    isOfframp,
     isNftBurn,
     explainedFee,
   },
@@ -209,9 +208,6 @@ function TransferConfirm({
   }
 
   function getSubmitBtnText() {
-    if (isOfframp) {
-      return lang('Sell %symbol%', { symbol: token?.symbol ?? '' });
-    }
     if (isBurning || isNotcoinBurning) {
       return lang(isNftTransfer ? ((nfts?.length ?? 0) > 1 ? 'Burn Collectibles' : 'Burn NFT') : 'Burn');
     }
@@ -279,11 +275,9 @@ function TransferConfirm({
         )}
 
         <div className={buildClassName(modalStyles.buttons, modalStyles.buttonsInsideContentWithScroll)}>
-          {!isOfframp && (
-            <Button className={modalStyles.button} onClick={promiseId ? onClose : onBack}>
-              {promiseId ? lang('Cancel') : lang('Edit')}
-            </Button>
-          )}
+          <Button className={modalStyles.button} onClick={promiseId ? onClose : onBack}>
+            {promiseId ? lang('Cancel') : lang('Edit')}
+          </Button>
           <Button
             isPrimary
             isLoading={isLoading}

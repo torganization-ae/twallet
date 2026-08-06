@@ -391,12 +391,6 @@ extension AirRuntimeCoordinator: DeeplinkNavigator {
             case .swap(from: let from, to: let to, amountIn: let amountIn):
                 AppActions.showSwap(accountContext: accountContext, defaultSellingToken: from, defaultBuyingToken: to, defaultSellingAmount: amountIn, push: nil)
 
-            case .buyWithCard:
-                AppActions.showBuyWithCard(accountContext: accountContext, chain: nil, push: nil)
-
-            case .sell(let cell):
-                handleSell(cell)
-
             case .stake:
                 AppActions.showEarn(accountContext: accountContext, tokenSlug: nil)
 
@@ -462,54 +456,6 @@ extension AirRuntimeCoordinator: DeeplinkNavigator {
         Task {
             try await _handleNotification(notification)
         }
-    }
-
-    private func handleSell(_ deeplinkSellData: Deeplink.Sell) {
-        guard let address = deeplinkSellData.depositWalletAddress?.nilIfEmpty else {
-            AppActions.showError(error: DisplayError(text: lang("$missing_offramp_deposit_address")))
-            return
-        }
-
-        var slug: String?
-        var chain: ApiChain?
-        if let normalizedCode = deeplinkSellData.baseCurrencyCode?.lowercased() {
-            if normalizedCode == "ton" || normalizedCode == "toncoin" {
-                slug = TONCOIN_SLUG
-                chain = .ton
-            } else if let token = TokenStore.getToken(slug: normalizedCode) {
-                slug = token.slug
-                chain = token.chain
-            }
-        }
-        guard let slug, let chain else {
-            AppActions.showError(error: DisplayError(text: lang("$unsupported_deeplink_parameter")))
-            return
-        }
-
-        var amount: BigInt?
-        if let baseCurrencyAmount = deeplinkSellData.baseCurrencyAmount?.nilIfEmpty,
-           let token = TokenStore.getToken(slug: slug) {
-            let parsedAmount = amountValue(baseCurrencyAmount, digits: token.decimals)
-            if parsedAmount == 0 {
-                log.error("Unable to parse amount '\(baseCurrencyAmount)'")
-            } else {
-                amount = parsedAmount
-            }
-        }
-
-        let depositWalletAddressTag = deeplinkSellData.depositWalletAddressTag?.nilIfEmpty
-        assert(depositWalletAddressTag != nil)
-
-        let savedAddress = SavedAddress(name: "MoonPay Off-Ramp", address: address, chain: chain)
-        AccountContext(source: .current).savedAddresses.save(savedAddress, addOnly: true)
-
-        AppActions.showSend(accountContext: AccountContext(source: .current), prefilledValues: .init(
-            mode: .sellToMoonpay,
-            address: address,
-            amount: amount,
-            token: slug,
-            commentOrMemo: depositWalletAddressTag
-        ))
     }
 
     @MainActor private func _handleNotification(_ notification: UNNotification) async throws {

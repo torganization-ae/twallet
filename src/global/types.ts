@@ -18,7 +18,6 @@ import type {
   ApiBalanceBySlug,
   ApiBaseCurrency,
   ApiChain,
-  ApiCountryCode,
   ApiCurrencyRates,
   ApiDappPermissions,
   ApiDappTransfer,
@@ -30,7 +29,6 @@ import type {
   ApiImportAddressByChain,
   ApiLedgerDriver,
   ApiLedgerWalletInfo,
-  ApiMtwCardType,
   ApiNetwork,
   ApiNft,
   ApiNftCollection,
@@ -421,14 +419,6 @@ export enum SettingsState {
   Permissions,
 }
 
-export enum MintCardState {
-  Initial,
-  Password,
-  ConnectHardware,
-  ConfirmHardware,
-  Done,
-}
-
 export enum ContentTab {
   Overview,
   Assets,
@@ -557,8 +547,6 @@ export interface AccountState {
     isFullLoadingByChain?: Partial<Record<ApiChain, boolean>>;
     /** Collection address -> last loaded timestamp for cache TTL */
     collectionLoadedTimestamps?: Record<string, number>;
-    /** Snapshot of MW card NFT addresses currently owned by this account */
-    ownedMwCardAddresses?: string[];
   };
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
@@ -607,7 +595,6 @@ export interface AccountState {
 
   isDieselAuthorizationStarted?: boolean;
   isLongUnstakeRequested?: boolean;
-  isCardMinting?: boolean;
   receiveModalChain?: ApiChain;
   invoiceTokenSlug?: string;
 
@@ -624,10 +611,6 @@ export interface AccountSettings {
   alwaysHiddenSlugs?: string[];
   deletedSlugs?: string[];
   importedSlugs?: string[];
-  // These NFTs should be saved in the settings for immediate use after launching the application,
-  // without synchronizing the wallet history or complex state caching
-  cardBackgroundNft?: ApiNft;
-  accentColorNft?: ApiNft;
   accentColorIndex?: number;
   isAllowSuspiciousActions?: boolean;
   areAssetsHidden?: boolean;
@@ -736,7 +719,6 @@ export type GlobalState = {
     isGaslessWithStars?: boolean;
     scamWarningType?: ScamWarningType;
     isTransferReadonly?: boolean;
-    isOfframp?: boolean;
     isNftBurn?: boolean;
     /**
      * Normalized explanation of the fee and gasless parameters for the current draft, ready for UI consumption.
@@ -1039,8 +1021,6 @@ export type GlobalState = {
   isBackupWalletModalOpen?: boolean;
   isHardwareModalOpen?: boolean;
   isStakingInfoModalOpen?: boolean;
-  isCustomizeWalletModalOpen?: boolean;
-  customizeWalletReturnTo?: 'accountSelector' | 'settings';
   areSettingsOpen?: boolean;
   isExploreOpen?: boolean;
   isPortfolioOpen?: boolean;
@@ -1050,11 +1030,8 @@ export type GlobalState = {
   // Force show the "Update My Wallet" pop-up on all platforms
   isAppUpdateRequired?: boolean;
   seasonalTheme?: ApiBackendConfig['seasonalTheme'];
-  isPromotionModalOpen?: boolean;
   confettiRequestedAt?: number;
   isPinAccepted?: boolean;
-  chainForOnRampWidgetModal?: ApiChain;
-  chainForOffRampWidgetModal?: ApiChain;
   isInvoiceModalOpen?: boolean;
   isReceiveModalOpen?: boolean;
   isVestingModalOpen?: boolean;
@@ -1066,24 +1043,14 @@ export type GlobalState = {
     subtitle?: string;
   };
 
-  currentMintCard?: {
-    type?: ApiMtwCardType;
-    state?: MintCardState;
-    error?: string;
-    isLoading?: boolean;
-  };
-
   latestAppVersion?: string;
   stateVersion: number;
   restrictions: {
     isLimitedRegion: boolean;
     isSwapDisabled: boolean;
-    isOnRampDisabled: boolean;
-    isOffRampDisabled: boolean;
     isNftBuyingDisabled: boolean;
     isCopyStorageEnabled?: boolean;
     supportAccountsCount?: number;
-    countryCode?: ApiCountryCode;
   };
 
   mediaViewer: {
@@ -1186,8 +1153,6 @@ export interface ActionPayloads {
   setIsBackupRequired: { isMnemonicChecked: boolean };
   openHardwareWalletModal: { chain: ApiChain };
   closeHardwareWalletModal: undefined;
-  openCustomizeWalletModal: { returnTo?: 'accountSelector' | 'settings' };
-  closeCustomizeWalletModal: undefined;
   resetHardwareWalletConnect: { chain: ApiChain; shouldLoadWallets?: boolean };
   setTransferScreen: { state: TransferState };
   setTransferAmount: { amount?: bigint };
@@ -1203,7 +1168,6 @@ export interface ActionPayloads {
     binPayload?: string;
     stateInit?: string;
     isTransferReadonly?: boolean;
-    isOfframp?: boolean;
   } | undefined;
   changeTransferToken: { tokenSlug: string; withResetAmount?: boolean };
   fetchTransferFee: {
@@ -1433,11 +1397,8 @@ export interface ActionPayloads {
   clearRemoveMfaError: undefined;
 
   // Account Settings
-  setCardBackgroundNft: { nft: ApiNft; accountId?: string };
-  clearCardBackgroundNft: undefined;
-  checkCardNftOwnership: { accountId: string } | undefined;
-  installAccentColorFromNft: { nft: ApiNft; accountId?: string };
-  clearAccentColorFromNft: undefined;
+  setAccentColor: { index: number };
+  clearAccentColor: undefined;
 
   // TON Connect common
   apiUpdateDappLoading: ApiUpdateDappLoading;
@@ -1520,12 +1481,6 @@ export interface ActionPayloads {
   updatePendingSwaps: undefined;
   setSwapDex: { dexLabel: ApiSwapDexLabel };
 
-  openOnRampWidgetModal: { chain: ApiChain };
-  closeOnRampWidgetModal: undefined;
-
-  openOffRampWidgetModal: undefined;
-  closeOffRampWidgetModal: undefined;
-
   // WalletConnect Pay
   apiUpdateWalletConnectPayLoading: { accountId: string };
   apiUpdateWalletConnectPayProcessing: ApiUpdateWalletConnectPayProcessing;
@@ -1580,13 +1535,8 @@ export interface ActionPayloads {
   clearVestingError: undefined;
   cancelClaimingVesting: undefined;
 
-  openMintCardModal: undefined;
-  closeMintCardModal: undefined;
   openPromotionModal: undefined;
   closePromotionModal: undefined;
-  startCardMinting: { type: ApiMtwCardType };
-  submitMintCard: { password?: string } | undefined;
-  clearMintCardError: undefined;
 
   toggleNotifications: { isEnabled: boolean };
   renameNotificationAccount: { accountId: string };

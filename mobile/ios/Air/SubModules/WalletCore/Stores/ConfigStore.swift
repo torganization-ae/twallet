@@ -78,10 +78,9 @@ public class ConfigStore: @unchecked Sendable { // todo: use UnfairLock intead o
         }
     }
     
-    public var shouldRestrictSwapsAndOnRamp: Bool { config?.isLimited == true }
+    public var shouldRestrictSwaps: Bool { config?.isLimited == true }
     public var shouldRestrictBuyNfts: Bool { config?.isLimited == true }
     public var shouldRestrictSites: Bool { config?.isLimited == true }
-    public var shouldRestrictSell: Bool { config?.isLimited == true }
     public var knowledgeBaseVersion: String? { config?.knowledgeBaseVersion }
 
     private func handleConfig(_ config: ApiUpdate.UpdateConfig) {

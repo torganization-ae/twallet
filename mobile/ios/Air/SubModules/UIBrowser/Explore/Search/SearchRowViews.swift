@@ -313,7 +313,7 @@ struct MyWalletRow: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
 
-            MtwCardAddressLine(addressLine: accountContext.addressLine, style: .search, gradient: nil)
+            AccountAddressLine(addressLine: accountContext.addressLine, style: .search)
                 .foregroundStyle(Color.air.secondaryLabel)
                 .lineLimit(1)
         }

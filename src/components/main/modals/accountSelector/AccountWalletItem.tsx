@@ -1,6 +1,5 @@
 import React, { type ElementRef, useRef } from '../../../../lib/teact/teact';
 
-import type { ApiNft } from '../../../../api/types';
 import type { Account, AccountType } from '../../../../global/types';
 import type { AccountBalance } from '../../../../hooks/useAccountsBalances';
 import type { Layout } from '../../../../hooks/useMenuPosition';
@@ -28,7 +27,6 @@ interface OwnProps {
   accountType: AccountType;
   title?: string;
   balanceData?: AccountBalance;
-  cardBackgroundNft?: ApiNft;
   withContextMenu?: boolean;
   isSensitiveDataHidden?: true;
   onClick: (accountId: string) => void;
@@ -54,7 +52,6 @@ function AccountWalletItem({
   accountType,
   title,
   balanceData,
-  cardBackgroundNft,
   withContextMenu,
   isSensitiveDataHidden,
   onClick,
@@ -105,7 +102,6 @@ function AccountWalletItem({
   } = useAccountContextMenu(contentRef, {
     isPortrait,
     withContextMenu,
-    accountId,
     onReorderClick: onReorder,
     onRenameClick: handleRenameClick,
     onRemoveClick: handleRemoveClick,
@@ -164,7 +160,6 @@ function AccountWalletItem({
           title={title}
           isTestnet={isTestnet}
           balanceData={balanceData}
-          cardBackgroundNft={cardBackgroundNft}
           isSensitiveDataHidden={isSensitiveDataHidden}
         />
       </div>
@@ -191,22 +186,23 @@ function AccountWalletItem({
     </>
   );
 
-  return (
-    <Draggable
-      key={accountId}
-      id={accountId}
-      style={draggableStyle}
-      isDisabled={!isReorder}
-      parentRef={parentRef}
-      scrollRef={scrollRef}
-      className={styles.draggable}
-      onClick={handleDraggableClick}
-      onDrag={handleDrag}
-      onDragEnd={handleDragEnd}
-    >
-      {content}
-    </Draggable>
-  );
+  if (isReorder) {
+    return (
+      <Draggable
+        id={accountId}
+        onClick={handleDraggableClick}
+        onDrag={handleDrag}
+        onDragEnd={handleDragEnd}
+        className={buildClassName(styles.draggable, draggableStyle)}
+        parentRef={parentRef}
+        scrollRef={scrollRef}
+      >
+        {content}
+      </Draggable>
+    );
+  }
+
+  return content;
 }
 
 export default AccountWalletItem;

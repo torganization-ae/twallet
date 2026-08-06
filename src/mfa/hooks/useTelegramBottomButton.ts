@@ -20,7 +20,6 @@ interface OwnProps {
   textColor?: string;
   position?: 'top' | 'right' | 'bottom' | 'left';
   appTheme: AppTheme;
-  accentColorIndex?: number;
   text: TeactNode;
   onClick?: NoneToVoidFunction;
 }
@@ -50,7 +49,6 @@ export default function useTelegramBottomButton({
   isPrimary = false,
   isDestructive = false,
   appTheme,
-  accentColorIndex,
   text,
   onClick,
 }: OwnProps) {
@@ -105,11 +103,11 @@ export default function useTelegramBottomButton({
 
     button.setParams({
       ...getButtonColors({
-        isDestructive, isPrimary, appTheme, accentColorIndex,
+        isDestructive, isPrimary, appTheme,
       }),
       ...(!isPrimary && { position: 'bottom' }),
     });
-  }, [accentColorIndex, appTheme, button, isDestructive, isPrimary]);
+  }, [appTheme, button, isDestructive, isPrimary]);
 
   useEffect(() => {
     if (!button) return;
@@ -139,20 +137,16 @@ function getButtonColors({
   appTheme,
   isDestructive,
   isPrimary,
-  accentColorIndex,
 }: {
   appTheme: AppTheme;
   isDestructive?: boolean;
   isPrimary?: boolean;
-  accentColorIndex?: number;
 }) {
   const buttonThemeKey = isDestructive
     ? 'destructive'
     : (isPrimary ? 'primary' : 'default');
   const backgroundColor = BUTTON_COLORS[appTheme][buttonThemeKey].background;
-  const textColor = buttonThemeKey === 'primary' && accentColorIndex
-    ? (backgroundColor === '#FFFFFF' ? '#000000' : '#FFFFFF')
-    : BUTTON_COLORS[appTheme][buttonThemeKey].text;
+  const textColor = BUTTON_COLORS[appTheme][buttonThemeKey].text;
 
   return {
     color: backgroundColor,

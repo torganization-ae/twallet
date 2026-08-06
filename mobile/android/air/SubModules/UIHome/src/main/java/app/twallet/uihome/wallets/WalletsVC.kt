@@ -41,7 +41,6 @@ import app.twallet.air.uicomponents.widgets.fadeOut
 import app.twallet.air.uicomponents.widgets.frameAsRectF
 import app.twallet.air.uicomponents.widgets.menu.WMenuPopup
 import app.twallet.air.uicomponents.widgets.menu.WMenuPopup.BackgroundStyle
-import app.twallet.air.uisettings.viewControllers.walletCustomization.WalletCustomizationVC
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.logger.LogMessage
 import app.twallet.air.walletbasecontext.logger.Logger
@@ -655,25 +654,6 @@ class WalletsVC(
                     hasSeparator = false,
                     onTap = {
                         AccountDialogHelpers.presentRename(this, account)
-                    }),
-                WMenuPopup.Item(
-                    config = WMenuPopup.Item.Config.Item(
-                        icon = WMenuPopup.Item.Config.Icon(
-                            app.twallet.uihome.R.drawable.ic_customize,
-                            tintColor = WColor.SecondaryText
-                        ),
-                        title = LocaleController.getString("Customize")
-                    ),
-                    hasSeparator = false,
-                    onTap = {
-                        val navVC = WNavigationController(
-                            window!!,
-                            WNavigationController.PresentationConfig.PreferredFullScreen
-                        )
-                        val walletCustomizationVC =
-                            WalletCustomizationVC(context, account.accountId)
-                        navVC.setRoot(walletCustomizationVC)
-                        window?.present(navVC)
                     }),
                 WMenuPopup.Item(
                     config = WMenuPopup.Item.Config.Item(

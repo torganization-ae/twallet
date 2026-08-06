@@ -1,8 +1,8 @@
 import nacl from 'tweetnacl';
 
-import type { LangCode, Theme } from '../../global/types';
+import type { LangCode } from '../../global/types';
 import type { StorageKey } from '../storages/types';
-import type { ApiAnyDisplayError, ApiBaseCurrency, ApiChain } from '../types';
+import type { ApiAnyDisplayError, ApiChain } from '../types';
 
 import { APP_ENV, APP_VERSION, IS_ANDROID_DIRECT } from '../../config';
 import { setIsAppFocused } from '../../util/focusAwareDelay';
@@ -10,10 +10,8 @@ import { getLogs, logDebugError } from '../../util/logs';
 import { pause } from '../../util/schedulers';
 import chains from '../chains';
 import { fetchStoredAccounts, fetchStoredWallet, updateStoredWallet } from '../common/accounts';
-import { callBackendGet } from '../common/backend';
 import { hexToBytes } from '../common/utils';
 import { SEC } from '../constants';
-import { handleServerError } from '../errors';
 import { storage } from '../storages';
 
 import RECEIVE_GRADIENT_SVGS from '../../assets/receiveGradientSvgs';
@@ -96,62 +94,6 @@ export function getLangCode() {
 
 export function setLangCode(langCode: LangCode) {
   return storage.setItem('langCode', langCode);
-}
-
-export async function getMoonpayOnrampUrl({
-  chain,
-  addressByChain,
-  theme,
-  currency,
-}: {
-  chain: ApiChain;
-  addressByChain?: Partial<Record<ApiChain, string>>;
-  theme: Theme;
-  currency: ApiBaseCurrency;
-}) {
-  try {
-    return await callBackendGet<{ url: string }>('/onramp-url', {
-      chain,
-      addressByChain: addressByChain && JSON.stringify(addressByChain),
-      theme,
-      currency: currency.toLowerCase(),
-    });
-  } catch (err) {
-    logDebugError('getMoonpayOnrampUrl', err);
-
-    return handleServerError(err);
-  }
-}
-
-export async function getMoonpayOfframpUrl({
-  chain,
-  address,
-  theme,
-  currency,
-  amount,
-  baseUrl,
-}: {
-  chain: ApiChain;
-  address: string;
-  theme: Theme;
-  currency: ApiBaseCurrency;
-  amount: string;
-  baseUrl: string;
-}) {
-  try {
-    return await callBackendGet<{ url: string }>('/offramp-url', {
-      chain,
-      address,
-      theme,
-      currency: currency.toLowerCase(),
-      amount,
-      baseUrl,
-    });
-  } catch (err) {
-    logDebugError('getMoonpayOfframpUrl', err);
-
-    return handleServerError(err);
-  }
 }
 
 export function waitForLedgerApp(

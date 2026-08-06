@@ -37,7 +37,6 @@ import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.requireDrawableCompat
 import app.twallet.air.walletcontext.models.MBlockchainNetwork
 import app.twallet.air.walletcore.models.MAccount
-import app.twallet.air.walletcore.stores.ConfigStore
 import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
 import app.twallet.air.walletcore.tokenSlugToStakingSlug
@@ -112,7 +111,7 @@ class HeaderActionsView(
                 itemView.setOnLongClickListener {
                     if (alpha > 0) {
                         Haptics.play(this, HapticType.LIGHT_TAP)
-                        presentSendSellMenu(itemView)
+                        presentSendMenu(itemView)
                         return@setOnLongClickListener true
                     }
                     return@setOnLongClickListener false
@@ -147,11 +146,7 @@ class HeaderActionsView(
         }
     }
 
-    private fun isSellAllowed(): Boolean {
-        return account?.supportsBuyWithCard == true && ConfigStore.isLimited != true
-    }
-
-    private fun presentSendSellMenu(anchorView: View) {
+    private fun presentSendMenu(anchorView: View) {
         val items = mutableListOf<WMenuPopup.Item>()
         items.add(
             WMenuPopup.Item(
@@ -169,16 +164,6 @@ class HeaderActionsView(
                 onClick?.invoke(Identifier.MULTISEND)
             }
         )
-        if (isSellAllowed()) {
-            items.add(
-                WMenuPopup.Item(
-                    R.drawable.ic_header_popup_menu_sell_outline,
-                    LocaleController.getString("Sell"),
-                ) {
-                    onClick?.invoke(Identifier.SELL)
-                }
-            )
-        }
         WMenuPopup.present(
             anchorView,
             items,
@@ -195,11 +180,9 @@ class HeaderActionsView(
     )
 
     enum class Identifier {
-        BUY,
         RECEIVE,
         SEND,
         MULTISEND,
-        SELL,
         EARN,
         SWAP,
         LOCK_APP,

@@ -35,8 +35,6 @@ import app.twallet.air.uicomponents.extensions.styleDots
 import app.twallet.air.uicomponents.helpers.ClipboardHelpers
 import app.twallet.air.uicomponents.helpers.HapticType
 import app.twallet.air.uicomponents.helpers.Haptics
-import app.twallet.air.uicomponents.helpers.NftGradientHelpers
-import app.twallet.air.uicomponents.helpers.TiltSensorManager
 import app.twallet.air.uicomponents.helpers.WFont
 import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import app.twallet.air.uicomponents.helpers.spans.WLetterSpacingSpan
@@ -67,7 +65,6 @@ import app.twallet.air.uiportfolio.viewControllers.portfolio.PortfolioVC
 import app.twallet.air.uiwidgets.configurations.WidgetsConfigurations
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.models.MBaseCurrency
-import app.twallet.air.walletbasecontext.theme.ThemeManager
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.getDrawableCompat
@@ -91,10 +88,7 @@ import app.twallet.air.walletcore.helpers.ExplorerHelpers
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.MAccount.AccountChain
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
-import app.twallet.air.walletcore.moshi.ApiNft
 import app.twallet.air.walletcore.stores.BalanceStore
-import app.twallet.air.walletcore.stores.NftStore
-import app.twallet.air.uisettings.viewControllers.mintCard.MintCardVC
 import app.twallet.air.walletcore.stores.ConfigStore
 import app.twallet.uihome.home.views.UpdateStatusView
 import app.twallet.uihome.home.views.header.seasonal.SeasonalOverlayView
@@ -107,7 +101,7 @@ import app.twallet.air.walletbasecontext.R as BaseR
 @SuppressLint("ViewConstructor")
 class WalletCardView(
     val window: WWindow
-) : WView(window), WThemedView, TiltSensorManager.TiltObserver {
+) : WView(window), WThemedView {
 
     companion object {
         const val EXPANDED_RADIUS = 26
@@ -123,7 +117,6 @@ class WalletCardView(
     // PRIVATE VARIABLES ///////////////////////////////////////////////////////////////////////////
     var account: MAccount? = null
         private set
-    private var cardNft: ApiNft? = null
     private var balanceAmount: BigInteger? = null
     private var isShowingSkeletons = false
     private var isPresentingImage = false
@@ -135,24 +128,6 @@ class WalletCardView(
         get() {
             return (window.window.decorView.width - 32.dp).coerceAtLeast(0)
         }
-
-    // Tilt Effect
-    private var isSensorListening = false
-    private var currentTiltX = 0f
-    private var currentTiltY = 0f
-    override fun onTilt(x: Float, y: Float) {
-        if (shiningView.visibility != VISIBLE) return
-
-        currentTiltX = x
-        currentTiltY = y
-
-        shiningView.background =
-            NftGradientHelpers(cardNft).gradient(
-                cardFullWidth.toFloat(),
-                currentTiltX,
-                currentTiltY
-            )
-    }
 
     // CHILDREN ////////////////////////////////////////////////////////////////////////////////////
     private val img = WCustomImageView(context).apply {
@@ -329,23 +304,6 @@ class WalletCardView(
         addView(addressLabel, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
     }
 
-    private val mintIconRipple = WRippleDrawable.create(20f.dp).apply {
-        rippleColor = Color.WHITE.colorWithAlpha(25)
-    }
-    private val mintIcon = AppCompatImageView(context).apply {
-        id = generateViewId()
-        scaleType = ImageView.ScaleType.CENTER
-        setOnClickListener {
-            if (mode == HomeHeaderView.Mode.Collapsed)
-                return@setOnClickListener
-            window.navigationControllers.lastOrNull()?.let {
-                MintCardVC.present(it)
-            }
-        }
-        background = mintIconRipple
-        isGone = true
-    }
-
     private val shiningView = WShiningView(context).apply {
         visibility = GONE
     }
@@ -364,11 +322,6 @@ class WalletCardView(
 
     private val seasonalOverlayView = SeasonalOverlayView(context).apply {
         id = generateViewId()
-    }
-
-    private val promoOverlayView = PromoCardOverlayView(context).apply {
-        id = generateViewId()
-        visibility = GONE
     }
 
     private val clippedContainer = WView(context).apply {
@@ -403,8 +356,6 @@ class WalletCardView(
             bottomViewContainer,
             LayoutParams(maxBottomContainerWidth, WRAP_CONTENT)
         )
-        clippedContainer.addView(mintIcon, LayoutParams(40.dp, 40.dp))
-
         clippedContainer.setConstraints {
             allEdges(img)
             allEdges(seasonalOverlayView)
@@ -423,22 +374,12 @@ class WalletCardView(
             topToTop(balanceSkeletonView, balanceViewContainer)
             centerXToCenterX(balanceSkeletonView, balanceViewContainer)
             edgeToEdge(balanceChangeSkeletonView, balanceChangeLabel)
-            toEnd(mintIcon, 4f)
         }
 
         v.addView(clippedContainer, LayoutParams(MATCH_CONSTRAINT, MATCH_CONSTRAINT))
-        promoOverlayView.clipChildren = false
-        v.addView(promoOverlayView, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-
-        v.setConstraints {
-            allEdges(clippedContainer)
-            toTop(promoOverlayView)
-            toEnd(promoOverlayView)
-        }
 
         v.post {
             clippedContainer.setConstraints {
-                toBottom(mintIcon, 5f)
                 constrainMaxWidth(balanceViewContainer.id, (parent as View).width - 34.dp)
             }
         }
@@ -495,35 +436,11 @@ class WalletCardView(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        startSensorListening()
         resumeBlurringIfNeeded()
     }
 
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        stopSensorListening()
-    }
-
     override fun updateTheme() {
-        if (ThemeManager.isDark)
-            startSensorListening()
-        else
-            stopSensorListening()
-        cardNft?.let {
-            startSensorListening()
-            shiningView.background =
-                NftGradientHelpers(cardNft).gradient(
-                    cardFullWidth.toFloat(),
-                    currentTiltX,
-                    currentTiltY
-                )
-            val colors = cardNft?.metadata?.mtwCardColors ?: return@let
-            setLabelColors(colors.first, colors.second, drawGradient = true)
-            return
-        } ?: run {
-            stopSensorListening()
-            shiningView.background = null
-        }
+        shiningView.background = null
         setLabelColors(Color.WHITE, Color.WHITE.colorWithAlpha(191), drawGradient = false)
 
         if (balanceChangeBlurView == null)
@@ -537,27 +454,9 @@ class WalletCardView(
     }
 
     fun onDestroy() {
-        stopSensorListening()
         balanceView.onTotalWidthChanged = null
         if (this::balanceViewMaskWrapper.isInitialized)
             balanceViewMaskWrapper.onDestroy()
-    }
-
-    fun startSensorListening() {
-        if (isSensorListening ||
-            cardNft == null ||
-            !ThemeManager.isDark ||
-            !isAttachedToWindow ||
-            headerMode != HomeHeaderView.Mode.Expanded
-        ) return
-        isSensorListening = true
-        TiltSensorManager.addObserver(this)
-    }
-
-    fun stopSensorListening() {
-        if (!isSensorListening) return
-        TiltSensorManager.removeObserver(this)
-        isSensorListening = false
     }
 
     // PUBLIC METHODS //////////////////////////////////////////////////////////////////////////////
@@ -729,7 +628,6 @@ class WalletCardView(
         }
         updateAddressLabel()
         updateCardImage()
-        updateMintIconVisibility()
         walletTypeView.configure(account)
         balanceAmount = null
         animateBalance(
@@ -746,28 +644,12 @@ class WalletCardView(
     }
 
     fun updateCardImage() {
-        cardNft =
-            account?.accountId?.let { accountId ->
-                WGlobalStorage.getCardBackgroundNft(accountId)
-                    ?.let { ApiNft.fromJson(it) }
-            }
         updateTheme()
-
-        if (cardNft == null) {
-            img.set(Content(Content.Image.Res(app.twallet.air.uicomponents.R.drawable.img_card)))
-            clippedContainer.setConstraints {
-                allEdges(img)
-            }
-            shiningView.visibility = GONE
-            return
+        img.set(Content(Content.Image.Res(app.twallet.air.uicomponents.R.drawable.img_card)))
+        clippedContainer.setConstraints {
+            allEdges(img)
         }
-        shiningView.visibility = VISIBLE
-        img.hierarchy.setPlaceholderImage(
-            context.getDrawableCompat(
-                app.twallet.air.uicomponents.R.drawable.img_card
-            )
-        )
-        img.set(Content.ofUrl(cardNft?.metadata?.cardImageUrl(false) ?: ""))
+        shiningView.visibility = GONE
     }
 
     fun updateAddressLabel() {
@@ -781,10 +663,6 @@ class WalletCardView(
     var headerMode = HomeHeaderView.DEFAULT_MODE
         set(value) {
             field = value
-            if (value == HomeHeaderView.Mode.Expanded)
-                startSensorListening()
-            else
-                stopSensorListening()
         }
     var mode = HomeHeaderView.DEFAULT_MODE
     fun expand(animated: Boolean) {
@@ -796,21 +674,16 @@ class WalletCardView(
             miniPlaceholders.fadeOut(AnimationConstants.INSTANT_ANIMATION)
             shiningView.fadeIn(AnimationConstants.VERY_QUICK_ANIMATION)
             seasonalOverlayView.fadeIn(AnimationConstants.VERY_QUICK_ANIMATION)
-            if (promoOverlayView.isVisible)
-                promoOverlayView.fadeIn(AnimationConstants.VERY_QUICK_ANIMATION)
         } else {
             miniPlaceholders.alpha = 0f
             shiningView.alpha = 1f
             seasonalOverlayView.alpha = 1f
-            promoOverlayView.alpha = if (promoOverlayView.isVisible) 1f else 0f
         }
-        startSensorListening()
     }
 
     fun collapse(animated: Boolean) {
         if (mode == HomeHeaderView.Mode.Collapsed)
             return
-        stopSensorListening()
         mode = HomeHeaderView.Mode.Collapsed
         updateContentAlpha(animated)
         if (animated) {
@@ -818,13 +691,10 @@ class WalletCardView(
             miniPlaceholders.fadeIn(AnimationConstants.VERY_QUICK_ANIMATION)
             shiningView.fadeOut(AnimationConstants.VERY_QUICK_ANIMATION)
             seasonalOverlayView.fadeOut(AnimationConstants.VERY_QUICK_ANIMATION)
-            if (promoOverlayView.isVisible)
-                promoOverlayView.fadeOut(AnimationConstants.VERY_QUICK_ANIMATION)
         } else {
             miniPlaceholders.alpha = 1f
             shiningView.alpha = 0f
             seasonalOverlayView.alpha = 0f
-            promoOverlayView.alpha = 0f
         }
     }
 
@@ -839,20 +709,6 @@ class WalletCardView(
         shiningView.radius = radius
     }
 
-    fun updateMintIconVisibility() {
-        val accountId = account?.accountId
-        val eligible = account?.network?.isMainnet == true &&
-            account?.isViewOnly == false &&
-            ConfigStore.isLimited != true
-        val hasCardsOrMinting = accountId != null &&
-            (WGlobalStorage.getCardsInfo(accountId) != null || NftStore.isCardMinting(accountId))
-        mintIcon.isGone = !(eligible && hasCardsOrMinting)
-    }
-
-    fun updatePromotion() {
-        promoOverlayView.updatePromotion(account?.accountId)
-    }
-
     fun viewWillDisappear() {
         balanceView.interruptAnimation()
     }
@@ -864,7 +720,6 @@ class WalletCardView(
     // PRIVATE METHODS /////////////////////////////////////////////////////////////////////////////
     private fun updateActionsAlpha(actionsAlpha: Float) {
         addressLabel.alpha = actionsAlpha
-        mintIcon.alpha = actionsAlpha
         walletTypeView.alpha = actionsAlpha
         balanceChangeLabel.alpha = actionsAlpha
         balanceChangeBlurView?.alpha = actionsAlpha
@@ -897,45 +752,22 @@ class WalletCardView(
         addressLabel.setTextColor(primaryColor, secondaryColor, drawGradient)
         updateAddressLabel()
         miniPlaceholders.setColor(primaryColor)
-        mintIcon.setImageDrawable(
-            context.requireDrawableCompat(
-                app.twallet.air.walletcontext.R.drawable.ic_mint
-            ).apply {
-                setTint(secondaryColor.colorWithAlpha(191))
-            }
+        walletTypeView.setColor(
+            secondaryColor.colorWithAlpha(41),
+            secondaryColor.colorWithAlpha(191)
         )
-        cardNft?.metadata?.overlayLabelBackground?.let { it ->
-            walletTypeView.setColor(
-                it.colorWithAlpha(25),
-                it.colorWithAlpha(204)
-            )
-        } ?: run {
-            walletTypeView.setColor(
-                secondaryColor.colorWithAlpha(41),
-                secondaryColor.colorWithAlpha(191)
-            )
-        }
         applyBalanceChangeColors()
     }
 
     private fun applyBalanceChangeColors() {
-        cardNft?.metadata?.overlayLabelBackground?.let { it ->
-            balanceChangeLabel.contentView.setTextColor(it.colorWithAlpha(204))
-            balanceChangeChevron?.setTint(it.colorWithAlpha(204))
-            balanceChangeLabel.contentView.setBackgroundColor(
-                if (balanceChangeBlurView == null) it.colorWithAlpha(25) else Color.TRANSPARENT,
-                13f.dp
-            )
-        } ?: run {
-            val secondaryColor = _secondaryColor ?: Color.WHITE.colorWithAlpha(191)
-            balanceChangeLabel.contentView.setTextColor(secondaryColor.colorWithAlpha(191))
-            balanceChangeChevron?.setTint(secondaryColor.colorWithAlpha(191))
-            balanceChangeLabel.contentView.setBackgroundColor(
-                if (balanceChangeBlurView == null) secondaryColor.colorWithAlpha(41) else Color.TRANSPARENT,
-                13f.dp
-            )
-        }
-        if (isBalanceChangePositive && cardNft == null) {
+        val secondaryColor = _secondaryColor ?: Color.WHITE.colorWithAlpha(191)
+        balanceChangeLabel.contentView.setTextColor(secondaryColor.colorWithAlpha(191))
+        balanceChangeChevron?.setTint(secondaryColor.colorWithAlpha(191))
+        balanceChangeLabel.contentView.setBackgroundColor(
+            if (balanceChangeBlurView == null) secondaryColor.colorWithAlpha(41) else Color.TRANSPARENT,
+            13f.dp
+        )
+        if (isBalanceChangePositive) {
             val positiveColor = WColor.PositiveBalance.color
             balanceChangeLabel.contentView.setTextColor(positiveColor)
             balanceChangeChevron?.setTint(positiveColor)

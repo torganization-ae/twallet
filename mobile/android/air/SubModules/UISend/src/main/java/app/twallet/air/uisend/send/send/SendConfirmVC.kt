@@ -46,7 +46,6 @@ import app.twallet.air.uipasscode.viewControllers.passcodeConfirm.views.Passcode
 import app.twallet.air.uisend.send.lauouts.ConfirmAmountView
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.logger.Logger
-import app.twallet.air.walletbasecontext.models.MBaseCurrency
 import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
@@ -67,7 +66,6 @@ class SendConfirmVC(
     private val slug: String,
     private val name: String? = null,
     private val isScam: Boolean = false,
-    private val isSell: Boolean = false,
     private val shouldRequireFreshAuth: Boolean = false
 ) : WViewController(context) {
     override val TAG = "SendConfirm"
@@ -322,21 +320,12 @@ class SendConfirmVC(
 
     override fun setupViews() {
         super.setupViews()
-        setNavTitle(if (isSell) LocaleController.getString("Sell") else LocaleController.getString("Is it all ok?"))
+        setNavTitle(LocaleController.getString("Is it all ok?"))
         setupNavBar(true)
         navigationBar?.addCloseButton()
 
         if (isScam) {
             confirmButton.type = WButton.Type.DESTRUCTIVE
-        }
-
-        if (isSell) {
-            val tokenSymbol = config.request.token.symbol ?: MBaseCurrency.TON.sign
-            confirmButton.text = LocaleController.getStringWithKeyValues(
-                "Sell %symbol%",
-                listOf("%symbol%" to tokenSymbol)
-            )
-            cancelButton.isGone = true
         }
 
         view.addView(scrollView, ViewGroup.LayoutParams(MATCH_PARENT, 0))
@@ -361,36 +350,29 @@ class SendConfirmVC(
                 -ViewConstants.GAP - ViewConstants.BLOCK_RADIUS
             )
             toBottom(bottomReversedCornerViewUpsideDown)
-            if (isSell) {
-                toLeft(confirmButton)
-                toRight(confirmButton)
-                setMargin(confirmButton.id, ConstraintSet.START, 20.dp + systemBarStartInset)
-                setMargin(confirmButton.id, ConstraintSet.END, 20.dp + systemBarEndInset)
-            } else {
-                toBottomPx(cancelButton, buttonsBottomMargin)
-                topToTop(
-                    bottomReversedCornerViewUpsideDown,
-                    cancelButton,
-                    -ViewConstants.GAP - ViewConstants.BLOCK_RADIUS
-                )
-                topToTop(confirmButton, cancelButton)
-                toLeft(cancelButton)
-                leftToRight(confirmButton, cancelButton)
-                toRight(confirmButton)
-                setMargin(cancelButton.id, ConstraintSet.START, 20.dp + systemBarStartInset)
-                setMargin(confirmButton.id, ConstraintSet.START, 8.dp)
-                setMargin(confirmButton.id, ConstraintSet.END, 20.dp + systemBarEndInset)
-                createHorizontalChain(
-                    ConstraintSet.PARENT_ID, ConstraintSet.LEFT,
-                    ConstraintSet.PARENT_ID, ConstraintSet.RIGHT,
-                    if (LocaleController.isRTL)
-                        intArrayOf(confirmButton.id, cancelButton.id)
-                    else
-                        intArrayOf(cancelButton.id, confirmButton.id),
-                    null,
-                    ConstraintSet.CHAIN_SPREAD
-                )
-            }
+            toBottomPx(cancelButton, buttonsBottomMargin)
+            topToTop(
+                bottomReversedCornerViewUpsideDown,
+                cancelButton,
+                -ViewConstants.GAP - ViewConstants.BLOCK_RADIUS
+            )
+            topToTop(confirmButton, cancelButton)
+            toLeft(cancelButton)
+            leftToRight(confirmButton, cancelButton)
+            toRight(confirmButton)
+            setMargin(cancelButton.id, ConstraintSet.START, 20.dp + systemBarStartInset)
+            setMargin(confirmButton.id, ConstraintSet.START, 8.dp)
+            setMargin(confirmButton.id, ConstraintSet.END, 20.dp + systemBarEndInset)
+            createHorizontalChain(
+                ConstraintSet.PARENT_ID, ConstraintSet.LEFT,
+                ConstraintSet.PARENT_ID, ConstraintSet.RIGHT,
+                if (LocaleController.isRTL)
+                    intArrayOf(confirmButton.id, cancelButton.id)
+                else
+                    intArrayOf(cancelButton.id, confirmButton.id),
+                null,
+                ConstraintSet.CHAIN_SPREAD
+            )
         }
 
         updateTheme()
@@ -449,14 +431,9 @@ class SendConfirmVC(
         val buttonsBottomMargin = getButtonsBottomMargin()
         view.setConstraints {
             toBottomPx(confirmButton, buttonsBottomMargin)
-            if (isSell) {
-                setMargin(confirmButton.id, ConstraintSet.START, 20.dp + systemBarStartInset)
-                setMargin(confirmButton.id, ConstraintSet.END, 20.dp + systemBarEndInset)
-            } else {
-                toBottomPx(cancelButton, buttonsBottomMargin)
-                setMargin(cancelButton.id, ConstraintSet.START, 20.dp + systemBarStartInset)
-                setMargin(confirmButton.id, ConstraintSet.END, 20.dp + systemBarEndInset)
-            }
+            toBottomPx(cancelButton, buttonsBottomMargin)
+            setMargin(cancelButton.id, ConstraintSet.START, 20.dp + systemBarStartInset)
+            setMargin(confirmButton.id, ConstraintSet.END, 20.dp + systemBarEndInset)
         }
     }
 

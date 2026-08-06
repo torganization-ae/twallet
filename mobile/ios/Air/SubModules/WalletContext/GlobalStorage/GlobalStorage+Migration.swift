@@ -263,7 +263,6 @@ extension GlobalStorage {
         }
 
         if self.stateVersion == 56 {
-            _migrateOwnedMtwCardAddresses()
             self.stateVersion = 57
         }
 
@@ -690,25 +689,6 @@ extension GlobalStorage {
         }
 
         update { $0["settings.byAccountId"] = settingsByAccountId }
-    }
-
-    private func _migrateOwnedMtwCardAddresses() {
-        var byAccountId = _nestedDicts("byAccountId")
-        guard !byAccountId.isEmpty else { return }
-
-        for accountId in Array(byAccountId.keys) {
-            guard var nfts = byAccountId[accountId]?["nfts"] as? [String: Any],
-                  nfts["ownedMtwCardAddresses"] != nil
-            else {
-                continue
-            }
-
-            nfts["ownedMwCardAddresses"] = nfts["ownedMtwCardAddresses"]
-            nfts["ownedMtwCardAddresses"] = nil
-            byAccountId[accountId]?["nfts"] = nfts
-        }
-
-        update { $0["byAccountId"] = byAccountId }
     }
 
     private func _clearPortfolioNetChange() {

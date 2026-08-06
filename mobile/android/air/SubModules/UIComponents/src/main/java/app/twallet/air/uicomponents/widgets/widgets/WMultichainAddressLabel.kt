@@ -558,22 +558,6 @@ class WMultichainAddressLabel(context: Context) : WRadialGradientLabel(context) 
             postfixIconMargin = 4.5f.dp.roundToInt()
         )
 
-        // Customization screen styles
-        val walletCustomizationStyle: Style = walletStyle.copy(
-            multipleChainStyle = walletStyle.multipleChainStyle.copy(
-                addressKeepCount = 4
-            ),
-            prefixIconMargin = 6.dp,
-        )
-
-        val walletCustomizationViewStyle: Style = walletCustomizationStyle.copy(
-            prefixIconResList = listOf(app.twallet.air.uicomponents.R.drawable.ic_wallet_eye)
-        )
-
-        val walletCustomizationHardwareStyle: Style = walletCustomizationStyle.copy(
-            prefixIconResList = listOf(app.twallet.air.uicomponents.R.drawable.ic_wallet_ledger)
-        )
-
         // Select wallet card screen styles
         val miniCardWalletStyle: Style = Style(
             singleChainStyle = ChainStyle(

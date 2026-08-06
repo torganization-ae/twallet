@@ -643,22 +643,6 @@ object WGlobalStorage {
         )
     }
 
-    fun getCardBackgroundNft(accountId: String): JSONObject? {
-        return globalStorageProvider.getDict("settings.byAccountId.$accountId.cardBackgroundNft")
-    }
-
-    fun getCardBackgroundNftAddress(accountId: String): String? {
-        return globalStorageProvider.getString("settings.byAccountId.$accountId.cardBackgroundNft.address")
-    }
-
-    fun setCardBackgroundNft(accountId: String, nft: JSONObject?) {
-        return globalStorageProvider.set(
-            "settings.byAccountId.$accountId.cardBackgroundNft",
-            nft,
-            IGlobalStorageProvider.PERSIST_INSTANT
-        )
-    }
-
     fun getIsAllowSuspiciousActions(accountId: String): Boolean {
         return globalStorageProvider.getBool(
             "settings.byAccountId.$accountId.isAllowSuspiciousActions"
@@ -673,44 +657,14 @@ object WGlobalStorage {
         )
     }
 
-    fun getOwnedMtwCardAddresses(accountId: String): Set<String> {
-        val arr = globalStorageProvider.getArray(
-            "byAccountId.$accountId.nfts.ownedMwCardAddresses"
-        ) ?: return emptySet()
-        val result = LinkedHashSet<String>(arr.length())
-        for (i in 0 until arr.length()) {
-            arr.optString(i, null)?.takeIf { it.isNotEmpty() }?.let(result::add)
-        }
-        return result
-    }
-
-    fun setOwnedMtwCardAddresses(accountId: String, addresses: Collection<String>) {
-        val array = JSONArray()
-        addresses.forEach { array.put(it) }
-        globalStorageProvider.set(
-            "byAccountId.$accountId.nfts.ownedMwCardAddresses",
-            array,
-            IGlobalStorageProvider.PERSIST_NORMAL
-        )
-    }
-
-    fun getAccentColorNft(accountId: String): JSONObject? {
-        return globalStorageProvider.getDict("settings.byAccountId.$accountId.accentColorNft")
-    }
-
-    fun getNftAccentColorIndex(accountId: String): Int? {
+    fun getAccentColorIndex(accountId: String): Int? {
         return globalStorageProvider.getInt("settings.byAccountId.$accountId.accentColorIndex")
     }
 
-    fun setNftAccentColor(accountId: String, accentColorIndex: Int?, nft: JSONObject?) {
+    fun setAccentColorIndex(accountId: String, accentColorIndex: Int?) {
         globalStorageProvider.set(
             "settings.byAccountId.$accountId.accentColorIndex",
             accentColorIndex,
-            IGlobalStorageProvider.PERSIST_INSTANT
-        )
-        globalStorageProvider.set(
-            "settings.byAccountId.$accountId.accentColorNft",
-            nft,
             IGlobalStorageProvider.PERSIST_INSTANT
         )
     }
@@ -989,14 +943,6 @@ object WGlobalStorage {
             ?: WLanguage.ENGLISH.langCode
         cachedLangCode = resolved
         return resolved
-    }
-
-    fun getCardsInfo(accountId: String): JSONObject? {
-        return globalStorageProvider.getDict("byAccountId.$accountId.config.cardsInfo")
-    }
-
-    fun getActivePromotion(accountId: String): JSONObject? {
-        return globalStorageProvider.getDict("byAccountId.$accountId.config.activePromotion")
     }
 
     fun getAccountConfigIsMfaEnabled(accountId: String): Boolean {
@@ -1470,17 +1416,6 @@ object WGlobalStorage {
                     )
                 }
                 globalStorageProvider.remove(limitKey, IGlobalStorageProvider.PERSIST_NO)
-            }
-        }
-
-        // State 56→57: nfts.ownedMtwCardAddresses renamed to ownedMwCardAddresses (MTW → MW rebrand)
-        if (currentState < 57) {
-            for (accountId in accountIds(network = null)) {
-                val oldKey = "byAccountId.$accountId.nfts.ownedMtwCardAddresses"
-                val newKey = "byAccountId.$accountId.nfts.ownedMwCardAddresses"
-                val addresses = globalStorageProvider.getArray(oldKey) ?: continue
-                globalStorageProvider.set(newKey, addresses, IGlobalStorageProvider.PERSIST_NO)
-                globalStorageProvider.remove(oldKey, IGlobalStorageProvider.PERSIST_NO)
             }
         }
 

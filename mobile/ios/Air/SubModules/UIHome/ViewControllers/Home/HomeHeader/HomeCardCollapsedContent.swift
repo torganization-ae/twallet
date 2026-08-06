@@ -5,9 +5,7 @@ import UIComponents
 import WalletCore
 import WalletContext
 import SwiftUI
-import SwiftUIIntrospect
 import Perception
-import Dependencies
 
 struct HomeCardCollapsedContent: View {
     
@@ -34,7 +32,6 @@ struct HomeCardCollapsedContent: View {
                 _CollapsedDisplayName(accountContext: accountContext)
                     .scaleEffect(subtitleScale, anchor: .top)
             }
-//            .backportGeometryGroup()
             .padding(.horizontal, 80)
             .padding(.bottom, bottomPadding)
             .fixedSize(horizontal: false, vertical: true)
@@ -49,7 +46,7 @@ private struct _CollapsedBalanceView: View {
     
     var body: some View {
         WithPerceptionTracking {
-            MtwCardBalanceView(balance: accountContext.balance, style: .homeCollaped)
+            CardBalanceView(balance: accountContext.balance, style: .homeCollapsed)
                 .contextMenuSource(configuration: makeBaseCurrencyMenuConfig(accountId: accountContext.accountId))
         }
     }

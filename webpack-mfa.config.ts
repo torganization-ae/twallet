@@ -1,6 +1,5 @@
 import './dev/loadEnv';
 
-import WatchFilePlugin from './lib/webpack-watch-file-plugin/index';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import fs from 'fs';
 import HtmlPlugin from 'html-webpack-plugin';
@@ -9,6 +8,7 @@ import path from 'path';
 import type { Configuration } from 'webpack';
 import { EnvironmentPlugin, NormalModuleReplacementPlugin, ProvidePlugin } from 'webpack';
 
+import WatchFilePlugin from './lib/webpack-watch-file-plugin/index';
 import { buildMfaLocales } from './dev/locales/buildMfaLocales';
 import { convertI18nYamlToJson } from './dev/locales/convertI18nYamlToJson';
 import { APP_ENV, IS_TELEGRAM_APP, TONAPIIO_MAINNET_URL } from './src/config';

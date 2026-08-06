@@ -1,8 +1,6 @@
 
 import Foundation
 import WalletContext
-import Kingfisher
-import OrderedCollections
 import WalletCoreTypes
 
 // Generated based on TypeScript definition. Do not edit manually.
@@ -78,10 +76,6 @@ public struct ApiNftMetadata: Equatable, Hashable, Codable, Sendable {
     public var lottie: String?
     public var imageUrl: String?
     public var fragmentUrl: String?
-    public var mtwCardId: Int?
-    public var mtwCardType: ApiMtwCardType?
-    public var mtwCardTextType: ApiMtwCardTextType?
-    public var mtwCardBorderShineType: ApiMtwCardBorderShineType?
 }
 
 // Generated based on TypeScript definition. Do not edit manually.
@@ -100,53 +94,12 @@ public struct ApiNftCompression: Equatable, Hashable, Codable, Sendable {
     public var leafId: Int
 }
 
-extension ApiNftMetadata {
-    public var mtwCardBackgroundUrl: URL? {
-        if let mtwCardId { return URL(string: "https://static.mytonwallet.org/cards/v2/cards/\(mtwCardId).webp")! }
-        return nil
-    }
-}
-
-
-// Generated based on TypeScript definition. Do not edit manually.
-public enum ApiMtwCardType: String, Equatable, Hashable, Codable, Sendable, CaseIterable {
-    case black = "black"
-    case platinum = "platinum"
-    case gold = "gold"
-    case silver = "silver"
-    case standard = "standard"
-}
-
-
-// Generated based on TypeScript definition. Do not edit manually.
-public enum ApiMtwCardTextType: String, Equatable, Hashable, Codable, Sendable, CaseIterable {
-    case light = "light"
-    case dark = "dark"
-}
-
-
-// Generated based on TypeScript definition. Do not edit manually.
-public enum ApiMtwCardBorderShineType: String, Equatable, Hashable, Codable, Sendable, CaseIterable {
-    case up = "up"
-    case down = "down"
-    case left = "left"
-    case right = "right"
-    case radioactive = "radioactive"
-}
-
 public struct ApiNftMetadataAttribute: Equatable, Hashable, Codable, Sendable {
     public var trait_type: String
     public var value: String
 }
 
 // MARK: - Extensions
-
-extension ApiMtwCardType {
-    
-    public var isPremium: Bool {
-        self != .standard
-    }
-}
 
 public extension ApiNft {
     var isStandalone: Bool { collectionName?.nilIfEmpty == nil }
@@ -164,7 +117,6 @@ public extension ApiNft {
     var isTonDns: Bool { collectionAddress == ApiNft.TON_DNS_COLLECTION_ADDRESS }
     var isLinkableDns: Bool { collectionAddress.map(Self.LINKABLE_DNS_COLLECTION_ADDRESSES.contains) ?? false }
     var isRenewableDns: Bool { isTonDns }
-    var isMtwCard: Bool { metadata?.mtwCardId != nil }
 
     var fragmentUrl: URL? {
         guard isOnFragment == true else { return nil }
@@ -189,58 +141,6 @@ public extension ApiNft {
     }
 }
 
-// MARK: Extract colors
-
-@concurrent public func getAccentColorsFromNfts(nftAddresses: [String], nftsByAddress: OrderedDictionary<String, ApiNft>) async -> [Int: [ApiNft]] {
-    let nftAddresses = Set(nftAddresses)
-    let candidateNfts: [ApiNft] = nftsByAddress.values
-        .filter { nftAddresses.contains($0.address) && $0.collectionAddress == MTW_CARDS_COLLECTION }
-    var nftsByColorIndex: [Int: [ApiNft]] = [:]
-    let result = await withTaskGroup { group in
-        for nft in candidateNfts {
-            group.addTask {
-                let index = await getAccentColorIndexFromNft(nft: nft)
-                return (index, nft)
-            }
-        }
-        for await (index, nft) in group {
-            if let index {
-                nftsByColorIndex[index, default: []].append(nft)
-            }
-        }
-        return nftsByColorIndex
-    }
-    return result
-}
-
-@concurrent public func getAccentColorIndexFromNft(nft: ApiNft) async -> Int? {
-    let mtwCardType = nft.metadata?.mtwCardType
-    let mtwCardBorderShineType = nft.metadata?.mtwCardBorderShineType
-    
-    if mtwCardBorderShineType == .radioactive {
-        return ACCENT_RADIOACTIVE_INDEX
-    }
-    if mtwCardType == .silver {
-        return ACCENT_SILVER_INDEX
-    }
-    if mtwCardType == .gold {
-        return ACCENT_GOLD_INDEX
-    }
-    if mtwCardType == .platinum || mtwCardType == .black {
-        return ACCENT_BNW_INDEX
-    }
-    if let url = nft.metadata?.mtwCardBackgroundUrl,
-        let image = try? await ImageDownloader.default.downloadImage(with: url).image,
-        let color = image.extractColor()
-    {
-        let closestColor = closestAccentColor(for: color)
-        let index = ACCENT_COLORS.firstIndex(of: closestColor)
-        return index
-    }
-    return nil
-}
-
-
 #if DEBUG
 
 public extension ApiNft {
@@ -261,14 +161,9 @@ public extension ApiNft {
         metadata: .init(
             lottie: nil,
             imageUrl: nil,
-            fragmentUrl: nil,
-            mtwCardId: nil,
-            mtwCardType: nil,
-            mtwCardTextType: nil,
-            mtwCardBorderShineType: nil
+            fragmentUrl: nil
         )
     )
-    static let sampleMtwCard = try! JSONDecoder().decode(ApiNft.self, fromString: #"{"metadata":{"attributes":[{"trait_type":"trait1","value":"value1"},{"trait_type":"trait2trait2trait2","value":"value2value2value2value2value2value2value2value2"}], "mtwCardId":1806,"mtwCardTextType":"light","mtwCardType":"standard","imageUrl":"https:\/\/static.mytonwallet.org\/cards\/preview\/1806-a5797.jpg","mtwCardBorderShineType":"right"},"isHidden":false,"ownerAddress":"UQCjWIRxnjt45AgA_IXhXnTfzWxBsNOGvM0CC38GOuS6oYs3","name":"My Wallet Card #1806","collectionAddress":"EQCQE2L9hfwx1V8sgmF9keraHx1rNK9VmgR1ctVvINBGykyM","isScam":false,"thumbnail":"https:\/\/imgproxy.mytonwallet.org\/imgproxy\/8bKZwRge6Phr-mo_6aMwIToSIG5jh9V6_TT9rsQSLoM\/rs:fill:500:500:1\/g:no\/aHR0cHM6Ly9zdGF0aWMubXl0b253YWxsZXQub3JnL2NhcmRzL3ByZXZpZXcvMTgwNi1hNTc5Ny5qcGc.webp","isOnSale":false,"index":1805,"isOnFragment":false,"image":"https:\/\/imgproxy.mytonwallet.org\/imgproxy\/uOrcShhuNL7T0qbSUHJ-qSVTjFzomgl976mnmpBkmTM\/rs:fill:1500:1500:1\/g:no\/aHR0cHM6Ly9zdGF0aWMubXl0b253YWxsZXQub3JnL2NhcmRzL3ByZXZpZXcvMTgwNi1hNTc5Ny5qcGc.webp","address":"EQC4sLqKTwQOHYckdbkdTNYT17yTtEJqVye1yR7wWkYUIL3u","description":"A sea background MyTonWallet card with purple & yellow desert texture.","collectionName":"My Wallet Cards"}"#)
 }
 
 #endif

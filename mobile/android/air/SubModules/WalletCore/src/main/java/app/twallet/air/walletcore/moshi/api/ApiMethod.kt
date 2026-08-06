@@ -106,52 +106,6 @@ sealed class ApiMethod<T> {
                 .build()
         }
 
-        class GetMoonpayOnrampUrl(
-            params: Params
-        ) : ApiMethod<GetMoonpayOnrampUrl.Result>() {
-            @JsonClass(generateAdapter = true)
-            data class Params(
-                val chain: String,
-                // Address of every wallet chain, so MoonPay delivers each selected currency to the
-                // matching network's address (preventing a cross-network mismatch)
-                val addressByChain: Map<String, String>,
-                val theme: String,
-                val currency: String
-            )
-
-            @JsonClass(generateAdapter = true)
-            data class Result(val url: String)
-
-            override val name: String = "getMoonpayOnrampUrl"
-            override val type: Type = Result::class.java
-            override val arguments: String = ArgumentsBuilder()
-                .jsObject(params, Params::class.java)
-                .build()
-        }
-
-        class GetMoonpayOfframpUrl(
-            params: Params
-        ) : ApiMethod<GetMoonpayOfframpUrl.Result>() {
-            @JsonClass(generateAdapter = true)
-            data class Params(
-                val chain: String,
-                val address: String,
-                val theme: String,
-                val currency: String,
-                val amount: String,
-                val baseUrl: String
-            )
-
-            @JsonClass(generateAdapter = true)
-            data class Result(val url: String)
-
-            override val name: String = "getMoonpayOfframpUrl"
-            override val type: Type = Result::class.java
-            override val arguments: String = ArgumentsBuilder()
-                .jsObject(params, Params::class.java)
-                .build()
-        }
-
         class GetEnvironmentVariables : ApiMethod<MEnvironmentVariables>() {
             override val name: String = "getEnvironmentVariables"
             override val type: Type = MEnvironmentVariables::class.java

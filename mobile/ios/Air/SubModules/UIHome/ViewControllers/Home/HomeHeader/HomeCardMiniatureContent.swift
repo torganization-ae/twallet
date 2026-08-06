@@ -5,9 +5,7 @@ import UIComponents
 import WalletCore
 import WalletContext
 import SwiftUI
-import SwiftUIIntrospect
 import Perception
-import Dependencies
 
 struct HomeCardMiniatureContent: View {
     
@@ -19,10 +17,8 @@ struct HomeCardMiniatureContent: View {
         WithPerceptionTracking {
             Color.clear
                 .overlay(alignment: .bottom) {
-                    MtwCardMiniPlaceholders()
-                        .sourceAtop {
-                            MtwCardInverseCenteredGradient(nft: accountContext.nft)
-                        }
+                    CardMiniPlaceholders()
+                        .foregroundStyle(.white)
                         .padding(.bottom, 18)
                         .scaleEffect(layout.itemWidth/34)
                 }

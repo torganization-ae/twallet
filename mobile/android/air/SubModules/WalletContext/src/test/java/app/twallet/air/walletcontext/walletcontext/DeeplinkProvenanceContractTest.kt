@@ -32,10 +32,6 @@ class DeeplinkProvenanceContractTest {
         assertTrue(getBooleanProperty(sourceClass, "IN_APP_BROWSER", "requiresFreshAuth"))
         assertTrue(getBooleanProperty(sourceClass, "QR_SCAN", "requiresFreshAuth"))
 
-        assertTrue(getBooleanProperty(sourceClass, "OS_EXTERNAL", "canRouteOfframp"))
-        assertTrue(getBooleanProperty(sourceClass, "INTERNAL_UI", "canRouteOfframp"))
-        assertFalse(getBooleanProperty(sourceClass, "IN_APP_BROWSER", "canRouteOfframp"))
-        assertFalse(getBooleanProperty(sourceClass, "QR_SCAN", "canRouteOfframp"))
     }
 
     private fun getDeeplinkOpenSourceClass(): Class<*> {

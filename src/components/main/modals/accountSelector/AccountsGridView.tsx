@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useRef } from '../../../../lib/teact/teact';
 
-import type { Account, AccountSettings, AccountType } from '../../../../global/types';
+import type { Account, AccountType } from '../../../../global/types';
 import type { AccountTab } from './constants';
 
 import { IS_FEATURE_LIMITED } from '../../../../config';
@@ -18,7 +18,6 @@ interface OwnProps {
   filteredAccounts: Array<[string, Account]>;
   activeTab: AccountTab;
   balancesByAccountId: Record<string, { wholePart: string; fractionPart?: string; currencySymbol: string }>;
-  settingsByAccountId?: Record<string, AccountSettings>;
   currentAccountId: string;
   isSensitiveDataHidden?: true;
   onSwitchAccount: (accountId: string) => void;
@@ -35,7 +34,6 @@ function AccountsGridView({
   filteredAccounts,
   activeTab,
   balancesByAccountId,
-  settingsByAccountId,
   currentAccountId,
   isSensitiveDataHidden,
   onSwitchAccount,
@@ -59,7 +57,6 @@ function AccountsGridView({
     accountType: AccountType,
     title?: string,
   ) {
-    const { cardBackgroundNft } = settingsByAccountId?.[accountId] || {};
     const isActive = accountId === currentAccountId;
     const balanceData = balancesByAccountId[accountId];
 
@@ -73,7 +70,6 @@ function AccountsGridView({
         isActive={isActive}
         title={title}
         balanceData={balanceData}
-        cardBackgroundNft={cardBackgroundNft}
         withContextMenu={!IS_FEATURE_LIMITED}
         isSensitiveDataHidden={isSensitiveDataHidden}
         onClick={onSwitchAccount}

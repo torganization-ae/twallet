@@ -7,7 +7,6 @@ import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.AccountDialogHelpers
 import app.twallet.air.uicomponents.widgets.frameAsPath
 import app.twallet.air.uicomponents.widgets.menu.WMenuPopup
-import app.twallet.air.uisettings.viewControllers.walletCustomization.WalletCustomizationVC
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletcore.models.MAccount
 
@@ -26,20 +25,6 @@ object WalletNameMenuHelper {
                     title = LocaleController.getString("Rename"),
                     onTap = {
                         AccountDialogHelpers.presentRename(viewController, account)
-                    }),
-                WMenuPopup.Item(
-                    icon = app.twallet.uihome.R.drawable.ic_customize,
-                    title = LocaleController.getString("Customize"),
-                    onTap = {
-                        val window = viewController.window ?: return@Item
-                        val navVC = WNavigationController(
-                            window,
-                            WNavigationController.PresentationConfig.PreferredFullScreen
-                        )
-                        navVC.setRoot(
-                            WalletCustomizationVC(viewController.context, account.accountId)
-                        )
-                        window.present(navVC)
                     }),
                 WMenuPopup.Item(
                     icon = app.twallet.air.icons.R.drawable.ic_manage_30,

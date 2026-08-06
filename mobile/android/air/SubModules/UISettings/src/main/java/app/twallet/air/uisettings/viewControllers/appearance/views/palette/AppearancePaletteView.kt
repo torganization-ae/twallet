@@ -1,41 +1,29 @@
 package app.twallet.air.uisettings.viewControllers.appearance.views.palette
 
 import android.annotation.SuppressLint
-import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import android.content.Context
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.constraintlayout.helper.widget.Flow
 import app.twallet.air.uicomponents.commonViews.cells.HeaderCell
 import app.twallet.air.uicomponents.extensions.dp
-import app.twallet.air.uicomponents.extensions.setPaddingDp
-import app.twallet.air.uicomponents.helpers.palette.ImagePaletteHelpers
-import app.twallet.air.uicomponents.widgets.WLabel
-import app.twallet.air.uicomponents.widgets.WThemedView
 import app.twallet.air.uicomponents.widgets.WView
+import app.twallet.air.uicomponents.widgets.WThemedView
 import app.twallet.air.uicomponents.widgets.setBackgroundColor
-import app.twallet.air.walletbasecontext.R as BaseR
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.theme.NftAccentColors
+import app.twallet.air.walletbasecontext.theme.ThemeManager
 import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
+import app.twallet.air.walletcontext.WalletContextManager
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
-import app.twallet.air.walletcore.WalletCore
-import app.twallet.air.walletcore.WalletEvent
-import app.twallet.air.walletcore.moshi.ApiNft
+import app.twallet.air.walletcore.models.MAccount
 
 @SuppressLint("ViewConstructor")
 class AppearancePaletteView(
-    context: Context,
-    private val showUnlockButton: Boolean
+    context: Context
 ) : WView(context), WThemedView {
-    var onPaletteSelected:
-        ((
-            accountId: String,
-            nftAccentId: Int?,
-            state: AppearancePaletteItemView.State, nft: ApiNft?
-        ) -> Unit)? = null
 
     var overrideTintColor: Int? = null
 
@@ -47,7 +35,6 @@ class AppearancePaletteView(
         )
     }
 
-    private val smallWidthOffset = 8
     private val horizontalGap = 12.dp
     private val itemWidth = 34.dp
     private val flowHelper = Flow(context).apply {
@@ -59,20 +46,23 @@ class AppearancePaletteView(
         setVerticalGap(horizontalGap)
     }
 
-    var paletteItemViews: List<AppearancePaletteItemView>
+    private var paletteItemViews: List<AppearancePaletteItemView>
     private val palettesView = WView(context).apply {
         val viewIds = IntArray(NftAccentColors.light.size + 1)
         var paletteItemViews = mutableListOf<AppearancePaletteItemView>()
-        (listOf(null) + (0 until NftAccentColors.light.size).toList()).forEachIndexed { index, nftAccentId ->
+        (listOf(null) + (0 until NftAccentColors.light.size).toList()).forEachIndexed { index, accentColorId ->
             val itemView =
-                AppearancePaletteItemView(context, nftAccentId, onTap = { nftAccentId, state ->
+                AppearancePaletteItemView(context, accentColorId, onTap = { accentColorId, _ ->
                     val accountId = accountId ?: return@AppearancePaletteItemView
-                    onPaletteSelected?.invoke(
-                        accountId,
-                        nftAccentId,
-                        state,
-                        nftsByColorIndex[nftAccentId]?.firstOrNull()
-                    )
+                    if (accentColorId == null) {
+                        WGlobalStorage.setAccentColorIndex(accountId, null)
+                        ThemeManager.setDefaultAccentColor()
+                    } else {
+                        WGlobalStorage.setAccentColorIndex(accountId, accentColorId)
+                        ThemeManager.setNftAccentColor(accentColorId)
+                    }
+                    WalletContextManager.delegate?.get()?.themeChanged()
+                    reloadViews()
                 })
             paletteItemViews.add(itemView)
             addView(itemView, LayoutParams(itemWidth, itemWidth))
@@ -83,35 +73,18 @@ class AppearancePaletteView(
         flowHelper.referencedIds = viewIds
     }
 
-    private val unlockButton = WLabel(context).apply {
-        setPaddingDp(20, 16, 20, 16)
-        setStyle(adaptiveFontSize())
-        text = LocaleController.getString("Unlock New Palettes")
-        setOnClickListener {
-            val url = context.getString(BaseR.string.app_cards_url)
-            if (url.isNotEmpty()) WalletCore.notifyEvent(WalletEvent.OpenUrl(url))
-        }
-    }
-
     override fun setupViews() {
         super.setupViews()
 
         addView(titleLabel)
         addView(palettesView, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-        if (showUnlockButton) {
-            addView(unlockButton, LayoutParams(MATCH_PARENT, 50.dp))
-        }
 
         setConstraints {
             toTop(titleLabel)
             toStart(titleLabel)
             topToBottom(palettesView, titleLabel, 9f)
             toCenterX(palettesView)
-            if (showUnlockButton) {
-                toBottom(unlockButton)
-            } else {
-                toBottom(palettesView, 16f)
-            }
+            toBottom(palettesView, 16f)
         }
 
         updateTheme()
@@ -124,18 +97,14 @@ class AppearancePaletteView(
             ViewConstants.BLOCK_RADIUS.dp
         )
         titleLabel.setTitleColor(overrideTintColor ?: WColor.Tint.color)
-        if (showUnlockButton) {
-            unlockButton.setTextColor(overrideTintColor ?: WColor.Tint.color)
-        }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        // Align palette items with label and button
         val numberOfItems =
-            (width + smallWidthOffset - 40.dp + horizontalGap) / (itemWidth + horizontalGap)
+            (width + 8 - 40.dp + horizontalGap) / (itemWidth + horizontalGap)
         val additionalSpace =
-            width + smallWidthOffset - 40.dp - numberOfItems * (itemWidth + horizontalGap) + horizontalGap
+            width + 8 - 40.dp - numberOfItems * (itemWidth + horizontalGap) + horizontalGap
         flowHelper.setMaxElementsWrap(numberOfItems)
         flowHelper.setHorizontalGap(horizontalGap + additionalSpace / numberOfItems)
         palettesView.post {
@@ -144,69 +113,22 @@ class AppearancePaletteView(
     }
 
     private var accountId: String? = null
-    val nftsByColorIndex = mutableMapOf<Int, MutableList<ApiNft>>()
-    fun updatePaletteView(accountId: String, mtwNfts: List<ApiNft>?) {
-        this.accountId = accountId
-        if (mtwNfts == null) {
-            paletteItemViews.forEach { item ->
-                item.configure(AppearancePaletteItemView.State.LOADING)
-            }
-            return
-        }
-        var pendingExtractions = mtwNfts.size
 
-        nftsByColorIndex.clear()
-
-        if (mtwNfts.isEmpty()) {
-            reloadViews()
-            return
-        }
-
-        mtwNfts.forEach { nft ->
-            ImagePaletteHelpers.extractPaletteFromNft(nft) { colorIndex ->
-                colorIndex?.let {
-                    nftsByColorIndex.getOrPut(it) { mutableListOf() }.add(nft)
-                }
-                pendingExtractions--
-
-                if (pendingExtractions == 0) {
-                    reloadViews()
-                    reorderPaletteItems()
-                }
-            }
-        }
-    }
-
-    private fun reorderPaletteItems() {
-        val sortedIds = paletteItemViews.sortedBy { item ->
-            when {
-                item.nftAccentId == null -> 0
-                !nftsByColorIndex[item.nftAccentId].isNullOrEmpty() -> 1
-                else -> 2
-            }
-        }.map { it.id }.toIntArray()
-
-        flowHelper.referencedIds = sortedIds
+    fun configure(account: MAccount?) {
+        accountId = account?.accountId
+        reloadViews()
     }
 
     fun reloadViews() {
         val accountId = accountId ?: return
-        val selectedIndex = WGlobalStorage.getNftAccentColorIndex(accountId)
-        if (nftsByColorIndex.isEmpty()) {
-            paletteItemViews.forEach { item ->
-                val itemIndex = item.nftAccentId
-                val isSelected = itemIndex == selectedIndex
-                val isLocked = itemIndex != null
-                item.configure(if (isLocked) AppearancePaletteItemView.State.LOCKED else if (isSelected) AppearancePaletteItemView.State.SELECTED else AppearancePaletteItemView.State.AVAILABLE)
-            }
-            return
-        }
+        val selectedIndex = WGlobalStorage.getAccentColorIndex(accountId)
         paletteItemViews.forEach { item ->
             val itemIndex = item.nftAccentId
             val isSelected = itemIndex == selectedIndex
-            val isLocked =
-                if (itemIndex == null) false else nftsByColorIndex[itemIndex].isNullOrEmpty()
-            item.configure(if (isLocked) AppearancePaletteItemView.State.LOCKED else if (isSelected) AppearancePaletteItemView.State.SELECTED else AppearancePaletteItemView.State.AVAILABLE)
+            item.configure(
+                if (isSelected) AppearancePaletteItemView.State.SELECTED
+                else AppearancePaletteItemView.State.AVAILABLE
+            )
         }
     }
 }

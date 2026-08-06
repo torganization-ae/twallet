@@ -100,7 +100,7 @@ extension MAccount {
     }
     
     public var supportsSwap: Bool {
-        network == .mainnet && !isHardware && !isView && !ConfigStore.shared.shouldRestrictSwapsAndOnRamp
+        network == .mainnet && !isHardware && !isView && !ConfigStore.shared.shouldRestrictSwaps
     }
 
     public var supportsWalletConnectPay: Bool {
@@ -226,12 +226,7 @@ extension MAccount {
         guard let tonAddress = getAddress(chain: .ton) else { return nil }
         return URL(string: "https://t.me/\(BOT_USERNAME)?start=auth-\(tonAddress)")!
     }
-    
-    public var dreamwalkersLink: String? {
-        guard let tonAddress = getAddress(chain: .ton) else { return nil }
-        return "https://dreamwalkers.io/ru/mytonwallet/?wallet=\(tonAddress)&give=CARDRUB&take=TON&type=buy"
-    }
-    
+
     public var crosschainIdentifyingFromAddress: String? {
         getAddress(chain: .ton)
     }

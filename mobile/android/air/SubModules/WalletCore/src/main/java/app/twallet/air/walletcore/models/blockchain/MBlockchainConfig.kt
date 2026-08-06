@@ -17,8 +17,6 @@ interface MBlockchainConfig {
     val isCommentSupported: Boolean
     val isEncryptedCommentSupported: Boolean
     val burnAddress: String?
-    val isOnRampSupported: Boolean get() = true
-    val isOffRampSupported: Boolean get() = true
     val isOnchainSwapSupported: Boolean get() = false
     val canSwapByBuyAmount: Boolean get() = false
     val multiWalletSupport: MultiWalletSupport?

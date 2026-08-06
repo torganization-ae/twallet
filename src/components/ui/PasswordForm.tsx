@@ -43,7 +43,7 @@ import modalStyles from './Modal.module.scss';
 import styles from './PasswordForm.module.scss';
 
 type OperationType = 'transfer' | 'sending' | 'staking' | 'unstaking' | 'swap'
-  | 'unfreeze' | 'passcode' | 'unlock' | 'claim' | 'turnOnBiometrics' | 'mintCard';
+  | 'unfreeze' | 'passcode' | 'unlock' | 'claim' | 'turnOnBiometrics';
 
 interface OwnProps {
   isActive: boolean;
@@ -282,8 +282,6 @@ function PasswordForm({
         return undefined;
       case 'claim':
         return 'Confirm Rewards Claim';
-      case 'mintCard':
-        return 'Confirm Upgrading';
       default:
         return 'Confirm Action';
     }

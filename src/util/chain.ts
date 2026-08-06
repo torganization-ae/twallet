@@ -86,12 +86,6 @@ export interface ChainConfig {
   chainStandard?: ApiChain;
   /** Whether the chain supports domain names that resolve to regular addresses */
   isDnsSupported: boolean;
-  /** Whether My Wallet supports purchasing crypto in that blockchain with a bank card in Russia */
-  canBuyWithCardInRussia: boolean;
-  /** Whether the chain is supported by the on-ramp widget (Moonpay outside RU, Avanchange in RU) */
-  isOnRampSupported: boolean;
-  /** Whether the chain is supported by the off-ramp widget (Moonpay) */
-  isOffRampSupported: boolean;
   /** Whether the chain supports onchain swaps (DEX) */
   isOnchainSwapSupported: boolean;
   /** Whether onchain swaps can be estimated from the buy amount */
@@ -207,9 +201,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
   ton: {
     title: 'TON',
     isDnsSupported: true,
-    canBuyWithCardInRussia: true,
-    isOnRampSupported: true,
-    isOffRampSupported: true,
     isOnchainSwapSupported: true,
     canSwapByBuyAmount: true,
     isTransferPayloadSupported: true,
@@ -298,9 +289,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
   tron: {
     title: 'TRON',
     isDnsSupported: false,
-    canBuyWithCardInRussia: false,
-    isOnRampSupported: true,
-    isOffRampSupported: true,
     isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,
@@ -356,9 +344,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
   solana: {
     title: 'Solana',
     isDnsSupported: false,
-    canBuyWithCardInRussia: false,
-    isOnRampSupported: true,
-    isOffRampSupported: true,
     isOnchainSwapSupported: true,
     canSwapByBuyAmount: false,
     isTransferPayloadSupported: true,
@@ -434,9 +419,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     title: 'Ethereum',
     chainStandard: 'ethereum',
     isDnsSupported: false,
-    canBuyWithCardInRussia: false,
-    isOnRampSupported: true,
-    isOffRampSupported: true,
     isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,
@@ -504,9 +486,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     title: 'Base',
     chainStandard: 'ethereum',
     isDnsSupported: false,
-    canBuyWithCardInRussia: false,
-    isOnRampSupported: true,
-    isOffRampSupported: true,
     isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,
@@ -570,9 +549,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     title: 'BNB',
     chainStandard: 'ethereum',
     isDnsSupported: false,
-    canBuyWithCardInRussia: false,
-    isOnRampSupported: true,
-    isOffRampSupported: true,
     isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,
@@ -628,9 +604,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     title: 'Polygon',
     chainStandard: 'ethereum',
     isDnsSupported: false,
-    canBuyWithCardInRussia: false,
-    isOnRampSupported: true,
-    isOffRampSupported: true,
     isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,
@@ -690,9 +663,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     title: 'Arbitrum',
     chainStandard: 'ethereum',
     isDnsSupported: false,
-    canBuyWithCardInRussia: false,
-    isOnRampSupported: true,
-    isOffRampSupported: true,
     isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,
@@ -756,9 +726,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     title: 'Monad',
     chainStandard: 'ethereum',
     isDnsSupported: false,
-    canBuyWithCardInRussia: false,
-    isOnRampSupported: true,
-    isOffRampSupported: true,
     isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,
@@ -818,9 +785,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     title: 'Avalanche',
     chainStandard: 'ethereum',
     isDnsSupported: false,
-    canBuyWithCardInRussia: false,
-    isOnRampSupported: true,
-    isOffRampSupported: true,
     isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,
@@ -880,9 +844,6 @@ const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
     title: 'Hyperliquid',
     chainStandard: 'ethereum',
     isDnsSupported: false,
-    canBuyWithCardInRussia: false,
-    isOnRampSupported: false,
-    isOffRampSupported: false,
     isOnchainSwapSupported: false,
     isTransferPayloadSupported: false,
     isEncryptedCommentSupported: false,

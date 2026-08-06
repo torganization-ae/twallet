@@ -7,8 +7,8 @@ import type { Log } from '../../util/logs';
 import type { DropdownItem } from '../ui/Dropdown';
 
 import {
-  APP_COMMIT_HASH, APP_ENV, APP_VERSION, IS_EXTENSION, IS_TWALLETGRAM_WALLET, IS_TELEGRAM_APP, IS_TON_BRAND,
-} from '../../config';
+  APP_COMMIT_HASH, APP_ENV, APP_VERSION, IS_EXTENSION, IS_TELEGRAM_APP, IS_TON_BRAND,
+  IS_TWALLETGRAM_WALLET } from '../../config';
 import { selectCurrentAccountId, selectIsMultichainAccount, selectSeasonalThemeOverride } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { copyTextToClipboard } from '../../util/clipboard';

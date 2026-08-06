@@ -19,7 +19,6 @@ interface OwnProps {
   byChain: Map<ApiChain, AccountChain & {
     balance: number;
   }>;
-  withTextGradient?: boolean;
   isMinimized?: boolean;
   isTinyFormat?: boolean;
   openMenu: NoneToVoidFunction;
@@ -37,7 +36,6 @@ const ADDRESS_CHAINS_COUNT = 2;
 
 function AddressMenuButton({
   chains,
-  withTextGradient,
   isMinimized,
   isTinyFormat,
   openMenu,
@@ -115,7 +113,7 @@ function AddressMenuButton({
   return (
     <button
       type="button"
-      className={buildClassName(styles.address, withTextGradient && 'gradientText')}
+      className={styles.address}
       {...longPressHandlers}
       onMouseEnter={onMouseEnter}
       onMouseLeave={handleMouseLeave}

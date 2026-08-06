@@ -516,9 +516,6 @@ class JSWebViewBridge(context: Context) : WebView(context) {
                             }
                         }
                     val shouldAppend = collectionAddress.isNotEmpty() || isFullLoading == true
-                    ensureMainThread {
-                        NftStore.checkCardNftOwnership(accountId)
-                    }
                     val nftsJSONArray =
                         objectJSONObject.optJSONArray("nfts") ?: return
                     val nfts = ArrayList<ApiNft>()
@@ -569,8 +566,6 @@ class JSWebViewBridge(context: Context) : WebView(context) {
                         ?.let(ApiNft::fromJson)
                         ?: return
                     ensureMainThread {
-                        NftStore.checkCardNftOwnership(accountId)
-                        NftStore.applyIncomingMtwCard(accountId, nft)
                         if (AccountStore.activeAccount?.accountId != accountId) {
                             return@ensureMainThread
                         }
@@ -582,8 +577,6 @@ class JSWebViewBridge(context: Context) : WebView(context) {
                     val accountId = objectJSONObject.optString("accountId")
                     val nftAddress = objectJSONObject.optString("nftAddress")
                     ensureMainThread {
-                        NftStore.checkCardNftOwnership(accountId)
-                        NftStore.pruneOwnedMtwCardAddress(accountId, nftAddress)
                         if (AccountStore.activeAccount?.accountId != accountId) {
                             return@ensureMainThread
                         }

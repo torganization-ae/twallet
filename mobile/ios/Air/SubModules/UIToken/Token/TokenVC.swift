@@ -303,7 +303,7 @@ public class TokenVC: ActivityListViewController {
     }
 
     private func updateNavigationMenu() {
-        navigationItem.rightBarButtonItem = ConfigStore.shared.shouldRestrictSwapsAndOnRamp
+        navigationItem.rightBarButtonItem = ConfigStore.shared.shouldRestrictSwaps
             ? nil
             : UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: makeMenu())
     }

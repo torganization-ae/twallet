@@ -73,7 +73,6 @@ import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.WalletEvent.AccountChangedInApp
 import app.twallet.air.walletcore.api.activateAccount
-import app.twallet.air.walletcore.helpers.ExplorerHelpers
 import app.twallet.air.walletcore.models.InAppBrowserConfig
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
@@ -537,13 +536,6 @@ class SettingsVC(context: Context) : WViewController(context),
                 val username = context.getString(usernameRes)
                     .ifEmpty { context.getString(BaseR.string.app_tips_telegram_username_en) }
                 if (username.isNotEmpty()) openExternalUrl("https://t.me/$username")
-            }
-
-            SettingsItem.Identifier.MTW_CARDS_NFT -> {
-                openUrl(
-                    item.title.toString(),
-                    ExplorerHelpers.getMtwCardsUrl(MBlockchainNetwork.MAINNET)
-                )
             }
 
             SettingsItem.Identifier.INSTALL_ON_DESKTOP -> {

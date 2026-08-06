@@ -1,6 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { IS_TWALLETGRAM_WALLET, IS_TON_BRAND } from '../../config';
+import { IS_TON_BRAND, IS_TWALLETGRAM_WALLET } from '../../config';
 
 import useLang from '../../hooks/useLang';
 

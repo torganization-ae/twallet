@@ -198,11 +198,6 @@ class MAccount(
             return accountType == AccountType.MNEMONIC && isMultichain
         }
 
-    val supportsBuyWithCard: Boolean
-        get() {
-            return isMainnet && accountType != AccountType.VIEW
-        }
-
     val supportsBuyWithCrypto: Boolean
         get() {
             return supportsSwap

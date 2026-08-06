@@ -60,7 +60,6 @@ import java.lang.ref.WeakReference
 class ReceiveVC private constructor(
     context: Context,
     private val defaultChain: MBlockchain? = null,
-    private var openBuyWithCardInstantly: Boolean = false,
 ) : WViewControllerWithModelStore(context) {
     override val TAG = "Receive"
 
@@ -78,11 +77,10 @@ class ReceiveVC private constructor(
         fun createIfAvailable(
             context: Context,
             defaultChain: MBlockchain?,
-            openBuyWithCardInstantly: Boolean = false,
         ): ReceiveVC? {
             val addressByChain = AccountStore.activeAccount?.addressByChain ?: return null
             if (MBlockchain.supportedChains.none { addressByChain.containsKey(it.name) }) return null
-            return ReceiveVC(context, defaultChain, openBuyWithCardInstantly)
+            return ReceiveVC(context, defaultChain)
         }
     }
 
@@ -243,30 +241,6 @@ class ReceiveVC private constructor(
         v
     }
 
-    private val buyWithCardLabel: WLabel by lazy {
-        val lbl = WLabel(context)
-        lbl.setStyle(adaptiveFontSize())
-        lbl.text =
-            LocaleController.getString("Buy with Card")
-        lbl
-    }
-
-    private val buyWithCardView: WView by lazy {
-        val v = WView(context)
-        v.isGone = AccountStore.activeAccount?.supportsBuyWithCard != true
-        if (v.isVisible) {
-            v.addView(buyWithCardLabel)
-            v.setConstraints {
-                toStart(buyWithCardLabel, 20f)
-                toTop(buyWithCardLabel, 14f)
-            }
-            v.setOnClickListener {
-                openBuyWithCard(currentQRCode.chain.name)
-            }
-        }
-        v
-    }
-
     private val buyWithCryptoLabel: WLabel by lazy {
         val lbl = WLabel(context)
         lbl.setStyle(adaptiveFontSize())
@@ -345,13 +319,10 @@ class ReceiveVC private constructor(
 
     private val optionsContainerView: WView by lazy {
         val v = WView(context)
-        v.addView(buyWithCardView, LayoutParams(MATCH_PARENT, OPTION_ROW_HEIGHT.dp))
         v.addView(buyWithCryptoView, LayoutParams(MATCH_PARENT, OPTION_ROW_HEIGHT.dp))
         v.addView(invoiceView, LayoutParams(MATCH_PARENT, OPTION_ROW_HEIGHT.dp))
         v.setConstraints {
-            toTop(buyWithCardView)
-            toCenterX(buyWithCardView)
-            topToBottom(buyWithCryptoView, buyWithCardView)
+            toTop(buyWithCryptoView)
             toCenterX(buyWithCryptoView)
             topToBottom(invoiceView, buyWithCryptoView)
             toCenterX(invoiceView)
@@ -468,9 +439,6 @@ class ReceiveVC private constructor(
                 WColor.Background.color,
                 ViewConstants.BLOCK_RADIUS.dp
             )
-            buyWithCardView.setBackgroundColor(WColor.Background.color)
-            buyWithCardView.addRippleEffect(WColor.SecondaryBackground.color)
-            buyWithCardLabel.setTextColor(WColor.Tint.color)
             buyWithCryptoView.setBackgroundColor(WColor.Background.color)
             buyWithCryptoView.addRippleEffect(WColor.SecondaryBackground.color)
             buyWithCryptoLabel.setTextColor(WColor.Tint.color)
@@ -519,51 +487,6 @@ class ReceiveVC private constructor(
         }
     }
 
-    private fun openBuyWithCard(chain: String, anchorView: View? = null) {
-        val baseCurrencies = BuyWithCardLauncher.supportedBaseCurrencies(chain)
-        val baseCurrency = BuyWithCardLauncher.preferredBaseCurrency(chain)
-        if (anchorView != null && baseCurrencies.size > 1) {
-            WMenuPopup.present(
-                anchorView,
-                baseCurrencies.map { currency ->
-                    WMenuPopup.Item(
-                        WMenuPopup.Item.Config.Item(
-                            icon = null,
-                            title = currency.currencyName,
-                            subtitle = currency.currencyCode,
-                        ),
-                        onTap = {
-                            openBuyWithCardUrl(chain, currency)
-                        }
-                    )
-                },
-                positioning = WMenuPopup.Positioning.ALIGNED,
-                windowBackgroundStyle = BackgroundStyle.Cutout.fromView(
-                    view = anchorView,
-                    roundRadius = 16f.dp,
-                    horizontalOffset = 8.dp,
-                    verticalOffset = 0
-                )
-            )
-            return
-        }
-
-        openBuyWithCardUrl(chain, baseCurrency)
-    }
-
-    private fun openBuyWithCardUrl(chain: String, baseCurrency: MBaseCurrency) {
-        buyWithCardView.isClickable = false
-        BuyWithCardLauncher.buyWithCardUrl(chain, baseCurrency, { url ->
-            buyWithCardView.isClickable = true
-            url?.let {
-                CustomTabsBrowser.open(context, it)
-            } ?: run {
-                if (!WalletCore.isConnected())
-                    showError(MBridgeError.SERVER_ERROR)
-            }
-        })
-    }
-
     override fun viewWillAppear() {
         super.viewWillAppear()
         resubscribeQrHeightListener()
@@ -575,13 +498,6 @@ class ReceiveVC private constructor(
     override fun viewDidAppear() {
         super.viewDidAppear()
         window!!.forceStatusBarLight = true
-
-        if (openBuyWithCardInstantly && defaultChain != null) {
-            openBuyWithCardInstantly = false
-            if (!isViewOnlyAccount) {
-                openBuyWithCard(defaultChain.name)
-            }
-        }
     }
 
     override fun viewWillDisappear() {
@@ -666,7 +582,6 @@ class ReceiveVC private constructor(
         qrSegmentView.onDestroy()
         copyAddressView.setOnClickListener(null)
         if (!isViewOnlyAccount) {
-            buyWithCardView.setOnClickListener(null)
             buyWithCryptoView.setOnClickListener(null)
         }
         defaultVC.addressView.viewTreeObserver.removeOnPreDrawListener(viewTreeObserver)
@@ -682,20 +597,6 @@ class ReceiveVC private constructor(
         invoiceView.layoutParams?.height = (OPTION_ROW_HEIGHT.dp * tonFraction).toInt()
         invoiceView.requestLayout()
         invoiceView.isClickable = tonFraction == 1f
-
-        if (AccountStore.activeAccount?.supportsBuyWithCard == true) {
-            val floorIdx = offset.toInt().coerceIn(0, availableChains.size - 1)
-            val ceilIdx = (floorIdx + 1).coerceAtMost(availableChains.size - 1)
-            val fracA = if (availableChains[floorIdx].isOnrampSupported) 1f else 0f
-            val fracB = if (availableChains[ceilIdx].isOnrampSupported) 1f else 0f
-            val buyWithCardFraction = fracA + (fracB - fracA) * (offset - floorIdx)
-            val buyWithCardHeight = (OPTION_ROW_HEIGHT.dp * buyWithCardFraction).toInt()
-            buyWithCardView.layoutParams?.height = buyWithCardHeight
-            buyWithCardView.isGone = buyWithCardHeight == 0
-            buyWithCardView.translationY = buyWithCardHeight.toFloat() - OPTION_ROW_HEIGHT.dp
-            buyWithCardView.requestLayout()
-            buyWithCardView.isClickable = buyWithCardFraction == 1f
-        }
     }
 
 }

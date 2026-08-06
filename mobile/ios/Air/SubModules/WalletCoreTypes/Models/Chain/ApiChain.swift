@@ -138,11 +138,6 @@ public extension ApiChain {
         config.chainStandard == .ethereum
     }
 
-    var isOfframpSupported: Bool {
-        guard isSupported else { return false }
-        return config.isOffRampSupported
-    }
-
     var isSendToSelfAllowed: Bool {
         switch self {
         case .ton: true

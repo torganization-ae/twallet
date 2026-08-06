@@ -616,8 +616,7 @@ extension NftsVC: ReorderableCollectionViewControllerDelegate {
         guard canStartDragOrOpenMenu() else { return nil }
         guard let row = dataSource?.itemIdentifier(for: indexPath) else { return nil }
         guard case .nft(let nftId) = row, let displayNft = displayNfts?[nftId] else { return nil }
-        
-        MtwCardImagePreloader.preload(displayNft.nft)
+
         let menu = UIContextMenuConfiguration(identifier: indexPath as NSCopying, previewProvider: nil) { _ in
             return self.makeNftCellMenu(displayNft: displayNft)
         }
@@ -629,7 +628,6 @@ extension NftsVC: ReorderableCollectionViewControllerDelegate {
         let accountId = account.id
         let network = account.network
         
-        let accountSettings = $account.settings
         let domains = $account.domains
 
         let detailsSection: UIMenu
@@ -642,37 +640,6 @@ extension NftsVC: ReorderableCollectionViewControllerDelegate {
             detailsSection = UIMenu(title: "", options: .displayInline, children: items)
         }
             
-        let installSection: UIMenu
-        do {
-            var items: [UIMenuElement] = []
-            if let mtwCardId = nft.metadata?.mtwCardId {
-                let isCurrent = mtwCardId == accountSettings.backgroundNft?.metadata?.mtwCardId
-                if isCurrent {
-                    items += UIAction(title: lang("Reset Card"), image: UIImage(systemName: "xmark.rectangle")) { _ in
-                        log.info("cardBackground.uiReset source=nftsMenu accountId=\(accountId, .public) nftAddress=\(nft.address, .public) nftChain=\(nft.chain.rawValue, .public) nftMtwId=\(mtwCardId)")
-                        accountSettings.setBackgroundNft(nil)
-                    }
-                } else {
-                    items += UIAction(title: lang("Install Card"), image: .airBundle("MenuInstallCard26")) { _ in
-                        log.info("cardBackground.uiInstall source=nftsMenu accountId=\(accountId, .public) nftAddress=\(nft.address, .public) nftChain=\(nft.chain.rawValue, .public) nftMtwId=\(mtwCardId)")
-                        accountSettings.setBackgroundNft(nft)
-                        accountSettings.setAccentColorNft(nft)
-                    }
-                }
-                let isCurrentAccent = mtwCardId == accountSettings.accentColorNft?.metadata?.mtwCardId
-                if isCurrentAccent {
-                    items += UIAction(title: lang("Reset Palette"), image: .airBundle("custom.paintbrush.badge.xmark")) { _ in
-                        accountSettings.setAccentColorNft(nil)
-                    }
-                } else {
-                    items += UIAction(title: lang("Apply Palette"), image: .airBundle("MenuBrush26")) { _ in
-                        accountSettings.setAccentColorNft(nft)
-                    }
-                }
-            }
-            installSection = UIMenu(title: "", options: .displayInline, children: items)
-        }
-        
         let actionsSection: UIMenu
         do {
             var items: [UIMenuElement] = []
@@ -791,7 +758,7 @@ extension NftsVC: ReorderableCollectionViewControllerDelegate {
             organizeSection = UIMenu(title: "", options: .displayInline, children: items)
         }
                     
-        let sections = [detailsSection, installSection, actionsSection, otherSection, organizeSection].filter { !$0.children.isEmpty }
+        let sections = [detailsSection, actionsSection, otherSection, organizeSection].filter { !$0.children.isEmpty }
         return UIMenu(title: "", children: sections)
     }
     

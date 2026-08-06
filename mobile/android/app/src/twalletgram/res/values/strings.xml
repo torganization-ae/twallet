@@ -14,7 +14,6 @@
   <string name="app_privacy_policy_url" translatable="false">https://gramwallet.io/privacy-policy</string>
   <string name="app_install_url" translatable="false">https://gramwallet.io/android-store</string>
   <string name="bot_username" translatable="false">MyTonWalletBot</string>
-  <string name="app_cards_url" translatable="false"></string>
   <string name="app_help_url" translatable="false">https://help.mywallet.io</string>
   <string name="app_help_scam_url_en" translatable="false">https://help.mywallet.io/intro/scams/leaked-seed-phrases</string>
   <string name="app_help_scam_url_ru" translatable="false">https://help.mywallet.io/ru/baza-znanii/moshennichestvo-i-skamy/slitye-sid-frazy</string>

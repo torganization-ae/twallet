@@ -12,7 +12,7 @@ struct AppearanceSettingsView: View {
         WithPerceptionTracking {
             InsetList(topPadding: 16, spacing: 24) {
                 themeSection
-                PaletteAndCardSection()
+                PaletteSection()
                 
                 if IS_DEBUG_OR_TESTFLIGHT {
                     AppTabsSection()

@@ -1,11 +1,10 @@
-import type { ApiChain, ApiNft } from '../api/types';
+import type { ApiChain } from '../api/types';
 import type { LangCode } from '../global/types';
 
 import {
   DEFAULT_CHAIN,
   EMPTY_HASH_VALUE,
   IFRAME_WHITELIST,
-  MW_CARDS_BASE_URL,
   MW_NEWS_CHANNEL_NAME,
   MW_TIPS_CHANNEL_NAME,
   MY_WALLET_BLOG,
@@ -261,10 +260,6 @@ export function isInIframeWhitelist(url: string) {
     const allowed = new URL(allowedOrigin.slice(0, -2));
     return protocol === allowed.protocol && hostname === allowed.hostname;
   });
-}
-
-export function getCardNftImageUrl(nft: ApiNft, format: 'svg' | 'webp' = 'svg'): string {
-  return `${MW_CARDS_BASE_URL}${nft.metadata.mtwCardId}.${format}`;
 }
 
 export function getBlogUrl(lang: LangCode): string {

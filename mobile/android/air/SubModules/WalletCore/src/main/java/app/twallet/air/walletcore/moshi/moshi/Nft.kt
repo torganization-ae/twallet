@@ -1,11 +1,9 @@
 package app.twallet.air.walletcore.moshi
 
-import android.graphics.Color
 import android.net.Uri
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.json.JSONObject
-import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.models.MBlockchainNetwork
 import app.twallet.air.walletcontext.utils.WEquatable
 import app.twallet.air.walletcore.TELEGRAM_USERNAMES_COLLECTION
@@ -14,11 +12,6 @@ import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.helpers.ExplorerHelpers
 import app.twallet.air.walletcore.models.MMarketplace
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
-import app.twallet.air.walletcore.moshi.ApiMtwCardType.BLACK
-import app.twallet.air.walletcore.moshi.ApiMtwCardType.GOLD
-import app.twallet.air.walletcore.moshi.ApiMtwCardType.PLATINUM
-import app.twallet.air.walletcore.moshi.ApiMtwCardType.SILVER
-import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.NftStore
 
 @JsonClass(generateAdapter = true)
@@ -30,144 +23,17 @@ data class MApiCheckNftDraftOptions(
     val isNftBurn: Boolean,
 )
 
-@JsonClass(generateAdapter = false)
-enum class ApiMtwCardType {
-    @Json(name = "black")
-    BLACK,
-
-    @Json(name = "platinum")
-    PLATINUM,
-
-    @Json(name = "gold")
-    GOLD,
-
-    @Json(name = "silver")
-    SILVER,
-
-    @Json(name = "standard")
-    STANDARD
-}
-
-@JsonClass(generateAdapter = false)
-enum class ApiMtwCardTextType {
-    @Json(name = "light")
-    LIGHT,
-
-    @Json(name = "dark")
-    DARK
-}
-
-@JsonClass(generateAdapter = false)
-enum class ApiMtwCardBorderShineType {
-    @Json(name = "up")
-    UP,
-
-    @Json(name = "down")
-    DOWN,
-
-    @Json(name = "left")
-    LEFT,
-
-    @Json(name = "right")
-    RIGHT,
-
-    @Json(name = "radioactive")
-    RADIOACTIVE;
-}
-
 @JsonClass(generateAdapter = true)
 data class ApiNftMetadata(
     @Json(name = "lottie") val lottie: String? = null,
     @Json(name = "imageUrl") val imageUrl: String? = null,
     @Json(name = "fragmentUrl") val fragmentUrl: String? = null,
-    @Json(name = "mtwCardId") val mtwCardId: Int? = null,
-    @Json(name = "mtwCardType") val mtwCardType: ApiMtwCardType? = null,
-    @Json(name = "mtwCardTextType") val mtwCardTextType: ApiMtwCardTextType? = null,
-    @Json(name = "mtwCardBorderShineType") val mtwCardBorderShineType: ApiMtwCardBorderShineType? = null,
     @Json(name = "attributes") val attributes: List<Attribute?>? = null,
 ) {
-    companion object {
-        const val MTW_CARD_BASE_URL = "https://static.mytonwallet.org/cards/"
-        const val MTW_CARD_V2_BASE_URL = "https://static.mytonwallet.org/cards/v2/cards/"
-    }
-
     data class Attribute(
         @Json(name = "trait_type") val traitType: String?,
         @Json(name = "value") val value: String?
     )
-
-    fun cardImageUrl(mini: Boolean): String {
-        return if (mini)
-            "${MTW_CARD_BASE_URL}mini@3x/$mtwCardId.webp"
-        else
-            "${MTW_CARD_V2_BASE_URL}$mtwCardId.webp"
-    }
-
-    val mtwCardColors: Pair<Int, Int>
-        get() {
-            return when (mtwCardType) {
-                SILVER -> {
-                    Pair(
-                        Color.rgb(39, 39, 39),
-                        Color.rgb(152, 152, 152),
-                    )
-                }
-
-                GOLD -> {
-                    Pair(
-                        Color.rgb(76, 52, 3),
-                        Color.rgb(176, 125, 29),
-                    )
-                }
-
-                PLATINUM -> {
-                    Pair(
-                        Color.rgb(255, 255, 255),
-                        Color.rgb(119, 119, 127),
-                    )
-                }
-
-                BLACK -> {
-                    Pair(
-                        Color.rgb(206, 206, 207),
-                        Color.rgb(68, 69, 70),
-                    )
-                }
-
-                else -> {
-                    return if (mtwCardTextType == ApiMtwCardTextType.LIGHT) {
-                        Pair(Color.WHITE, Color.WHITE)
-                    } else {
-                        Pair(Color.BLACK, Color.BLACK)
-                    }
-                }
-            }
-        }
-
-    val overlayLabelBackground: Int?
-        get() {
-            return when (mtwCardType) {
-                SILVER -> {
-                    Color.rgb(68, 68, 68)
-                }
-
-                GOLD -> {
-                    Color.rgb(101, 71, 10)
-                }
-
-                PLATINUM -> {
-                    Color.rgb(222, 222, 224)
-                }
-
-                BLACK -> {
-                    Color.rgb(171, 172, 173)
-                }
-
-                else -> {
-                    return null
-                }
-            }
-        }
 }
 
 @JsonClass(generateAdapter = false)
@@ -231,31 +97,6 @@ data class ApiNft(
     }
 
     fun isStandalone() = collectionName.isNullOrBlank()
-
-    val isMtwCard: Boolean
-        get() {
-            return metadata?.mtwCardId != null
-        }
-    val isInstalledMtwCard: Boolean
-        get() {
-            val accountId = AccountStore.activeAccountId ?: return false
-            val installedCard = WGlobalStorage.getCardBackgroundNft(accountId)
-            installedCard?.let {
-                val installedNft = fromJson(installedCard) ?: return false
-                return metadata?.mtwCardId == installedNft.metadata?.mtwCardId
-            }
-            return false
-        }
-    val isInstalledMtwCardPalette: Boolean
-        get() {
-            val accountId = AccountStore.activeAccountId ?: return false
-            val installedPaletteNft = WGlobalStorage.getAccentColorNft(accountId)
-            installedPaletteNft?.let {
-                val installedNft = fromJson(installedPaletteNft) ?: return false
-                return metadata?.mtwCardId == installedNft.metadata?.mtwCardId
-            }
-            return false
-        }
 
     var fragmentUrl: String? = when {
         metadata?.fragmentUrl != null -> metadata.fragmentUrl

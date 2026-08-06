@@ -1,7 +1,7 @@
 import React, { memo } from '../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../global';
 
-import type { ApiChain, ApiCountryCode } from '../../../api/types';
+import type { ApiChain } from '../../../api/types';
 
 import { selectIsCurrentAccountViewMode } from '../../../global/selectors';
 import buildClassName from '../../../util/buildClassName';
@@ -23,9 +23,7 @@ interface OwnProps {
 interface StateProps {
   isTestnet?: boolean;
   isSwapDisabled?: boolean;
-  isOnRampDisabled?: boolean;
   isViewMode?: boolean;
-  countryCode?: ApiCountryCode;
 }
 
 function Actions({
@@ -34,31 +32,21 @@ function Actions({
   isTestnet,
   isLedger,
   isSwapDisabled,
-  isOnRampDisabled,
   isViewMode,
-  countryCode,
   onClose,
 }: OwnProps & StateProps) {
   const {
     startSwap,
-    openOnRampWidgetModal,
     openInvoiceModal,
     closeReceiveModal,
   } = getActions();
 
   const lang = useLang();
 
-  const { canBuyWithCardInRussia, isOnRampSupported, formatTransferUrl, buySwap } = getChainConfig(chain);
-  const canBuyWithCard = isOnRampSupported && (canBuyWithCardInRussia || countryCode !== 'RU');
+  const { formatTransferUrl, buySwap } = getChainConfig(chain);
   const isSwapAllowed = !isViewMode && !isTestnet && !isLedger && !isSwapDisabled && !!buySwap;
-  const isOnRampAllowed = !isViewMode && !isTestnet && !isOnRampDisabled && canBuyWithCard;
   const isDepositLinkSupported = !!formatTransferUrl;
-  const shouldRender = Boolean(isSwapAllowed || isOnRampAllowed || isDepositLinkSupported);
-
-  const handleBuyFiat = useLastCallback(() => {
-    openOnRampWidgetModal({ chain });
-    onClose?.();
-  });
+  const shouldRender = Boolean(isSwapAllowed || isDepositLinkSupported);
 
   const handleSwapClick = useLastCallback(() => {
     startSwap({
@@ -86,16 +74,6 @@ function Actions({
 
   return (
     <div className={contentClassName}>
-      {isOnRampAllowed && (
-        <div
-          className={buildClassName(styles.actionButton, !canBuyWithCard && styles.disabled)}
-          onClick={canBuyWithCard ? handleBuyFiat : undefined}
-        >
-          <i className={buildClassName(styles.actionIcon, 'icon-card')} aria-hidden />
-          {lang('Buy with Card')}
-          <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-        </div>
-      )}
       {isSwapAllowed && (
         <div className={styles.actionButton} onClick={handleSwapClick}>
           <i className={buildClassName(styles.actionIcon, 'icon-crypto')} aria-hidden />
@@ -117,15 +95,11 @@ function Actions({
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const {
     isSwapDisabled,
-    isOnRampDisabled,
-    countryCode,
   } = global.restrictions;
 
   return {
     isTestnet: global.settings.isTestnet,
     isSwapDisabled,
-    isOnRampDisabled,
     isViewMode: selectIsCurrentAccountViewMode(global),
-    countryCode,
   };
 })(Actions));

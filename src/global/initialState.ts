@@ -128,8 +128,6 @@ export const INITIAL_STATE: GlobalState = {
   restrictions: {
     isLimitedRegion: false,
     isSwapDisabled: IS_FEATURE_LIMITED,
-    isOnRampDisabled: IS_FEATURE_LIMITED,
-    isOffRampDisabled: IS_FEATURE_LIMITED,
     isNftBuyingDisabled: false,
   },
 

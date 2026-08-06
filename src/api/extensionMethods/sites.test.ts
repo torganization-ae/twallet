@@ -43,7 +43,7 @@ describe('extension site methods', () => {
   });
 
   it('should mark page deeplinks as in-app browser sourced', async () => {
-    const url = 'mtw://offramp?depositWalletAddress=UQAddress&baseCurrencyCode=ton';
+    const url = 'mtw://swap?in=ton&out=usdt';
 
     await processDeeplink({ url });
 

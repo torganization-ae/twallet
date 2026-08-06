@@ -59,15 +59,6 @@ sealed class Deeplink {
     ) : Deeplink()
 
     data class Receive(override val accountAddress: String?) : Deeplink()
-    data class BuyWithCard(override val accountAddress: String?) : Deeplink()
-    data class Offramp(
-        override val accountAddress: String?,
-        val transactionId: String?,
-        val baseCurrencyCode: String?,
-        val baseCurrencyAmount: String?,
-        val depositWalletAddress: String?,
-        val depositWalletAddressTag: String?
-    ) : Deeplink()
 
     data class Stake(override val accountAddress: String?) : Deeplink()
     data class Portfolio(override val accountAddress: String?) : Deeplink()
@@ -355,15 +346,6 @@ class DeeplinkParser {
                 "transfer" -> handleTonInvoice(uri)
                 "send" -> handleSend(uri)
                 "receive" -> Deeplink.Receive(accountAddress = null)
-                "buy-with-card" -> Deeplink.BuyWithCard(accountAddress = null)
-                "offramp" -> Deeplink.Offramp(
-                    accountAddress = null,
-                    transactionId = uri.getQueryParameter("transactionId"),
-                    baseCurrencyCode = uri.getQueryParameter("baseCurrencyCode"),
-                    baseCurrencyAmount = uri.getQueryParameter("baseCurrencyAmount"),
-                    depositWalletAddress = uri.getQueryParameter("depositWalletAddress"),
-                    depositWalletAddressTag = uri.getQueryParameter("depositWalletAddressTag")
-                )
 
                 "stake" -> Deeplink.Stake(accountAddress = null)
                 "portfolio" -> Deeplink.Portfolio(accountAddress = null)

@@ -11,7 +11,6 @@ import com.facebook.imagepipeline.decoder.ImageDecoderConfig
 import app.twallet.air.uicomponents.helpers.FontManager
 import app.twallet.air.uicomponents.image.svg.SvgDecoder
 import app.twallet.air.uicomponents.image.svg.SvgImageFormat
-import app.twallet.air.uicomponents.helpers.palette.ImagePaletteHelpers
 import app.twallet.air.walletbasecontext.WBaseStorage
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.logger.Logger
@@ -29,7 +28,6 @@ import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.ActivityStore
 import app.twallet.air.walletcore.stores.BalanceStore
-import app.twallet.air.walletcore.stores.NftStore
 import app.twallet.air.walletcore.stores.TokenStore
 import java.util.Date
 
@@ -155,10 +153,6 @@ class AirAsFrameworkApplication {
                 "TokenStore.loadFromCache: ${System.currentTimeMillis() - t}ms"
             )
 
-            NftStore.init(paletteExtractor = { nft, onResult ->
-                ImagePaletteHelpers.extractPaletteFromNft(nft, onResult)
-            })
-
             t = System.currentTimeMillis()
             ValueAnimator.setFrameDelay(8)
             Logger.i(
@@ -250,7 +244,7 @@ class AirAsFrameworkApplication {
 
         fun updateAccentColor(accountId: String?) {
             accountId?.let {
-                WGlobalStorage.getNftAccentColorIndex(accountId)?.let {
+                WGlobalStorage.getAccentColorIndex(accountId)?.let {
                     setNftAccentColor(it)
                     return
                 }

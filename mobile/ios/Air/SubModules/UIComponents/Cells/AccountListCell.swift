@@ -56,7 +56,6 @@ public struct AccountListCell: View {
                                 .allowsTightening(true)
                                 .foregroundStyle(Color.air.primaryLabel)
                                 .layoutPriority(1)
-                            CardMiniature(accountContext: accountContext)
                         }
                         .frame(height: Self.topRowHeight)
                         ListAddressLine(addressLine: accountContext.addressLine, suffix: addressLineSuffix)
@@ -141,9 +140,9 @@ private struct ListAddressLine: View {
     var suffix: String?
     
     var body: some View {
-        let style = MtwCardAddressLine.Style.list
+        let style = AccountAddressLine.Style.list
         HStack(spacing: 4) {
-            MtwCardAddressLine(addressLine: addressLine, style: style, gradient: nil)
+            AccountAddressLine(addressLine: addressLine, style: style)
             if let suffix {
                 Text("·")
                 Text(suffix)

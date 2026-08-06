@@ -67,8 +67,6 @@ public struct WalletCoreData {
         case hideTinyTransfersChanged
         case hideNoCostTokensChanged
         case homeWalletVisibleTokensLimitChanged
-        case cardBackgroundChanged(_ accountId: String, _ nft: ApiNft?)
-        case accentColorNftChanged(_ accountId: String, _ nft: ApiNft?)
         case walletVersionsDataReceived
         case updatingStatusChanged
         case applicationDidEnterBackground

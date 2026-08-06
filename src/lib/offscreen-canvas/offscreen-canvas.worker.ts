@@ -1,5 +1,3 @@
-import { COLORS_TO_DETECT } from '../../util/accentColor/constants';
-import { hex2rgb, labEuclideanDistance } from '../../util/colors';
 import { createPostMessageInterface } from '../../util/createPostMessageInterface';
 import { getCachedImageUrl } from '../../util/getCachedImageUrl';
 import { logDebugError } from '../../util/logs';
@@ -41,7 +39,7 @@ function extractPaletteFromImage(img: ImageBitmap, quality: number, colorCount: 
   return cmap ? cmap.palette() as [number, number, number][] : undefined;
 }
 
-async function processNftImage(url: string, quality: number, colorCount: number) {
+async function extractPaletteFromImageUrl(url: string, quality: number, colorCount: number) {
   let bitmap: ImageBitmap | undefined;
 
   try {
@@ -50,26 +48,20 @@ async function processNftImage(url: string, quality: number, colorCount: number)
     const blob = await response.blob();
     bitmap = await createImageBitmap(blob);
 
-    const palette = extractPaletteFromImage(bitmap, quality, colorCount);
-    if (!palette || palette.length === 0) {
-      return undefined;
-    }
-
-    const dominantRgb = palette[0];
-
-    const distances = COLORS_TO_DETECT.map(({ color }) => labEuclideanDistance(dominantRgb, hex2rgb(color)));
-    const minDistance = Math.min(...distances);
-    const minDistanceIndex = distances.indexOf(minDistance);
-
-    return COLORS_TO_DETECT[minDistanceIndex].index;
+    return extractPaletteFromImage(bitmap, quality, colorCount);
   } catch (error) {
-    logDebugError('[Worker] Error processing NFT image:', error);
+    logDebugError('[Worker] Error extracting palette from image:', error);
     return undefined;
   } finally {
     if (bitmap) {
       bitmap.close();
     }
   }
+}
+
+// This function is kept for backwards compatibility with any code that might still reference it
+async function processNftImage(url: string, quality: number, colorCount: number) {
+  return extractPaletteFromImageUrl(url, quality, colorCount);
 }
 
 const api = {

@@ -26,7 +26,6 @@ import { getTranslation } from '../../../util/langProvider';
 import { logDebugError } from '../../../util/logs';
 import { openUrl } from '../../../util/openUrl';
 import { getTelegramApp } from '../../../util/telegram';
-import { getChainBySlug } from '../../../util/tokens';
 import {
   getIsMobileTelegramApp,
   IS_BIOMETRIC_AUTH_SUPPORTED,
@@ -548,24 +547,6 @@ addActionHandler('clearIsPinAccepted', (global) => {
   return clearIsPinAccepted(global);
 });
 
-addActionHandler('openOnRampWidgetModal', (global, actions, { chain }) => {
-  setGlobal({ ...global, chainForOnRampWidgetModal: chain });
-});
-
-addActionHandler('closeOnRampWidgetModal', (global) => {
-  setGlobal({ ...global, chainForOnRampWidgetModal: undefined });
-});
-
-addActionHandler('openOffRampWidgetModal', (global) => {
-  const { tokenSlug } = global.currentTransfer;
-  const chain = tokenSlug ? getChainBySlug(tokenSlug) : 'ton';
-  setGlobal({ ...global, chainForOffRampWidgetModal: chain });
-});
-
-addActionHandler('closeOffRampWidgetModal', (global) => {
-  setGlobal({ ...global, chainForOffRampWidgetModal: undefined });
-});
-
 addActionHandler('openMediaViewer', (global, actions, {
   mediaId, mediaType, txId, hiddenNfts, noGhostAnimation,
 }) => {
@@ -773,14 +754,6 @@ addActionHandler('switchToPortfolio', (global: GlobalState, actions) => {
   actions.closeSettings(undefined, { forceOnHeavyAnimation: true });
   actions.openPortfolio(undefined, { forceOnHeavyAnimation: true });
   actions.setActiveContentTab({ tab: ContentTab.Portfolio }, { forceOnHeavyAnimation: true });
-});
-
-addActionHandler('openPromotionModal', (global) => {
-  return { ...global, isPromotionModalOpen: true };
-});
-
-addActionHandler('closePromotionModal', (global) => {
-  return { ...global, isPromotionModalOpen: undefined };
 });
 
 addActionHandler('setAppLayout', (global, actions, { layout }) => {

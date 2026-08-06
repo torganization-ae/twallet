@@ -7,18 +7,13 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.core.view.isGone
-import com.facebook.drawee.drawable.ScalingUtils
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.image.Content
 import app.twallet.air.uicomponents.image.WCustomImageView
 import app.twallet.air.uicomponents.widgets.WFrameLayout
-import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcore.models.MAccount
-import app.twallet.air.walletcore.moshi.ApiNft
 
 class CardThumbnailView(context: Context) : WFrameLayout(context) {
-
-    private var cardNft: ApiNft? = null
 
     private val imageView = WCustomImageView(context).apply {
         defaultRounding = Content.Rounding.Radius(3f.dp)
@@ -63,33 +58,10 @@ class CardThumbnailView(context: Context) : WFrameLayout(context) {
         addView(imageView, LayoutParams(MATCH_PARENT, MATCH_PARENT))
     }
 
-    fun configure(account: MAccount?, showDefaultCard: Boolean = false) {
-        cardNft =
-            account?.accountId?.let { activeAccountId ->
-                WGlobalStorage.getCardBackgroundNft(activeAccountId)
-                    ?.let { ApiNft.fromJson(it) }
-            }
-        cardNft?.metadata?.cardImageUrl(true)?.let { url ->
-            imageView.set(
-                Content.ofUrl(url).copy(scaleType = ScalingUtils.ScaleType.FIT_XY)
-            )
-            val colors = cardNft?.metadata?.mtwCardColors ?: return@let
-            updateMiniPlaceholderColors(colors.first, colors.second)
-            isGone = false
-        } ?: run {
-            imageView.clear()
-            if (showDefaultCard) {
-                imageView.set(
-                    Content(
-                        Content.Image.Res(app.twallet.air.uicomponents.R.drawable.img_card),
-                        scaleType = ScalingUtils.ScaleType.FIT_XY
-                    ),
-                )
-                updateMiniPlaceholderColors(Color.WHITE, Color.WHITE)
-            } else {
-                isGone = true
-            }
-        }
+    // Custom wallet card artwork is no longer supported, so there is never anything to show here.
+    fun configure(account: MAccount?) {
+        imageView.clear()
+        isGone = true
     }
 
     fun updateMiniPlaceholderColors(primaryColor: Int, secondaryColor: Int) {

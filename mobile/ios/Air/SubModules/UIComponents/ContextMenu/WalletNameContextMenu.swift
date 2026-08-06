@@ -22,15 +22,6 @@ public enum WalletNameContextMenu {
                 ),
                 .action(
                     ContextMenuAction(
-                        title: lang("Customize"),
-                        icon: .system("wand.and.stars.inverse"),
-                        handler: {
-                            AppActions.showCustomizeWallet(accountId: accountId())
-                        }
-                    )
-                ),
-                .action(
-                    ContextMenuAction(
                         title: lang("Manage Wallets"),
                         icon: .airBundle("MenuManageAssets26"),
                         handler: {

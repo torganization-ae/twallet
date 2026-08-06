@@ -85,16 +85,11 @@ public struct SendComposeView: View {
 // MARK: -
 
 struct SendComposeTitleView: View {
-    var isSellSupported: Bool
-    var onSellTapped: () -> Void
     var onMultisendTapped: () -> Void
 
     private let titleFont = Font.system(size: 14, weight: .medium)
 
     var body: some View {
-        
-        let showSell = isSellSupported && !ConfigStore.shared.shouldRestrictSell
-        
         HStack(spacing: 12) {
             HStack(spacing: 4) {
                 Text(lang("Send"))
@@ -109,14 +104,6 @@ struct SendComposeTitleView: View {
             .clipShape(Capsule())
             .contextMenuSource {
                 makeTitleMenuConfiguration()
-            }
-            
-            if showSell {
-                Button(action: onSellTapped) {
-                    Text(lang("Sell"))
-                        .font(titleFont)
-                        .foregroundStyle(Color.air.secondaryLabel)
-                }
             }
         }
     }

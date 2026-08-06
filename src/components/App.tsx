@@ -11,7 +11,6 @@ import {
   IS_CORE_WALLET,
   IS_EXPLORER,
   IS_FEATURE_LIMITED,
-  IS_MY_WALLET_BRAND,
 } from '../config';
 import { selectCurrentAccountId, selectCurrentAccountSettings, selectCurrentAccountState } from '../global/selectors';
 import { useAccentColor } from '../util/accentColor';
@@ -42,7 +41,6 @@ import AppInactive from './AppInactive';
 import AppLocked from './appLocked/AppLocked';
 import Auth from './auth/Auth';
 import AuthImportWalletModal from './auth/AuthImportWalletModal';
-import CustomizeWalletModal from './customizeWallet/CustomizeWalletModal';
 import DappConnectModal from './dapps/DappConnectModal';
 import DappSignDataModal from './dapps/DappSignDataModal';
 import DappTransferModal from './dapps/DappTransferModal';
@@ -53,15 +51,12 @@ import LedgerModal from './ledger/LedgerModal';
 import Main from './main/Main';
 import BackupModal from './main/modals/BackupModal';
 import NftAttributesModal from './main/modals/NftAttributesModal';
-import OffRampWidgetModal from './main/modals/OffRampWidgetModal';
-import OnRampWidgetModal from './main/modals/OnRampWidgetModal';
 import SignatureModal from './main/modals/SignatureModal';
 import UnhideNftModal from './main/modals/UnhideNftModal';
 import BottomBar from './main/sections/Actions/BottomBar';
 import Toasts from './main/Toasts';
 import WalletRenameModal from './main/WalletRenameModal';
 import MediaViewer from './mediaViewer/MediaViewer';
-import MintCardModal from './mintCard/MintCardModal';
 import Portfolio from './portfolio/Portfolio';
 import Settings from './settings/Settings';
 import SwapModal from './swap/SwapModal';
@@ -81,7 +76,6 @@ interface StateProps {
   accountId?: string;
   isBackupWalletModalOpen?: boolean;
   isHardwareModalOpen?: boolean;
-  isCustomizeWalletModalOpen?: boolean;
   isExploreOpen?: boolean;
   isPortfolioOpen?: boolean;
   isFullscreen: boolean;
@@ -105,7 +99,6 @@ function App({
   accountId,
   isBackupWalletModalOpen,
   isHardwareModalOpen,
-  isCustomizeWalletModalOpen,
   isExploreOpen,
   isPortfolioOpen,
   isFullscreen,
@@ -256,13 +249,6 @@ function App({
           />
           <TransferModal />
           {!IS_FEATURE_LIMITED && <SwapModal />}
-          {/* Cards and the wallet customization built on them are a My Wallet product, absent from the Gram brand */}
-          {IS_MY_WALLET_BRAND && (
-            <>
-              <MintCardModal />
-              <CustomizeWalletModal isOpen={isCustomizeWalletModalOpen} />
-            </>
-          )}
           <SignatureModal />
           <TransactionModal />
           <TransactionInfoModal />
@@ -270,8 +256,6 @@ function App({
           <DappConnectModal />
           <DappSignDataModal />
           <DappTransferModal />
-          <OnRampWidgetModal />
-          <OffRampWidgetModal />
           <WalletConnectPayModal />
           <WalletConnectPayOptionSelectionModal />
           <WalletConnectPayDataCollectionModal />
@@ -296,7 +280,6 @@ export default memo(withGlobal((global): StateProps => {
     accountId: selectCurrentAccountId(global),
     isBackupWalletModalOpen: global.isBackupWalletModalOpen,
     isHardwareModalOpen: global.isHardwareModalOpen,
-    isCustomizeWalletModalOpen: global.isCustomizeWalletModalOpen,
     isExploreOpen: global.isExploreOpen,
     isPortfolioOpen: global.isPortfolioOpen,
     areSettingsOpen: global.areSettingsOpen,

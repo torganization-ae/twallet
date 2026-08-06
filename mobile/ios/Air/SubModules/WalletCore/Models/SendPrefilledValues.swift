@@ -3,12 +3,9 @@ import WalletContext
 
 public enum SendMode {
     case regular
-    
+
     case sendNft, burnNft
-    
-    /// Read-only mode, all values are set, start from the confirmation screen
-    case sellToMoonpay
-            
+
     public var isNftRelated: Bool { self == .burnNft || self == .sendNft}
 }
 

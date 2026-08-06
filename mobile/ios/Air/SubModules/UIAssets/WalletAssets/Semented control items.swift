@@ -161,13 +161,7 @@ private func makeCollectiblesMenuConfig(
                 $0.chain == .ton && $0.address == ApiNft.TELEGRAM_USERNAMES_COLLECTION_ADDRESS
             }
             : nil
-        let mtwCards = collections.notTelegramGiftsCollections.first {
-            $0.chain == .ton && $0.address == MTW_CARDS_COLLECTION
-        }
         let notGifts = collections.notTelegramGiftsCollections.filter {
-            if $0.chain == .ton && $0.address == MTW_CARDS_COLLECTION {
-                return false
-            }
             if IS_TWALLETGRAM_WALLET && $0.chain == .ton && $0.address == ApiNft.TELEGRAM_USERNAMES_COLLECTION_ADDRESS {
                 return false
             }
@@ -249,25 +243,7 @@ private func makeCollectiblesMenuConfig(
             )
         }
 
-        if let mtwCards {
-            items.append(
-                .action(
-                    ContextMenuAction(
-                        title: mtwCards.name,
-                        icon: .airBundle("MenuInstallCard26"),
-                        handler: {
-                            AppActions.showAssets(
-                                accountSource: accountSource,
-                                selectedTab: .nftCollectionFilter(.collection(mtwCards)),
-                                collectionsFilter: .collection(mtwCards)
-                            )
-                        }
-                    )
-                )
-            )
-        }
-
-        if !gifts.isEmpty || telegramUsernames != nil || mtwCards != nil {
+        if !gifts.isEmpty || telegramUsernames != nil {
             items.append(.separator)
         }
 

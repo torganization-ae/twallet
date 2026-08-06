@@ -1,18 +1,16 @@
 import React, { memo } from '../../lib/teact/teact';
 import { withGlobal } from '../../global';
 
-import type { ApiNft } from '../../api/types';
 import type { Account } from '../../global/types';
 import type { AccountBalance } from '../../hooks/useAccountsBalances';
 
-import { selectAccountSettings, selectCurrentAccount, selectCurrentAccountId } from '../../global/selectors';
+import { selectCurrentAccount, selectCurrentAccountId } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { getTelegramAvatarUrlFromDomain } from '../../util/dns';
 import { formatAccountAddresses } from '../../util/formatAccountAddress';
 import { formatCurrency } from '../../util/formatNumber';
 import isViewAccount from '../../util/isViewAccount';
 
-import CustomCardPreview from '../main/modals/accountSelector/CustomCardPreview';
 import SensitiveData from '../ui/SensitiveData';
 import WalletAvatar from '../ui/WalletAvatar';
 
@@ -21,7 +19,6 @@ import styles from './AccountInfo.module.scss';
 interface StateProps {
   currentAccount?: Account;
   currentAccountId?: string;
-  cardBackgroundNft?: ApiNft;
   isSensitiveDataHidden?: boolean;
   isTestnet?: boolean;
   avatarUrl?: string;
@@ -34,7 +31,6 @@ interface OwnProps {
 function AccountInfo({
   currentAccount,
   currentAccountId,
-  cardBackgroundNft,
   isSensitiveDataHidden,
   isTestnet,
   avatarUrl,
@@ -73,10 +69,6 @@ function AccountInfo({
             </div>
           </SensitiveData>
         )}
-
-        {cardBackgroundNft && (
-          <CustomCardPreview nft={cardBackgroundNft} className={styles.nftIndicator} />
-        )}
       </div>
 
       <div className={styles.address}>
@@ -92,14 +84,12 @@ function AccountInfo({
 export default memo(withGlobal((global): StateProps => {
   const currentAccount = selectCurrentAccount(global);
   const currentAccountId = selectCurrentAccountId(global);
-  const accountSettings = selectAccountSettings(global, currentAccountId!);
 
   const { isSensitiveDataHidden, isTestnet } = global.settings;
 
   return {
     currentAccount,
     currentAccountId,
-    cardBackgroundNft: accountSettings?.cardBackgroundNft,
     isSensitiveDataHidden,
     isTestnet,
     avatarUrl: getTelegramAvatarUrlFromDomain(currentAccount?.byChain.ton?.domain),

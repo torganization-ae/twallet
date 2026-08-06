@@ -13,7 +13,6 @@ public final class AccountAssetsAndActivityData: Sendable {
     public final class State: Sendable {
         private let _data: UnfairLock<MAssetsAndActivityData?> = .init(initialState: nil)
         private let _didAutoPinStaking: UnfairLock<Bool> = .init(initialState: false)
-        private let _ownedMtwCardAddresses: UnfairLock<[String]> = .init(initialState: [])
 
         nonisolated init() {}
 
@@ -27,24 +26,15 @@ public final class AccountAssetsAndActivityData: Sendable {
             return _didAutoPinStaking.withLock { $0 }
         }
 
-        public var ownedMtwCardAddresses: [String] {
-            access(keyPath: \._ownedMtwCardAddresses)
-            return _ownedMtwCardAddresses.withLock { $0 }
-        }
-
         fileprivate func replace(
             data: MAssetsAndActivityData?,
-            didAutoPinStaking: Bool,
-            ownedMtwCardAddresses: [String]
+            didAutoPinStaking: Bool
         ) {
             withMutation(keyPath: \._data) {
                 _data.withLock { $0 = data }
             }
             withMutation(keyPath: \._didAutoPinStaking) {
                 _didAutoPinStaking.withLock { $0 = didAutoPinStaking }
-            }
-            withMutation(keyPath: \._ownedMtwCardAddresses) {
-                _ownedMtwCardAddresses.withLock { $0 = ownedMtwCardAddresses }
             }
         }
     }
@@ -64,15 +54,10 @@ public final class AccountAssetsAndActivityData: Sendable {
         state.didAutoPinStaking
     }
 
-    public var ownedMtwCardAddresses: [String] {
-        state.ownedMtwCardAddresses
-    }
-
-    func replace(data: MAssetsAndActivityData?, didAutoPinStaking: Bool, ownedMtwCardAddresses: [String]) {
+    func replace(data: MAssetsAndActivityData?, didAutoPinStaking: Bool) {
         state.replace(
             data: data,
-            didAutoPinStaking: didAutoPinStaking,
-            ownedMtwCardAddresses: ownedMtwCardAddresses
+            didAutoPinStaking: didAutoPinStaking
         )
     }
 }
@@ -97,10 +82,6 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
         self.for(accountId: accountId).didAutoPinStaking
     }
 
-    public nonisolated func ownedMtwCardAddresses(accountId: String) -> [String] {
-        self.for(accountId: accountId).ownedMtwCardAddresses
-    }
-
     public func use(db: any DatabaseWriter) {
         self.db = db
         loadFromDb()
@@ -119,27 +100,6 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
         Task { await self._autoPinStakingIfNeeded(accountId: accountId, slugs: slugs) }
     }
 
-    public func addOwnedMtwCardAddressIfNeeded(accountId: String, address: String) -> Bool {
-        let current = ownedMtwCardAddresses(accountId: accountId)
-        guard !current.contains(address) else {
-            return false
-        }
-        persistOwnedMtwCardAddresses(accountId: accountId, addresses: current + [address])
-        return true
-    }
-
-    public func setOwnedMtwCardAddresses(accountId: String, addresses: [String]) {
-        persistOwnedMtwCardAddresses(accountId: accountId, addresses: unique(addresses))
-    }
-
-    public func pruneOwnedMtwCardAddress(accountId: String, address: String) {
-        let current = ownedMtwCardAddresses(accountId: accountId)
-        guard current.contains(address) else {
-            return
-        }
-        persistOwnedMtwCardAddresses(accountId: accountId, addresses: current.filter { $0 != address })
-    }
-
     @MainActor public func walletCore(event: WalletCoreData.Event) {
         Task {
             await handleEvent(event)
@@ -151,8 +111,7 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
         case .accountDeleted(let accountId):
             byAccountId.existing(accountId: accountId)?.replace(
                 data: nil,
-                didAutoPinStaking: false,
-                ownedMtwCardAddresses: []
+                didAutoPinStaking: false
             )
             byAccountId.remove(accountId: accountId)
         case .accountsReset:
@@ -169,8 +128,7 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
         persist(
             accountId: accountId,
             data: next,
-            didAutoPinStaking: context.didAutoPinStaking,
-            ownedMtwCardAddresses: context.ownedMtwCardAddresses
+            didAutoPinStaking: context.didAutoPinStaking
         )
     }
 
@@ -183,8 +141,7 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
             persist(
                 accountId: accountId,
                 data: next,
-                didAutoPinStaking: true,
-                ownedMtwCardAddresses: context.ownedMtwCardAddresses
+                didAutoPinStaking: true
             )
             return
         }
@@ -194,37 +151,23 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
         persist(
             accountId: accountId,
             data: next,
-            didAutoPinStaking: true,
-            ownedMtwCardAddresses: context.ownedMtwCardAddresses
-        )
-    }
-
-    private func persistOwnedMtwCardAddresses(accountId: String, addresses: [String]) {
-        let context = byAccountId.for(accountId: accountId)
-        persist(
-            accountId: accountId,
-            data: context.data ?? .empty,
-            didAutoPinStaking: context.didAutoPinStaking,
-            ownedMtwCardAddresses: addresses
+            didAutoPinStaking: true
         )
     }
 
     private func persist(
         accountId: String,
         data: MAssetsAndActivityData,
-        didAutoPinStaking: Bool,
-        ownedMtwCardAddresses: [String]
+        didAutoPinStaking: Bool
     ) {
         let context = byAccountId.for(accountId: accountId)
         let dataChanged = context.data != data
         let autoPinChanged = context.didAutoPinStaking != didAutoPinStaking
-        let ownedMtwCardsChanged = context.ownedMtwCardAddresses != ownedMtwCardAddresses
-        guard dataChanged || autoPinChanged || ownedMtwCardsChanged else { return }
+        guard dataChanged || autoPinChanged else { return }
 
         context.replace(
             data: data,
-            didAutoPinStaking: didAutoPinStaking,
-            ownedMtwCardAddresses: ownedMtwCardAddresses
+            didAutoPinStaking: didAutoPinStaking
         )
 
         do {
@@ -235,8 +178,7 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
             let row = MAccountAssetsAndActivityData(
                 accountId: accountId,
                 data: data,
-                didAutoPinStaking: didAutoPinStaking,
-                ownedMtwCardAddresses: ownedMtwCardAddresses
+                didAutoPinStaking: didAutoPinStaking
             )
             try db.write { db in
                 try row.upsert(db)
@@ -262,8 +204,7 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
             for row in rows {
                 byAccountId.for(accountId: row.accountId).replace(
                     data: row.data,
-                    didAutoPinStaking: row.didAutoPinStaking,
-                    ownedMtwCardAddresses: row.ownedMtwCardAddresses
+                    didAutoPinStaking: row.didAutoPinStaking
                 )
             }
         } catch {

@@ -39,7 +39,6 @@ class HomeVM(
         fun configureAccountViews(shouldLoadNewWallets: Boolean, skipSkeletonOnCache: Boolean)
         fun reloadTabs()
         fun accountRenamed(accountId: String, accountName: String)
-        fun accountConfigChanged()
         fun seasonalThemeChanged()
         fun accountWillChange(fromHome: Boolean)
         fun wideLayoutChanged()
@@ -267,12 +266,6 @@ class HomeVM(
                 waitingForNetwork = true
             }
 
-            WalletEvent.NftCardUpdated -> {
-                if (!mode.isScreenActive)
-                    return
-                delegate.get()?.reloadCard()
-            }
-
             WalletEvent.NftsUpdated -> {
                 if (!mode.isScreenActive)
                     return
@@ -284,14 +277,6 @@ class HomeVM(
                 if (!mode.isScreenActive)
                     return
                 delegate.get()?.reloadTabs()
-            }
-
-            WalletEvent.AccountConfigReceived -> {
-                delegate.get()?.accountConfigChanged()
-            }
-
-            is WalletEvent.CardMintingStateChanged -> {
-                delegate.get()?.accountConfigChanged()
             }
 
             WalletEvent.SeasonalThemeChanged -> {

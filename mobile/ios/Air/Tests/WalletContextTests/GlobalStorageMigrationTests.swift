@@ -110,9 +110,6 @@ struct GlobalStorageMigrationTests {
                     "activities": [
                         "idsMain": ["activity-id"],
                     ],
-                    "nfts": [
-                        "ownedMtwCardAddresses": ["EQcard"],
-                    ],
                 ],
             ],
             "settings": [
@@ -136,8 +133,6 @@ struct GlobalStorageMigrationTests {
         #expect(storage["byAccountId.0-ton-mainnet.activeContentTab"] == nil)
         #expect(storage["byAccountId.0-ton-mainnet.landscapeActionsActiveTabIndex"] == nil)
         #expect(storage["byAccountId.0-ton-mainnet.activities"] == nil)
-        #expect(storage["byAccountId.0-ton-mainnet.nfts.ownedMwCardAddresses"] as? [String] == ["EQcard"])
-        #expect(storage["byAccountId.0-ton-mainnet.nfts.ownedMtwCardAddresses"] == nil)
         #expect(storage["settings.byAccountId.0-ton-mainnet.overviewCellSize"] as? String == "small")
         #expect(storage["settings.byAccountId.0-ton-mainnet.walletTokensLimit"] == nil)
         #expect(storage["portfolio.netChangeByAccountId"] == nil)

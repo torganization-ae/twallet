@@ -19,7 +19,6 @@ extension ApiUpdate {
         public var isLimited: Bool?
         public var isCopyStorageEnabled: Bool?
         public var supportAccountsCount: Int?
-        public var countryCode: String?
         public var isAppUpdateRequired: Bool?
         public var seasonalTheme: SeasonalTheme?
         public var knowledgeBaseVersion: String?
@@ -29,7 +28,6 @@ extension ApiUpdate {
             case isLimited
             case isCopyStorageEnabled
             case supportAccountsCount
-            case countryCode
             case isAppUpdateRequired
             case seasonalTheme
             case knowledgeBaseVersion
@@ -41,7 +39,6 @@ extension ApiUpdate {
             isLimited = try container.decodeIfPresent(Bool.self, forKey: .isLimited)
             isCopyStorageEnabled = try container.decodeIfPresent(Bool.self, forKey: .isCopyStorageEnabled)
             supportAccountsCount = try container.decodeIfPresent(Int.self, forKey: .supportAccountsCount)
-            countryCode = try container.decodeIfPresent(String.self, forKey: .countryCode)
             isAppUpdateRequired = try container.decodeIfPresent(Bool.self, forKey: .isAppUpdateRequired)
             seasonalTheme = try? container.decodeIfPresent(SeasonalTheme.self, forKey: .seasonalTheme)
             knowledgeBaseVersion = try? container.decodeIfPresent(String.self, forKey: .knowledgeBaseVersion)
