@@ -189,6 +189,11 @@ Pay fee with %stars_symbol%: "%stars_symbol% ile öde"
 Loading...: Yükleniyor...
 Recipient Address: Alıcının adresi
 Wallet address or domain: Cüzdan adresi veya alan adı
+"tmail or DNS": "tmail veya DNS"
+Alias type: Takma ad türü
+Address or TON DNS: Adres veya TON DNS
+"@tmail.ton alias": "@tmail.ton takma adı"
+Alias name: Takma ad
 Incorrect address: Hatalı adres
 Incorrect address.: Hatalı adres.
 Paste: Yapıştır

@@ -4,6 +4,7 @@ import type { ApiNetwork } from '../api/types';
 
 import { resolveAddressByDomain } from '../api/chains/ton/address';
 import { isTonChainDns } from './dns';
+import { isTmailAlias } from './tmail';
 import withCache from './withCache';
 
 export { isValidAddressOrDomain } from './isValidAddress';
@@ -11,7 +12,7 @@ export { isValidAddressOrDomain } from './isValidAddress';
 const resolveDomainWithCache = withCache(resolveAddressByDomain);
 
 export async function resolveOrValidate(addressOrDomain: string, network: ApiNetwork = 'mainnet') {
-  if (isTonChainDns(addressOrDomain)) {
+  if (isTonChainDns(addressOrDomain) || isTmailAlias(addressOrDomain)) {
     try {
       const resolvedAddress = await resolveDomainWithCache(network, addressOrDomain);
 

@@ -187,6 +187,11 @@ Pay fee with %stars_symbol%: 使用 %stars_symbol% 支付
 Loading...: 讀取中...
 Recipient Address: 接收人地址
 Wallet address or domain: 錢包地址或是域名
+"tmail or DNS": "tmail 或 DNS"
+Alias type: 別名類型
+Address or TON DNS: 地址或 TON DNS
+"@tmail.ton alias": "@tmail.ton 別名"
+Alias name: 別名
 Incorrect address: 錯誤的地址
 Incorrect address.: 錯誤的地址。
 Paste: 貼上

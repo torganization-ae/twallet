@@ -189,6 +189,11 @@ Pay fee with %stars_symbol%: Bezahlen mit %stars_symbol%
 Loading...: Laden...
 Recipient Address: Empfänger adresse
 Wallet address or domain: Wallet adresse oder Domain
+"tmail or DNS": "tmail oder DNS"
+Alias type: Alias-Typ
+Address or TON DNS: Adresse oder TON DNS
+"@tmail.ton alias": "@tmail.ton Alias"
+Alias name: Alias-Name
 Incorrect address: Falsche Adresse
 Incorrect address.: Falsche Adresse.
 Paste: Einfügen

@@ -189,6 +189,11 @@ Pay fee with %stars_symbol%: ชำระด้วย %stars_symbol%
 Loading...: กำลังโหลด...
 Recipient Address: ที่อยู่บัญชีผู้รับ
 Wallet address or domain: ที่อยู่บัญชีวอลเล็ตหรือโดเมน
+"tmail or DNS": "tmail หรือ DNS"
+Alias type: ประเภทนามแฝง
+Address or TON DNS: ที่อยู่หรือ TON DNS
+"@tmail.ton alias": "นามแฝง @tmail.ton"
+Alias name: ชื่อนามแฝง
 Incorrect address: ที่อยู่บัญชีไม่ถูกต้อง
 Incorrect address.: ที่อยู่บัญชีไม่ถูกต้อง.
 Paste: วาง

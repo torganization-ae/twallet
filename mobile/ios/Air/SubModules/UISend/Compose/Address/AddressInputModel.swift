@@ -34,12 +34,23 @@ enum AddressDisplayValue {
     case resolved(ResolvedAddress)
 }
 
+enum AliasMode: String, CaseIterable, Identifiable {
+    case auto
+    case tmail
+
+    var id: String { rawValue }
+}
+
+private let TMAIL_SUFFIX = "@tmail.ton"
+
 @Perceptible @MainActor
 final class AddressInputModel {
-        
+
     var textFieldInput: String = ""
-    
+
     var isFocused: Bool = false
+
+    var aliasMode: AliasMode = .auto
     
     var chain: ApiChain { token.chain }
     
@@ -67,7 +78,31 @@ final class AddressInputModel {
     private var normalizedTextFieldInput: String {
         textFieldInput.trimmingCharacters(in: .whitespacesAndNewlines)
     }
-    
+
+    /// Effective value to resolve/send: in tmail mode the suffix is composed from the local part.
+    var effectiveAddressOrDomain: String {
+        switch aliasMode {
+        case .auto:
+            return normalizedTextFieldInput
+        case .tmail:
+            let local = normalizedTextFieldInput.lowercased()
+            guard !local.isEmpty else { return "" }
+            return local.hasSuffix(TMAIL_SUFFIX) ? local : local + TMAIL_SUFFIX
+        }
+    }
+
+    /// Whether the tmail/DNS alias-type selector should be shown (matches the web `AddressInput` behavior).
+    var shouldShowAliasSelector: Bool {
+        chain == .ton
+    }
+
+    func setAliasMode(_ mode: AliasMode) {
+        guard mode != aliasMode else { return }
+        aliasMode = mode
+        textFieldInput = ""
+        source = .constant("")
+    }
+
     init(account: AccountContext, token: TokenProvider, suggestionChainMode: AddressSuggestionChainMode = .all) {
         self._account = account
         self._token = token
@@ -101,7 +136,7 @@ final class AddressInputModel {
     }
     
     private func resolveAddress() {
-        let input = normalizedTextFieldInput
+        let input = effectiveAddressOrDomain
         resolveAddressTask?.cancel()
         guard !input.isEmpty else {
             addressInfos = nil
@@ -110,7 +145,13 @@ final class AddressInputModel {
         }
         resolveAddressTask = Task {
             do {
-                let compatibleChains = account.supportedChains.filter { $0.isValidAddressOrDomain(input) }
+                let compatibleChains: [ApiChain]
+                if TmailHelpers.isTmailAlias(input) {
+                    // tmail aliases are TON-only; avoid resolving them across EVM/Tron chains.
+                    compatibleChains = account.supportedChains.contains(.ton) ? [.ton] : []
+                } else {
+                    compatibleChains = account.supportedChains.filter { $0.isValidAddressOrDomain(input) }
+                }
                 if compatibleChains.isEmpty {
                     addressInfos = nil
                     isAddressLoading = false
@@ -146,9 +187,9 @@ final class AddressInputModel {
     var draftAddressOrDomain: String {
         switch source {
         case .myAccount(let account, let fallbackChain), .savedAccount(let account, _, let fallbackChain):
-            return account.getAddress(chain: chain) ?? account.getAddress(chain: fallbackChain) ?? textFieldInput
-        case .constant(let raw):
-            return raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            return account.getAddress(chain: chain) ?? account.getAddress(chain: fallbackChain) ?? effectiveAddressOrDomain
+        case .constant:
+            return effectiveAddressOrDomain
         }
     }
 
@@ -171,7 +212,9 @@ final class AddressInputModel {
             return (title, formattedAddress)
             
         case .constant(let raw):
-            let input = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            let input = aliasMode == .tmail
+                ? effectiveAddressOrDomain
+                : raw.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !input.isEmpty else { return (nil, nil) }
             
             let info = addressInfos?[chain]

@@ -193,6 +193,11 @@ Pay fee with %stars_symbol%: Оплатить с %stars_symbol%
 Loading...: Загрузка...
 Recipient Address: Адрес получателя
 Wallet address or domain: Адрес кошелька или домен
+"tmail or DNS": "tmail или DNS"
+Alias type: Тип алиаса
+Address or TON DNS: Адрес или TON DNS
+"@tmail.ton alias": "@tmail.ton алиас"
+Alias name: Имя алиаса
 Incorrect address: Неверный адрес
 Incorrect address.: Неверный адрес.
 Paste: Вставить

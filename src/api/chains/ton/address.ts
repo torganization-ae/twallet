@@ -4,11 +4,13 @@ import type { ApiNetwork } from '../../types';
 import { ApiCommonError } from '../../types';
 
 import { getDnsDomainZone, isTonChainDns } from '../../../util/dns';
+import { isTmailAlias } from '../../../util/tmail';
 import { dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
 import { getKnownAddressInfo } from '../../common/addresses';
 import { DnsCategory } from './constants';
 import { fetchAddressBook } from './toncenter';
+import { resolveTmailAlias } from './tmail';
 
 export async function resolveAddress(network: ApiNetwork, address: string, skipFormatSelection?: boolean): Promise<{
   address: string;
@@ -16,7 +18,7 @@ export async function resolveAddress(network: ApiNetwork, address: string, skipF
   isMemoRequired?: boolean;
   isScam?: boolean;
 } | { error: ApiCommonError }> {
-  const isDomain = isTonChainDns(address);
+  const isDomain = isTonChainDns(address) || isTmailAlias(address);
   let domain: string | undefined;
 
   if (isDomain) {
@@ -55,6 +57,10 @@ export async function resolveAddress(network: ApiNetwork, address: string, skipF
 
 export async function resolveAddressByDomain(network: ApiNetwork, domain: string) {
   try {
+    if (isTmailAlias(domain)) {
+      return await resolveTmailAlias(network, domain);
+    }
+
     const zoneMatch = getDnsDomainZone(domain);
     if (!zoneMatch) {
       return undefined;
