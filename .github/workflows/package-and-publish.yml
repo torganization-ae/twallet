@@ -5,6 +5,7 @@
 # "release" - build + package + publish
 #
 # Jobs in this workflow will skip the "publish" step when `PUBLISH_REPO` is not set.
+# Only run in torganization-ae/twallet
 
 name: Package and publish
 
@@ -15,25 +16,25 @@ on:
         description: Android app variant to release
         required: true
         type: choice
-        default: both
+        default: twallet
         options:
           - both
           - none
-          - mytonwallet
-          - gram
+          - twallet
+          - twalletgram
       ios_variant:
         description: iOS app variant to release
         required: true
         type: choice
-        default: both
+        default: twallet
         options:
           - both
           - none
-          - mytonwallet
-          - gram
+          - twallet
+          - twalletgram
   push:
     branches:
-      - master
+      - production
       - release/**
 
 permissions:
@@ -45,15 +46,14 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Base of downloadable artifact filenames (dmg/exe/AppImage/apk). The user-visible
-  # app name is NOT set here - src/config.ts derives it per flavor ('My Wallet',
-  # 'Gram Wallet', 'TON Wallet'), and the TonConnect protocol identity stays
-  # 'MyTonWallet' via the mapping in src/util/tonConnectEnvironment.ts.
+  # Base of downloadable artifact filenames (dmg/exe/AppImage/apk).
   # Must match `artifactName` in src/electron/config.yml (pinned by config.test.ts).
-  ARTIFACT_NAME_BASE: MyWallet
+  ARTIFACT_NAME_BASE: Twallet
+  BUILD_PRODUCTION: ${{ vars.BUILD_PRODUCTION }}
+  # Releases publish to this repo (default: this repository when BUILD_PRODUCTION=true)
+  PUBLISH_REPO: ${{ vars.PUBLISH_REPO || (vars.BUILD_PRODUCTION == 'true' && github.repository) || '' }}
   PROXY_HOSTS: ${{ vars.PROXY_HOSTS }}
   STAKING_POOLS: ${{ vars.STAKING_POOLS }}
-  PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
   BRILLIANT_API_BASE_URL: ${{ vars.BRILLIANT_API_BASE_URL }}
   SWAP_FEE_ADDRESS: ${{ vars.SWAP_FEE_ADDRESS }}
   DIESEL_ADDRESS: ${{ vars.DIESEL_ADDRESS }}
@@ -64,6 +64,7 @@ env:
 jobs:
   detect-changes:
     name: Detect changed paths
+    if: github.repository == 'torganization-ae/twallet'
     runs-on: ubuntu-latest
     outputs:
       android-only: ${{ steps.filter.outputs.android-only }}
@@ -106,14 +107,15 @@ jobs:
                 ANDROID_SELECTED=false
                 echo 'android-variants=[]' >> "$GITHUB_OUTPUT"
                 ;;
-              mytonwallet)
-                echo 'android-variants=["mytonwallet"]' >> "$GITHUB_OUTPUT"
+              twallet)
+                echo 'android-variants=["twallet"]' >> "$GITHUB_OUTPUT"
                 ;;
-              gram)
-                echo 'android-variants=["gram"]' >> "$GITHUB_OUTPUT"
+              twalletgram)
+                echo 'android-variants=["twalletgram"]' >> "$GITHUB_OUTPUT"
                 ;;
               *)
-                echo 'android-variants=["mytonwallet","gram"]' >> "$GITHUB_OUTPUT"
+                # both / default: twallet flavor only
+                echo 'android-variants=["twallet"]' >> "$GITHUB_OUTPUT"
                 ;;
             esac
             case "${{ inputs.ios_variant }}" in
@@ -121,14 +123,14 @@ jobs:
                 IOS_SELECTED=false
                 echo 'ios-variants=[]' >> "$GITHUB_OUTPUT"
                 ;;
-              mytonwallet)
-                echo 'ios-variants=["mytonwallet"]' >> "$GITHUB_OUTPUT"
+              twallet)
+                echo 'ios-variants=["twallet"]' >> "$GITHUB_OUTPUT"
                 ;;
-              gram)
-                echo 'ios-variants=["gram"]' >> "$GITHUB_OUTPUT"
+              twalletgram)
+                echo 'ios-variants=["twalletgram"]' >> "$GITHUB_OUTPUT"
                 ;;
               *)
-                echo 'ios-variants=["mytonwallet","gram"]' >> "$GITHUB_OUTPUT"
+                echo 'ios-variants=["twallet"]' >> "$GITHUB_OUTPUT"
                 ;;
             esac
 
@@ -154,8 +156,8 @@ jobs:
             echo "android-only=false" >> "$GITHUB_OUTPUT"
             echo "ios-only=false" >> "$GITHUB_OUTPUT"
             echo "electron-changed=true" >> "$GITHUB_OUTPUT"
-            echo 'android-variants=["mytonwallet","gram"]' >> "$GITHUB_OUTPUT"
-            echo 'ios-variants=["mytonwallet","gram"]' >> "$GITHUB_OUTPUT"
+            echo 'android-variants=["twallet"]' >> "$GITHUB_OUTPUT"
+            echo 'ios-variants=["twallet"]' >> "$GITHUB_OUTPUT"
             echo "Production release — building automatic platform variants"
             exit 0
           fi
@@ -181,8 +183,8 @@ jobs:
           echo "android-only=$ANDROID_ONLY" >> "$GITHUB_OUTPUT"
           echo "ios-only=$IOS_ONLY" >> "$GITHUB_OUTPUT"
           echo "electron-changed=$ELECTRON_CHANGED" >> "$GITHUB_OUTPUT"
-          echo 'android-variants=["mytonwallet","gram"]' >> "$GITHUB_OUTPUT"
-          echo 'ios-variants=["mytonwallet","gram"]' >> "$GITHUB_OUTPUT"
+          echo 'android-variants=["twallet"]' >> "$GITHUB_OUTPUT"
+          echo 'ios-variants=["twallet"]' >> "$GITHUB_OUTPUT"
           echo "Changed files:"
           echo "$CHANGED"
           echo "android-only=$ANDROID_ONLY, ios-only=$IOS_ONLY, electron-changed=$ELECTRON_CHANGED"
@@ -190,7 +192,7 @@ jobs:
   electron-release:
     name: Build, package and publish Electron
     needs: detect-changes
-    if: needs.detect-changes.outputs.electron-changed == 'true'
+    if: github.repository == 'torganization-ae/twallet' && needs.detect-changes.outputs.electron-changed == 'true'
     runs-on: macos-15
     environment: production
     timeout-minutes: 30
@@ -198,10 +200,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare the Node environment
-        uses: mytonwallet-org/shared-actions/prepare_node@master
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Import MacOS signing certificate
         env:
@@ -233,7 +239,7 @@ jobs:
 
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE_URL: ${{ vars.BASE_URL }}
-          IS_PREVIEW: ${{ steps.branch-name.outputs.current_branch != 'master' }}
+          IS_PREVIEW: ${{ steps.branch-name.outputs.current_branch != 'production' }}
         run: |
           if [ -z "$PUBLISH_REPO" ]; then
             npm run electron:package:staging
@@ -307,7 +313,7 @@ jobs:
     runs-on: windows-latest
     environment: production
     timeout-minutes: 10
-    if: vars.PUBLISH_REPO != ''
+    if: github.repository == 'torganization-ae/twallet' && (vars.PUBLISH_REPO != '' || vars.BUILD_PRODUCTION == 'true')
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -354,7 +360,7 @@ jobs:
           path: ${{ steps.download-x64.outputs.download-path }}/${{ env.FILE_NAME_X64 }}
 
   # Runs on every path that creates a draft release (the same `PUBLISH_REPO` condition that makes
-  # electron-builder publish one), not only on the master push that `publish-release` is gated to.
+  # electron-builder publish one), not only on the production push that `publish-release` is gated to.
   # The draft has no Windows installer until this job lands the signed one.
   electron-publish-windows:
     name: Publish signed Windows package
@@ -362,7 +368,7 @@ jobs:
     environment: production
     timeout-minutes: 15
     needs: electron-sign-for-windows
-    if: vars.PUBLISH_REPO != ''
+    if: github.repository == 'torganization-ae/twallet' && (vars.PUBLISH_REPO != '' || vars.BUILD_PRODUCTION == 'true')
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -444,7 +450,7 @@ jobs:
   extensions-package:
     name: Build and package extensions
     needs: detect-changes
-    if: needs.detect-changes.outputs.android-only != 'true' && needs.detect-changes.outputs.ios-only != 'true'
+    if: github.repository == 'torganization-ae/twallet' && needs.detect-changes.outputs.android-only != 'true' && needs.detect-changes.outputs.ios-only != 'true'
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 10
@@ -452,10 +458,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare the Node environment
-        uses: mytonwallet-org/shared-actions/prepare_node@master
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build and package
         run: |
@@ -486,16 +496,17 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 5
-    if: vars.PUBLISH_REPO != ''
+    if: github.repository == 'torganization-ae/twallet' && (vars.PUBLISH_REPO != '' || vars.BUILD_PRODUCTION == 'true')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare the Node environment
-        uses: mytonwallet-org/shared-actions/prepare_node@master
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          dont-install-npm-packages: true
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version-file: .node-version
+          cache: npm
+
       - name: Set environment variables
         id: variables
         run: |
@@ -521,16 +532,16 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 5
-    if: vars.PUBLISH_REPO != ''
+    if: github.repository == 'torganization-ae/twallet' && (vars.PUBLISH_REPO != '' || vars.BUILD_PRODUCTION == 'true')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare the Node environment
-        uses: mytonwallet-org/shared-actions/prepare_node@master
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          dont-install-npm-packages: true
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version-file: .node-version
+          cache: npm
 
       - name: Set environment variables
         id: variables
@@ -566,17 +577,17 @@ jobs:
     needs: extensions-package
     runs-on: ubuntu-latest
     environment: production
-    if: vars.PUBLISH_REPO != ''
+    if: github.repository == 'torganization-ae/twallet' && (vars.PUBLISH_REPO != '' || vars.BUILD_PRODUCTION == 'true')
     timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare the Node environment
-        uses: mytonwallet-org/shared-actions/prepare_node@master
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          dont-install-npm-packages: true
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version-file: .node-version
+          cache: npm
 
       - name: Set environment variables
         id: variables
@@ -600,6 +611,7 @@ jobs:
 
   calculate-hash:
     name: Calculate sha256 hashes
+    if: github.repository == 'torganization-ae/twallet'
     env:
       HASH_FILENAME: checksum.sha256
     needs:
@@ -631,7 +643,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 30
-    if: (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/master' || (startsWith(github.ref, 'refs/heads/release/') && vars.PUBLISH_REPO == '')) && needs.detect-changes.outputs.ios-only != 'true' && needs.detect-changes.outputs.android-variants != '[]'
+    if: github.repository == 'torganization-ae/twallet' && (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/production' || (startsWith(github.ref, 'refs/heads/release/') && vars.PUBLISH_REPO == '' && vars.BUILD_PRODUCTION != 'true')) && needs.detect-changes.outputs.ios-only != 'true' && needs.detect-changes.outputs.android-variants != '[]'
     strategy:
       fail-fast: false
       matrix:
@@ -647,15 +659,15 @@ jobs:
       - name: Configure Android variant
         run: |
           case "$APP_VARIANT" in
-            mytonwallet)
-              echo "ANDROID_APP_NAME=MyTonWallet" >> "$GITHUB_ENV"
-              echo "ANDROID_PACKAGE_NAME=org.mytonwallet.app" >> "$GITHUB_ENV"
+            twallet)
+              echo "ANDROID_APP_NAME=Twallet" >> "$GITHUB_ENV"
+              echo "ANDROID_PACKAGE_NAME=app.twallet" >> "$GITHUB_ENV"
               echo "ANDROID_ARTIFACT_NAME=${{ env.ARTIFACT_NAME_BASE }}.apk" >> "$GITHUB_ENV"
               ;;
-            gram)
-              echo "ANDROID_APP_NAME=Gram Wallet" >> "$GITHUB_ENV"
-              echo "ANDROID_PACKAGE_NAME=io.gramwallet.app" >> "$GITHUB_ENV"
-              echo "ANDROID_ARTIFACT_NAME=GramWallet.apk" >> "$GITHUB_ENV"
+            twalletgram)
+              echo "ANDROID_APP_NAME=Twallet Gram" >> "$GITHUB_ENV"
+              echo "ANDROID_PACKAGE_NAME=app.twalletgram" >> "$GITHUB_ENV"
+              echo "ANDROID_ARTIFACT_NAME=TwalletGram.apk" >> "$GITHUB_ENV"
               ;;
             *)
               echo "::error::Unknown APP_VARIANT: $APP_VARIANT"
@@ -663,10 +675,14 @@ jobs:
               ;;
           esac
 
-      - name: Prepare the Node environment
-        uses: mytonwallet-org/shared-actions/prepare_node@master
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build and sync mobile project
         run: |
@@ -756,9 +772,10 @@ jobs:
     needs: detect-changes
     runs-on: macos-26
     environment: production
-    # The mytonwallet variant takes 30+ minutes on slow runners; v26.7.1 needed 3 attempts against a 30-minute cap
+    # The twallet flavor takes 30+ minutes on slow runners;
+    # v26.7.1 needed 3 attempts against a 30-minute cap
     timeout-minutes: 45
-    if: (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/master' || (startsWith(github.ref, 'refs/heads/release/') && vars.PUBLISH_REPO == '')) && needs.detect-changes.outputs.android-only != 'true' && needs.detect-changes.outputs.ios-variants != '[]'
+    if: github.repository == 'torganization-ae/twallet' && (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/production' || (startsWith(github.ref, 'refs/heads/release/') && vars.PUBLISH_REPO == '' && vars.BUILD_PRODUCTION != 'true')) && needs.detect-changes.outputs.android-only != 'true' && needs.detect-changes.outputs.ios-variants != '[]'
     strategy:
       fail-fast: false
       matrix:
@@ -776,26 +793,26 @@ jobs:
       - name: Configure iOS variant
         env:
           IOS_TESTFLIGHT_GROUP: ${{ vars.IOS_TESTFLIGHT_GROUP }}
-          IOS_GRAM_TESTFLIGHT_GROUP: ${{ vars.IOS_GRAM_TESTFLIGHT_GROUP }}
+          IOS_TWALLETGRAM_TESTFLIGHT_GROUP: ${{ vars.IOS_TWALLETGRAM_TESTFLIGHT_GROUP }}
         run: |
           case "$APP_VARIANT" in
-            mytonwallet)
-              echo "IOS_APP_NAME=MyTonWallet" >> "$GITHUB_ENV"
-              echo "IOS_APP_IDENTIFIER=org.mytonwallet.app" >> "$GITHUB_ENV"
-              echo "IOS_APP_IDENTIFIER_WIDGET=org.mytonwallet.app.AirWidget" >> "$GITHUB_ENV"
-              echo "IOS_SCHEME=MyTonWallet" >> "$GITHUB_ENV"
+            twallet)
+              echo "IOS_APP_NAME=Twallet" >> "$GITHUB_ENV"
+              echo "IOS_APP_IDENTIFIER=app.twallet" >> "$GITHUB_ENV"
+              echo "IOS_APP_IDENTIFIER_WIDGET=app.twallet.AirWidget" >> "$GITHUB_ENV"
+              echo "IOS_SCHEME=Twallet" >> "$GITHUB_ENV"
               echo "IOS_WIDGET_SCHEME=AirWidgetExtension" >> "$GITHUB_ENV"
-              echo "IOS_PLIST_PATH=../../App/App/Resources/MyTonWallet/Info.plist" >> "$GITHUB_ENV"
-              echo "IOS_TESTFLIGHT_GROUP=${IOS_TESTFLIGHT_GROUP:-MTW external group}" >> "$GITHUB_ENV"
+              echo "IOS_PLIST_PATH=../../App/App/Resources/Twallet/Info.plist" >> "$GITHUB_ENV"
+              echo "IOS_TESTFLIGHT_GROUP=${IOS_TESTFLIGHT_GROUP:-Twallet external group}" >> "$GITHUB_ENV"
               ;;
-            gram)
-              echo "IOS_APP_NAME=Gram Wallet" >> "$GITHUB_ENV"
-              echo "IOS_APP_IDENTIFIER=io.gramwallet.app" >> "$GITHUB_ENV"
-              echo "IOS_APP_IDENTIFIER_WIDGET=io.gramwallet.app.widget" >> "$GITHUB_ENV"
-              echo "IOS_SCHEME=GramWallet" >> "$GITHUB_ENV"
-              echo "IOS_WIDGET_SCHEME=GramWalletWidgetExtension" >> "$GITHUB_ENV"
-              echo "IOS_PLIST_PATH=../../App/App/Resources/GramWallet/Info.plist" >> "$GITHUB_ENV"
-              echo "IOS_TESTFLIGHT_GROUP=${IOS_GRAM_TESTFLIGHT_GROUP:-Gram Wallet external group}" >> "$GITHUB_ENV"
+            twalletgram)
+              echo "IOS_APP_NAME=Twallet Gram" >> "$GITHUB_ENV"
+              echo "IOS_APP_IDENTIFIER=app.twalletgram" >> "$GITHUB_ENV"
+              echo "IOS_APP_IDENTIFIER_WIDGET=app.twalletgram.widget" >> "$GITHUB_ENV"
+              echo "IOS_SCHEME=TwalletGram" >> "$GITHUB_ENV"
+              echo "IOS_WIDGET_SCHEME=TwalletGramWidgetExtension" >> "$GITHUB_ENV"
+              echo "IOS_PLIST_PATH=../../App/App/Resources/TwalletGram/Info.plist" >> "$GITHUB_ENV"
+              echo "IOS_TESTFLIGHT_GROUP=${IOS_TWALLETGRAM_TESTFLIGHT_GROUP:-Twallet Gram external group}" >> "$GITHUB_ENV"
               ;;
             *)
               echo "::error::Unknown APP_VARIANT: $APP_VARIANT"
@@ -803,16 +820,20 @@ jobs:
               ;;
           esac
 
-      - name: Prepare the Node environment
-        uses: mytonwallet-org/shared-actions/prepare_node@master
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build and sync mobile project
         run: |
           defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
 
-          if [ "$APP_VARIANT" = "gram" ]; then
+          if [ "$APP_VARIANT" = "twalletgram" ]; then
             if [ -z "$PUBLISH_REPO" ]; then
               APP_ENV=staging npm run mobile:build:sdk
             else
@@ -837,10 +858,10 @@ jobs:
           IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
           IOS_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
           IOS_PROVISION_PROFILE_WIDGET_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_WIDGET_BASE64 }}
-          IOS_GRAM_CERTIFICATE_BASE64: ${{ secrets.IOS_GRAM_CERTIFICATE_BASE64 }}
-          IOS_GRAM_CERTIFICATE_PASSWORD: ${{ secrets.IOS_GRAM_CERTIFICATE_PASSWORD }}
-          IOS_GRAM_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_GRAM_PROVISION_PROFILE_BASE64 }}
-          IOS_GRAM_PROVISION_PROFILE_WIDGET_BASE64: ${{ secrets.IOS_GRAM_PROVISION_PROFILE_WIDGET_BASE64 }}
+          IOS_TWALLETGRAM_CERTIFICATE_BASE64: ${{ secrets.IOS_TWALLETGRAM_CERTIFICATE_BASE64 }}
+          IOS_TWALLETGRAM_CERTIFICATE_PASSWORD: ${{ secrets.IOS_TWALLETGRAM_CERTIFICATE_PASSWORD }}
+          IOS_TWALLETGRAM_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_TWALLETGRAM_PROVISION_PROFILE_BASE64 }}
+          IOS_TWALLETGRAM_PROVISION_PROFILE_WIDGET_BASE64: ${{ secrets.IOS_TWALLETGRAM_PROVISION_PROFILE_WIDGET_BASE64 }}
           IOS_KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
         run: |
           set -euo pipefail
@@ -850,11 +871,11 @@ jobs:
           PROVISION_PROFILE_BASE64="$IOS_PROVISION_PROFILE_BASE64"
           PROVISION_PROFILE_WIDGET_BASE64="$IOS_PROVISION_PROFILE_WIDGET_BASE64"
 
-          if [ "$APP_VARIANT" = "gram" ]; then
-            CERTIFICATE_BASE64="${IOS_GRAM_CERTIFICATE_BASE64:-$IOS_CERTIFICATE_BASE64}"
-            CERTIFICATE_PASSWORD="${IOS_GRAM_CERTIFICATE_PASSWORD:-$IOS_CERTIFICATE_PASSWORD}"
-            PROVISION_PROFILE_BASE64="$IOS_GRAM_PROVISION_PROFILE_BASE64"
-            PROVISION_PROFILE_WIDGET_BASE64="$IOS_GRAM_PROVISION_PROFILE_WIDGET_BASE64"
+          if [ "$APP_VARIANT" = "twalletgram" ]; then
+            CERTIFICATE_BASE64="${IOS_TWALLETGRAM_CERTIFICATE_BASE64:-$IOS_CERTIFICATE_BASE64}"
+            CERTIFICATE_PASSWORD="${IOS_TWALLETGRAM_CERTIFICATE_PASSWORD:-$IOS_CERTIFICATE_PASSWORD}"
+            PROVISION_PROFILE_BASE64="$IOS_TWALLETGRAM_PROVISION_PROFILE_BASE64"
+            PROVISION_PROFILE_WIDGET_BASE64="$IOS_TWALLETGRAM_PROVISION_PROFILE_WIDGET_BASE64"
           fi
 
           if [ -z "$CERTIFICATE_BASE64" ]; then
@@ -910,13 +931,13 @@ jobs:
       - name: "iOS: Package and publish"
         env:
           IOS_AUTH_KEY_BASE64: ${{ secrets.IOS_AUTH_KEY_BASE64 }}
-          IOS_GRAM_AUTH_KEY_BASE64: ${{ secrets.IOS_GRAM_AUTH_KEY_BASE64 }}
+          IOS_TWALLETGRAM_AUTH_KEY_BASE64: ${{ secrets.IOS_TWALLETGRAM_AUTH_KEY_BASE64 }}
           IOS_AUTH_KEY_ID: ${{ vars.IOS_AUTH_KEY_ID }}
           IOS_AUTH_KEY_ISSUER_ID: ${{ vars.IOS_AUTH_KEY_ISSUER_ID }}
-          IOS_GRAM_AUTH_KEY_ID: ${{ vars.IOS_GRAM_AUTH_KEY_ID }}
-          IOS_GRAM_AUTH_KEY_ISSUER_ID: ${{ vars.IOS_GRAM_AUTH_KEY_ISSUER_ID }}
+          IOS_TWALLETGRAM_AUTH_KEY_ID: ${{ vars.IOS_TWALLETGRAM_AUTH_KEY_ID }}
+          IOS_TWALLETGRAM_AUTH_KEY_ISSUER_ID: ${{ vars.IOS_TWALLETGRAM_AUTH_KEY_ISSUER_ID }}
           IOS_METADATA_PATH: ${{ vars.IOS_METADATA_PATH }}
-          IOS_GRAM_METADATA_PATH: ${{ vars.IOS_GRAM_METADATA_PATH }}
+          IOS_TWALLETGRAM_METADATA_PATH: ${{ vars.IOS_TWALLETGRAM_METADATA_PATH }}
           FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 300
         run: |
           set -euo pipefail
@@ -935,11 +956,11 @@ jobs:
           ASC_ISSUER_ID="${IOS_AUTH_KEY_ISSUER_ID:-}"
           METADATA_PATH="${IOS_METADATA_PATH:-}"
 
-          if [ "$APP_VARIANT" = "gram" ]; then
-            AUTH_KEY_BASE64="${IOS_GRAM_AUTH_KEY_BASE64:-$IOS_AUTH_KEY_BASE64}"
-            ASC_KEY_ID="${IOS_GRAM_AUTH_KEY_ID:-$ASC_KEY_ID}"
-            ASC_ISSUER_ID="${IOS_GRAM_AUTH_KEY_ISSUER_ID:-$ASC_ISSUER_ID}"
-            METADATA_PATH="${IOS_GRAM_METADATA_PATH:-$METADATA_PATH}"
+          if [ "$APP_VARIANT" = "twalletgram" ]; then
+            AUTH_KEY_BASE64="${IOS_TWALLETGRAM_AUTH_KEY_BASE64:-$IOS_AUTH_KEY_BASE64}"
+            ASC_KEY_ID="${IOS_TWALLETGRAM_AUTH_KEY_ID:-$ASC_KEY_ID}"
+            ASC_ISSUER_ID="${IOS_TWALLETGRAM_AUTH_KEY_ISSUER_ID:-$ASC_ISSUER_ID}"
+            METADATA_PATH="${IOS_TWALLETGRAM_METADATA_PATH:-$METADATA_PATH}"
           fi
 
           if [ -z "$AUTH_KEY_BASE64" ]; then
@@ -972,7 +993,7 @@ jobs:
     needs:
       - android-release
       - electron-publish-windows
-    if: github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/master' && vars.PUBLISH_REPO != ''
+    if: github.repository == 'torganization-ae/twallet' && github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/production' && (vars.PUBLISH_REPO != '' || vars.BUILD_PRODUCTION == 'true')
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -1027,13 +1048,6 @@ jobs:
           for FILE_PATH in "${APK_FILES[@]}"; do
             FILE_NAME=$(basename "$FILE_PATH")
             upload_apk "$FILE_PATH" "${FILE_NAME// /-}"
-
-            # Installed sideload clients fetch the APK by a name baked into the app
-            # (app_direct_apk_version_url_template), so every release must also carry
-            # the pre-rename filename until those clients rotate out.
-            if [ "$FILE_NAME" = "${{ env.ARTIFACT_NAME_BASE }}.apk" ]; then
-              upload_apk "$FILE_PATH" "MyTonWallet.apk"
-            fi
           done
 
       - name: Publish release
@@ -1048,7 +1062,7 @@ jobs:
   # what was actually published and fails the run on any divergence.
   #
   # It checks the release whether or not it is still a draft, because a draft is what a human
-  # presses Publish on. Gating it to the master push (as it was) left exactly the paths that
+  # presses Publish on. Gating it to the production push (as it was) left exactly the paths that
   # skip `publish-release` unverified - which is how v26.7.0 shipped unsigned.
   verify-release:
     name: Verify release feed integrity
@@ -1057,7 +1071,7 @@ jobs:
     needs:
       - electron-publish-windows
       - publish-release
-    if: ${{ !cancelled() && needs.electron-publish-windows.result == 'success' }}
+    if: ${{ !cancelled() && github.repository == 'torganization-ae/twallet' && needs.electron-publish-windows.result == 'success' }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:

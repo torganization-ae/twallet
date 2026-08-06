@@ -1,4 +1,4 @@
-// The gate reads `IS_GRAM_WALLET` from `process.env` at module-eval time (it never changes at runtime),
+// The gate reads `IS_TWALLETGRAM_WALLET` from `process.env` at module-eval time (it never changes at runtime),
 // so each build flavor gets a clean env + an isolated re-import - same technique as `config.matrix.test.ts`.
 
 import type { ApiChain, ApiStakingState } from '../api/types';
@@ -7,7 +7,7 @@ import type { Account, UserToken } from '../global/types';
 type ChainModule = typeof import('./chain');
 type FormatModule = typeof import('./formatAccountAddress');
 
-const FLAG = 'IS_GRAM_WALLET';
+const FLAG = 'IS_TWALLETGRAM_WALLET';
 
 let savedFlag: string | undefined;
 
@@ -23,8 +23,8 @@ afterAll(() => {
   }
 });
 
-async function withBuild(isGramWallet: boolean, run: (chain: ChainModule, format: FormatModule) => void) {
-  if (isGramWallet) {
+async function withBuild(isTwalletgramWallet: boolean, run: (chain: ChainModule, format: FormatModule) => void) {
+  if (isTwalletgramWallet) {
     process.env[FLAG] = '1';
   } else {
     delete process.env[FLAG];

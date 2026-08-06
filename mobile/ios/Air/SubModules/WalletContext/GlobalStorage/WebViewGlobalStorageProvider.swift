@@ -3,8 +3,8 @@ import Foundation
 import WebKit
 
 private let log = Log("WebViewGlobalStorageProvider")
-private let capacitorUrl = URL(string: "capacitor://mytonwallet.local")!
-private let globalStateKey = "mytonwallet-global-state"
+private let capacitorUrl = URL(string: "capacitor://twallet.local")!
+private let globalStateKey = "twallet-global-state"
 
 enum WebViewGlobalStorageLoadResult {
     case missing

@@ -1,0 +1,99 @@
+package app.twallet.air.uicomponents.commonViews
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.view.Gravity
+import app.twallet.air.uicomponents.extensions.dp
+import app.twallet.air.uicomponents.helpers.WFont
+import app.twallet.air.uicomponents.widgets.WAnimationView
+import app.twallet.air.uicomponents.widgets.WLabel
+import app.twallet.air.uicomponents.widgets.WThemedView
+import app.twallet.air.uicomponents.widgets.WView
+import app.twallet.air.uicomponents.widgets.fadeIn
+import app.twallet.air.walletbasecontext.theme.WColor
+import app.twallet.air.walletbasecontext.theme.color
+
+@SuppressLint("ViewConstructor")
+class WEmptyIconTitleSubtitleView(
+    context: Context,
+    val animation: Int,
+    val title: String,
+    val subtitle: String,
+) : WView(context), WThemedView {
+
+    private val animationView: WAnimationView by lazy {
+        WAnimationView(context)
+    }
+
+    private val titleLabel: WLabel by lazy {
+        WLabel(context).apply {
+            setStyle(17f, WFont.Medium)
+        }
+    }
+
+    private val subtitleLabel: WLabel by lazy {
+        WLabel(context).apply {
+            setStyle(17f)
+            gravity = Gravity.CENTER
+        }
+    }
+
+    override fun setupViews() {
+        super.setupViews()
+
+        addView(animationView, LayoutParams(124.dp, 124.dp))
+        addView(titleLabel)
+        addView(
+            subtitleLabel,
+            LayoutParams(LayoutParams.MATCH_CONSTRAINT, LayoutParams.WRAP_CONTENT)
+        )
+
+        setConstraints {
+            toTop(animationView)
+            toCenterX(animationView)
+            topToBottom(titleLabel, animationView, 24f)
+            toCenterX(titleLabel)
+            topToBottom(subtitleLabel, titleLabel, 22f)
+            toCenterX(subtitleLabel, 4f)
+            toBottom(subtitleLabel)
+        }
+
+        alpha = 0f
+        animationView.play(animation, onStart = {
+            startedNow()
+        })
+        titleLabel.text = title
+        subtitleLabel.text = subtitle
+        // If animation did not start in a few seconds, fade in anyway!
+        Handler(Looper.getMainLooper()).postDelayed({
+            startedNow()
+        }, 3000)
+
+        updateTheme()
+    }
+
+    fun setTitle(text: String) {
+        titleLabel.text = text
+    }
+
+    fun setSubtitle(text: String) {
+        subtitleLabel.text = text
+    }
+
+    var startedAnimation = false
+        private set
+
+    private fun startedNow() {
+        if (startedAnimation)
+            return
+        startedAnimation = true
+        fadeIn()
+    }
+
+    override fun updateTheme() {
+        titleLabel.setTextColor(WColor.PrimaryText.color)
+        subtitleLabel.setTextColor(WColor.SecondaryText.color)
+    }
+}

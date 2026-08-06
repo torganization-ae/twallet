@@ -4,9 +4,8 @@ import { Menu } from 'electron';
 import { APP_NAME } from '../config';
 import { IS_MAC_OS } from './utils';
 
-// Without an explicit menu, Electron builds the default one from `app.getName()`, pinned to the
-// legacy "MyTonWallet" string as the storage/keychain identity key (see `config.yml`) that must
-// never change. So the user-visible labels take the display name from `APP_NAME` instead.
+// Without an explicit menu, Electron builds the default one from `app.getName()`. So the
+// user-visible labels take the display name from `APP_NAME` instead.
 export function setupApplicationMenu() {
   if (!IS_MAC_OS) {
     return; // On Windows/Linux the main window is frameless and removes its menu bar (see `window.ts`)

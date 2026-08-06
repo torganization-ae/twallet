@@ -17,7 +17,7 @@ enum AgentActionLinkMatcher {
                 prefixes.append("http://" + String(universalUrl.dropFirst("https://".count)))
             }
         }
-        if IS_GRAM_WALLET {
+        if IS_TWALLETGRAM_WALLET {
             prefixes.append("mtw://")
             prefixes.append("https://my.tt/")
             prefixes.append("http://my.tt/")

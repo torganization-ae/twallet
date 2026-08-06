@@ -64,7 +64,7 @@ struct InAppBrowserUrlRoutingTests {
         #expect(resolveInAppBrowserMessageOrigin(scheme: "http", host: "example.com", port: 80) == "http://example.com")
         #expect(resolveInAppBrowserMessageOrigin(scheme: "http", host: "localhost", port: 8080) == "http://localhost:8080")
         #expect(resolveInAppBrowserMessageOrigin(scheme: "file", host: "", port: 0) == nil)
-        #expect(resolveInAppBrowserMessageOrigin(scheme: "capacitor", host: "mytonwallet.local", port: 0) == nil)
+        #expect(resolveInAppBrowserMessageOrigin(scheme: "capacitor", host: "twallet.local", port: 0) == nil)
     }
 
     private func makeOfframpURL() -> URL? {

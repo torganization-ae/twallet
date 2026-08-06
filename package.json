@@ -1,7 +1,7 @@
 {
-  "name": "mytonwallet",
+  "name": "twallet",
   "version": "26.7.7",
-  "description": "The most feature-rich web wallet and browser extension for TON – with support of multi-accounts, tokens (jettons), NFT, TON DNS, TON Sites, TON Proxy, and TON Magic.",
+  "description": "Self-custodial multichain wallet based on MyTonWallet — fork of mytonwallet-org/mytonwallet.",
   "main": "index.js",
   "scripts": {
     "dev": "cross-env APP_ENV=development webpack serve --mode development",
@@ -10,15 +10,15 @@
     "build:staging": "cross-env APP_ENV=staging npm run build",
     "build:production": "npm run build",
     "core:dev": "cross-env IS_CORE_WALLET=1 npm run dev",
-    "gram:dev": "cross-env IS_GRAM_WALLET=1 npm run dev",
-    "gram:build": "cross-env IS_GRAM_WALLET=1 npm run build",
-    "gram:build:dev": "cross-env IS_GRAM_WALLET=1 npm run build:dev",
-    "gram:build:staging": "cross-env IS_GRAM_WALLET=1 npm run build:staging",
-    "gram:build:production": "cross-env IS_GRAM_WALLET=1 npm run build:production",
-    "tonorg:dev": "cross-env IS_CORE_WALLET=1 IS_GRAM_WALLET=1 npm run dev",
-    "tonorg:build": "cross-env IS_CORE_WALLET=1 IS_GRAM_WALLET=1 npm run build",
-    "tonorg:build:staging": "cross-env IS_CORE_WALLET=1 IS_GRAM_WALLET=1 npm run build:staging",
-    "tonorg:build:production": "cross-env IS_CORE_WALLET=1 IS_GRAM_WALLET=1 npm run build:production",
+    "twalletgram:dev": "cross-env IS_TWALLETGRAM_WALLET=1 npm run dev",
+    "twalletgram:build": "cross-env IS_TWALLETGRAM_WALLET=1 npm run build",
+    "twalletgram:build:dev": "cross-env IS_TWALLETGRAM_WALLET=1 npm run build:dev",
+    "twalletgram:build:staging": "cross-env IS_TWALLETGRAM_WALLET=1 npm run build:staging",
+    "twalletgram:build:production": "cross-env IS_TWALLETGRAM_WALLET=1 npm run build:production",
+    "tonorg:dev": "cross-env IS_CORE_WALLET=1 IS_TWALLETGRAM_WALLET=1 npm run dev",
+    "tonorg:build": "cross-env IS_CORE_WALLET=1 IS_TWALLETGRAM_WALLET=1 npm run build",
+    "tonorg:build:staging": "cross-env IS_CORE_WALLET=1 IS_TWALLETGRAM_WALLET=1 npm run build:staging",
+    "tonorg:build:production": "cross-env IS_CORE_WALLET=1 IS_TWALLETGRAM_WALLET=1 npm run build:production",
     "core:build": "cross-env IS_CORE_WALLET=1 npm run build",
     "core:build:dev": "cross-env IS_CORE_WALLET=1 npm run build:dev",
     "core:build:staging": "cross-env IS_CORE_WALLET=1 npm run build:staging",
@@ -65,9 +65,6 @@
     "test:playwright": "playwright test",
     "test:record": "playwright codegen localhost:1235",
     "prepare": "husky",
-    "statoscope:build": "cross-env IS_STATOSCOPE=1 webpack",
-    "analyze:bundle": "node dev/analyzeBundleSize.mjs",
-    "statoscope:validate-diff": "statoscope validate --input input.json --reference reference.json",
     "postversion": "./deploy/postversion.sh",
     "multisend:build": "webpack --config webpack-multisend.config.ts && bash ./deploy/copy_to_dist.sh dist-multisend src/multisend/public",
     "multisend:build:dev": "APP_ENV=development webpack --mode development --config webpack-multisend.config.ts",
@@ -100,7 +97,7 @@
     "*.{ts,tsx,js}": "eslint --fix",
     "*.{css,scss}": "stylelint --fix"
   },
-  "author": "MyTonWallet",
+  "author": "Twallet",
   "license": "GPL-3.0-or-later",
   "protocols": [
     {
@@ -117,7 +114,7 @@
       ]
     },
     {
-      "name": "My Wallet",
+      "name": "Twallet",
       "schemes": [
         "mtw"
       ]
@@ -129,12 +126,7 @@
     "@babel/preset-react": "7.27.1",
     "@babel/preset-typescript": "7.27.1",
     "@babel/register": "7.27.1",
-    "@mytonwallet/eslint-config": "github:mytonwallet-org/eslint-config#03e3491cf5ffd909041c53fa91bebd69a36ca3a8",
-    "@mytonwallet/stylelint-whole-pixel": "github:mytonwallet-org/stylelint-whole-pixel#fd07e44d786460f7d469076b1d2cb1b05297896c",
-    "@mytonwallet/webpack-watch-file-plugin": "github:mytonwallet-org/webpack-watch-file-plugin#747b7fd29da9a928aa8b63299adfba461d2f1231",
     "@playwright/test": "1.57.0",
-    "@statoscope/cli": "5.29.0",
-    "@statoscope/webpack-plugin": "5.29.0",
     "@stylistic/stylelint-plugin": "3.1.2",
     "@tonconnect/protocol": "2.3.0-beta.0",
     "@twa-dev/types": "8.0.2",

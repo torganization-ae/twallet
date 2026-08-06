@@ -1,7 +1,7 @@
 import type { ApiNft } from '../api/types';
 
 import {
-  IS_GRAM_WALLET,
+  IS_TWALLETGRAM_WALLET,
   TON_DNS_RENEWAL_WARNING_DAYS,
   TON_DNS_ZONES,
 } from '../config';
@@ -47,7 +47,7 @@ export function getDnsDomainZone(domain: string) {
 }
 
 export function getTelegramAvatarUrlFromDomain(domain?: string) {
-  if (!IS_GRAM_WALLET || !domain) {
+  if (!IS_TWALLETGRAM_WALLET || !domain) {
     return undefined;
   }
 

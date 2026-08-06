@@ -37,7 +37,7 @@ struct HomeCardPromotionVisual: View {
     let accountContext: AccountContext
 
     var body: some View {
-        if !IS_GRAM_WALLET {
+        if !IS_TWALLETGRAM_WALLET {
             WithPerceptionTracking {
                 let promotion = cardOverlayPromotion
                 ZStack {
@@ -110,7 +110,7 @@ struct HomeCardPromotionHitArea: View {
     @Environment(\.layoutDirection) private var layoutDirection
 
     var body: some View {
-        if !IS_GRAM_WALLET, let promotion, promotion.kind == .cardOverlay {
+        if !IS_TWALLETGRAM_WALLET, let promotion, promotion.kind == .cardOverlay {
             let frame = hitAreaFrame(for: promotion)
             let alignment = HomeCardPromotionLayout.physicalTopTrailingAlignment(for: layoutDirection)
             Button {

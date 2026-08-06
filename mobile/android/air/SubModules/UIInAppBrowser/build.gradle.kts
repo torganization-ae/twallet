@@ -10,7 +10,7 @@ kotlin {
 }
 
 android {
-    namespace = "org.mytonwallet.app_air.uiinappbrowser"
+    namespace = "app.twallet.air.uiinappbrowser"
     compileSdk = 36
 
     defaultConfig {

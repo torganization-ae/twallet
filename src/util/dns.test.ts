@@ -124,11 +124,11 @@ describe('getDnsZoneByCollection', () => {
 
 describe('getTelegramAvatarUrlFromDomain', () => {
   async function withTelegramAvatarHelper(
-    isGramWallet: boolean,
+    isTwalletgramWallet: boolean,
     run: (getTelegramAvatarUrlFromDomain: typeof import('./dns').getTelegramAvatarUrlFromDomain) => void,
   ) {
-    const previousIsGramWallet = process.env.IS_GRAM_WALLET;
-    process.env.IS_GRAM_WALLET = isGramWallet ? '1' : '0';
+    const previousIsTwalletgramWallet = process.env.IS_TWALLETGRAM_WALLET;
+    process.env.IS_TWALLETGRAM_WALLET = isTwalletgramWallet ? '1' : '0';
 
     try {
       await jest.isolateModulesAsync(async () => {
@@ -136,10 +136,10 @@ describe('getTelegramAvatarUrlFromDomain', () => {
         run(getTelegramAvatarUrlFromDomain);
       });
     } finally {
-      if (previousIsGramWallet === undefined) {
-        delete process.env.IS_GRAM_WALLET;
+      if (previousIsTwalletgramWallet === undefined) {
+        delete process.env.IS_TWALLETGRAM_WALLET;
       } else {
-        process.env.IS_GRAM_WALLET = previousIsGramWallet;
+        process.env.IS_TWALLETGRAM_WALLET = previousIsTwalletgramWallet;
       }
     }
   }

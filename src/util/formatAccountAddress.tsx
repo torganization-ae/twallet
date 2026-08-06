@@ -4,7 +4,7 @@ import React from '../lib/teact/teact';
 import type { ApiChain, ApiStakingState } from '../api/types';
 import type { Account, UserToken } from '../global/types';
 
-import { IS_GRAM_WALLET } from '../config';
+import { IS_TWALLETGRAM_WALLET } from '../config';
 import { getAddressLineChains, getChainsWithBalance, getOrderedAccountChains } from './chain';
 import { pick } from './iteratees';
 import { shortenAddress } from './shortenAddress';
@@ -71,7 +71,7 @@ export function getAddressDisplayByChain(
 ): Account['byChain'] {
   // The gate applies to the Gram Wallet build only; every other build must not pay for the work below,
   // as the callers sit on hot paths (`withGlobal` mappers)
-  if (!IS_GRAM_WALLET || !accountTokens) return byChain;
+  if (!IS_TWALLETGRAM_WALLET || !accountTokens) return byChain;
 
   // Disabled (hidden) tokens must not expand the line - same as the master-side `getHasOnlyTonTokens`
   const fundedChains = getChainsWithBalance(accountTokens.filter(({ isDisabled }) => !isDisabled), stakingStates);

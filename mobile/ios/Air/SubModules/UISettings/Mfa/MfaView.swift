@@ -22,7 +22,7 @@ struct MfaView: View {
             let mfa = accountContext.account.getChainInfo(chain: .ton)?.mfa
             let state = MfaScreenState(
                 mfa: mfa,
-                canInstallMfa: IS_GRAM_WALLET,
+                canInstallMfa: IS_TWALLETGRAM_WALLET,
                 isWalletSupported: accountContext.account.currentTonWalletVersion == ApiTonWalletVersion.W5.rawValue,
                 hasInstallBalance: tonBalance.map { $0 >= MfaFlowModel.installFee } ?? false,
                 isRefreshingMfa: model.isRefreshingMfa,

@@ -2,7 +2,7 @@ import Foundation
 import WalletContext
 
 private var tonConnectWalletJsBridgeKey: String {
-    IS_GRAM_WALLET ? "gramwallet" : "mytonwallet"
+    IS_TWALLETGRAM_WALLET ? "twalletgram" : "twallet"
 }
 
 struct TonConnectInjectionScript {

@@ -20,7 +20,7 @@ import {
   HYPERLIQUID,
   HYPERLIQUID_USDC_MAINNET,
   IS_CORE_WALLET,
-  IS_GRAM_WALLET,
+  IS_TWALLETGRAM_WALLET,
   MONAD,
   MYCOIN_MAINNET,
   MYCOIN_TESTNET,
@@ -1047,7 +1047,7 @@ export function getAddressLineChains(
   chains: ApiChain[],
   fundedChains?: ReadonlySet<ApiChain>,
 ): ApiChain[] {
-  if (!IS_GRAM_WALLET || !fundedChains) {
+  if (!IS_TWALLETGRAM_WALLET || !fundedChains) {
     return chains;
   }
 

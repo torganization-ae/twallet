@@ -4,7 +4,7 @@ import { getActions, withGlobal } from '../../global';
 import { type Theme } from '../../global/types';
 
 import {
-  APP_INSTALL_URL, APP_NAME, IS_EXPLORER, IS_FEATURE_LIMITED, IS_GRAM_WALLET, IS_TON_BRAND, NEW_APP_URL,
+  APP_INSTALL_URL, APP_NAME, IS_EXPLORER, IS_FEATURE_LIMITED, IS_TWALLETGRAM_WALLET, IS_TON_BRAND, NEW_APP_URL,
   PRODUCTION_URL,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
@@ -199,7 +199,7 @@ function AuthStart({
           ) : (
             <img
               ref={logoRef}
-              src={IS_GRAM_WALLET ? gramWalletLogoPath : logoWebpPath}
+              src={IS_TWALLETGRAM_WALLET ? gramWalletLogoPath : logoWebpPath}
               alt={APP_NAME}
               className={buildClassName(
                 styles.logo,

@@ -1,6 +1,6 @@
 import React, { memo } from '../../lib/teact/teact';
 
-import { IS_GRAM_WALLET, IS_TON_BRAND } from '../../config';
+import { IS_TWALLETGRAM_WALLET, IS_TON_BRAND } from '../../config';
 
 import useLang from '../../hooks/useLang';
 
@@ -15,7 +15,7 @@ import gramWalletLogoPath from '../../assets/logoGramWallet.svg';
 function Logo() {
   const lang = useLang();
 
-  const logoPath = IS_GRAM_WALLET ? gramWalletLogoPath : IS_TON_BRAND ? coreWalletLogoPath : logoWebpPath;
+  const logoPath = IS_TWALLETGRAM_WALLET ? gramWalletLogoPath : IS_TON_BRAND ? coreWalletLogoPath : logoWebpPath;
 
   return (
     <div className={styles.logo}>

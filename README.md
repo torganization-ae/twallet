@@ -1,108 +1,63 @@
-# **My Wallet** · [mywallet.io](https://mywallet.io)
+# twallet
 
-**All you need to enjoy crypto.** A safe, self-custodial **multichain wallet** for 11 blockchains, including [**Ethereum**](https://ethereum.org/), [**Solana**](https://solana.com/), [**Hyperliquid**](https://hyperliquid.xyz/), [**TON**](https://ton.org), [**TRON**](https://trondao.org/), [**Base**](https://base.org/), and more — native mobile (iOS & Android), desktop, web, and **Telegram Mini App**. One account, any device.
+Self-custodial multichain wallet based on [MyTonWallet](https://github.com/mytonwallet-org/mytonwallet).
 
-<img src="https://mywallet.io/img/og-image.png" width="600" alt="My Wallet — All You Need to Enjoy Crypto" />
+This repository is an independent fork. It is **not** affiliated with, endorsed by, or maintained by the MyTonWallet team. Product names, trademarks, audits, ratings, support channels, and websites of MyTonWallet remain theirs.
 
-You keep full control: we **do not** have access to your funds, keys, or data. **My Wallet** is built for **speed** and **reliability**, with a minimal dependency footprint for maximum safety.
+## Origin and license
 
----
+- **Upstream:** [mytonwallet-org/mytonwallet](https://github.com/mytonwallet-org/mytonwallet) ([mytonwallet.io](https://mytonwallet.io))
+- **License:** [GNU General Public License v3.0](./LICENSE) (same as upstream)
 
-## Why **My Wallet**?
+This project redistributes and may modify GPL-licensed code from MyTonWallet. Copyright of the original work belongs to its respective authors. Modifications in this fork are likewise released under GPL-3.0. See [`LICENSE`](./LICENSE) for the full terms.
 
-**🌐 One wallet for everything**  
-Keep Ethereum, Solana, Hyperliquid, TON, TRON, Base, BNB Chain, Polygon, Avalanche, Arbitrum, and Monad in one place. You can send, receive, and swap across chains without jumping between different apps.
+There is **no warranty**. Use at your own risk.
 
-**📱 Use it wherever you are**  
-**My Wallet** works as a native mobile app, desktop app, web app, Telegram Mini App, and browser extension for all major browsers, so your wallet is always within reach.
+## Features (inherited codebase)
 
-**⚡ Instant transfers**  
-Transfers and swaps feel almost instant across supported chains, so you can send crypto and other assets in less than a second in typical conditions.
+The upstream codebase provides a self-custodial wallet with support for multiple chains (including TON, Ethereum, Solana, TRON, and others), available as web, browser extension, desktop (Electron), native mobile, and Telegram Mini App targets. Exact feature set depends on how this fork is configured and built.
 
-**🤖 Built-in smart Agent**  
-Talk to Agent in natural language to send assets, swap, stake, open Explore, and jump to token pages. It is non-custodial by design: you always review and confirm every action.
+## For developers
 
-**🪙 Gasless transfers**  
-Send supported tokens on TON and Solana without holding native gas tokens, with fees covered from the transferred token where available.
+### Requirements
 
-**💳 Easy on-ramp and off-ramp**  
-Buy crypto with a bank card and withdraw back to card where supported, via providers like MoonPay.
+Builds on **macOS** and **Linux**.
 
-**🔄 Smart swaps**  
-Swap inside the app with an aggregator that finds efficient routes across supported chains.
+To build on **Windows**, you also need:
 
-**📊 Portfolio tracking**  
-Follow your portfolio and net worth over time in the base fiat currency you choose.
+- A terminal with bash (Git Bash, MinGW, or Cygwin)
+- A zip utility (used by some packaging commands)
 
-**💰 High-yield staking**  
-Stake TON and other supported assets, including options like USDe, directly in the wallet.
+### Local setup
 
-**🛡️ Industry-leading security**  
-**My Wallet** uses advanced security practices audited by CertiK. We also run a [bug bounty on CertiK SkyShield](https://skyshield.certik.com/bounties/mytonwallet) with **$100K** in reserved funds and rewards of up to **$5,000**. The program has been live since **March 23, 2024**, and no vulnerabilities have been found to date.
-
-**🧰 Hundreds of handy features**  
-Connect Ledger hardware wallets, hide balances, personalize interface, send multiple transfers at once, view other wallets, use AI plugins for OpenClaw, ChatGPT, and Claude, and much more.
-
-**⭐ Trusted by millions**  
-**My Wallet** has a **4.8** rating on [Trustpilot](https://www.trustpilot.com/), strong App Store and Google Play rankings, and **9M+ users** worldwide.
-
----
-
-## 🔗 Links
-
-- 📲 **Get the app**: [get.mywallet.io](https://get.mywallet.io/)
-- 📚 **Help Center**: [help.mywallet.io](https://help.mywallet.io)
-- 🛟 **24/7 Support**: [t.me/mysupport](https://t.me/mysupport)
-- 💬 **Telegram**: [t.me/mytonwalleten](https://t.me/mytonwalleten)
-- 🐦 **X (Twitter)**: [x.com/mytonwallet_io](https://x.com/mytonwallet_io)
-- 📰 **Blog & updates**: [mywallet.io](https://mywallet.io)
-
----
-
-## 🛠️ For developers
-
-### 📑 Table of contents
-
-- ⚙️ [Requirements](#requirements)
-- 🧩 [Local Setup](#local-setup)
-- 🚀 [Dev Mode](#dev-mode)
-- 🐧 [Linux](#linux-desktop-troubleshooting)
-- 🖥️ [Electron](https://github.com/mytonwallet-org/mytonwallet/blob/master/docs/electron.md)
-- 🔐 [Verifying GPG Signatures](https://github.com/mytonwallet-org/mytonwallet/blob/master/docs/gpg-check.md)
-- ❤️ [Support Us](#support-us)
-
-## Requirements
-
-Ready to build on **macOS** and **Linux**.
-
-To build on **Windows**, you will also need:
-
-- Any terminal emulator with bash (Git Bash, MinGW, Cygwin)
-- A zip utility (for several commands)
-
-## Local Setup
-### NPM Local Setup
 ```sh
 cp .env.example .env
 
 npm ci
 ```
 
-## Dev Mode
+### Dev mode
 
 ```sh
 npm run dev
 ```
 
-## Linux Desktop Troubleshooting
+### Upstream docs
+
+Some developer docs live in the upstream repository:
+
+- [Electron](https://github.com/mytonwallet-org/mytonwallet/blob/master/docs/electron.md)
+- [Verifying GPG signatures](https://github.com/mytonwallet-org/mytonwallet/blob/master/docs/gpg-check.md)
+
+### Linux desktop troubleshooting
 
 **If the app does not start after click:**
 
 Install the [FUSE 2 library](https://github.com/AppImage/AppImageKit/wiki/FUSE).
 
-**If the app does not appear in the system menu or does not process ton:// and TON Connect deeplinks:**
+**If the app does not appear in the system menu or does not process `ton://` and TON Connect deeplinks:**
 
-Install [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher) and install the AppImage file through it.
+Install [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher) and install the AppImage through it.
 
 ```bash
 sudo add-apt-repository ppa:appimagelauncher-team/stable
@@ -112,7 +67,7 @@ sudo apt-get install appimagelauncher
 
 **If the app does not connect to Ledger:**
 
-Copy the udev rules from the [official repository](https://github.com/LedgerHQ/udev-rules) and run the file `add_udev_rules.sh` with root rights.
+Copy the udev rules from the [official Ledger repository](https://github.com/LedgerHQ/udev-rules) and run `add_udev_rules.sh` with root rights.
 
 ```bash
 git clone https://github.com/LedgerHQ/udev-rules
@@ -120,6 +75,6 @@ cd udev-rules
 sudo bash ./add_udev_rules.sh
 ```
 
-## Support Us
+## Contributing
 
-If you like what we do, feel free to contribute by creating a pull request, or just support us using this TON wallet: `EQAIsixsrb93f9kDyplo_bK5OdgW5r0WCcIJZdGOUG1B282S`. We appreciate it a lot!
+Pull requests are welcome. Please keep changes compatible with the GPL-3.0 license and preserve attribution to upstream where required.

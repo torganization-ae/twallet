@@ -10,11 +10,11 @@ import {
 
 const TON_PROTOCOL = 'ton';
 const TONCONNECT_PROTOCOL = 'tc';
-const TONCONNECT_PROTOCOL_SELF = 'mytonwallet-tc';
+const TONCONNECT_PROTOCOL_SELF = 'twallet-tc';
 const SELF_PROTOCOL = 'mtw';
 const WALLETCONNECT_SCHEME = 'wc';
-const WALLETCONNECT_DEEPLINK_SCHEME = 'mywallet-wc';
-const WALLETCONNECT_DEEPLINK = 'mywallet-wc://';
+const WALLETCONNECT_DEEPLINK_SCHEME = 'twallet-wc';
+const WALLETCONNECT_DEEPLINK = 'twallet-wc://';
 
 let deeplinkUrl: string | undefined;
 

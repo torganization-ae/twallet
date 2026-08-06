@@ -13,7 +13,7 @@ export interface EIP1193Provider {
   request: (args: { method: string; params?: readonly unknown[] | Record<string, unknown> }) => Promise<unknown>;
   on?: (event: string, handler: (...args: unknown[]) => void) => void;
   removeListener?: (event: string, handler: (...args: unknown[]) => void) => void;
-  isMyTonWallet?: boolean;
+  isTwallet?: boolean;
 }
 
 export interface EIP6963ProviderInfo {

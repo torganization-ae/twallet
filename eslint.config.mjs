@@ -1,4 +1,4 @@
-import mtwConfig from '@mytonwallet/eslint-config';
+import mtwConfig from './lib/eslint-config/index.js';
 import { globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 

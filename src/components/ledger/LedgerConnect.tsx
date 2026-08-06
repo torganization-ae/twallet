@@ -6,7 +6,7 @@ import type { ApiChain } from '../../api/types';
 import type { Theme } from '../../global/types';
 import { HardwareConnectState } from '../../global/types';
 
-import { IS_GRAM_WALLET } from '../../config';
+import { IS_TWALLETGRAM_WALLET } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { getChainTitle } from '../../util/chain';
 import { closeLedgerTab } from '../../util/ledger/tab';
@@ -178,7 +178,7 @@ function LedgerConnect({
 
   function getLedgerIconSrc() {
     const isDarkTheme = appTheme === 'dark';
-    const icons = IS_GRAM_WALLET ? GRAM_LEDGER_ICONS : LEDGER_ICONS;
+    const icons = IS_TWALLETGRAM_WALLET ? GRAM_LEDGER_ICONS : LEDGER_ICONS;
     const iconData = {
       desktop: isDarkTheme ? icons.desktop.dark : icons.desktop.light,
       mobileUsb: isDarkTheme ? icons.mobileUsb.dark : icons.mobileUsb.light,

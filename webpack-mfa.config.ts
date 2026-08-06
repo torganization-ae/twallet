@@ -1,13 +1,12 @@
 import './dev/loadEnv';
 
-import WatchFilePlugin from '@mytonwallet/webpack-watch-file-plugin';
-import StatoscopeWebpackPlugin from '@statoscope/webpack-plugin';
+import WatchFilePlugin from './lib/webpack-watch-file-plugin/index';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import fs from 'fs';
 import HtmlPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
-import type { Compiler, Configuration } from 'webpack';
+import type { Configuration } from 'webpack';
 import { EnvironmentPlugin, NormalModuleReplacementPlugin, ProvidePlugin } from 'webpack';
 
 import { buildMfaLocales } from './dev/locales/buildMfaLocales';
@@ -242,36 +241,7 @@ export default function createConfig(
           resource.request = resource.request.replace(/i18n\/en\.json/, 'mfa/i18n-generated/en.json');
         },
       ),
-      new StatoscopeWebpackPlugin({
-        statsOptions: {
-          context: __dirname,
-        },
-        saveReportTo: path.join(destinationDir, 'statoscope-report.html'),
-        saveStatsTo: path.join(destinationDir, 'statoscope-build-statistics.json'),
-        normalizeStats: true,
-        extensions: [new WebpackContextExtension()],
-        open: false,
-      }),
     ],
     devtool: APP_ENV === 'development' ? 'source-map' : 'hidden-source-map',
   };
-}
-
-class WebpackContextExtension {
-  context: string;
-
-  constructor() {
-    this.context = '';
-  }
-
-  handleCompiler(compiler: Compiler) {
-    this.context = compiler.context;
-  }
-
-  getExtension() {
-    return {
-      descriptor: { name: 'custom-webpack-extension-context', version: '1.0.0' },
-      payload: { context: this.context },
-    };
-  }
 }

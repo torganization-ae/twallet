@@ -5,7 +5,7 @@ import WalletCore
 @MainActor
 enum HomeScreenQuickAction {
     private static var getSupportType: String {
-        "\(Bundle.main.bundleIdentifier ?? "org.mytonwallet.app").getSupport"
+        "\(Bundle.main.bundleIdentifier ?? "app.twallet").getSupport"
     }
 
     static func updateShortcutItems() {

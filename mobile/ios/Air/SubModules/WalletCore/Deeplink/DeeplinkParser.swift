@@ -52,7 +52,7 @@ public extension Deeplink {
 
 private let gramLegacySelfProtocolScheme = "mtw"
 private let gramLegacySelfUniversalHosts: Set<String> = ["my.tt", "go.mytonwallet.org"]
-private let compatibleWalletConnectSelfProtocolSchemes: Set<String> = ["mtw", "gramwallet"]
+private let compatibleWalletConnectSelfProtocolSchemes: Set<String> = ["mtw", "twalletgram"]
 private let compatibleWalletConnectWrapperProtocolSchemes: Set<String> = ["mw", "mywallet-wc", "gramwallet-wc"]
 private let compatibleWalletConnectUniversalHosts: Set<String> = [
     "connect.mywallet.io",
@@ -62,7 +62,7 @@ private let compatibleWalletConnectUniversalHosts: Set<String> = [
 
 private var compatibleSelfProtocolSchemes: Set<String> {
     var schemes: Set<String> = [SELF_PROTOCOL_SCHEME]
-    if IS_GRAM_WALLET {
+    if IS_TWALLETGRAM_WALLET {
         schemes.insert(gramLegacySelfProtocolScheme)
     }
     return schemes
@@ -70,7 +70,7 @@ private var compatibleSelfProtocolSchemes: Set<String> {
 
 private var compatibleSelfUniversalHosts: Set<String> {
     var hosts = SELF_UNIVERSAL_URL_HOSTS
-    if IS_GRAM_WALLET {
+    if IS_TWALLETGRAM_WALLET {
         hosts.formUnion(gramLegacySelfUniversalHosts)
     }
     return hosts

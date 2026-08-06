@@ -85,14 +85,14 @@
     </provider>
 
     <activity
-      android:name="org.mytonwallet.app_air.airasframework.MainWindow"
+      android:name="app.twallet.air.airasframework.MainWindow"
       android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode|locale|layoutDirection|density|keyboardHidden"
       android:exported="true"
       android:launchMode="singleTop"
-      android:theme="@style/Theme.MyTonWalletAir" />
+      android:theme="@style/Theme.TwalletAir" />
 
     <receiver
-      android:name="org.mytonwallet.app_air.widgets.actionsWidget.ActionsWidget"
+      android:name="app.twallet.air.widgets.actionsWidget.ActionsWidget"
       android:exported="false">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -105,7 +105,7 @@
     </receiver>
 
     <receiver
-      android:name="org.mytonwallet.app_air.widgets.priceWidget.PriceWidget"
+      android:name="app.twallet.air.widgets.priceWidget.PriceWidget"
       android:exported="false">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -122,18 +122,18 @@
       android:configChanges="orientation|screenSize|uiMode"
       android:exported="true"
       android:launchMode="singleTop"
-      android:theme="@style/Theme.MyTonWalletAir">
+      android:theme="@style/Theme.TwalletAir">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
       </intent-filter>
     </activity>
 
     <activity
-      android:name="org.mytonwallet.app_air.airasframework.WidgetConfigurationWindow"
+      android:name="app.twallet.air.airasframework.WidgetConfigurationWindow"
       android:configChanges="orientation|screenSize|uiMode"
       android:exported="false"
       android:launchMode="singleTop"
-      android:theme="@style/Theme.MyTonWalletAir" />
+      android:theme="@style/Theme.TwalletAir" />
 
     <activity
       android:name="com.google.mlkit.vision.codescanner.internal.GmsBarcodeScanningDelegateActivity"

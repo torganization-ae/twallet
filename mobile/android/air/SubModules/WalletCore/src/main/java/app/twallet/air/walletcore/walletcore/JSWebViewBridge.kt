@@ -1,0 +1,853 @@
+package app.twallet.air.walletcore
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.webkit.JavascriptInterface
+import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.webkit.WebViewCompat
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonReader
+import com.squareup.moshi.Types
+import okio.Buffer
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
+import app.twallet.air.walletbasecontext.DEBUG_MODE
+import app.twallet.air.walletbasecontext.logger.Logger
+import app.twallet.air.walletbasecontext.utils.decodeUrlOrNull
+import app.twallet.air.walletbasecontext.utils.takeIfNotBlank
+import app.twallet.air.walletbasecontext.utils.toHashMapLong
+import app.twallet.air.walletbasecontext.utils.toHashMapString
+import app.twallet.air.walletbasecontext.utils.toJSONString
+import app.twallet.air.walletcontext.WalletContextManager
+import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
+import app.twallet.air.walletcontext.secureStorage.WSecureStorage
+import app.twallet.air.walletcontext.utils.ensureMainThread
+import app.twallet.air.walletcore.models.MBridgeError
+import app.twallet.air.walletcore.models.MToken
+import app.twallet.air.walletcore.models.blockchain.MBlockchain
+import app.twallet.air.walletcore.moshi.ApiNft
+import app.twallet.air.walletcore.moshi.MApiSwapAsset
+import app.twallet.air.walletcore.moshi.MApiTransaction
+import app.twallet.air.walletcore.moshi.MUpdateStaking
+import app.twallet.air.walletcore.moshi.api.ApiUpdate
+import app.twallet.air.walletcore.stores.AccountStore
+import app.twallet.air.walletcore.stores.ActivityStore
+import app.twallet.air.walletcore.stores.BalanceStore
+import app.twallet.air.walletcore.stores.ConfigStore
+import app.twallet.air.walletcore.stores.EnvironmentStore
+import app.twallet.air.walletcore.stores.NftStore
+import app.twallet.air.walletcore.stores.StakingStore
+import app.twallet.air.walletcore.stores.TokenStore
+import java.lang.reflect.Type
+import java.math.BigInteger
+
+const val INIT_SCRIPT =
+    "window.airBridge.initApi((data) => {androidApp.onUpdate(JSON.stringify(data))}, {isAndroidApp: true})"
+
+@SuppressLint("SetJavaScriptEnabled")
+class JSWebViewBridge(context: Context) : WebView(context) {
+
+    init {
+        id = generateViewId()
+    }
+
+    internal fun setupBridge(onBridgeReady: () -> Unit) {
+        setWebContentsDebuggingEnabled(DEBUG_MODE)
+        settings.javaScriptEnabled = true
+        settings.domStorageEnabled = true
+        settings.allowFileAccessFromFileURLs = false
+        settings.allowUniversalAccessFromFileURLs = false
+        settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+
+        settings.setRenderPriority(WebSettings.RenderPriority.LOW)
+        val webViewVersion = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WebViewCompat.getCurrentWebViewPackage(context)?.versionName
+        } else {
+            ""
+        }
+
+        Logger.d(Logger.LogTag.JS_WEBVIEW_BRIDGE, "setupBridge: WebViewVersion=$webViewVersion")
+
+        loadUrl("file:///android_asset/js/index.html")
+
+        addJavascriptInterface(JsWebInterface(this), "androidApp")
+        webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                post {
+                    injectIfNeeded(onBridgeReady)
+                }
+            }
+
+            override fun onRenderProcessGone(
+                view: WebView?,
+                detail: RenderProcessGoneDetail?
+            ): Boolean {
+                val didCrash = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                    detail?.didCrash() else null
+                Logger.e(
+                    Logger.LogTag.JS_WEBVIEW_BRIDGE,
+                    "onRenderProcessGone: didCrash=$didCrash"
+                )
+                isRenderProcessGone = true
+                injecting = false
+                injected = false
+                failPendingCallbacks()
+                WalletCore.onBridgeRenderProcessGone(this@JSWebViewBridge)
+                return true
+            }
+        }
+    }
+
+    var isRenderProcessGone: Boolean = false
+        private set
+
+    private var injecting: Boolean = false
+    var injected: Boolean = false
+        private set
+
+    private fun injectIfNeeded(onBridgeReady: () -> Unit) {
+        if (injecting || injected)
+            return
+        injecting = true
+
+        // Inject the init script
+        evaluateJavascript(INIT_SCRIPT) { res ->
+            if (res.equals("null")) {
+                injected = true
+                onBridgeReady()
+                EnvironmentStore.loadEnvVariable()
+            } else {
+                Handler(context.mainLooper).postDelayed({
+                    injectIfNeeded(onBridgeReady)
+                }, 500)
+            }
+        }
+    }
+
+    private var callIdentifier: Int = 0
+    private var callbacks: HashMap<Int, (result: String?, error: MBridgeError?) -> Unit> =
+        hashMapOf()
+
+    private fun failPendingCallbacks() {
+        val pending = callbacks.values.toList()
+        callbacks.clear()
+        for (callback in pending) {
+            callback(null, MBridgeError.UNKNOWN)
+        }
+    }
+
+    internal fun callApi(
+        methodName: String,
+        args: String,
+        callback: (result: String?, error: MBridgeError?) -> Unit
+    ) {
+        callIdentifier += 1
+        val thisCallIdentifier = callIdentifier
+        callbacks[thisCallIdentifier] = callback
+        val script = "if (!window.airBridge?.callApi) {\n" +
+            "androidApp.callback(${thisCallIdentifier}, false, 'airBridge not working!');" +
+            "} else {" +
+            "   let call = window.airBridge.callApi('$methodName',...JSON.parse(${
+                JSONObject.quote(args)
+            }, window.airBridge.bigintReviver));" +
+            "   if (call?.then) {" +
+            "       call.then((res) => {" +
+            "           if (res?.error || res?.err) {" +
+            "               androidApp.callback(${thisCallIdentifier}, false, JSON.stringify(res))" +
+            "           } else {" +
+            "               androidApp.callback(${thisCallIdentifier}, true, JSON.stringify(res))" +
+            "       }})" +
+            "       .catch((e) => {console.log(e);androidApp.callback(${thisCallIdentifier}, false, JSON.stringify(e))})" +
+            "   } else {" +
+            "       androidApp.callback(${thisCallIdentifier}, true, JSON.stringify(call))" +
+            "   }" +
+            "}"
+        evaluateJavascript(script) { }
+    }
+
+    class JsWebInterface(val bridge: JSWebViewBridge) {
+        @JavascriptInterface
+        fun logDebugError(tag: String, args: String) {
+            Logger.e(Logger.LogTag.JS_DEBUG_ERROR, "[$tag] $args")
+        }
+
+        @JavascriptInterface
+        fun callback(identifier: Int, success: Boolean, result: String) {
+            bridge.post {
+                val callback = bridge.callbacks[identifier]
+                if (success) {
+                    bridge.callbacks[identifier]?.invoke(result, null)
+                } else {
+                    try {
+                        val obj = JSONObject(result)
+                        val errorObj = obj.optJSONObject("error")
+                            ?: obj.optJSONObject("err")
+                        val errorName = errorObj?.optString("name")
+                            ?: obj.optString("error").takeIf { it.isNotBlank() }
+                            ?: obj.optString("name")
+                        if (errorName != null) {
+                            val bridgeError =
+                                MBridgeError.entries.firstOrNull { it.errorName == errorName }
+                            if (bridgeError != null) {
+                                callback?.invoke(result, bridgeError)
+                                return@post
+                            }
+                        }
+                        val displayError = errorObj?.optString("displayError")
+                        if (displayError != null) {
+                            val err = MBridgeError.UNKNOWN
+                            err.customMessage = displayError
+                            callback?.invoke(result, err)
+                            return@post
+                        }
+                    } catch (_: Exception) {
+                    }
+                    callback?.invoke(result, MBridgeError.UNKNOWN)
+                }
+                bridge.callbacks.remove(identifier)
+            }
+        }
+
+        private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+        private fun peekUpdateType(updateString: String): String? {
+            val reader = JsonReader.of(Buffer().writeUtf8(updateString))
+            return try {
+                if (reader.peek() != JsonReader.Token.BEGIN_OBJECT) return null
+                reader.beginObject()
+                while (reader.hasNext()) {
+                    if (reader.nextName() == "type") {
+                        return if (reader.peek() == JsonReader.Token.STRING) reader.nextString() else null
+                    }
+                    reader.skipValue()
+                }
+                null
+            } catch (_: Throwable) {
+                null
+            } finally {
+                try {
+                    reader.close()
+                } catch (_: Throwable) {
+                }
+            }
+        }
+
+        private fun streamUpdateTokens(updateString: String) {
+            val reader = JsonReader.of(Buffer().writeUtf8(updateString))
+            try {
+                reader.beginObject()
+                while (reader.hasNext()) {
+                    if (reader.nextName() != "tokens") {
+                        reader.skipValue()
+                        continue
+                    }
+                    if (reader.peek() != JsonReader.Token.BEGIN_OBJECT) {
+                        reader.skipValue()
+                        continue
+                    }
+                    reader.beginObject()
+                    while (reader.hasNext()) {
+                        val slug = reader.nextName()
+                        val tokenJsonString = reader.nextSource().readUtf8()
+                        try {
+                            val token = MToken(JSONObject(tokenJsonString))
+                            TokenStore.setToken(slug, token)
+                        } catch (_: Throwable) {
+                        }
+                    }
+                    reader.endObject()
+                }
+            } catch (_: Throwable) {
+                Logger.e(
+                    Logger.LogTag.JS_WEBVIEW_BRIDGE,
+                    "streamUpdateSwapTokens: Error parsing tokens"
+                )
+            } finally {
+                try {
+                    reader.close()
+                } catch (_: Throwable) {
+                }
+            }
+            TokenStore.updateTokensCache()
+            BalanceStore.resetBalanceInBaseCurrency()
+            Handler(Looper.getMainLooper()).post {
+                WalletCore.notifyEvent(WalletEvent.TokensChanged)
+            }
+        }
+
+        private fun streamUpdateSwapTokens(updateString: String) {
+            val reader = JsonReader.of(Buffer().writeUtf8(updateString))
+            val tokens = ArrayList<MToken>()
+            try {
+                reader.beginObject()
+                while (reader.hasNext()) {
+                    if (reader.nextName() != "tokens") {
+                        reader.skipValue()
+                        continue
+                    }
+                    if (reader.peek() != JsonReader.Token.BEGIN_OBJECT) {
+                        reader.skipValue()
+                        continue
+                    }
+                    reader.beginObject()
+                    while (reader.hasNext()) {
+                        reader.nextName()
+                        val tokenJsonString = reader.nextSource().readUtf8()
+                        try {
+                            tokens.add(MToken(JSONObject(tokenJsonString)))
+                        } catch (_: Throwable) {
+                        }
+                    }
+                    reader.endObject()
+                }
+            } catch (_: Throwable) {
+                Logger.e(
+                    Logger.LogTag.JS_WEBVIEW_BRIDGE,
+                    "streamUpdateSwapTokens: Error parsing tokens"
+                )
+                return
+            } finally {
+                try {
+                    reader.close()
+                } catch (_: Throwable) {
+                }
+            }
+            TokenStore.setSwapAssets(tokens)
+            TokenStore.updateSwapCache()
+            Handler(Looper.getMainLooper()).post {
+                TokenStore.isLoadingSwapAssets = false
+                WalletCore.notifyEvent(WalletEvent.TokensChanged)
+            }
+        }
+
+        @Deprecated("Use moshi ApiUpdate")
+        private fun parseUpdate(updateString: String) {
+            val updateType = peekUpdateType(updateString) ?: return
+            when (updateType) {
+                "updateTokens" -> {
+                    streamUpdateTokens(updateString)
+                    return
+                }
+
+                "updateSwapTokens" -> {
+                    streamUpdateSwapTokens(updateString)
+                    return
+                }
+            }
+            val objectJSONObject = JSONObject(updateString)
+            when (updateType) {
+                "updateBalances" -> {
+                    val accountId = objectJSONObject.optString("accountId")
+                    Handler(Looper.getMainLooper()).post {
+                        val balances = HashMap<String, BigInteger>()
+                        scope.launch {
+                            val balancesToUpdate =
+                                objectJSONObject.optJSONObject("balances")
+                                    ?: return@launch
+                            for (token in balancesToUpdate.keys()) {
+                                val valueString: String =
+                                    balancesToUpdate.optString(token).substringAfter("bigint:")
+                                val value =
+                                    if (valueString.isNotEmpty()) valueString.toBigInteger() else BigInteger.valueOf(
+                                        0
+                                    )
+                                balances[token] = value
+                            }
+                            withContext(Dispatchers.Main) {
+                                BalanceStore.setBalances(accountId, balances, false) {
+                                    if (AccountStore.activeAccount?.accountId != accountId) {
+                                        WalletCore.notifyEvent(WalletEvent.NotActiveAccountBalanceChanged)
+                                    } else {
+                                        WalletCore.notifyEvent(WalletEvent.BalanceChanged)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                "updatingStatus" -> {
+                    val kind = objectJSONObject.optString("kind")
+                    Handler(Looper.getMainLooper()).post {
+                        when (kind) {
+                            "activities" -> {
+                                AccountStore.updatingActivities =
+                                    objectJSONObject.optBoolean("isUpdating")
+                            }
+
+                            "balance" -> {
+                                AccountStore.updatingBalance =
+                                    objectJSONObject.optBoolean("isUpdating")
+                            }
+                        }
+                        Handler(Looper.getMainLooper()).post {
+                            WalletCore.notifyEvent(WalletEvent.UpdatingStatusChanged)
+                        }
+                    }
+                }
+
+                "newLocalActivities" -> {
+                    val accountId = objectJSONObject.optString("accountId")
+                    if (AccountStore.activeAccount?.accountId != accountId) {
+                        return
+                    }
+                    val transactionJSONArray = objectJSONObject.optJSONArray("activities") ?: return
+                    val localTransactions = ArrayList<MApiTransaction>()
+                    for (index in 0..<transactionJSONArray.length()) {
+                        val transactionObj = transactionJSONArray.getJSONObject(index)
+                        val transaction = MApiTransaction.fromJson(transactionObj)
+                        if (transaction == null) {
+                            Logger.e(
+                                Logger.LogTag.JS_WEBVIEW_BRIDGE,
+                                "newLocalActivities: dropped unparsable activity"
+                            )
+                            throw Exception()
+                        }
+                        localTransactions.add(transaction)
+                    }
+                    ActivityStore.receivedLocalTransactions(
+                        accountId,
+                        localTransactions.toTypedArray()
+                    )
+                    WalletCore.notifyEvent(
+                        WalletEvent.NewLocalActivities(
+                            accountId,
+                            localTransactions
+                        )
+                    )
+                }
+
+                "newActivities" -> {
+                    val accountId = objectJSONObject.optString("accountId")
+                    if (AccountStore.activeAccount?.accountId != accountId) {
+                        return
+                    }
+                    val transactionJSONArray =
+                        objectJSONObject.optJSONArray("activities") ?: JSONArray()
+                    val pendingTransactionsJSONArray =
+                        objectJSONObject.optJSONArray("pendingActivities") ?: JSONArray()
+                    try {
+                        val transactions = ArrayList<MApiTransaction>()
+                        for (index in 0..<transactionJSONArray.length()) {
+                            val transactionObj = transactionJSONArray.getJSONObject(index)
+                            val transaction = MApiTransaction.fromJson(transactionObj)
+                            if (transaction == null) {
+                                Logger.e(
+                                    Logger.LogTag.JS_WEBVIEW_BRIDGE,
+                                    "newActivities: dropped unparsable activity"
+                                )
+                                throw Exception()
+                            }
+                            transactions.add(transaction)
+                        }
+                        val pendingTransactions = ArrayList<MApiTransaction>()
+                        for (index in 0..<pendingTransactionsJSONArray.length()) {
+                            val transactionObj = pendingTransactionsJSONArray.getJSONObject(index)
+                            val transaction = MApiTransaction.fromJson(transactionObj)
+                            if (transaction == null) {
+                                Logger.e(
+                                    Logger.LogTag.JS_WEBVIEW_BRIDGE,
+                                    "newActivities: dropped unparsable pending activity"
+                                )
+                                throw Exception()
+                            }
+                            pendingTransactions.add(transaction)
+                        }
+                        if (pendingTransactions.isNotEmpty()) {
+                            Handler(Looper.getMainLooper()).post {
+                                WalletCore.notifyEvent(
+                                    WalletEvent.ReceivedPendingActivities(
+                                        accountId,
+                                        pendingTransactions
+                                    )
+                                )
+                            }
+                        }
+                        ActivityStore.newActivities(
+                            context = bridge.context,
+                            accountId = accountId,
+                            newActivities = transactions,
+                            pendingActivities = pendingTransactions
+                        )
+                    } catch (e: Error) {
+                        e.printStackTrace()
+                    }
+                }
+
+                "updateStaking" -> {
+                    val accountId = objectJSONObject.optString("accountId")
+
+                    val stakingAdapter: JsonAdapter<MUpdateStaking> =
+                        WalletCore.moshi.adapter(MUpdateStaking::class.java)
+                    val stakingData = stakingAdapter.fromJson(updateString)
+                    StakingStore.setStakingState(accountId, stakingData)
+
+                    ensureMainThread {
+                        WalletCore.notifyEvent(WalletEvent.StakingDataUpdated)
+                    }
+                }
+
+                "updateNfts" -> {
+                    val accountId = objectJSONObject.optString("accountId")
+                    val collectionAddress = objectJSONObject.optString("collectionAddress")
+                    val chainRaw = objectJSONObject.optString("chain")
+                    val chain = MBlockchain.valueOfOrNull(chainRaw)
+                    val isFullLoading = objectJSONObject.opt("isFullLoading") as? Boolean
+                    val streamedAddresses =
+                        objectJSONObject.optJSONArray("streamedAddresses")?.let { array ->
+                            buildSet {
+                                for (index in 0 until array.length()) {
+                                    add(array.optString(index))
+                                }
+                            }
+                        }
+                    val shouldAppend = collectionAddress.isNotEmpty() || isFullLoading == true
+                    ensureMainThread {
+                        NftStore.checkCardNftOwnership(accountId)
+                    }
+                    val nftsJSONArray =
+                        objectJSONObject.optJSONArray("nfts") ?: return
+                    val nfts = ArrayList<ApiNft>()
+                    for (index in 0..<nftsJSONArray.length()) {
+                        val nft = ApiNft.fromJson(nftsJSONArray.getJSONObject(index))
+                        if (nft == null) {
+                            Logger.e(
+                                Logger.LogTag.JS_WEBVIEW_BRIDGE,
+                                "nfts: dropped unparsable nft"
+                            )
+                            throw Exception()
+                        }
+                        nfts.add(nft)
+                    }
+                    if (collectionAddress.isNotEmpty()) {
+                        ensureMainThread {
+                            WalletCore.notifyEvent(
+                                WalletEvent.CollectionNftsReceived(
+                                    accountId,
+                                    collectionAddress,
+                                    nfts
+                                )
+                            )
+                        }
+                        return
+                    }
+                    if (AccountStore.activeAccount?.accountId != accountId) {
+                        return
+                    }
+                    ensureMainThread {
+                        NftStore.setNfts(
+                            chain,
+                            nfts,
+                            accountId = accountId,
+                            notifyObservers = true,
+                            isReorder = false,
+                            shouldAppend = shouldAppend,
+                            preserveExistingOnConflict = shouldAppend,
+                            streamedAddresses = streamedAddresses
+                        )
+                    }
+                }
+
+                "nftReceived" -> {
+                    val accountId = objectJSONObject.optString("accountId")
+                    val nft = objectJSONObject
+                        .optJSONObject("nft")
+                        ?.let(ApiNft::fromJson)
+                        ?: return
+                    ensureMainThread {
+                        NftStore.checkCardNftOwnership(accountId)
+                        NftStore.applyIncomingMtwCard(accountId, nft)
+                        if (AccountStore.activeAccount?.accountId != accountId) {
+                            return@ensureMainThread
+                        }
+                        NftStore.add(accountId, nft)
+                    }
+                }
+
+                "nftSent" -> {
+                    val accountId = objectJSONObject.optString("accountId")
+                    val nftAddress = objectJSONObject.optString("nftAddress")
+                    ensureMainThread {
+                        NftStore.checkCardNftOwnership(accountId)
+                        NftStore.pruneOwnedMtwCardAddress(accountId, nftAddress)
+                        if (AccountStore.activeAccount?.accountId != accountId) {
+                            return@ensureMainThread
+                        }
+                        NftStore.removeByAddress(accountId, nftAddress)
+                    }
+                }
+
+                "updateConfig" -> {
+                    val configAdapter: JsonAdapter<Map<String, Any>> =
+                        WalletCore.moshi.adapter(
+                            Types.newParameterizedType(
+                                Map::class.java,
+                                String::class.java,
+                                Any::class.java
+                            )
+                        )
+                    val configMapString = configAdapter.fromJson(updateString)
+                    ConfigStore.init(configMapString)
+                    ensureMainThread {
+                        WalletCore.notifyEvent(WalletEvent.ConfigReceived)
+                    }
+                }
+
+                "updateAccountConfig" -> {
+                    val accountId = objectJSONObject.optString("accountId")
+                    val accountConfig = objectJSONObject.optJSONObject("accountConfig") ?: return
+                    ensureMainThread {
+                        WGlobalStorage.setAccountConfig(accountId, accountConfig)
+                        WalletCore.notifyEvent(WalletEvent.AccountConfigReceived)
+                    }
+                }
+
+                "updateAccountDomainData" -> {
+                    val accountId = objectJSONObject.optString("accountId")
+                    if (AccountStore.activeAccount?.accountId != accountId) {
+                        return
+                    }
+                    val expirationByAddress =
+                        objectJSONObject.optJSONObject("expirationByAddress")?.toHashMapLong()
+                    val linkedAddresses =
+                        objectJSONObject.optJSONObject("linkedAddressByAddress")?.toHashMapString()
+                    ensureMainThread {
+                        NftStore.setExpirationByAddress(
+                            accountId,
+                            expirationByAddress
+                        )
+                        NftStore.setLinkedAddressByAddress(
+                            accountId,
+                            linkedAddresses
+                        )
+                        WalletCore.notifyEvent(WalletEvent.NftDomainDataUpdated)
+                    }
+                }
+
+                "openUrl" -> {
+                    val rawUrl = objectJSONObject.optString("url").takeIfNotBlank() ?: return
+                    val url = rawUrl.decodeUrlOrNull() ?: return
+                    val isExternal = objectJSONObject.optBoolean("isExternal", false)
+                    ensureMainThread {
+                        WalletCore.notifyEvent(WalletEvent.OpenUrl(url, isExternal))
+                    }
+                }
+
+                "showError" -> {
+                    val error = objectJSONObject.optString("error").takeIfNotBlank()
+                    ensureMainThread {
+                        WalletContextManager.delegate?.get()?.showError(error)
+                    }
+                }
+
+                else -> {}
+            }
+        }
+
+        @JavascriptInterface
+        fun onUpdate(updateString: String) {
+            scope.launch {
+
+                parseUpdate(updateString)
+
+                // New Approach
+                val adapter = WalletCore.moshi.adapter(ApiUpdate::class.java)
+                try {
+                    val update = adapter.fromJson(updateString) ?: return@launch
+                    WalletCore.notifyApiUpdate(update)
+                    // return@execute
+                } catch (_: Throwable) {
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun nativeCall(
+            requestNumber: Int,
+            methodName: String,
+            arg0: String,
+            arg1: String?
+        ) {
+            when (methodName) {
+                "airStorageGetItem" -> {
+                    val result = WSecureStorage.getSecValue(arg0)
+                    val resultInJs =
+                        if (result.isEmpty()) "null" else JSONObject.quote(result)
+                    val script =
+                        "window.airBridge.nativeCallCallbacks[$requestNumber]?.({ok: true, result: ${resultInJs}})"
+                    bridge.post {
+                        bridge.evaluateJavascript(script) {}
+                    }
+                }
+
+                "airStorageSetItem" -> {
+                    WSecureStorage.setSecValue(arg0, arg1 ?: "")
+                    val script =
+                        "window.airBridge.nativeCallCallbacks[$requestNumber]?.({ok: true})"
+                    bridge.post {
+                        bridge.evaluateJavascript(script) {}
+                    }
+                }
+
+                "airStorageRemoveItem" -> {
+                    WSecureStorage.setSecValue(arg0, "")
+                    val script =
+                        "window.airBridge.nativeCallCallbacks[$requestNumber]?.({ok: true})"
+                    bridge.post {
+                        bridge.evaluateJavascript(script) {}
+                    }
+                }
+
+                "airStorageKeys" -> {
+                    val resultInJs = WSecureStorage.getKeys().toJSONString
+                    val script =
+                        "window.airBridge.nativeCallCallbacks[$requestNumber]?.({ok: true, result: ${resultInJs}})"
+                    bridge.post {
+                        bridge.evaluateJavascript(script) {}
+                    }
+                }
+
+                "getLedgerDeviceModel" -> {
+                    WalletCore.notifyEvent(WalletEvent.LedgerDeviceModelRequest { responseJsonObject ->
+                        val script =
+                            "window.airBridge.nativeCallCallbacks[$requestNumber]?.({ok: true, result: $responseJsonObject})"
+                        bridge.post {
+                            bridge.evaluateJavascript(script) {}
+                        }
+                    })
+                }
+
+                "exchangeWithLedger" -> {
+                    WalletCore.notifyEvent(WalletEvent.LedgerWriteRequest(arg0) { response ->
+                        val quotedResponse = JSONObject.quote(response)
+                        val script =
+                            "window.airBridge.nativeCallCallbacks[$requestNumber]?.({ok: true, result: $quotedResponse})"
+                        bridge.post {
+                            bridge.evaluateJavascript(script) {}
+                        }
+                    })
+                }
+
+                else -> {
+                    throw RuntimeException("nativeCall $methodName not defined.")
+                }
+            }
+        }
+    }
+
+    class ApiError(
+        val methodName: String,
+        val raw: String?,
+        val parsed: MBridgeError,
+        val exception: Throwable? = null,
+        val parsedResult: Any? = null,
+    ) : Error("ApiError: $methodName-$raw")
+
+    suspend fun <T> callApiAsync(methodName: String, args: String, clazz: Type): T {
+        val result = callApiAsyncRaw(methodName, args, clazz)
+        return parseResult(methodName, args, result, clazz)
+    }
+
+    private suspend fun callApiAsyncRaw(methodName: String, args: String, clazz: Type): String =
+        suspendCancellableCoroutine { continuation ->
+            continuation.invokeOnCancellation { }
+            ensureMainThread {
+                callApi(methodName, args) { res, err ->
+                    if (continuation.isActive) {
+                        if (err != null) {
+                            continuation.resumeWith(
+                                Result.failure(
+                                    ApiError(
+                                        methodName = methodName,
+                                        raw = res,
+                                        parsed = err,
+                                        parsedResult = res?.let {
+                                            try {
+                                                parseResult(methodName, args, it, clazz)
+                                            } catch (_: Throwable) {
+                                                null
+                                            }
+                                        }
+                                    )
+                                )
+                            )
+                        } else {
+                            continuation.resumeWith(Result.success(res ?: ""))
+                        }
+                    }
+                }
+            }
+        }
+
+    fun <T> callApi(
+        methodName: String,
+        args: String,
+        clazz: Type,
+        callback: (String?, T?, ApiError?) -> Unit
+    ) {
+        callApi(methodName, args) { res, err ->
+            if (err != null) {
+                callback.invoke(
+                    res,
+                    null,
+                    ApiError(
+                        methodName = methodName,
+                        raw = res,
+                        parsed = err,
+                        parsedResult = try {
+                            parseResult<T>(methodName, args, res ?: "", clazz)
+                        } catch (_: Throwable) {
+                            null
+                        }
+                    )
+                )
+            } else {
+                val parsed = try {
+                    parseResult<T>(methodName, args, res ?: "", clazz)
+                } catch (e: ApiError) {
+                    callback.invoke(res, null, e)
+                    return@callApi
+                }
+                callback.invoke(res, parsed, null)
+            }
+        }
+    }
+
+    private fun <T> parseResult(methodName: String, args: String, result: String, clazz: Type): T {
+        if (result == "undefined") {
+            return null as T
+        }
+
+        val adapter: JsonAdapter<T> = WalletCore.moshi.adapter(clazz)
+
+        val parsed = try {
+            adapter.fromJson(result) as T
+        } catch (e: Throwable) {
+            if (e is CancellationException) {
+                throw e
+            }
+            throw ApiError(
+                methodName = methodName,
+                raw = result,
+                parsed = MBridgeError.PARSE_ERROR,
+                exception = e
+            )
+        }
+
+        return parsed
+    }
+}

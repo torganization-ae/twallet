@@ -10,7 +10,7 @@ kotlin {
 }
 
 android {
-    namespace = "org.mytonwallet.app_air.icons"
+    namespace = "app.twallet.air.icons"
     compileSdk = 36
 
     defaultConfig {

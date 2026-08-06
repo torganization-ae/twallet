@@ -66,7 +66,7 @@ function getUrl(appVersion?: string) {
   if (IS_ANDROID_DIRECT) {
     return appVersion
       ? `${APP_REPO_URL}/releases/download/v${encodeURIComponent(appVersion || '')}/${encodeURIComponent(APP_NAME)}.apk`
-      : 'https://github.com/mytonwallet-org/mytonwallet/releases/latest';
+      : `${APP_REPO_URL}/releases/latest`;
   }
 
   if (IS_CHROME_EXTENSION) {

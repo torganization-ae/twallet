@@ -1,4 +1,4 @@
-export type MfaWalletApp = 'gram' | 'mytonwallet';
+export type MfaWalletApp = 'twalletgram' | 'twallet';
 
 type MfaStartParam = {
   id?: string;
@@ -20,19 +20,19 @@ export function parseMfaStartParam(startParam?: string): MfaStartParam {
 }
 
 export function getMfaWalletAppInfo(walletApp: MfaWalletApp) {
-  return walletApp === 'gram'
-    ? { name: 'Gram Wallet', deeplink: 'https://go.gramwallet.io' }
-    : { name: 'My Wallet', deeplink: 'https://go.mytonwallet.org' };
+  return walletApp === 'twalletgram'
+    ? { name: 'Twallet Gram', deeplink: 'https://go.gramwallet.io' }
+    : { name: 'Twallet', deeplink: 'https://go.mytonwallet.org' };
 }
 
 function parseWalletPrefix(startParam?: string): Pick<MfaStartParam, 'id' | 'walletApp'> {
   if (startParam?.startsWith('g_')) {
-    return { id: startParam.slice(2), walletApp: 'gram' };
+    return { id: startParam.slice(2), walletApp: 'twalletgram' };
   }
 
   if (startParam?.startsWith('m_')) {
-    return { id: startParam.slice(2), walletApp: 'mytonwallet' };
+    return { id: startParam.slice(2), walletApp: 'twallet' };
   }
 
-  return { walletApp: 'mytonwallet' };
+  return { walletApp: 'twallet' };
 }

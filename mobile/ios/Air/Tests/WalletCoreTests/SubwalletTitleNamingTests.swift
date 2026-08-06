@@ -15,9 +15,9 @@ struct SubwalletTitleNamingTests {
     }
 
     static let baseTitleCases: [BaseTitleCase] = [
-        .init(title: "MyTonWallet", expected: "MyTonWallet"),
-        .init(title: "MyTonWallet .2", expected: "MyTonWallet"),
-        .init(title: "MyTonWallet.2", expected: "MyTonWallet"),
+        .init(title: "Twallet", expected: "Twallet"),
+        .init(title: "MyTonWallet .2", expected: "Twallet"),
+        .init(title: "MyTonWallet.2", expected: "Twallet"),
         .init(title: "My Wallet 2", expected: "My Wallet 2"),
         .init(title: "My Wallet 2.3", expected: "My Wallet 2"),
         .init(title: "Wallet.v4R2", expected: "Wallet.v4R2"),
@@ -25,18 +25,18 @@ struct SubwalletTitleNamingTests {
 
     static let nextTitleCases: [NextTitleCase] = [
         .init(
-            baseTitle: "MyTonWallet",
-            existingTitles: ["MyTonWallet"],
+            baseTitle: "Twallet",
+            existingTitles: ["Twallet"],
             expected: "MyTonWallet .2"
         ),
         .init(
-            baseTitle: "MyTonWallet",
-            existingTitles: ["MyTonWallet", "MyTonWallet .2"],
+            baseTitle: "Twallet",
+            existingTitles: ["Twallet", "MyTonWallet .2"],
             expected: "MyTonWallet .3"
         ),
         .init(
-            baseTitle: "MyTonWallet",
-            existingTitles: ["MyTonWallet", "MyTonWallet .2", "MyTonWallet.3"],
+            baseTitle: "Twallet",
+            existingTitles: ["Twallet", "MyTonWallet .2", "MyTonWallet.3"],
             expected: "MyTonWallet .4"
         ),
         .init(

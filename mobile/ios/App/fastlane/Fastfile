@@ -30,27 +30,27 @@ def build_meta_line(version)
   parts.join(' · ')
 end
 
-$variant = env_value('APP_VARIANT', 'mytonwallet').downcase
+$variant = env_value('APP_VARIANT', 'twallet').downcase
 $variant_config = {
-  'mytonwallet' => {
-    app_identifier: 'org.mytonwallet.app',
-    app_identifier_widget: 'org.mytonwallet.app.AirWidget',
-    profile_name: 'MyTonWallet Production profile',
-    profile_name_widget: 'MyTonWallet Production profile - Widget',
-    scheme: 'MyTonWallet',
+  'twallet' => {
+    app_identifier: 'app.twallet',
+    app_identifier_widget: 'app.twallet.AirWidget',
+    profile_name: 'Twallet Production profile',
+    profile_name_widget: 'Twallet Production profile - Widget',
+    scheme: 'Twallet',
     scheme_widget: 'AirWidgetExtension',
-    plist_path: '../../App/App/Resources/MyTonWallet/Info.plist',
-    testflight_group: 'MTW external group',
+    plist_path: '../../App/App/Resources/Twallet/Info.plist',
+    testflight_group: 'Twallet external group',
   },
-  'gram' => {
-    app_identifier: 'io.gramwallet.app',
-    app_identifier_widget: 'io.gramwallet.app.widget',
-    profile_name: 'Gram Wallet Production profile',
-    profile_name_widget: 'Gram Wallet Production profile - Widget',
-    scheme: 'GramWallet',
-    scheme_widget: 'GramWalletWidgetExtension',
-    plist_path: '../../App/App/Resources/GramWallet/Info.plist',
-    testflight_group: 'Gram Wallet external group',
+  'twalletgram' => {
+    app_identifier: 'app.twalletgram',
+    app_identifier_widget: 'app.twalletgram.widget',
+    profile_name: 'Twallet Gram Production profile',
+    profile_name_widget: 'Twallet Gram Production profile - Widget',
+    scheme: 'TwalletGram',
+    scheme_widget: 'TwalletGramWidgetExtension',
+    plist_path: '../../App/App/Resources/TwalletGram/Info.plist',
+    testflight_group: 'Twallet Gram external group',
   },
 }
 
@@ -189,12 +189,7 @@ platform :ios do
   lane :release do
     version, build_number = update_version_and_build_number
 
-    changelog_path = "../../../../changelogs/" + version + ".txt"
-    if !File.exist?(changelog_path)
-      raise "There is no changelog for version " + version
-    end
-
-    changelog = File.read(changelog_path)
+    changelog = "Bug fixes and performance improvements"
 
     build_app(
       workspace: $workspace_path,

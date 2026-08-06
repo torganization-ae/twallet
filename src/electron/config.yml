@@ -1,25 +1,19 @@
-productName: "My Wallet"
-# Without this key electron-builder derives the copyright from package.json `author`, which is the
-# legacy brand and shows up in the macOS About panel.
-copyright: "Copyright © 2026 My Wallet Apps Ltd."
+productName: "Twallet"
+# Without this key electron-builder derives the copyright from package.json `author`.
+copyright: "Copyright © 2026 Twallet"
 # Pinned by config.test.ts: change ONLY together with ARTIFACT_NAME_BASE in
 # package-and-publish.yml (workflow artifact names must match electron-builder output) and the
 # get.mywallet.io download page. Renaming is safe for installed clients: the update feed
 # (latest*.yml) and the files it points at are generated together into the same release, so old
 # clients download whatever name the new feed declares.
-artifactName: "MyWallet-${arch}.${ext}"
-appId: "io.mytonwallet.electron"
+artifactName: "Twallet-${arch}.${ext}"
+appId: "app.twallet.electron"
 extraMetadata:
   main: "./dist/electron.js"
-  # DO NOT RENAME. This is the sole source of `app.getName()`, which keys `app.getPath('userData')`
-  # (the IndexedDB holding every wallet) and the macOS keychain entry `<name> Safe Storage`. Turning
-  # on Touch ID re-encrypts the wallet under a random password whose only copy is sealed by that
-  # keychain entry, so losing the entry leaves the mnemonic undecryptable and the seed phrase the
-  # only way back. No migration exists, and any other value - including deleting the key, which
-  # falls back to package.json `name` ("mytonwallet") - strands existing desktop wallets.
-  # `CFBundleName` has no say in either path. The user-visible name is `productName` above, which
-  # never reaches the packaged package.json and is safe to change. Enforced by `config.test.ts`.
-  productName: "MyTonWallet"
+  # Sole source of `app.getName()`, which keys `app.getPath('userData')` (the IndexedDB holding every
+  # wallet) and the macOS keychain entry `<name> Safe Storage`. This is a hard fork — we do NOT carry
+  # over upstream desktop installs, so the identity is rebranded to Twallet and starts clean.
+  productName: "Twallet"
 files:
   - "dist"
   - "package.json"
@@ -28,9 +22,6 @@ files:
   - "public/icon-electron-windows.ico"
   - "public/icon-electron-macos.icns"
   - "!dist/get"
-  - "!dist/**/statoscope-build-statistics.json"
-  - "!dist/**/statoscope-report.html"
-  - "!dist/**/statoscope-reference.json"
   - "!node_modules"
 directories:
   buildResources: "./public"
@@ -40,18 +31,18 @@ protocols:
     schemes: ["ton"]
   - name: "TonConnect"
     schemes: ["tc"]
-  - name: "TonConnect My Wallet"
-    schemes: ["mytonwallet-tc"]
-  - name: "My Wallet"
+  - name: "TonConnect Twallet"
+    schemes: ["twallet-tc"]
+  - name: "Twallet"
     schemes: ["mtw"]
   - name: "WalletConnect"
     schemes: ["wc"]
-  - name: "WalletConnect My Wallet"
-    schemes: ["mywallet-wc"]
+  - name: "WalletConnect Twallet"
+    schemes: ["twallet-wc"]
 publish:
   provider: "github"
-  owner: "mytonwallet-org"
-  repo: "mytonwallet"
+  owner: "torganization-ae"
+  repo: "twallet"
   releaseType: "draft"
 win:
   target:
@@ -71,7 +62,7 @@ mac:
   icon: "public/icon-electron-macos.icns"
 
 dmg:
-  title: "My Wallet installer"
+  title: "Twallet installer"
   background: "public/background-electron-dmg.tiff"
   contents:
     - x: 148

@@ -10,7 +10,7 @@ kotlin {
 }
 
 android {
-    namespace = "org.mytonwallet.uihome"
+    namespace = "app.twallet.uihome"
     compileSdk = 36
 
     defaultConfig {

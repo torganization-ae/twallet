@@ -8,10 +8,10 @@ private let walletConnectPayDataCollectionHandlerName = "payDataCollectionComple
 
 private let walletConnectPayDataCollectionScript = """
 (function() {
-  if (window.__mytonwalletWalletConnectPayDataCollection) {
+  if (window.__twalletWalletConnectPayDataCollection) {
     return;
   }
-  window.__mytonwalletWalletConnectPayDataCollection = true;
+  window.__twalletWalletConnectPayDataCollection = true;
 
   function normalize(data) {
     if (typeof data === 'string') {

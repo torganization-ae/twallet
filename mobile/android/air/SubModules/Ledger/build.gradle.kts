@@ -11,7 +11,7 @@ kotlin {
 }
 
 android {
-    namespace = "org.mytonwallet.app_air.ledger"
+    namespace = "app.twallet.air.ledger"
     compileSdk = 36
 
     defaultConfig {

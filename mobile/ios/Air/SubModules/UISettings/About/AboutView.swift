@@ -46,7 +46,7 @@ struct AboutView: View {
 
     @ViewBuilder
     var headerIcon: some View {
-        if IS_GRAM_WALLET {
+        if IS_TWALLETGRAM_WALLET {
             WUISpeedingDiamondWithParticles(
                 diamondSize: 96,
                 particleSize: CGSize(width: 258, height: 170)
@@ -69,7 +69,7 @@ struct AboutView: View {
     
     var resources: some View {
         InsetSection(dividersInset: 46) {
-            if !IS_GRAM_WALLET {
+            if !IS_TWALLETGRAM_WALLET {
                 Item(
                     icon: "PlayIcon",
                     text: lang("Watch Video about Features"),

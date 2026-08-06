@@ -10,7 +10,7 @@ kotlin {
 }
 
 android {
-    namespace = "org.mytonwallet.n.utils"
+    namespace = "app.twallet.n.utils"
     compileSdk = 36
 
     defaultConfig {

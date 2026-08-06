@@ -1,7 +1,7 @@
 declare global {
   interface Window {
     solana: {
-      isMyTonWallet: boolean;
+      isTwallet: boolean;
       publicKey: Uint8Array<ArrayBuffer> | null;
       isConnected: boolean;
       connect: (options: any) => Promise<{
@@ -97,7 +97,7 @@ export function registerSolanaInjectedWallet(connector: SolanaStandardWallet) {
 
   if (!window.solana) {
     window.solana = {
-      isMyTonWallet: true, // maybe it helps, who knows
+      isTwallet: true, // maybe it helps, who knows
       // eslint-disable-next-line no-null/no-null
       publicKey: null,
       isConnected: false,

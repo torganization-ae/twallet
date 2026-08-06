@@ -929,7 +929,7 @@ export function initConnector(
       }
 
       readonly provider = {
-        isMyTonWallet: true,
+        isTwallet: true,
         request: (reqArgs: any) => this.request(reqArgs),
         on: (event: string, handler: (...args: unknown[]) => void) => {
           this.addListener(event as Eip1193Event, handler);
@@ -952,7 +952,7 @@ export function initConnector(
           : `evm-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
         name: appName,
         icon: `data:image/svg+xml,${encodeURIComponent(icon)}`,
-        rdns: 'app.mywallet',
+        rdns: 'app.twallet',
       },
       provider: evm.provider,
     });

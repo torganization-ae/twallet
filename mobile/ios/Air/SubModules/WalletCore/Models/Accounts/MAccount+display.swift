@@ -41,7 +41,7 @@ public extension MAccount {
 
     var telegramAvatarUrl: URL? {
         guard
-            IS_GRAM_WALLET,
+            IS_TWALLETGRAM_WALLET,
             let domain = byChain[ApiChain.ton.rawValue]?.domain?.nilIfEmpty,
             let username = Self.telegramUsername(fromDomain: domain)
         else {
@@ -193,18 +193,18 @@ public extension MAccount {
         }
     }
 
-    func addressLine(orderedChains: [(ApiChain, AccountChain)], tokenChains: Set<ApiChain>? = nil, isGramWallet: Bool = IS_GRAM_WALLET) -> AddressLine {
+    func addressLine(orderedChains: [(ApiChain, AccountChain)], tokenChains: Set<ApiChain>? = nil, isTwalletGramWallet: Bool = IS_TWALLETGRAM_WALLET) -> AddressLine {
         let orderedChains = Self.addressLineChains(
             orderedChains: orderedChains,
             tokenChains: tokenChains,
-            isGramWallet: isGramWallet
+            isTwalletGramWallet: isTwalletGramWallet
         )
         return makeAddressLine(orderedChains: orderedChains)
     }
 
-    static func addressLineChains(orderedChains: [(ApiChain, AccountChain)], tokenChains: Set<ApiChain>?, isGramWallet: Bool) -> [(ApiChain, AccountChain)] {
+    static func addressLineChains(orderedChains: [(ApiChain, AccountChain)], tokenChains: Set<ApiChain>?, isTwalletGramWallet: Bool) -> [(ApiChain, AccountChain)] {
         guard
-            isGramWallet,
+            isTwalletGramWallet,
             let tokenChains,
             tokenChains.subtracting([.ton]).isEmpty,
             let tonChain = orderedChains.first(where: { $0.0 == .ton })

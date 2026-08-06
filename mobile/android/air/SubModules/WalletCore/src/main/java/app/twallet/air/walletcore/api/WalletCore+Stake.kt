@@ -1,0 +1,73 @@
+package app.twallet.air.walletcore.api
+
+import com.squareup.moshi.Types
+import org.json.JSONObject
+import app.twallet.air.walletcore.WalletCore
+import app.twallet.air.walletcore.moshi.ApiSubmitTransferResult
+import app.twallet.air.walletcore.moshi.MStakeHistoryItem
+import app.twallet.air.walletcore.moshi.MStakingStateResponse
+import app.twallet.air.walletcore.moshi.StakingState
+import app.twallet.air.walletcore.moshi.api.ApiMethod
+import java.math.BigInteger
+
+
+suspend fun WalletCore.getBackendStakingState(accountId: String) = run {
+    val quotedAccountId = JSONObject.quote(accountId)
+
+    requiredBridge.callApiAsync<MStakingStateResponse>(
+        "getStakingState",
+        "[$quotedAccountId]",
+        MStakingStateResponse::class.java
+    )
+}
+
+suspend fun WalletCore.getStakingHistory(
+    accountId: String,
+) = run {
+    val quotedAccountId = JSONObject.quote(accountId)
+
+    requiredBridge.callApiAsync<List<MStakeHistoryItem>>(
+        "getStakingHistory",
+        "[$quotedAccountId]",
+        Types.newParameterizedType(List::class.java, MStakeHistoryItem::class.java)
+    )
+}
+
+suspend fun WalletCore.submitStake(
+    accountId: String,
+    amount: BigInteger,
+    stakingState: StakingState,
+    passcode: String,
+    realFee: BigInteger,
+) = run {
+    val quotedAccountId = JSONObject.quote(accountId)
+    val quotedPasscode = JSONObject.quote(passcode)
+    val stakingStateArgument = moshi.adapter(StakingState::class.java).toJson(stakingState)
+    val args =
+        "[$quotedAccountId,$quotedPasscode,\"bigint:$amount\",$stakingStateArgument,\"bigint:$realFee\"]"
+    requiredBridge.callApiAsync<ApiSubmitTransferResult>(
+        "submitStake",
+        args,
+        ApiSubmitTransferResult::class.java
+    )
+}
+
+suspend fun WalletCore.submitUnstake(
+    accountId: String,
+    amount: BigInteger,
+    stakingState: StakingState,
+    passcode: String,
+    realFee: BigInteger,
+) = run {
+    val unstakeDraft = call(ApiMethod.Staking.CheckUnstakeDraft(accountId, amount, stakingState))
+    val quotedAccountId = JSONObject.quote(accountId)
+    val quotedPasscode = JSONObject.quote(passcode)
+    val argumentStakingState = moshi.adapter(StakingState::class.java).toJson(stakingState)
+    val args =
+        "[$quotedAccountId,$quotedPasscode,\"bigint:${unstakeDraft.tokenAmount}\",$argumentStakingState,\"bigint:$realFee\"]"
+    requiredBridge.callApiAsync<ApiSubmitTransferResult>(
+        "submitUnstake",
+        args,
+        ApiSubmitTransferResult::class.java
+    )
+}

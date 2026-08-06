@@ -5,7 +5,7 @@ import type {
 } from '../api/types';
 import type { Account, AccountSettings, GlobalState } from '../global/types';
 
-import { IS_GRAM_WALLET } from '../config';
+import { IS_TWALLETGRAM_WALLET } from '../config';
 import {
   selectMultipleAccountsStakingStatesSlow,
   selectMultipleAccountsTokensSlow,
@@ -69,7 +69,7 @@ export function useMultipleAccountsBalances({
   // The same accounts with `byChain` narrowed for address display (see `getAddressDisplayByChain`).
   // While no account is narrowed, the `filteredAccounts` identity survives so memoized consumers keep their cache.
   const displayedAccounts = useMemo(() => {
-    if (!IS_GRAM_WALLET || !filteredAccounts) return filteredAccounts;
+    if (!IS_TWALLETGRAM_WALLET || !filteredAccounts) return filteredAccounts;
 
     let isNarrowed = false;
     const narrowed = filteredAccounts.map(([accountId, account]): [string, Account] => {

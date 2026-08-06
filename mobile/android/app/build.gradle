@@ -8,7 +8,7 @@ android {
       useLegacyPackaging = true
     }
   }
-  namespace = "org.mytonwallet.app"
+  namespace = "app.twallet"
   compileSdk = rootProject.ext.compileSdkVersion
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_21
@@ -51,14 +51,14 @@ android {
 
   flavorDimensions "brand", "env"
   productFlavors {
-    mytonwallet {
+    twallet {
       dimension "brand"
-      applicationId "org.mytonwallet.app"
+      applicationId "app.twallet"
       getIsDefault().set(true)
     }
-    gram {
+    twalletgram {
       dimension "brand"
-      applicationId "io.gramwallet.app"
+      applicationId "app.twalletgram"
     }
     prod {
       dimension "env"

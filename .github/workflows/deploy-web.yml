@@ -1,0 +1,146 @@
+# Deploys the production web build into a GitHub Pages (or static-hosting) repo.
+#
+# Trigger: push to release/* with a commit-message marker, or workflow_dispatch.
+#   [web-deploy]       dry-run (build + prepare commit, no push)
+#   [web-deploy:live]  real deploy
+#
+# Required (repo Settings → Secrets / Variables):
+#   secrets.WEB_DEPLOY_TOKEN     PAT or fine-grained token with Contents:write on the target repo
+#   vars.WEB_DEPLOY_TARGET_REPO  e.g. torganization-ae/twallet-web
+#
+# Optional:
+#   vars.WEB_DEPLOY_TARGET_BRANCH  default: master
+#   vars.WEB_DEPLOY_PATH           path inside the target repo (default: docs)
+#   vars.WEB_DEPLOY_BUILD_CMD      default: npm run build:production
+
+name: Deploy web
+
+on:
+  push:
+    branches:
+      - 'release/*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build + prepare only; skip the push"
+        type: boolean
+        default: true
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and publish web
+    runs-on: ubuntu-latest
+    if: >-
+      github.repository == 'torganization-ae/twallet' &&
+      (github.event_name == 'workflow_dispatch' ||
+       contains(github.event.head_commit.message, '[web-deploy'))
+    steps:
+      - name: Resolve deploy mode (dry-run vs live)
+        id: mode
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_DRY: ${{ inputs.dry_run }}
+          HEAD_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            DRY="$DISPATCH_DRY"
+          elif [[ "$HEAD_MSG" == *"[web-deploy:live]"* ]]; then
+            DRY=false
+          else
+            DRY=true
+          fi
+          echo "dry=$DRY" >> "$GITHUB_OUTPUT"
+          echo "Deploy mode: dry=$DRY (event=$EVENT_NAME)"
+
+      - name: Check deploy configuration
+        env:
+          TARGET_REPO: ${{ vars.WEB_DEPLOY_TARGET_REPO }}
+          DEPLOY_TOKEN: ${{ secrets.WEB_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$TARGET_REPO" ]; then
+            echo "Set repository variable WEB_DEPLOY_TARGET_REPO (e.g. torganization-ae/twallet-web)." >&2
+            exit 1
+          fi
+          if [ -z "$DEPLOY_TOKEN" ]; then
+            echo "Set repository secret WEB_DEPLOY_TOKEN (Contents:write on the target repo)." >&2
+            exit 1
+          fi
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: source
+
+      - name: Checkout deploy target
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.WEB_DEPLOY_TARGET_REPO }}
+          ref: ${{ vars.WEB_DEPLOY_TARGET_BRANCH || 'master' }}
+          fetch-depth: 0
+          token: ${{ secrets.WEB_DEPLOY_TOKEN }}
+          path: target
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: source/.node-version
+          cache: npm
+          cache-dependency-path: source/package-lock.json
+
+      - name: Install dependencies
+        working-directory: source
+        run: npm ci
+
+      - name: Build
+        working-directory: source
+        run: ${{ vars.WEB_DEPLOY_BUILD_CMD || 'npm run build:production' }}
+
+      - name: Configure git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Publish build into target
+        env:
+          DRY: ${{ steps.mode.outputs.dry }}
+          DEPLOY_PATH: ${{ vars.WEB_DEPLOY_PATH || 'docs' }}
+          TARGET_BRANCH: ${{ vars.WEB_DEPLOY_TARGET_BRANCH || 'master' }}
+          TARGET_REPO: ${{ vars.WEB_DEPLOY_TARGET_REPO }}
+        run: |
+          set -euo pipefail
+
+          SOURCE_SHA="$(git -C source rev-parse --short HEAD)"
+          SOURCE_BRANCH="$(git -C source rev-parse --abbrev-ref HEAD)"
+          VERSION="$(node -p "require('./source/package.json').version")"
+          REMOTE_TIP_SHA="$(git -C target rev-parse HEAD)"
+
+          cd target
+          git clean -fdx
+          rm -rf "$DEPLOY_PATH"
+          cp -R ../source/dist "$DEPLOY_PATH"
+
+          COMMIT_MSG="[Build] twallet web v${VERSION} (source ${SOURCE_BRANCH}@${SOURCE_SHA})"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+          git commit -m "$COMMIT_MSG"
+
+          BACKUP_REF="refs/backup/build-${REMOTE_TIP_SHA}"
+
+          if [ "$DRY" = "true" ]; then
+            echo "[dry-run] Would push backup ref ${BACKUP_REF}"
+            echo "[dry-run] Would force-with-lease push to origin/${TARGET_BRANCH}"
+            echo "[dry-run] Local commit: $(git log -1 --oneline)"
+            echo "[dry-run] Target repo: ${TARGET_REPO}"
+          else
+            git push origin "${REMOTE_TIP_SHA}:${BACKUP_REF}"
+            git push --force-with-lease="${TARGET_BRANCH}:${REMOTE_TIP_SHA}" origin "$TARGET_BRANCH"
+            echo "Published twallet web v${VERSION} → ${TARGET_REPO}@${TARGET_BRANCH}:${DEPLOY_PATH}"
+          fi

@@ -24,13 +24,13 @@ describe('Electron bundle identity', () => {
     // Electron reads `app.getName()` from the packaged package.json, which `extraMetadata` writes.
     // It resolves `~/Library/Application Support/<name>` (wallets live there) and the keychain entry
     // `<name> Safe Storage` (`secrets.ts`). Renaming it orphans both, with no migration path.
-    expect(config.extraMetadata.productName).toBe('MyTonWallet');
+    expect(config.extraMetadata.productName).toBe('Twallet');
   });
 
   it('keeps the appId', () => {
     // Codesign identity, the NSIS registry GUID that locates the existing install directory, and the
     // bundle Squirrel.Mac looks for inside an update. Changing it means a second, parallel install.
-    expect(config.appId).toBe('io.mytonwallet.electron');
+    expect(config.appId).toBe('app.twallet.electron');
   });
 
   it('keeps the artifact filenames in sync with the release workflow', () => {
@@ -38,6 +38,6 @@ describe('Electron bundle identity', () => {
     // workflow finds electron-builder output by these names: ARTIFACT_NAME_BASE in
     // package-and-publish.yml and the get.mywallet.io download page must move together with this.
     // eslint-disable-next-line no-template-curly-in-string
-    expect(config.artifactName).toBe('MyWallet-${arch}.${ext}');
+    expect(config.artifactName).toBe('Twallet-${arch}.${ext}');
   });
 });

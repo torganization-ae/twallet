@@ -20,7 +20,8 @@ const PBKDF2_DERIVE_KEY_ARGS = {
 const PBKDF2_DERIVE_KEY_TYPE = { name: 'AES-GCM', length: 256 };
 
 export function generateBip39Mnemonic() {
-  return bip39.generateMnemonic(128).split(' ');
+  // 256 bits of entropy produce a 24-word phrase; 12-word phrases remain importable but are never minted.
+  return bip39.generateMnemonic(256).split(' ');
 }
 
 export function validateBip39Mnemonic(mnemonic: string[]) {

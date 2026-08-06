@@ -1,10 +1,9 @@
 import './dev/loadEnv';
 
-import StatoscopeWebpackPlugin from '@statoscope/webpack-plugin';
 import HtmlPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
-import type { Compiler, Configuration } from 'webpack';
+import type { Configuration } from 'webpack';
 import {
   EnvironmentPlugin, IgnorePlugin, NormalModuleReplacementPlugin, ProvidePlugin,
 } from 'webpack';
@@ -176,36 +175,7 @@ export default function createConfig(
           return /.*\/wordlists\/(?!english).*\.json/.test(resource);
         },
       }),
-      new StatoscopeWebpackPlugin({
-        statsOptions: {
-          context: __dirname,
-        },
-        saveReportTo: path.join(destinationDir, 'statoscope-report.html'),
-        saveStatsTo: path.join(destinationDir, 'statoscope-build-statistics.json'),
-        normalizeStats: true,
-        open: 'file',
-        extensions: [new WebpackContextExtension()],
-      }),
     ],
     devtool: APP_ENV === 'development' ? 'source-map' : 'hidden-source-map',
   };
-}
-
-class WebpackContextExtension {
-  context: string;
-
-  constructor() {
-    this.context = '';
-  }
-
-  handleCompiler(compiler: Compiler) {
-    this.context = compiler.context;
-  }
-
-  getExtension() {
-    return {
-      descriptor: { name: 'custom-webpack-extension-context', version: '1.0.0' },
-      payload: { context: this.context },
-    };
-  }
 }

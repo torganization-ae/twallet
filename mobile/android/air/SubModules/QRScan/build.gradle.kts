@@ -10,7 +10,7 @@ kotlin {
 }
 
 android {
-    namespace = "org.mytonwallet.app_air.qrscan"
+    namespace = "app.twallet.air.qrscan"
     compileSdk = 36
 
     defaultConfig {

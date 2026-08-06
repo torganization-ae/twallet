@@ -16,7 +16,7 @@ module.exports = {
     '<rootDir>/headless/',
     '<rootDir>/mobile/',
   ],
-  // Repo copies in .claude/worktrees duplicate workspace packages (e.g. @mytonwallet/air-app-launcher)
+  // Repo copies in .claude/worktrees duplicate workspace packages (e.g. @twallet/air-app-launcher)
   // and break jest-haste-map module resolution
   modulePathIgnorePatterns: [
     '<rootDir>/.claude/',

@@ -26,21 +26,21 @@ def build_meta_line(version)
   parts.join(' · ')
 end
 
-$variant = env_value('APP_VARIANT', 'mytonwallet').downcase
+$variant = env_value('APP_VARIANT', 'twallet').downcase
 $variant_config = {
-  'mytonwallet' => {
-    package_name: 'org.mytonwallet.app',
+  'twallet' => {
+    package_name: 'app.twallet',
     firebase_app_id: '1:155616896352:android:2d448728d65b6d277eaa05',
-    beta_gradle_task: 'assembleMytonwalletBetaRelease',
-    release_gradle_task: 'bundleMytonwalletProdRelease',
-    direct_gradle_task: 'assembleMytonwalletProdRelease',
+    beta_gradle_task: 'assembleTwalletBetaRelease',
+    release_gradle_task: 'bundleTwalletProdRelease',
+    direct_gradle_task: 'assembleTwalletProdRelease',
   },
-  'gram' => {
-    package_name: 'io.gramwallet.app',
+  'twalletgram' => {
+    package_name: 'app.twalletgram',
     firebase_app_id: '1:155616896352:android:539fe0c1f3fc36fa7eaa05',
-    beta_gradle_task: 'assembleGramBetaRelease',
-    release_gradle_task: 'bundleGramProdRelease',
-    direct_gradle_task: 'assembleGramProdRelease',
+    beta_gradle_task: 'assembleTwalletgramBetaRelease',
+    release_gradle_task: 'bundleTwalletgramProdRelease',
+    direct_gradle_task: 'assembleTwalletgramProdRelease',
   },
 }
 

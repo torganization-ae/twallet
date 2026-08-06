@@ -156,7 +156,7 @@ private func makeCollectiblesMenuConfig(
         let accountId = accountStore.resolveAccountId(source: accountSource)
         let collections = NftStore.getCollections(accountId: accountId)
         let gifts = collections.telegramGiftsCollections
-        let telegramUsernames = IS_GRAM_WALLET
+        let telegramUsernames = IS_TWALLETGRAM_WALLET
             ? collections.notTelegramGiftsCollections.first {
                 $0.chain == .ton && $0.address == ApiNft.TELEGRAM_USERNAMES_COLLECTION_ADDRESS
             }
@@ -168,7 +168,7 @@ private func makeCollectiblesMenuConfig(
             if $0.chain == .ton && $0.address == MTW_CARDS_COLLECTION {
                 return false
             }
-            if IS_GRAM_WALLET && $0.chain == .ton && $0.address == ApiNft.TELEGRAM_USERNAMES_COLLECTION_ADDRESS {
+            if IS_TWALLETGRAM_WALLET && $0.chain == .ton && $0.address == ApiNft.TELEGRAM_USERNAMES_COLLECTION_ADDRESS {
                 return false
             }
             return true

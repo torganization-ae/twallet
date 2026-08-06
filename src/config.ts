@@ -16,19 +16,19 @@ import type { AutolockValueType, LangCode, LangItem, TokenPeriod } from './globa
 export const APP_ENV = process.env.APP_ENV || 'production';
 
 export const IS_CORE_WALLET = process.env.IS_CORE_WALLET === '1';
-export const IS_GRAM_WALLET = process.env.IS_GRAM_WALLET === '1';
+export const IS_TWALLETGRAM_WALLET = process.env.IS_TWALLETGRAM_WALLET === '1';
 // Both flags together form the wallet.ton.org combo build: Gram branding over Core behavior.
-// Brand-axis code must check IS_GRAM_WALLET first, then IS_TON_BRAND; behavior/storage code keeps using IS_CORE_WALLET.
-export const IS_TON_BRAND = IS_CORE_WALLET && !IS_GRAM_WALLET;
+// Brand-axis code must check IS_TWALLETGRAM_WALLET first, then IS_TON_BRAND; behavior/storage code keeps using IS_CORE_WALLET.
+export const IS_TON_BRAND = IS_CORE_WALLET && !IS_TWALLETGRAM_WALLET;
 // The third brand. Cards, MYCOIN vesting and the tips channel are My Wallet products that neither the Gram nor the
 // TON Wallet brand carries, so they hang off this axis rather than off the identity or feature ones (Air agrees).
-export const IS_MY_WALLET_BRAND = !IS_GRAM_WALLET && !IS_TON_BRAND;
+export const IS_MY_WALLET_BRAND = !IS_TWALLETGRAM_WALLET && !IS_TON_BRAND;
 // The trimmed-down product is the legacy TON Wallet (extension and the pre-Gram web app): no swaps, staking,
 // ramps, multi-account, Ledger, BIP39 or locale choice. Gram Wallet Web keeps Core identity (storage key, jsbridge,
 // domain) but ships the full feature set, so feature gates must check this axis, never IS_CORE_WALLET.
 export const IS_FEATURE_LIMITED = IS_TON_BRAND;
 export const APP_NAME = process.env.APP_NAME
-  || (IS_GRAM_WALLET ? 'Gram Wallet' : IS_TON_BRAND ? 'TON Wallet' : 'My Wallet');
+  || (IS_TWALLETGRAM_WALLET ? 'Twallet Gram' : IS_TON_BRAND ? 'TON Wallet' : 'Twallet');
 export const APP_VERSION = process.env.APP_VERSION!;
 export const APP_COMMIT_HASH = process.env.APP_COMMIT_HASH!;
 export const APP_ENV_MARKER = APP_ENV === 'staging' ? 'Beta' : APP_ENV === 'development' ? 'Dev' : undefined;
@@ -69,11 +69,11 @@ export const LEGACY_APP_HOSTS = ['mytonwallet.app'];
 // the wallet context (addresses included) and open it in the in-app iframe browser - where the site renders blank
 // under `X-Frame-Options: Deny`. `utm_source` attributes the migrated traffic.
 export const NEW_APP_URL = `${PRODUCTION_URL}?utm_source=legacy_web`;
-export const APP_INSTALL_URL = IS_GRAM_WALLET ? 'https://get.gramwallet.io/' : 'https://get.mywallet.io/';
-export const APP_REPO_URL = 'https://github.com/mytonwallet-org/mytonwallet';
+export const APP_INSTALL_URL = IS_TWALLETGRAM_WALLET ? 'https://get.gramwallet.io/' : 'https://get.mywallet.io/';
+export const APP_REPO_URL = 'https://github.com/torganization-ae/twallet';
 export const SELF_UNIVERSAL_HOST_URL = 'https://my.tt';
-export const APP_WEBSITE_URL = IS_GRAM_WALLET ? 'https://gramwallet.io' : 'https://mywallet.io';
-export const APP_ICON_URL = IS_GRAM_WALLET
+export const APP_WEBSITE_URL = IS_TWALLETGRAM_WALLET ? 'https://gramwallet.io' : 'https://mywallet.io';
+export const APP_ICON_URL = IS_TWALLETGRAM_WALLET
   ? 'https://gramwallet.io/icon-512x512.png'
   : 'https://mywallet.io/icon-512x512.png';
 
@@ -90,9 +90,9 @@ export const STRICTERDOM_ENABLED = DEBUG && !IS_PACKAGED_ELECTRON;
 export const DEBUG_ALERT_MSG = 'Shoot!\nSomething went wrong, please see the error details in Dev Tools Console.';
 
 export const PIN_LENGTH = 4;
-export const NATIVE_BIOMETRICS_USERNAME = IS_CORE_WALLET ? 'TonWallet' : 'My Wallet';
+export const NATIVE_BIOMETRICS_USERNAME = IS_CORE_WALLET ? 'TonWallet' : 'Twallet';
 export const NATIVE_BIOMETRICS_SERVER = IS_CORE_WALLET ? 'https://wallet.ton.org' : 'https://web.mywallet.io';
-export const NATIVE_BIOMETRICS_PROMPT_KEY = 'confirm an action in My Wallet';
+export const NATIVE_BIOMETRICS_PROMPT_KEY = 'confirm an action in Twallet';
 
 /**
  * If `true`, a wallet created by this build gets a TON-specific mnemonic, which can never derive a foreign address.
@@ -103,9 +103,9 @@ export const NATIVE_BIOMETRICS_PROMPT_KEY = 'confirm an action in My Wallet';
 export const SHOULD_GENERATE_TON_MNEMONIC = IS_FEATURE_LIMITED;
 
 export const MNEMONIC_COUNT = 24;
-// A TON-native build mints 24-word phrases, so it offers 24 first while still accepting the 12-word BIP39 ones a
-// rollback might have to restore; the multichain builds lead with 12, matching what they mint.
-export const MNEMONIC_COUNTS = SHOULD_GENERATE_TON_MNEMONIC ? [24, 12] : [12, 24];
+// Every build mints 24-word phrases, so 24 is offered first, while the 12-word BIP39 phrases minted by older
+// builds (or other wallets) stay importable.
+export const MNEMONIC_COUNTS = [24, 12];
 
 export const PRIVATE_KEY_HEX_LENGTH = 64;
 export const MNEMONIC_CHECK_COUNT = 3;
@@ -138,7 +138,7 @@ export const GLOBAL_STATE_CACHE_KEY = IS_CORE_WALLET
   ? 'tonwallet-global-state'
   : IS_EXPLORER
     ? 'explorer-global-state'
-    : 'mytonwallet-global-state';
+    : 'twallet-global-state';
 
 export const ANIMATION_LEVEL_MIN = 0;
 export const ANIMATION_LEVEL_MED = 1;
@@ -222,12 +222,12 @@ export const MW_CARDS_BASE_URL = `${MW_STATIC_BASE_URL}/cards/v2/cards/`;
 export const MW_CARDS_MINT_BASE_URL = `${MW_STATIC_BASE_URL}/mint-cards/`;
 // Every outbound link the app puts in front of a user follows its brand. The blog and the help center stay on the
 // My Wallet domain for all brands, since that is the only place they are published (Air links them the same way).
-export const APP_PROMO_URL = IS_GRAM_WALLET ? 'https://gramwallet.io/' : 'https://mywallet.io/';
-export const APP_WEBSITE_HOST = IS_GRAM_WALLET ? 'gramwallet.io' : 'mywallet.io';
-export const APP_TERMS_OF_USE_URL = IS_GRAM_WALLET
+export const APP_PROMO_URL = IS_TWALLETGRAM_WALLET ? 'https://gramwallet.io/' : 'https://mywallet.io/';
+export const APP_WEBSITE_HOST = IS_TWALLETGRAM_WALLET ? 'gramwallet.io' : 'mywallet.io';
+export const APP_TERMS_OF_USE_URL = IS_TWALLETGRAM_WALLET
   ? 'https://gramwallet.io/terms-of-use/'
   : 'https://mywallet.io/terms-of-use';
-export const APP_PRIVACY_POLICY_URL = IS_GRAM_WALLET
+export const APP_PRIVACY_POLICY_URL = IS_TWALLETGRAM_WALLET
   ? 'https://gramwallet.io/privacy-policy/'
   : 'https://mywallet.io/privacy-policy';
 export const MY_WALLET_BLOG: Partial<Record<LangCode, string>> = {
@@ -369,7 +369,7 @@ export const MIN_ACTIVE_STAKING_REWARDS = 100_000_000n; // 0.1 MY
 export const STAKING_SLUG_PREFIX = 'staking-';
 
 export const TONCONNECT_PROTOCOL_VERSION = 2;
-export const TONCONNECT_WALLET_JSBRIDGE_KEY = IS_CORE_WALLET ? 'tonwallet' : 'mytonwallet';
+export const TONCONNECT_WALLET_JSBRIDGE_KEY = IS_CORE_WALLET ? 'tonwallet' : 'twallet';
 export const EMBEDDED_DAPP_BRIDGE_CHANNEL = 'embedded-dapp-bridge';
 
 export const NFT_FRAGMENT_COLLECTIONS = [
@@ -770,7 +770,7 @@ export const INDEXED_DB_NAME = IS_EXPLORER ? 'explorer-keyval-store' : 'keyval-s
 export const INDEXED_DB_STORE_NAME = 'keyval';
 
 export const WINDOW_PROVIDER_CHANNEL = 'windowProvider';
-export const WINDOW_PROVIDER_PORT = `${IS_CORE_WALLET ? 'TonWallet' : 'MyWallet'}_popup_reversed`;
+export const WINDOW_PROVIDER_PORT = `${IS_CORE_WALLET ? 'TonWallet' : 'Twallet'}_popup_reversed`;
 
 export const SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY = IS_FEATURE_LIMITED;
 export const PORTRAIT_MIN_ASSETS_TAB_VIEW = 6;

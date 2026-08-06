@@ -3,22 +3,27 @@ name: Test
 on:
   push:
     branches:
-      - master
+      - production
   pull_request:
 
 jobs:
   test:
     name: Simple tests
+    if: github.repository == 'torganization-ae/twallet'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare the Node environment
-        uses: mytonwallet-org/shared-actions/prepare_node@master
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Test
         run: |

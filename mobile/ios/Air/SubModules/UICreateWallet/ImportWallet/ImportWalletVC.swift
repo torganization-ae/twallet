@@ -63,13 +63,13 @@ public class ImportWalletVC: CreateWalletBaseVC {
     private let suggestionsView = WSuggestionsView()
     private let wordsStackView1 = UIStackView()
     private let wordsStackView2 = UIStackView()
-    private var secretWordsMode = SecretWordsMode.words12
+    private var secretWordsMode = SecretWordsMode.words24
     private var isSubmitting = false
     
     private lazy var wordsModeSegmentedControl: UISegmentedControl = {
         let control = UISegmentedControl(items: [lang("12 Words"), lang("24 Words")])
         control.translatesAutoresizingMaskIntoConstraints = false
-        control.selectedSegmentIndex = SecretWordsMode.words12.segmentIndex
+        control.selectedSegmentIndex = SecretWordsMode.words24.segmentIndex
         control.apportionsSegmentWidthsByContent = false
         control.addTarget(self, action: #selector(wordsModeChanged), for: .valueChanged)
         return control

@@ -1,0 +1,59 @@
+package app.twallet.air.walletcore.helpers
+
+import app.twallet.air.walletcore.models.blockchain.MBlockchain
+import app.twallet.air.walletcore.models.SwapType
+import app.twallet.air.walletcore.moshi.IApiToken
+import app.twallet.air.walletcore.stores.TokenStore
+import java.math.BigDecimal
+
+class FeeEstimationHelpers private constructor() {
+    data class NetworkFeeData(
+        val chain: MBlockchain?,
+        val isNativeIn: Boolean,
+        val fee: BigDecimal?
+    )
+
+    companion object {
+        fun networkFeeData(
+            sellToken: IApiToken?,
+            sellTokenIsOnChain: Boolean,
+            swapType: SwapType,
+            networkFee: Double?
+        ): NetworkFeeData? {
+            sellToken ?: return null
+
+            val tokenInChain = MBlockchain.valueOfOrNull(sellToken.chain ?: "") ?: return null
+            val nativeUserTokenIn = if (sellTokenIsOnChain) {
+                TokenStore.getToken(tokenInChain.nativeSlug)
+            } else {
+                null
+            }
+            val isNativeIn = sellToken.slug == nativeUserTokenIn?.slug
+            val chainConfigIn = tokenInChain.gas
+
+            val fee: BigDecimal? = run {
+                var value: BigDecimal? = null
+                when {
+                    networkFee != null && networkFee > 0 -> {
+                        value = networkFee.toBigDecimal()
+                    }
+
+                    swapType == SwapType.ON_CHAIN -> {
+                        value = chainConfigIn?.maxSwap ?: BigDecimal.ZERO
+                    }
+
+                    swapType == SwapType.CROSS_CHAIN_FROM_WALLET -> {
+                        value = if (isNativeIn) {
+                            chainConfigIn?.maxTransfer
+                        } else {
+                            chainConfigIn?.maxTransferToken
+                        }
+                    }
+                }
+                value
+            }
+
+            return NetworkFeeData(chain = tokenInChain, isNativeIn = isNativeIn, fee = fee)
+        }
+    }
+}

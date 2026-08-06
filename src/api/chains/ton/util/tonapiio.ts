@@ -58,7 +58,3 @@ export async function fetchAccountEvents(network: ApiNetwork, address: string, f
     start_date: fromSec,
   })).events;
 }
-
-export async function fetchInternalMessageEmulation(network: ApiNetwork, address: string, boc: string) {
-  return (await getApi(network).emulation.emulateMessageToAccountEvent(address, { boc }));
-}

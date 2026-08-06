@@ -347,7 +347,7 @@ public class SettingsVC: SettingsBaseVC, Sendable, WalletCoreData.EventsObserver
             snapshot.appendItems([.support])
         }
         snapshot.appendItems([.helpCenter])
-        if !IS_GRAM_WALLET {
+        if !IS_TWALLETGRAM_WALLET {
             snapshot.appendItems([.tips])
         }
         snapshot.appendItems([.useResponsibly])

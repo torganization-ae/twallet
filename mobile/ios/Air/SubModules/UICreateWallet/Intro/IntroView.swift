@@ -43,7 +43,7 @@ struct IntroView: View {
     
     @ViewBuilder
     var iconAndEffect: some View {
-        if IS_GRAM_WALLET {
+        if IS_TWALLETGRAM_WALLET {
             WUISpeedingDiamondWithParticles()
                 .offset(y: -32)
         } else {
@@ -66,7 +66,7 @@ struct IntroView: View {
 
     var title: some View {
         Text(APP_NAME)
-            .font(IS_GRAM_WALLET ? .system(size: 32, weight: .semibold) : .calSans(size: 32))
+            .font(IS_TWALLETGRAM_WALLET ? .system(size: 32, weight: .semibold) : .calSans(size: 32))
             .accessibilityAddTraits(.isHeader)
     }
     

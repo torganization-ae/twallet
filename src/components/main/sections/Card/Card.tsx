@@ -18,7 +18,7 @@ import type {
 import type { LangFn } from '../../../../hooks/useLang';
 import type { DropdownItem } from '../../../ui/Dropdown';
 
-import { IS_GRAM_WALLET, IS_MY_WALLET_BRAND } from '../../../../config';
+import { IS_TWALLETGRAM_WALLET, IS_MY_WALLET_BRAND } from '../../../../config';
 import {
   selectAccountStakingStates, selectCurrentAccount,
   selectCurrentAccountId,
@@ -411,7 +411,7 @@ function Card({
             styles.container,
             currentTokenSlug && styles.backstage,
             customCardClassName,
-            IS_GRAM_WALLET && 'gram',
+            IS_TWALLETGRAM_WALLET && 'gram',
           )
         }
       >

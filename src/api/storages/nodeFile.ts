@@ -4,7 +4,7 @@ import type { NodeFileStorageConfig, Storage, StorageKey } from './types';
 
 import { createLockedJsonFileStore } from '../../util/lockedJsonFile';
 
-const HEADLESS_STORAGE_DIR_NAME = 'mywallet';
+const HEADLESS_STORAGE_DIR_NAME = 'twallet';
 const HEADLESS_STORAGE_FILE_NAME = 'storage.json';
 const BIGINT_STORAGE_TAG = '__mtw_bigint';
 const UINT8_ARRAY_STORAGE_TAG = '__mtw_uint8array';

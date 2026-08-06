@@ -18,7 +18,7 @@ if [ "$IS_EXTENSION" = "1" ]; then
     FILES_TO_REMOVE+=("site.webmanifest")
 fi
 
-if [ "$IS_GRAM_WALLET" = "1" ]; then
+if [ "$IS_TWALLETGRAM_WALLET" = "1" ]; then
    # Any Gram-branded build (pure gram, the wallet.ton.org combo, and any future Gram mobile bundle) ships
    # gramWallet/ assets only. Brand asset retention keys on brand alone; platform axes must not gate it, or a
    # Gram build off the else-branch would strip its own gramWallet/ dir that runtime code (QR logo, manifest) needs.

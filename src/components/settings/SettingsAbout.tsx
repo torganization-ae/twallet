@@ -9,7 +9,7 @@ import {
   APP_WEBSITE_HOST,
   IS_EXTENSION,
   IS_FEATURE_LIMITED,
-  IS_GRAM_WALLET,
+  IS_TWALLETGRAM_WALLET,
   IS_MY_WALLET_BRAND,
 } from '../../config';
 import { getHelpCenterUrl } from '../../global/helpers/getHelpCenterUrl';
@@ -35,7 +35,7 @@ import helpcenterImg from '../../assets/settings/settings_helpcenter.svg';
 import hotImg from '../../assets/settings/settings_hot.svg';
 import videoImg from '../../assets/settings/settings_video.svg';
 
-const LOGO_PATH = IS_GRAM_WALLET ? gramWalletLogoPath : logoWebpPath;
+const LOGO_PATH = IS_TWALLETGRAM_WALLET ? gramWalletLogoPath : logoWebpPath;
 
 interface OwnProps {
   isActive?: boolean;

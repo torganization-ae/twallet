@@ -10,7 +10,7 @@ kotlin {
 }
 
 android {
-    namespace = "org.mytonwallet.app_air.walletbasecontext"
+    namespace = "app.twallet.air.walletbasecontext"
     compileSdk = 36
 
     defaultConfig {

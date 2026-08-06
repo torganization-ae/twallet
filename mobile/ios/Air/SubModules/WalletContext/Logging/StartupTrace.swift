@@ -13,7 +13,7 @@ public enum StartupTrace {
 
     private static let log = Log("Startup")
     private static let signposter = OSSignposter(
-        subsystem: Bundle.main.bundleIdentifier ?? "org.mytonwallet.app",
+        subsystem: Bundle.main.bundleIdentifier ?? "app.twallet",
         category: "Startup"
     )
     private static let state = UnfairLock(initialState: State())

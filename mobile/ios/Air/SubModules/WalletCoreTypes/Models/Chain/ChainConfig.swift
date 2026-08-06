@@ -175,7 +175,7 @@ private let GRAM_CHAIN_ORDER: [ApiChain] = [
    .avalanche,
 ]
 private var CHAIN_ORDER: [ApiChain] {
-    IS_GRAM_WALLET ? GRAM_CHAIN_ORDER : DEFAULT_CHAIN_ORDER
+    IS_TWALLETGRAM_WALLET ? GRAM_CHAIN_ORDER : DEFAULT_CHAIN_ORDER
 }
 private let TON_DEFAULT_DERIVATION_PATH = "m/44'/607'/{index}'"
 private let TRON_DEFAULT_DERIVATION_PATH = "m/44'/195'/0'/0/{index}"

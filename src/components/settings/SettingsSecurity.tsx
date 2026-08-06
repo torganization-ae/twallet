@@ -12,7 +12,7 @@ import {
   AUTO_CONFIRM_DURATION_MINUTES,
   AUTOLOCK_OPTIONS_LIST,
   DEFAULT_AUTOLOCK_OPTION,
-  IS_GRAM_WALLET,
+  IS_TWALLETGRAM_WALLET,
   PIN_LENGTH,
 } from '../../config';
 import {
@@ -448,7 +448,7 @@ function SettingsSecurity({
             </>
           )}
 
-          {(SHOULD_FORCE_SHOW_MFA_IN_DEV || (IS_GRAM_WALLET && isMfaEnabled) || hasCurrentAccountMfa) && (
+          {(SHOULD_FORCE_SHOW_MFA_IN_DEV || (IS_TWALLETGRAM_WALLET && isMfaEnabled) || hasCurrentAccountMfa) && (
             <>
               <div className={buildClassName(styles.block, styles.settingsBlockWithDescription)}>
                 <div className={buildClassName(styles.item)} onClick={handleOpenMfa}>

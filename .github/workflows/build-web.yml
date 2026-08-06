@@ -1,18 +1,21 @@
-name: Upload sites to S3
+name: Build web
 
 on:
   push:
     branches:
-      - master
+      - production
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Optional repository variables (Settings → Secrets and variables → Actions → Variables):
+#   BUILD_PRODUCTION=true          → production builds; unset/false → staging
+#   STAKING_POOLS, BRILLIANT_API_BASE_URL, SWAP_FEE_ADDRESS,
+#   DIESEL_ADDRESS, AGENT_API_URL  → baked into the client at build time when set
 env:
   STAKING_POOLS: ${{ vars.STAKING_POOLS }}
-  PUBLISH_REPO: ${{ vars.PUBLISH_REPO }}
   BRILLIANT_API_BASE_URL: ${{ vars.BRILLIANT_API_BASE_URL }}
   SWAP_FEE_ADDRESS: ${{ vars.SWAP_FEE_ADDRESS }}
   DIESEL_ADDRESS: ${{ vars.DIESEL_ADDRESS }}
@@ -21,65 +24,74 @@ env:
 jobs:
   build-web:
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare the Node environment
-        uses: mytonwallet-org/shared-actions/prepare_node@master
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build
         run: |
-          if [ -z "$PUBLISH_REPO" ]; then
-            npm run build:staging
-          else
+          if [ "${{ vars.BUILD_PRODUCTION }}" = "true" ]; then
             npm run build:production
+          else
+            npm run build:staging
           fi
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ vars.PUBLISH_REPO && 'mytonwallet.app' || 'beta.mytonwallet.app' }}
+          name: ${{ vars.BUILD_PRODUCTION == 'true' && 'twallet-web' || 'twallet-web-staging' }}
           path: dist
 
   build-tma:
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare the Node environment
-        uses: mytonwallet-org/shared-actions/prepare_node@master
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build
         run: |
-          if [ -z "$PUBLISH_REPO" ]; then
-            npm run telegram:build:staging
-          else
+          if [ "${{ vars.BUILD_PRODUCTION }}" = "true" ]; then
             npm run telegram:build:production
+          else
+            npm run telegram:build:staging
           fi
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ vars.PUBLISH_REPO && 'tma.mytonwallet.io' || 'tma-beta.mytonwallet.io' }}
+          name: ${{ vars.BUILD_PRODUCTION == 'true' && 'twallet-tma' || 'twallet-tma-staging' }}
           path: dist
 
   build-explorer:
-    if: vars.PUBLISH_REPO != '' && github.ref == 'refs/heads/master'
+    if: vars.BUILD_PRODUCTION == 'true' && github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare the Node environment
-        uses: mytonwallet-org/shared-actions/prepare_node@master
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ vars.NODE_VERSION }}
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build
         run: npm run explorer:build:production
@@ -87,5 +99,5 @@ jobs:
       - name: Upload site artifact
         uses: actions/upload-artifact@v4
         with:
-          name: my.tt
+          name: twallet-explorer
           path: dist

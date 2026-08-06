@@ -1,0 +1,107 @@
+package app.twallet.air.uicomponents.commonViews
+
+import android.annotation.SuppressLint
+import app.twallet.air.uicomponents.helpers.adaptiveFontSize
+import android.content.Context
+import android.util.TypedValue
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import androidx.appcompat.widget.AppCompatImageView
+import app.twallet.air.uicomponents.AnimationConstants
+import app.twallet.air.uicomponents.drawable.CheckboxDrawable
+import app.twallet.air.uicomponents.drawable.WRippleDrawable
+import app.twallet.air.uicomponents.extensions.dp
+import app.twallet.air.uicomponents.widgets.WLabel
+import app.twallet.air.uicomponents.widgets.WThemedView
+import app.twallet.air.uicomponents.widgets.WView
+import app.twallet.air.walletbasecontext.theme.ViewConstants
+import app.twallet.air.walletbasecontext.theme.WColor
+import app.twallet.air.walletbasecontext.theme.color
+
+@SuppressLint("ViewConstructor")
+class CheckboxItemView(
+    context: Context,
+    val isEnabledInitially: Boolean,
+    val horizontalGapDp: Float = 16f,
+    val labelGapDp: Float = 16f
+) :
+    WView(context),
+    WThemedView {
+
+    private val ripple = WRippleDrawable.create(ViewConstants.BLOCK_RADIUS.dp)
+
+    companion object {
+        const val DISABLED_ALPHA_VALUE = 0.4f
+    }
+
+    private val checkboxDrawable = CheckboxDrawable {
+        invalidate()
+    }
+
+    private val imageView = AppCompatImageView(context).apply {
+        id = generateViewId()
+        setImageDrawable(checkboxDrawable)
+    }
+
+    private val label = WLabel(context).apply {
+        setStyle(adaptiveFontSize())
+        setLineHeight(TypedValue.COMPLEX_UNIT_SP, 24f)
+        setTextColor(WColor.PrimaryText)
+    }
+
+    init {
+        id = generateViewId()
+        alpha = if (isEnabledInitially) 1f else DISABLED_ALPHA_VALUE
+        isEnabled = isEnabledInitially
+        background = ripple
+    }
+
+    override fun setupViews() {
+        super.setupViews()
+
+        addView(imageView, LayoutParams(22.dp, 22.dp))
+        addView(label, LayoutParams(0, WRAP_CONTENT))
+        setConstraints {
+            toStart(imageView, horizontalGapDp)
+            toCenterY(imageView)
+            toCenterY(label, 12f)
+            startToEnd(label, imageView, labelGapDp)
+            toEnd(label, horizontalGapDp)
+        }
+
+        updateTheme()
+    }
+
+    override fun updateTheme() {
+        ripple.backgroundColor = WColor.Background.color
+        ripple.rippleColor = WColor.BackgroundRipple.color
+
+        checkboxDrawable.checkedColor = WColor.Tint.color
+        checkboxDrawable.uncheckedColor = WColor.SecondaryText.color
+    }
+
+    fun setText(text: CharSequence) {
+        label.text = text
+    }
+
+    fun setTextSize(textSize: Float) {
+        label.textSize = textSize
+    }
+
+    var isChecked: Boolean = false
+        set(value) {
+            field = value
+            checkboxDrawable.setChecked(value, true)
+        }
+
+    var isBoxEnabled: Boolean = isEnabledInitially
+        set(value) {
+            field = value
+            isEnabled = value
+            animate()
+                .alpha(if (value) 1f else DISABLED_ALPHA_VALUE)
+                .setDuration(AnimationConstants.VERY_QUICK_ANIMATION)
+                .start()
+            if (!value)
+                isChecked = false
+        }
+}

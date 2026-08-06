@@ -17,7 +17,7 @@ npm run mobile:build:dev
 For a full app build:
 
 ```bash
-xcodebuild -workspace mobile/ios/App/App.xcworkspace -scheme MyTonWallet_AirOnly -configuration Debug -destination 'generic/platform=iOS Simulator' build | xcbeautify
+xcodebuild -workspace mobile/ios/App/App.xcworkspace -scheme Twallet_AirOnly -configuration Debug -destination 'generic/platform=iOS Simulator' build | xcbeautify
 ```
 
 Do not pass `-sdk iphonesimulator` to this workspace.

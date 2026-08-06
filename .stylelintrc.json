@@ -16,7 +16,7 @@
     "stylelint-high-performance-animation",
     "stylelint-group-selectors",
     "@stylistic/stylelint-plugin",
-    "@mytonwallet/stylelint-whole-pixel"
+    "./lib/stylelint-whole-pixel/index.js"
   ],
   "rules": {
     "@stylistic/max-empty-lines": 1,

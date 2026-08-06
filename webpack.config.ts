@@ -1,8 +1,7 @@
 import './dev/loadEnv';
 import 'webpack-dev-server';
 
-import WatchFilePlugin from '@mytonwallet/webpack-watch-file-plugin';
-import StatoscopeWebpackPlugin from '@statoscope/webpack-plugin';
+import WatchFilePlugin from './lib/webpack-watch-file-plugin/index';
 // @ts-ignore
 import PreloadWebpackPlugin from '@vue/preload-webpack-plugin';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
@@ -33,7 +32,7 @@ import {
   IS_EXTENSION,
   IS_FEATURE_LIMITED,
   IS_FIREFOX_EXTENSION,
-  IS_GRAM_WALLET,
+  IS_TWALLETGRAM_WALLET,
   IS_OPERA_EXTENSION,
   IS_PACKAGED_ELECTRON,
   IS_TELEGRAM_APP,
@@ -62,9 +61,7 @@ import {
 
 const destinationDir = path.resolve(__dirname, 'dist');
 const appCommitHash = APP_COMMIT_HASH || new GitRevisionPlugin().commithash();
-const isStatoscopeBuild = process.env.IS_STATOSCOPE === '1'; // "Statoscope build" is a special mode where all the entries are used. It is used for comprehensive code size comparison in PRs.
 const isWebApp = !(IS_EXTENSION || IS_PACKAGED_ELECTRON);
-const canUseStatoscope = isStatoscopeBuild || isWebApp;
 const cspConnectSrcExtra = APP_ENV === 'development'
   ? `http://localhost:3000 ${process.env.CSP_CONNECT_SRC_EXTRA_URL}`
   : '';
@@ -158,13 +155,6 @@ const appVersion = require('./package.json').version;
 
 const defaultI18nFilename = path.resolve(__dirname, './src/i18n/en.json');
 
-const statoscopeStatsFilename = 'statoscope-build-statistics.json';
-const statoscopeStatsFileToCompare = process.env.STATOSCOPE_STATS_TO_COMPARE;
-// If a compared stat file name is the same as the main stats file name, the Statoscope UI doesn't show it.
-if (path.basename(statoscopeStatsFileToCompare || '') === statoscopeStatsFilename) {
-  throw new Error(`The STATOSCOPE_STATS_TO_COMPARE file name mustn't be ${statoscopeStatsFilename}`);
-}
-
 export default function createConfig(
   _: any,
   { mode = 'production' }: { mode: 'none' | 'development' | 'production' },
@@ -189,7 +179,7 @@ export default function createConfig(
 
     entry: {
       main: './src/index.tsx',
-      ...((IS_EXTENSION || isStatoscopeBuild) && {
+      ...(IS_EXTENSION && {
         extensionServiceWorker: {
           import: './src/extension/serviceWorker.ts',
           // Extension service worker isn't allowed to load code dynamically. This option inlines all dynamic imports.
@@ -371,8 +361,8 @@ export default function createConfig(
         title: APP_NAME,
         homepage: IS_CORE_WALLET
           ? 'https://wallet.ton.org'
-          : IS_GRAM_WALLET ? 'https://gramwallet.io' : 'https://mywallet.io',
-        assets_prefix: IS_GRAM_WALLET ? 'gramWallet/' : IS_TON_BRAND ? 'coreWallet/' : '',
+          : IS_TWALLETGRAM_WALLET ? 'https://gramwallet.io' : 'https://mywallet.io',
+        assets_prefix: IS_TWALLETGRAM_WALLET ? 'gramWallet/' : IS_TON_BRAND ? 'coreWallet/' : '',
       }),
       new PreloadWebpackPlugin({
         include: 'allAssets',
@@ -385,7 +375,7 @@ export default function createConfig(
           ...(IS_TON_BRAND ? [
             /core_wallet_.*?\.png/, // Lottie thumbs for TON Wallet
           ] : []),
-          ...(IS_GRAM_WALLET ? [
+          ...(IS_TWALLETGRAM_WALLET ? [
             /gram_wallet_.*?\.png/, // Lottie thumbs for Gram Wallet
           ] : []),
         ],
@@ -437,7 +427,7 @@ export default function createConfig(
         IS_FIREFOX_EXTENSION: 'false',
         IS_AIR_APP: 'false',
         IS_CORE_WALLET: 'false',
-        IS_GRAM_WALLET: 'false',
+        IS_TWALLETGRAM_WALLET: 'false',
         IS_TELEGRAM_APP: 'false',
         IS_EXPLORER: 'false',
         SWAP_FEE_ADDRESS: '',
@@ -473,7 +463,7 @@ export default function createConfig(
                 extension_pages: CSP,
               };
               manifest.action = { default_title: APP_NAME };
-              manifest.icons = IS_GRAM_WALLET
+              manifest.icons = IS_TWALLETGRAM_WALLET
                 ? {
                   192: 'gramWallet/icon-192x192.png',
                   256: 'gramWallet/icon-256x256.png',
@@ -521,7 +511,7 @@ export default function createConfig(
               // header rather than a redirect; the same site also answers on web(.beta).mywallet.io, which
               // self-canonicalizes. Omitted for Gram/core: those builds are a different brand
               // (wallet.ton.org ships to ton-blockchain/ton-wallet) and must never point at mywallet.io.
-              const canonical = (IS_GRAM_WALLET || IS_CORE_WALLET) ? undefined
+              const canonical = (IS_TWALLETGRAM_WALLET || IS_CORE_WALLET) ? undefined
                 : APP_ENV === 'staging' ? 'https://web-beta.mywallet.io/'
                   : 'https://web.mywallet.io/';
               return canonical
@@ -531,40 +521,10 @@ export default function createConfig(
           },
         ],
       }),
-      ...(canUseStatoscope ? [new StatoscopeWebpackPlugin({
-        statsOptions: {
-          context: __dirname,
-        },
-        saveReportTo: path.join(destinationDir, 'statoscope-report.html'),
-        saveStatsTo: path.join(destinationDir, statoscopeStatsFilename),
-        normalizeStats: true,
-        open: false,
-        extensions: [new WebpackContextExtension()],
-        ...(statoscopeStatsFileToCompare ? { additionalStats: [statoscopeStatsFileToCompare] } : undefined),
-      })] : []),
     ],
 
     devtool: IS_EXTENSION ? 'cheap-source-map' : APP_ENV === 'production' && !isWebApp ? undefined : 'source-map',
   };
-}
-
-class WebpackContextExtension {
-  context: string;
-
-  constructor() {
-    this.context = '';
-  }
-
-  handleCompiler(compiler: Compiler) {
-    this.context = compiler.context;
-  }
-
-  getExtension() {
-    return {
-      descriptor: { name: 'custom-webpack-extension-context', version: '1.0.0' },
-      payload: { context: this.context },
-    };
-  }
 }
 
 /**

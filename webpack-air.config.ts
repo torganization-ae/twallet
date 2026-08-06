@@ -8,7 +8,7 @@ import { APP_ENV } from './src/config';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const appVersion = require('./package.json').version;
-const sdkName = process.env.IS_GRAM_WALLET === '1' ? 'gramwallet' : 'mytonwallet';
+const sdkName = process.env.IS_TWALLETGRAM_WALLET === '1' ? 'twalletgram' : 'twallet';
 
 export default function createConfig(
   _: any,
@@ -82,7 +82,7 @@ export default function createConfig(
       }),
       new EnvironmentPlugin({
         APP_ENV: 'production',
-        IS_GRAM_WALLET: '0',
+        IS_TWALLETGRAM_WALLET: '0',
         APP_VERSION: appVersion,
         PLATFORM_ENV: '',
         IS_AIR_APP: '1',

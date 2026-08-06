@@ -11,6 +11,10 @@ MyTonWallet-chrome.zip
 MyTonWallet-firefox.zip
 MyTonWallet-firefox-sources.tgz
 MyTonWallet-opera.zip
+Twallet-chrome.zip
+Twallet-firefox.zip
+Twallet-firefox-sources.tgz
+Twallet-opera.zip
 .cache
 .env*
 !.env.example
@@ -29,7 +33,6 @@ coverage/
 src/i18n/en.json
 notarization-error.log
 .patch-version
-statoscope-reference.json
 mobile/ios/buildServer.json
 mobile/ios/Air/scripts/strings/.venv
 mobile/ios/App/App/Resources/Localizable.xcstrings
@@ -41,3 +44,4 @@ AGENTS.md
 .xcodebuildmcp/
 .build
 /worktrees/
+.cursor/
