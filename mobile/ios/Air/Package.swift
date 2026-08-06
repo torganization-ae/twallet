@@ -88,10 +88,8 @@ let package = Package(
     products: [
         airLibrary("AirAsFramework"),
         airLibrary("Ledger"),
-        airLibrary("MyAgent"),
         airLibrary("UIAssets"),
         airLibrary("UIActivityList"),
-        airLibrary("UIAgent"),
         airLibrary("UIBrowser"),
         airLibrary("UIComponents"),
         airLibrary("UICreateWallet"),
@@ -444,27 +442,6 @@ let package = Package(
                 .product(name: "GraphKit", package: "GraphKit"),
             ]
         ),
-        .target(
-            name: "MyAgent",
-            dependencies: [
-                .product(name: "ZIPFoundation", package: "ZIPFoundation"),
-            ],
-            path: "SubModules/MyAgent",
-            resources: [
-                .copy("I18n/Translations"),
-            ],
-            swiftSettings: sharedSwiftSettings
-        ),
-        airTarget(
-            "UIAgent",
-            dependencies: [
-                "UIComponents",
-                "WalletContext",
-                "WalletCore",
-                "MyAgent",
-                .product(name: "GRDB", package: "grdb.swift"),
-            ]
-        ),
         airTarget(
             "UIBrowser",
             dependencies: [
@@ -503,7 +480,6 @@ let package = Package(
                 contextMenuKitDependency,
                 "UIComponents",
                 "UIActivityList",
-                "UIAgent",
                 "WalletContext",
                 "WalletCore",
                 "WReachability",
@@ -546,7 +522,6 @@ let package = Package(
                 "UIQRScan",
                 "UISend",
                 "UIAssets",
-                "UIAgent",
                 "UISettings",
                 "UIReceive",
                 "UIEarn",

@@ -16,7 +16,6 @@ import {
 } from '../../../config';
 import { requestMutation } from '../../../lib/fasterdom/fasterdom';
 import { parseAccountId } from '../../../util/account';
-import { clearAgentChat } from '../../../util/agent/agentStorage';
 import authApi from '../../../util/authApi';
 import {
   getDeeplinkFromLocation,
@@ -204,8 +203,6 @@ addActionHandler('afterSignOut', (global, actions, payload) => {
     actions.setInMemoryPassword({ password: undefined, force: true });
 
     actions.resetApiSettings({ areAllDisabled: true });
-
-    void clearAgentChat();
   }
 });
 

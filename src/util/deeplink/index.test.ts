@@ -1242,7 +1242,6 @@ describe('View-only mode deeplink blocking', () => {
       openTemporaryViewAccount: jest.fn(),
       showTokenActivity: jest.fn(),
       addSavedAddress: jest.fn(),
-      switchToAgent: jest.fn(),
       openLoadingOverlay: jest.fn(),
       closeLoadingOverlay: jest.fn(),
     };
@@ -1298,17 +1297,6 @@ describe('View-only mode deeplink blocking', () => {
       await processSelfDeeplink('mtw://offramp?depositWalletAddress=addr&baseCurrencyCode=ton');
       expect(mockActions.addSavedAddress).not.toHaveBeenCalled();
       expect(mockActions.startTransfer).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('processSelfDeeplink allows read-only commands', () => {
-    it.each([
-      { name: 'Agent', url: 'mtw://agent' },
-    ])('should allow $name in view-only mode', async ({ url }) => {
-      const result = await processSelfDeeplink(url);
-
-      expect(result).toBe(true);
-      expect(mockActions.showError).not.toHaveBeenCalled();
     });
   });
 

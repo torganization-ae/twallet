@@ -1211,19 +1211,7 @@ My Assets: My Assets
 Owner: Owner
 Show All Wallets: Show All Wallets
 Ask a Question: Ask a Question
-Ask anything: Ask anything
-Agent: Agent
 Learn more: Learn more
-Data shared with Agent: Data shared with Agent
-$agent_consent_allow_button: Allow Agent
-$agent_consent_subtitle: Ask Agent for wallet help, token information, and supported actions.
-$agent_consent_feature_answers: Get answers about %app_name%, tokens, and wallet activity.
-$agent_consent_feature_actions: Prepare supported actions like sending, receiving, and staking.
-$agent_consent_feature_context: Use wallet context so answers can reference relevant assets and addresses.
-$agent_consent_disclosure_text: By tapping Allow Agent, you allow %app_name% to send your Agent messages and relevant wallet context to %app_name% Agent (agent.mywallet.io) and Anthropic Claude API, our third-party AI provider, to process your requests. Wallet context may include wallet addresses, balances, tokens, activity, and requested action details. Data is used only to provide Agent responses and prepare actions you request.
-$agent_consent_debug_reset_button: Reset Agent consent state
-$agent_consent_debug_reset_footer: Shows the Agent consent screen again when opening the Agent tab.
-Clear Chat: Clear Chat
 Unsupported link: Unsupported link
 My Wallet Features: My Wallet Features
 Notifications: Notifications
@@ -1254,12 +1242,6 @@ Top 10: Top 10
 Top 30: Top 30
 Manage Assets: Manage Assets
 Pulse: Pulse
-Edit Message: Edit Message
-Toggle Hints: Toggle Hints
-AgentErrorResponseFailed: "Error: Failed to get response"
-AgentErrorConnectionFailed: "Error: Connection failed"
-Scroll To Bottom: Scroll To Bottom
-$agent_clear_chat_confirm: Are you sure you want to clear the chat history?
 $unknown_swap_token: Unknown token in swap link. Default tokens were used.
 $action_not_available_view_mode: This action is not available for View Wallets
 Deposit: Deposit

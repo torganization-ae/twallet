@@ -103,7 +103,7 @@
 }
 
 // Quiet "frosted glass" look used by the bottom bar and adjacent floating
-// surfaces (agent input pill, explore search). Skipped on Android, where
+// surfaces (explore search). Skipped on Android, where
 // the effect looks out of place visually.
 
 @mixin frostedGlass($bgAlpha: 0.65) {

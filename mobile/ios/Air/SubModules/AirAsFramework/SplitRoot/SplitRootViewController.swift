@@ -205,15 +205,6 @@ final class SplitRootViewController: UISplitViewController, VisibleContentProvid
         return true
     }
 
-    func showAgent() {
-        select(tab: .agent)
-    }
-
-    func debugOnly_resetAgentRoot() {
-        guard let agentNC = navControllersByTabId[.agent] as? AppTabLazyNavigationController else { return }
-        agentNC.resetRootViewController()
-    }
-
     func showExplore() {
         select(tab: .explore)
     }

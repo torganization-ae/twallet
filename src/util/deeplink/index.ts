@@ -70,7 +70,6 @@ export const enum DeeplinkCommand {
   Transaction = 'tx',
   Nft = 'nft',
   Portfolio = 'portfolio',
-  Agent = 'agent',
   Settings = 'settings',
 }
 
@@ -101,7 +100,6 @@ const VIEW_MODE_ALLOWED_COMMANDS = new Set([
   DeeplinkCommand.Transaction,
   DeeplinkCommand.Nft,
   DeeplinkCommand.Portfolio,
-  DeeplinkCommand.Agent,
 ]);
 
 const OPEN_IN_NATIVE_DELAY_MS = 2000;
@@ -989,11 +987,6 @@ export async function processSelfDeeplink(deeplink: string, isFromInAppBrowser =
 
         // Pass activities to avoid duplicate API call
         actions.openTransactionInfo({ txId, chain, activities });
-        return true;
-      }
-
-      case DeeplinkCommand.Agent: {
-        actions.switchToAgent();
         return true;
       }
 

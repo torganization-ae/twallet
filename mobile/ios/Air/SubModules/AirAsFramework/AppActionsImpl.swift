@@ -425,10 +425,6 @@ private class AppActionsImpl: AppActionsProtocol {
         }
     }
 
-    static func showAgent() {
-        rootContainerRouter.showAgent()
-    }
-    
     static func showEarn(accountContext: AccountContext, tokenSlug: String?) {
         showEarn(accountContext: accountContext, tokenSlug: tokenSlug, initialAction: nil)
     }

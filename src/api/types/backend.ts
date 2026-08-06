@@ -438,5 +438,4 @@ export type ApiBackendConfig = {
   swapVersion?: ApiSwapVersion;
   seasonalTheme?: 'newYear' | 'valentine';
   knowledgeBaseVersion?: string;
-  preferredAgent?: 'local' | 'online' | 'hybrid';
 };

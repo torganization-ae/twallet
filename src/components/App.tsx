@@ -37,7 +37,6 @@ import useInterval from '../hooks/useInterval';
 import useSyncEffect from '../hooks/useSyncEffect';
 import useTimeout from '../hooks/useTimeout';
 
-import Agent from './agent/Agent';
 import AppEmpty from './AppEmpty';
 import AppInactive from './AppInactive';
 import AppLocked from './appLocked/AppLocked';
@@ -83,7 +82,6 @@ interface StateProps {
   isBackupWalletModalOpen?: boolean;
   isHardwareModalOpen?: boolean;
   isCustomizeWalletModalOpen?: boolean;
-  isAgentOpen?: boolean;
   isExploreOpen?: boolean;
   isPortfolioOpen?: boolean;
   isFullscreen: boolean;
@@ -93,7 +91,7 @@ interface StateProps {
   isAppReady?: boolean;
 }
 
-const APP_STATES_WITH_BOTTOM_BAR = new Set([AppState.Main, AppState.Agent, AppState.Settings, AppState.Explore]);
+const APP_STATES_WITH_BOTTOM_BAR = new Set([AppState.Main, AppState.Settings, AppState.Explore]);
 const APP_UPDATE_INTERVAL = (IS_ELECTRON && !IS_LINUX) || IS_ANDROID_DIRECT
   ? 5 * MINUTE
   : undefined;
@@ -108,7 +106,6 @@ function App({
   isBackupWalletModalOpen,
   isHardwareModalOpen,
   isCustomizeWalletModalOpen,
-  isAgentOpen,
   isExploreOpen,
   isPortfolioOpen,
   isFullscreen,
@@ -131,7 +128,7 @@ function App({
   const [canPrerenderMain, prerenderMain] = useFlag();
 
   const renderingKey = resolveRenderingKey({
-    isInactive, areSettingsOpen, isAgentOpen, isExploreOpen, isPortfolioOpen, isPortrait, appState,
+    isInactive, areSettingsOpen, isExploreOpen, isPortfolioOpen, isPortrait, appState,
   });
   const withBottomBar = isPortrait && (!IS_EXPLORER || isAppReady) && APP_STATES_WITH_BOTTOM_BAR.has(renderingKey);
   const transitionName = withBottomBar
@@ -215,8 +212,6 @@ function App({
           </Transition>
         );
       }
-      case AppState.Agent:
-        return <Agent isActive={isActive} />;
       case AppState.Explore:
         return <Explore isActive={isActive} />;
       case AppState.Settings:
@@ -302,7 +297,6 @@ export default memo(withGlobal((global): StateProps => {
     isBackupWalletModalOpen: global.isBackupWalletModalOpen,
     isHardwareModalOpen: global.isHardwareModalOpen,
     isCustomizeWalletModalOpen: global.isCustomizeWalletModalOpen,
-    isAgentOpen: global.isAgentOpen,
     isExploreOpen: global.isExploreOpen,
     isPortfolioOpen: global.isPortfolioOpen,
     areSettingsOpen: global.areSettingsOpen,
@@ -314,11 +308,10 @@ export default memo(withGlobal((global): StateProps => {
 })(App));
 
 function resolveRenderingKey({
-  isInactive, areSettingsOpen, isAgentOpen, isExploreOpen, isPortfolioOpen, isPortrait, appState,
+  isInactive, areSettingsOpen, isExploreOpen, isPortfolioOpen, isPortrait, appState,
 }: {
   isInactive: boolean;
   areSettingsOpen?: boolean;
-  isAgentOpen?: boolean;
   isExploreOpen?: boolean;
   isPortfolioOpen?: boolean;
   isPortrait: boolean;
@@ -326,7 +319,6 @@ function resolveRenderingKey({
 }) {
   if (isInactive) return AppState.Inactive;
   if (areSettingsOpen && isPortrait) return AppState.Settings;
-  if (isAgentOpen && isPortrait) return AppState.Agent;
   if (isExploreOpen && isPortrait) return AppState.Explore;
   if (isPortfolioOpen && isPortrait) return AppState.Portfolio;
   return appState;

@@ -4,7 +4,6 @@ import WalletContext
 public enum Deeplink {
     case tonConnect2(requestLink: String)
     case walletConnect(requestLink: String)
-    case agent
     case invoice(address: String, amount: BigInt?, comment: String?, binaryPayload: String?, token: String?, jetton: String?, stateInit: String?)
     case send(chain: ApiChain, address: String, amount: BigInt?, comment: String?, binaryPayload: String?, tokenSlug: String?, stateInit: String?)
     case swap(from: String?, to: String?, amountIn: Double?)

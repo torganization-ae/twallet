@@ -11,7 +11,6 @@ protocol RootContainerRouting {
     func isHomeRootSelected() -> Bool
     func pushOnHome(_ viewController: UIViewController) -> Bool
     func showAddWallet(network: ApiNetwork)
-    func showAgent()
     func showAssets(accountSource: AccountSource, selectedTab: DisplayAssetTab, collectionsFilter: NftCollectionFilter)
     func showExplore()
     func showHome(popToRoot: Bool)
@@ -71,10 +70,6 @@ struct TabRootContainerRouter: RootContainerRouting {
         presentAddWalletModally(network: network)
     }
 
-    func showAgent() {
-        showTab(.agent)
-    }
-
     func showAssets(accountSource: AccountSource, selectedTab: DisplayAssetTab, collectionsFilter: NftCollectionFilter) {
         presentAssetsModally(accountSource: accountSource, selectedTab: selectedTab, collectionsFilter: collectionsFilter)
     }
@@ -132,10 +127,6 @@ struct SplitRootContainerRouter: RootContainerRouting {
         let navigationController = WNavigationController(rootViewController: vc)
         navigationController.modalPresentationStyle = .formSheet
         topViewController()?.present(navigationController, animated: true)
-    }
-
-    func showAgent() {
-        showTab(.agent)
     }
 
     func showAssets(accountSource: AccountSource, selectedTab: DisplayAssetTab, collectionsFilter: NftCollectionFilter) {

@@ -1226,19 +1226,7 @@ My Assets: Мої активи
 Owner: Власник
 Show All Wallets: Показати всі гаманці
 Ask a Question: Задати питання
-Ask anything: Запитайте будь-що
-Agent: Агент
 Learn more: Докладніше
-Data shared with Agent: Дані, що передаються Агенту
-$agent_consent_allow_button: Дозволити Агенту
-$agent_consent_subtitle: Запитайте Агента про допомогу з гаманцем, інформацію про токени та підтримувані дії.
-$agent_consent_feature_answers: Отримуйте відповіді про %app_name%, токени й активність гаманця.
-$agent_consent_feature_actions: Підготовуйте підтримувані дії, як-от надсилання, отримання та стейкінг.
-$agent_consent_feature_context: Використовуйте контекст гаманця, щоб відповіді могли враховувати релевантні активи та адреси.
-$agent_consent_disclosure_text: Натискаючи «Дозволити Агенту», ви дозволяєте %app_name% надсилати ваші повідомлення Агенту та релевантний контекст гаманця до %app_name% Agent (agent.mywallet.io) і Anthropic Claude API, нашого стороннього постачальника ШІ, для обробки ваших запитів. Контекст гаманця може містити адреси гаманця, баланси, токени, активність і деталі запитаних дій. Дані використовуються лише для надання відповідей Агента та підготовки дій, які ви запитуєте.
-$agent_consent_debug_reset_button: Скинути згоду для Агента
-$agent_consent_debug_reset_footer: Знову показує екран згоди для Агента під час відкриття вкладки Агент.
-Clear Chat: Очистити чат
 Unsupported link: Це посилання не підтримується
 My Wallet Features: Функції My Wallet
 Notifications: Сповіщення
@@ -1269,12 +1257,6 @@ Top 10: Топ-10
 Top 30: Топ-30
 Manage Assets: Керування активами
 Pulse: Пульс
-Edit Message: Редагувати повідомлення
-Toggle Hints: Перемкнути підказки
-AgentErrorResponseFailed: "Помилка: Не вдалося отримати відповідь"
-AgentErrorConnectionFailed: "Помилка: З'єднання не вдалося"
-Scroll To Bottom: Прокрутити донизу
-$agent_clear_chat_confirm: Ви впевнені, що хочете очистити історію чату?
 $unknown_swap_token: Невідомий токен у посиланні обміну. Використано токени за замовчуванням.
 $action_not_available_view_mode: Ця дія недоступна для гаманців у режимі перегляду
 Deposit: Поповнити

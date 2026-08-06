@@ -1,6 +1,5 @@
 import UIKit
 import UIHome
-import UIAgent
 import UIBrowser
 import UIPortfolio
 import UISettings
@@ -21,7 +20,7 @@ struct AppTabRegistration {
 @MainActor
 final class AppTabManager {
     static let shared = AppTabManager()
-    static let defaultTabIds: [AppTabId] = [.wallet, .agent, .explore, .settings]
+    static let defaultTabIds: [AppTabId] = [.wallet, .explore, .settings]
 
     private var registrations: [AppTabId: AppTabRegistration] = [:]
     private var registrationOrder: [AppTabId] = []
@@ -137,16 +136,6 @@ final class AppTabManager {
                 }
             },
             sidebarEdgeCoverColor: .air.groupedBackground
-        ))
-        register(AppTabRegistration(
-            id: .agent,
-            titleProvider: { lang("Agent") },
-            compactIcon: UIImage(named: "tab_agent", in: AirBundle, compatibleWith: nil) ?? UIImage(),
-            sidebarIcon: UIImage.airBundle("SidebarAgent"),
-            makeNavigationController: { _ in
-                AppTabLazyNavigationController { AgentEntryPoint.makeRootViewController() }
-            },
-            sidebarEdgeCoverColor: nil
         ))
         register(AppTabRegistration(
             id: .explore,

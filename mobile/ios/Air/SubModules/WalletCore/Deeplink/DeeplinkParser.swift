@@ -235,9 +235,6 @@ private func parseMtwUrl(_ url: URL) -> Deeplink? {
     }
 
     switch url.host {
-    case "agent":
-        return .agent
-
     case "wc":
         return parseWalletConnectWrapperUrl(url)
         

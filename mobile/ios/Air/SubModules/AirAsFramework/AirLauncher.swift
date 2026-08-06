@@ -7,7 +7,6 @@
 
 import Foundation
 import UIKit
-import UIAgent
 import UIComponents
 import WalletCore
 import WalletContext
@@ -72,7 +71,6 @@ public class AirLauncher {
         appUnlocked = false
         runtimeCoordinator.reset()
         RootStateCoordinator.shared.reset()
-        AgentStore.shared.clean()
         installRootViewControllerIfNeeded()
 
         let launchPreparation: DatabaseBootstrapResult
@@ -139,7 +137,6 @@ public class AirLauncher {
         hasStartedDeferredLaunch = true
 
         await WalletCoreData.startDeferred(db: db)
-        AgentStore.shared.start()
         StartupTrace.mark("airLauncher.walletCoreData.start.end")
         hasStartedWalletCore = true
         if let pendingPushToken {

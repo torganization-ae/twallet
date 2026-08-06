@@ -30,12 +30,6 @@
   margin: auto auto max(0.75rem, var(--safe-area-bottom));
 
   @include mixins.glass-capsule();
-
-  @include mixins.respond-below(xs) {
-    :global(html.with-menu-backdrop.is-agent-active) & {
-      background-color: var(--color-app-background) !important;
-    }
-  }
 }
 
 .button {

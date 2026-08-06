@@ -1230,19 +1230,7 @@ My Assets: Moje Aktywa
 Owner: Właściciel
 Show All Wallets: Pokaż wszystkie portfele
 Ask a Question: Zadaj pytanie
-Ask anything: Zapytaj o cokolwiek
-Agent: Agent
 Learn more: Dowiedz się więcej
-Data shared with Agent: Dane udostępniane Agentowi
-$agent_consent_allow_button: Zezwól Agentowi
-$agent_consent_subtitle: Zapytaj Agenta o pomoc z portfelem, informacje o tokenach i obsługiwane działania.
-$agent_consent_feature_answers: Uzyskaj odpowiedzi dotyczące %app_name%, tokenów i aktywności portfela.
-$agent_consent_feature_actions: Przygotuj obsługiwane działania, takie jak wysyłanie, odbieranie i staking.
-$agent_consent_feature_context: Użyj kontekstu portfela, aby odpowiedzi mogły odnosić się do odpowiednich aktywów i adresów.
-$agent_consent_disclosure_text: Stukając Zezwól Agentowi, zezwalasz %app_name% na wysyłanie wiadomości Agenta i odpowiedniego kontekstu portfela do %app_name% Agent (agent.mywallet.io) oraz Anthropic Claude API, naszego zewnętrznego dostawcy AI, w celu przetwarzania Twoich żądań. Kontekst portfela może obejmować adresy portfela, salda, tokeny, aktywność i szczegóły żądanych działań. Dane są używane wyłącznie do dostarczania odpowiedzi Agenta i przygotowywania działań, o które prosisz.
-$agent_consent_debug_reset_button: Zresetuj zgodę dla Agenta
-$agent_consent_debug_reset_footer: Ponownie pokazuje ekran zgody dla Agenta podczas otwierania karty Agent.
-Clear Chat: Wyczyść czat
 Unsupported link: Ten link nie jest obsługiwany
 My Wallet Features: Funkcje My Wallet
 Notifications: Powiadomienia
@@ -1273,12 +1261,6 @@ Top 10: 10 najlepszych
 Top 30: 30 najlepszych
 Manage Assets: Zarządzaj aktywami
 Pulse: Puls
-Edit Message: Edytuj wiadomość
-Toggle Hints: Przełącz wskazówki
-AgentErrorResponseFailed: "Błąd: Nie udało się uzyskać odpowiedzi"
-AgentErrorConnectionFailed: "Błąd: Połączenie nieudane"
-Scroll To Bottom: Przewiń na dół
-$agent_clear_chat_confirm: Czy na pewno chcesz wyczyścić historię czatu?
 $unknown_swap_token: Nieznany token w linku wymiany. Użyto domyślnych tokenów.
 $action_not_available_view_mode: Ta akcja jest niedostępna dla portfeli podglądu
 Deposit: Wpłać

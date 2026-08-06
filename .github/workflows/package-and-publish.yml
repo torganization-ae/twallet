@@ -59,7 +59,6 @@ env:
   DIESEL_ADDRESS: ${{ vars.DIESEL_ADDRESS }}
   WALLET_CONNECT_PROJECT_ID: ${{ vars.WALLET_CONNECT_PROJECT_ID }}
   WALLET_CONNECT_PAY_APP_ID: ${{ vars.WALLET_CONNECT_PAY_APP_ID }}
-  AGENT_API_URL: ${{ vars.AGENT_API_URL }}
 
 jobs:
   detect-changes:
@@ -567,7 +566,6 @@ jobs:
           echo "APP_NAME=\"${APP_NAME}\"
           APP_COMMIT_HASH=${{ github.sha }}
           PROXY_HOSTS=\"${PROXY_HOSTS}\"
-          AGENT_API_URL=\"${AGENT_API_URL}\"
           STAKING_POOLS=\"${STAKING_POOLS}\"" >.env
           bash deploy/firefox_pack_sources.sh
           node deploy/firefoxPatchVersion.js

@@ -184,7 +184,6 @@ type SignOutLevel = 'account' | 'network' | 'all';
 export enum AppState {
   Auth,
   Main,
-  Agent,
   Explore,
   Portfolio,
   Settings,
@@ -434,7 +433,6 @@ export enum ContentTab {
   Overview,
   Assets,
   Activity,
-  Agent,
   Explore,
   Nft,
   Settings,
@@ -514,22 +512,6 @@ export interface Account {
 export type AssetPairs = Record<string, {
   isReverseProhibited?: boolean;
 }>;
-
-export interface AgentMessage {
-  id: number;
-  text: string;
-  isOutgoing: boolean;
-  timestamp: number;
-  isTyping?: boolean;
-}
-
-export interface AgentHint {
-  id: string;
-  langCode: LangCode;
-  title: string;
-  subtitle: string;
-  prompt: string;
-}
 
 export interface AccountState {
   balances?: {
@@ -1060,9 +1042,6 @@ export type GlobalState = {
   isCustomizeWalletModalOpen?: boolean;
   customizeWalletReturnTo?: 'accountSelector' | 'settings';
   areSettingsOpen?: boolean;
-  isAgentOpen?: boolean;
-  agentMeta?: { messageCount: number; lastTimestamp?: number };
-  agentHints?: AgentHint[];
   isExploreOpen?: boolean;
   isPortfolioOpen?: boolean;
   portfolioReturnTo?: 'settings';
@@ -1324,10 +1303,6 @@ export interface ActionPayloads {
   openNftAttributesModal: { nft: ApiNft; withOwner?: true };
   closeNftAttributesModal: undefined;
 
-  openAgent: undefined;
-  closeAgent: undefined;
-  setAgentMeta: { messageCount: number; lastTimestamp?: number };
-  setAgentHints: { hints: AgentHint[] };
   openExplore: undefined;
   closeExplore: undefined;
   openPortfolio: { returnTo?: 'settings' } | undefined;
@@ -1362,7 +1337,6 @@ export interface ActionPayloads {
 
   // BottomBar actions
   switchToWallet: undefined;
-  switchToAgent: undefined;
   switchToExplore: undefined;
   switchToSettings: undefined;
   switchToPortfolio: undefined;

@@ -37,7 +37,6 @@ import app.twallet.air.walletcore.moshi.api.ApiUpdate
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.ActivityStore
 import app.twallet.air.walletcore.stores.AddressStore
-import app.twallet.air.walletcore.stores.AgentMessageStore
 import app.twallet.air.walletcore.stores.AuthStore
 import app.twallet.air.walletcore.stores.BalanceStore
 import app.twallet.air.walletcore.stores.ConfigStore
@@ -251,7 +250,7 @@ object WalletCore {
     }
 
     val stores = listOf<IStore>(
-        AccountStore, ActivityStore, AddressStore, AgentMessageStore, AuthStore, BalanceStore,
+        AccountStore, ActivityStore, AddressStore, AuthStore, BalanceStore,
         ConfigStore, DappsStore, ExploreHistoryStore, NftStore, PortfolioStore, StakingStore,
         TokenStore
     )

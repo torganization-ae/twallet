@@ -1078,10 +1078,6 @@ class SplashVC(context: Context) : WViewController(context),
                 tabsVC?.switchToExplore(deeplink.targetUri)
             }
 
-            is Deeplink.Agent -> {
-                tabsVC?.switchToAgent()
-            }
-
             is Deeplink.Url -> {
                 val inAppBrowserVC = InAppBrowserVC(
                     context,

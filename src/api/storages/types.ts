@@ -47,8 +47,5 @@ export type StorageKey = 'accounts'
   | 'isDeeplinkHookEnabled'
   // For TonConnect SSE
   | 'sseLastEventId'
-  // For Agent
-  | 'agentMessages'
-  | 'agentConversationId'
   // For Headless
   | 'headlessBalanceSnapshots';

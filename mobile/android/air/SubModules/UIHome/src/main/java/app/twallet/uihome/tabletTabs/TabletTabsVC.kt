@@ -76,10 +76,6 @@ class TabletTabsVC(context: Context) : BaseTabsVC(context), WThemedView,
                 R.drawable.ic_home_thin, R.drawable.ic_home_filled, "Wallet"
             ),
             TabletSidePanelView.TabDef(
-                IBottomNavigationView.ID_AGENT,
-                R.drawable.ic_agent_thin, R.drawable.ic_agent_filled, "Agent"
-            ),
-            TabletSidePanelView.TabDef(
                 IBottomNavigationView.ID_EXPLORE,
                 R.drawable.ic_explore_thin, R.drawable.ic_explore_filled, "Explore"
             ),
@@ -699,11 +695,6 @@ class TabletTabsVC(context: Context) : BaseTabsVC(context), WThemedView,
         selectTab(IBottomNavigationView.ID_EXPLORE)
         window?.dismissToRoot()
         targetUri?.let { cachedExploreVC?.findSiteAndOpenTargetUri(it) }
-    }
-
-    override fun switchToAgent() {
-        selectTab(IBottomNavigationView.ID_AGENT)
-        window?.dismissToRoot()
     }
 
     override fun switchToSettings(pushVC: WViewController?) {

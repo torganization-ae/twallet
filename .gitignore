@@ -5,7 +5,6 @@ dist-multisend
 dist-push
 dist-air
 dist-mfa
-dist-agent
 *.LICENSE.txt
 MyTonWallet-chrome.zip
 MyTonWallet-firefox.zip

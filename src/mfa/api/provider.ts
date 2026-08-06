@@ -208,7 +208,6 @@ async function updateMfaConfig() {
       swapVersion: config.swapVersion ?? SWAP_API_VERSION,
       seasonalTheme: config.seasonalTheme,
       knowledgeBaseVersion: config.knowledgeBaseVersion,
-      preferredAgent: config.preferredAgent,
     });
   } catch (err) {
     logDebugError('updateMfaConfig', err);

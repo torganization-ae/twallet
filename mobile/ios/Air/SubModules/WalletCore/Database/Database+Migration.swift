@@ -247,19 +247,8 @@ func makeMigrator() -> DatabaseMigrator {
                 .defaults(to: 5)
         }
     }
-    migrator.registerMigration("v12") { db in
-        try db.create(table: "agent_history_messages") { t in
-            t.primaryKey("id", .text)
-            t.column("sort_index", .integer).notNull()
-            t.column("role", .text).notNull()
-            t.column("text", .text).notNull()
-            t.column("timestamp", .datetime).notNull()
-            t.column("action_title", .text)
-            t.column("action_url", .text)
-            t.column("system_style_kind", .text)
-            t.column("system_style_date", .text)
-            t.column("system_style_time", .text)
-        }
+    migrator.registerMigration("v12") { _ in
+        // Agent feature removed; was: create agent_history_messages table
     }
     migrator.registerMigration("v13") { db in
         try db.alter(table: "settings") { t in

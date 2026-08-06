@@ -174,10 +174,6 @@ public class HomeTabBarController: UITabBarController {
         }
     }
 
-    public func switchToAgent() {
-        selectTab(.agent)
-    }
-
     public func switchToExplore() {
         selectTab(.explore)
     }
@@ -194,11 +190,6 @@ public class HomeTabBarController: UITabBarController {
         guard let settingsNC = settingsNavigationController else { return false }
         settingsNC.pushViewController(viewController, animated: animated)
         return true
-    }
-
-    public func debugOnly_resetAgentRoot() {
-        guard let agentNC = navControllersByTabId[.agent] as? AppTabLazyNavigationController else { return }
-        agentNC.resetRootViewController()
     }
 
     private func tabId(at index: Int) -> AppTabId {

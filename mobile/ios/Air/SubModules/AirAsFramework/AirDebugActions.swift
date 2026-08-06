@@ -1,5 +1,4 @@
 import UIKit
-import UIAgent
 import UIComponents
 import UICreateWallet
 import UIHome
@@ -27,11 +26,6 @@ public enum AirDebugActions {
             },
             cancellable: true
         )
-    }
-
-    public static func resetAgentConsentState() {
-        AgentEntryPoint.resetConsentStateForDebug()
-        resetAgentRoot()
     }
 
     #if DEBUG && targetEnvironment(simulator)
@@ -71,16 +65,5 @@ public enum AirDebugActions {
         let navigationController = WNavigationController(rootViewController: intro)
         navigationController.modalPresentationStyle = .fullScreen
         topViewController()?.present(navigationController, animated: true)
-    }
-
-    private static func resetAgentRoot() {
-        for window in UIApplication.shared.sceneWindows {
-            window.rootViewController?
-                .descendantViewController(of: HomeTabBarController.self)?
-                .debugOnly_resetAgentRoot()
-            window.rootViewController?
-                .descendantViewController(of: SplitRootViewController.self)?
-                .debugOnly_resetAgentRoot()
-        }
     }
 }

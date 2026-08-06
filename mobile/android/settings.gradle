@@ -21,7 +21,6 @@ def subModules = [
   "UIAssets",
   "UIBrowser",
   "UITransaction",
-  "UIAgent",
   "OverScroll",
   "UISend",
   "UIInAppBrowser",

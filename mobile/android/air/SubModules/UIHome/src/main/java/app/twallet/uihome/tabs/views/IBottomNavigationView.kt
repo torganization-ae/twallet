@@ -9,7 +9,6 @@ abstract class IBottomNavigationView(context: Context) : FrameLayout(context), W
 
     companion object {
         const val ID_HOME = 1
-        const val ID_AGENT = 2
         const val ID_EXPLORE = 3
         const val ID_SETTINGS = 4
     }

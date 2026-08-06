@@ -60,8 +60,6 @@ public struct WColors: Sendable {
     
     public let secondaryLabel: UIColor = .airBundle("AirSecondaryLabelColor")
     public let secondaryFill: UIColor = .airBundle("SecondaryFillColor")
-    public let agentBubbleFill: UIColor = .airBundle("AgentBubbleColor")
-    public let agentHintBackground: UIColor = .airBundle("AgentHintBackgroundColor")
     public let folderFill: UIColor = .airBundle("FolderFillColor")
     public let positiveBalance: UIColor = .airBundle("TextLime")
     public let positiveAmount: UIColor = .airBundle("TextGreen")
@@ -140,8 +138,6 @@ public extension Color {
         public let highlight: Color = .airBundle("HighlightColor")
         public let altHighlight: Color = .airBundle("AltHighlightColor")
         public let secondaryFill: Color = .airBundle("SecondaryFillColor")
-        public let agentBubbleFill: Color = .airBundle("AgentBubbleColor")
-        public let agentHintBackground: Color = .airBundle("AgentHintBackgroundColor")
         public let error: Color = .airBundle("TextRed")
         public let positiveBalance: Color = .airBundle("TextLime")
         public let positiveAmount: Color = .airBundle("TextGreen")

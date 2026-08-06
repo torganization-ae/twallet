@@ -665,22 +665,6 @@ addActionHandler('openExplore', (global) => {
   return openSection(global, 'explore');
 });
 
-addActionHandler('openAgent', (global) => {
-  return openSection(global, 'agent');
-});
-
-addActionHandler('closeAgent', (global) => {
-  return { ...global, isAgentOpen: undefined };
-});
-
-addActionHandler('setAgentMeta', (global, actions, payload) => {
-  return { ...global, agentMeta: { ...global.agentMeta, ...payload } };
-});
-
-addActionHandler('setAgentHints', (global, actions, { hints }) => {
-  return { ...global, agentHints: hints };
-});
-
 addActionHandler('closeExplore', (global) => {
   return { ...global, isExploreOpen: undefined };
 });
@@ -742,15 +726,14 @@ addActionHandler('switchAccountAndOpenUrl', async (global, actions, payload) => 
 
 addActionHandler('switchToWallet', (global: GlobalState, actions) => {
   const {
-    areSettingsOpen, isAgentOpen, isExploreOpen, isPortfolioOpen,
+    areSettingsOpen, isExploreOpen, isPortfolioOpen,
   } = global;
   const accountState = selectCurrentAccountState(global);
   const areAssetsActive = accountState?.activeContentTab === ContentTab.Assets;
-  const isWalletTabActive = !isAgentOpen && !isExploreOpen && !areSettingsOpen && !isPortfolioOpen;
+  const isWalletTabActive = !isExploreOpen && !areSettingsOpen && !isPortfolioOpen;
 
   setGlobal({ ...global, portfolioReturnTo: undefined });
 
-  actions.closeAgent(undefined, { forceOnHeavyAnimation: true });
   actions.closeExplore(undefined, { forceOnHeavyAnimation: true });
   actions.closeSettings(undefined, { forceOnHeavyAnimation: true });
   actions.closePortfolio(undefined, { forceOnHeavyAnimation: true });
@@ -759,20 +742,6 @@ addActionHandler('switchToWallet', (global: GlobalState, actions) => {
     actions.selectToken({ slug: undefined }, { forceOnHeavyAnimation: true });
     actions.setActiveContentTab({ tab: ContentTab.Assets }, { forceOnHeavyAnimation: true });
   }
-});
-
-addActionHandler('switchToAgent', (global: GlobalState, actions) => {
-  const { isAgentOpen } = global;
-
-  if (isAgentOpen) return;
-
-  setGlobal({ ...global, portfolioReturnTo: undefined });
-
-  actions.closeExplore(undefined, { forceOnHeavyAnimation: true });
-  actions.closeSettings(undefined, { forceOnHeavyAnimation: true });
-  actions.closePortfolio(undefined, { forceOnHeavyAnimation: true });
-  actions.openAgent(undefined, { forceOnHeavyAnimation: true });
-  actions.setActiveContentTab({ tab: ContentTab.Agent }, { forceOnHeavyAnimation: true });
 });
 
 addActionHandler('switchToExplore', (global: GlobalState, actions) => {
@@ -784,14 +753,12 @@ addActionHandler('switchToExplore', (global: GlobalState, actions) => {
 
   setGlobal({ ...global, portfolioReturnTo: undefined });
 
-  actions.closeAgent(undefined, { forceOnHeavyAnimation: true });
   actions.closeSettings(undefined, { forceOnHeavyAnimation: true });
   actions.closePortfolio(undefined, { forceOnHeavyAnimation: true });
   actions.openExplore(undefined, { forceOnHeavyAnimation: true });
 });
 
 addActionHandler('switchToSettings', (global: GlobalState, actions) => {
-  actions.closeAgent(undefined, { forceOnHeavyAnimation: true });
   actions.closeExplore(undefined, { forceOnHeavyAnimation: true });
   actions.closePortfolio(undefined, { forceOnHeavyAnimation: true });
   actions.openSettings(undefined, { forceOnHeavyAnimation: true });
@@ -802,7 +769,6 @@ addActionHandler('switchToPortfolio', (global: GlobalState, actions) => {
 
   if (isPortfolioOpen) return;
 
-  actions.closeAgent(undefined, { forceOnHeavyAnimation: true });
   actions.closeExplore(undefined, { forceOnHeavyAnimation: true });
   actions.closeSettings(undefined, { forceOnHeavyAnimation: true });
   actions.openPortfolio(undefined, { forceOnHeavyAnimation: true });

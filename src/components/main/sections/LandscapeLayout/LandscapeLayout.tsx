@@ -6,7 +6,6 @@ import { ContentTab } from '../../../../global/types';
 import { selectCurrentAccountId } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 
-import Agent from '../../../agent/Agent';
 import Explore from '../../../explore/Explore';
 import Portfolio from '../../../portfolio/Portfolio';
 import Settings from '../../../settings/Settings';
@@ -21,22 +20,15 @@ interface OwnProps {
 
 interface StateProps {
   areSettingsOpen?: boolean;
-  isAgentOpen?: boolean;
   isExploreOpen?: boolean;
   isPortfolioOpen?: boolean;
 }
 
 function LandscapeLayout({
-  onStakedTokenClick, areSettingsOpen, isAgentOpen, isExploreOpen, isPortfolioOpen,
+  onStakedTokenClick, areSettingsOpen, isExploreOpen, isPortfolioOpen,
 }: OwnProps & StateProps) {
   function renderSlide(isActive: boolean, _isFrom: boolean, currentKey: ContentTab) {
     switch (currentKey) {
-      case ContentTab.Agent:
-        return (
-          <div className={styles.standaloneWrapper}>
-            <Agent isActive={isActive} />
-          </div>
-        );
       case ContentTab.Explore:
         return (
           <div className={styles.standaloneWrapper}>
@@ -62,7 +54,6 @@ function LandscapeLayout({
 
   function getActiveKey() {
     if (areSettingsOpen) return ContentTab.Settings;
-    if (isAgentOpen) return ContentTab.Agent;
     if (isExploreOpen) return ContentTab.Explore;
     if (isPortfolioOpen) return ContentTab.Portfolio;
 
@@ -87,11 +78,11 @@ export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
       const {
-        areSettingsOpen, isAgentOpen, isExploreOpen, isPortfolioOpen,
+        areSettingsOpen, isExploreOpen, isPortfolioOpen,
       } = global;
 
       return {
-        areSettingsOpen, isAgentOpen, isExploreOpen, isPortfolioOpen,
+        areSettingsOpen, isExploreOpen, isPortfolioOpen,
       };
     },
     (global, _, stickToFirst) => stickToFirst(selectCurrentAccountId(global)),

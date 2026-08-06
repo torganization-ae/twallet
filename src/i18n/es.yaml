@@ -1211,19 +1211,7 @@ My Assets: Mis Activos
 Owner: Propietario
 Show All Wallets: Mostrar todas las billeteras
 Ask a Question: Hacer una pregunta
-Ask anything: Pregunta lo que quieras
-Agent: Agente
 Learn more: Más información
-Data shared with Agent: Datos compartidos con el Agente
-$agent_consent_allow_button: Permitir al Agente
-$agent_consent_subtitle: Pide ayuda al Agente sobre la billetera, información de tokens y acciones compatibles.
-$agent_consent_feature_answers: Obtén respuestas sobre %app_name%, tokens y actividad de la billetera.
-$agent_consent_feature_actions: Prepara acciones compatibles como enviar, recibir y hacer staking.
-$agent_consent_feature_context: Usa el contexto de la billetera para que las respuestas puedan hacer referencia a activos y direcciones relevantes.
-$agent_consent_disclosure_text: Al tocar Permitir al Agente, permites que %app_name% envíe tus mensajes del Agente y el contexto relevante de la billetera a %app_name% Agent (agent.mywallet.io) y a Anthropic Claude API, nuestro proveedor externo de IA, para procesar tus solicitudes. El contexto de la billetera puede incluir direcciones de billetera, saldos, tokens, actividad y detalles de las acciones solicitadas. Los datos se usan solo para proporcionar respuestas del Agente y preparar las acciones que solicites.
-$agent_consent_debug_reset_button: Restablecer estado de consentimiento del Agente
-$agent_consent_debug_reset_footer: Muestra de nuevo la pantalla de consentimiento del Agente al abrir la pestaña Agente.
-Clear Chat: Borrar chat
 Unsupported link: Este enlace no es compatible
 My Wallet Features: Características de My Wallet
 Notifications: Notificaciones
@@ -1254,12 +1242,6 @@ Top 10: Los 10 mejores
 Top 30: Los 30 mejores
 Manage Assets: Gestionar activos
 Pulse: Pulso
-Edit Message: Editar mensaje
-Toggle Hints: Alternar sugerencias
-AgentErrorResponseFailed: "Error: No se pudo obtener respuesta"
-AgentErrorConnectionFailed: "Error: Conexión fallida"
-Scroll To Bottom: Ir al final
-$agent_clear_chat_confirm: ¿Estás seguro de que quieres borrar el historial de chat?
 $unknown_swap_token: Token desconocido en el enlace de intercambio. Se utilizaron los tokens predeterminados.
 $action_not_available_view_mode: Esta acción no está disponible para billeteras de visualización
 Deposit: Depositar

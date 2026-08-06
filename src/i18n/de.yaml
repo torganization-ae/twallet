@@ -1213,19 +1213,7 @@ My Assets: Meine Vermögenswerte
 Owner: Eigentümer
 Show All Wallets: Alle Wallets anzeigen
 Ask a Question: Eine Frage stellen
-Ask anything: Frag, was du möchtest
-Agent: Agent
 Learn more: Mehr erfahren
-Data shared with Agent: Mit Agent geteilte Daten
-$agent_consent_allow_button: Agent erlauben
-$agent_consent_subtitle: Fragen Sie Agent nach Wallet-Hilfe, Token-Informationen und unterstützten Aktionen.
-$agent_consent_feature_answers: Erhalten Sie Antworten zu %app_name%, Token und Wallet-Aktivitäten.
-$agent_consent_feature_actions: Bereiten Sie unterstützte Aktionen wie Senden, Empfangen und Staking vor.
-$agent_consent_feature_context: Verwenden Sie Wallet-Kontext, damit Antworten relevante Assets und Adressen berücksichtigen können.
-$agent_consent_disclosure_text: Wenn Sie auf „Agent erlauben“ tippen, erlauben Sie %app_name%, Ihre Agent-Nachrichten und relevanten Wallet-Kontext an %app_name% Agent (agent.mywallet.io) und die Anthropic Claude API, unseren externen KI-Anbieter, zu senden, um Ihre Anfragen zu verarbeiten. Der Wallet-Kontext kann Wallet-Adressen, Guthaben, Token, Aktivität und Details zu angeforderten Aktionen enthalten. Daten werden nur verwendet, um Agent-Antworten bereitzustellen und von Ihnen angeforderte Aktionen vorzubereiten.
-$agent_consent_debug_reset_button: Agent-Zustimmung zurücksetzen
-$agent_consent_debug_reset_footer: Zeigt den Agent-Zustimmungsbildschirm beim Öffnen des Agent-Tabs erneut an.
-Clear Chat: Chat löschen
 Unsupported link: Dieser Link wird nicht unterstützt
 My Wallet Features: My Wallet-Funktionen
 Notifications: Benachrichtigungen
@@ -1256,12 +1244,6 @@ Top 10: Die besten 10
 Top 30: Die besten 30
 Manage Assets: Assets verwalten
 Pulse: Puls
-Edit Message: Nachricht bearbeiten
-Toggle Hints: Hinweise umschalten
-AgentErrorResponseFailed: "Fehler: Antwort konnte nicht abgerufen werden"
-AgentErrorConnectionFailed: "Fehler: Verbindung fehlgeschlagen"
-Scroll To Bottom: Nach unten scrollen
-$agent_clear_chat_confirm: Sind Sie sicher, dass Sie den Chatverlauf löschen möchten?
 $unknown_swap_token: Unbekannter Token im Swap-Link. Standard-Token wurden verwendet.
 $action_not_available_view_mode: Diese Aktion ist für View Wallets nicht verfügbar
 Deposit: Einzahlen

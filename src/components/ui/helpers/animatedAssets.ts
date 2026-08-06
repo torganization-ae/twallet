@@ -2,10 +2,6 @@ import { IS_TON_BRAND } from '../../../config';
 
 import iconAddDark from '../../../assets/lottie/add_dark.tgs';
 import iconAddLight from '../../../assets/lottie/add_light.tgs';
-import iconAgentDark from '../../../assets/lottie/agent_dark.tgs';
-import iconAgentLight from '../../../assets/lottie/agent_light.tgs';
-import iconAgentSolidDark from '../../../assets/lottie/agent_solid_dark.tgs';
-import iconAgentSolidLight from '../../../assets/lottie/agent_solid_light.tgs';
 import iconBuyDark from '../../../assets/lottie/buy_dark.tgs';
 import iconBuyLight from '../../../assets/lottie/buy_light.tgs';
 import iconClockDark from '../../../assets/lottie/clock_dark.tgs';
@@ -61,10 +57,6 @@ import iconWalletSolidDark from '../../../assets/lottie/wallet_solid_dark.tgs';
 import iconWalletSolidLight from '../../../assets/lottie/wallet_solid_light.tgs';
 import iconAddPreviewDark from '../../../assets/lottiePreview/add_dark.png';
 import iconAddPreviewLight from '../../../assets/lottiePreview/add_light.png';
-import iconAgentPreviewDark from '../../../assets/lottiePreview/agent_dark.png';
-import iconAgentPreviewLight from '../../../assets/lottiePreview/agent_light.png';
-import iconAgentSolidPreviewDark from '../../../assets/lottiePreview/agent_solid_dark.png';
-import iconAgentSolidPreviewLight from '../../../assets/lottiePreview/agent_solid_light.png';
 import iconBuyPreviewDark from '../../../assets/lottiePreview/buy_dark.png';
 import iconBuyPreviewLight from '../../../assets/lottiePreview/buy_light.png';
 import iconClockPreviewDark from '../../../assets/lottiePreview/clock_dark.svg';
@@ -150,8 +142,6 @@ export const ANIMATED_STICKERS_PATHS = {
   }),
   light: {
     iconAdd: iconAddLight,
-    iconAgent: iconAgentLight,
-    iconAgentSolid: iconAgentSolidLight,
     iconBuy: iconBuyLight,
     iconClock: iconClockLight,
     iconClockBlue: iconClockLightBlue,
@@ -174,8 +164,6 @@ export const ANIMATED_STICKERS_PATHS = {
     iconWalletSolid: iconWalletSolidLight,
     preview: {
       iconAdd: iconAddPreviewLight,
-      iconAgent: iconAgentPreviewLight,
-      iconAgentSolid: iconAgentSolidPreviewLight,
       iconBuy: iconBuyPreviewLight,
       iconClock: iconClockPreviewLight,
       iconClockBlue: iconClockPreviewLightBlue,
@@ -200,8 +188,6 @@ export const ANIMATED_STICKERS_PATHS = {
   },
   dark: {
     iconAdd: iconAddDark,
-    iconAgent: iconAgentDark,
-    iconAgentSolid: iconAgentSolidDark,
     iconBuy: iconBuyDark,
     iconClock: iconClockDark,
     iconClockBlue: iconClockDarkBlue,
@@ -224,8 +210,6 @@ export const ANIMATED_STICKERS_PATHS = {
     iconWalletSolid: iconWalletSolidDark,
     preview: {
       iconAdd: iconAddPreviewDark,
-      iconAgent: iconAgentPreviewDark,
-      iconAgentSolid: iconAgentSolidPreviewDark,
       iconBuy: iconBuyPreviewDark,
       iconClock: iconClockPreviewDark,
       iconClockBlue: iconClockPreviewDarkBlue,

@@ -23,7 +23,6 @@ html, body {
 
   transition: background-color 350ms;
 
-  &.is-agent-active.with-bottombar,
   &.is-explore-active.with-bottombar {
     --color-app-background: var(--color-background-second);
 

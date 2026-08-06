@@ -371,9 +371,6 @@ extension AirRuntimeCoordinator: DeeplinkNavigator {
             defer { nextDeeplink = nil }
 
             switch deeplink {
-            case .agent:
-                AppActions.showAgent()
-
             case .invoice(address: let address, amount: let amount, comment: let comment, binaryPayload: let binaryPayload, token: let token, jetton: let jetton, stateInit: let stateInit):
                 AppActions.showSend(accountContext: accountContext, prefilledValues: SendPrefilledValues(
                     address: address,

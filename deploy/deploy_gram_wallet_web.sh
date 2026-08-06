@@ -262,7 +262,6 @@ ALLOWED_CONNECT_SRC=(
   "blob:"
   "https://*.walletconnect.com"
   "https://*.walletconnect.org"
-  "https://agent.mywallet.io"
   "https://analytics.ton.org"
   "https://api-portfolio.mywallet.io/api/"
   "https://api.mywallet.io"

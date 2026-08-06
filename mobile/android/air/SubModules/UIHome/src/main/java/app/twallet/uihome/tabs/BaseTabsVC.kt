@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.view.ViewGroup
 import androidx.core.net.toUri
-import app.twallet.air.uiagent.viewControllers.agent.AgentVC
 import app.twallet.air.uiassets.viewControllers.assets.AssetsVC
 import app.twallet.air.uiassets.viewControllers.assets.AssetsVC.CollectionMode
 import app.twallet.air.uiassets.viewControllers.token.TokenVC
@@ -37,7 +36,7 @@ import app.twallet.uihome.tabs.views.IBottomNavigationView
 
 /**
  * Shared base for the two tab containers (phone [TabsVC] and tablet TabletTabsVC). Owns the four
- * per-tab navigation stacks (Home/Agent/Explore/Settings) and the shared [WalletEvent] routing, and
+ * per-tab navigation stacks (Home/Explore/Settings) and the shared [WalletEvent] routing, and
  * supports transferring the live stacks between containers on a layout swap so each tab's back stack
  * survives. Container-specific chrome (bottom bar, minimize, blur, search, mounting) is left to the
  * subclasses via the [ITabsVC] members they implement.
@@ -71,7 +70,6 @@ abstract class BaseTabsVC(context: Context) :
         nav.setRoot(
             when (id) {
                 IBottomNavigationView.ID_HOME -> HomeVC(context, MScreenMode.Default)
-                IBottomNavigationView.ID_AGENT -> AgentVC(context)
                 IBottomNavigationView.ID_EXPLORE -> ExploreVC(context).also {
                     cachedExploreVC = it
                     onExploreCreated(it)

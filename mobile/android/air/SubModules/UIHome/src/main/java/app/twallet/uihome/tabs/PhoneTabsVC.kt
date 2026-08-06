@@ -168,16 +168,9 @@ class PhoneTabsVC(context: Context) : BaseTabsVC(context), WThemedView, WProtect
             if (isSwitchingTabs) return false
 
             checkForUpdate(itemId)
-            val isAgent = itemId == IBottomNavigationView.ID_AGENT
-            ignoreSideGuttering = isAgent
-            val wasAgent = bottomNavigationView.selectedItemId == IBottomNavigationView.ID_AGENT
-            if (wasAgent != isAgent)
-                updateBottomNavigationBackground(itemId)
+            ignoreSideGuttering = false
             bottomReversedCornerView?.setHorizontalPadding(
-                if (ignoreSideGuttering)
-                    0f
-                else
-                    ViewConstants.HORIZONTAL_PADDINGS.dp.toFloat()
+                ViewConstants.HORIZONTAL_PADDINGS.dp.toFloat()
             )
 
             val newNav = getNavigationStack(itemId)
@@ -883,7 +876,7 @@ class PhoneTabsVC(context: Context) : BaseTabsVC(context), WThemedView, WProtect
                 }
             }
             stickyBackgroundColor =
-                if (ThemeManager.isDark && selectedItemId != IBottomNavigationView.ID_AGENT)
+                if (ThemeManager.isDark)
                     WColor.SecondaryBackground.color
                 else
                     WColor.Background.color
@@ -911,12 +904,6 @@ class PhoneTabsVC(context: Context) : BaseTabsVC(context), WThemedView, WProtect
         bottomNavigationView.selectedItemId = IBottomNavigationView.ID_EXPLORE
         window?.dismissToRoot()
         targetUri?.let { cachedExploreVC?.findSiteAndOpenTargetUri(it) }
-    }
-
-    override fun switchToAgent() {
-        navigationController?.popToRoot(false)
-        bottomNavigationView.selectedItemId = IBottomNavigationView.ID_AGENT
-        window?.dismissToRoot()
     }
 
     override fun switchToSettings(pushVC: WViewController?) {

@@ -1209,19 +1209,7 @@ My Assets: Varlıklarım
 Owner: Sahip
 Show All Wallets: Tüm cüzdanları göster
 Ask a Question: Bir Soru Sor
-Ask anything: Her şeyi sor
-Agent: Asistan
 Learn more: Daha fazla bilgi
-Data shared with Agent: Asistan ile paylaşılan veriler
-$agent_consent_allow_button: Asistana İzin Ver
-$agent_consent_subtitle: Cüzdan yardımı, token bilgileri ve desteklenen işlemler için Asistan'a danışın.
-$agent_consent_feature_answers: "%app_name%, tokenlar ve cüzdan etkinliği hakkında yanıtlar alın."
-$agent_consent_feature_actions: Gönderme, alma ve staking gibi desteklenen işlemleri hazırlayın.
-$agent_consent_feature_context: Yanıtların ilgili varlıklara ve adreslere referans verebilmesi için cüzdan bağlamını kullanın.
-$agent_consent_disclosure_text: Asistana İzin Ver düğmesine dokunarak %app_name% uygulamasının Asistan mesajlarınızı ve ilgili cüzdan bağlamınızı %app_name% Agent (agent.mywallet.io) ile üçüncü taraf AI sağlayıcımız Anthropic Claude API'ye isteklerinizi işlemek üzere göndermesine izin verirsiniz. Cüzdan bağlamı cüzdan adreslerini, bakiyeleri, tokenları, etkinliği ve istenen işlem ayrıntılarını içerebilir. Veriler yalnızca Asistan yanıtları sağlamak ve istediğiniz işlemleri hazırlamak için kullanılır.
-$agent_consent_debug_reset_button: Asistan onay durumunu sıfırla
-$agent_consent_debug_reset_footer: Asistan sekmesi açıldığında Asistan onay ekranını tekrar gösterir.
-Clear Chat: Sohbeti temizle
 Unsupported link: Bu bağlantı desteklenmiyor
 My Wallet Features: My Wallet Özellikleri
 Notifications: Bildirimler
@@ -1252,12 +1240,6 @@ Top 10: En iyi 10
 Top 30: En iyi 30
 Manage Assets: Varlıkları yönet
 Pulse: Nabız
-Edit Message: Mesajı düzenle
-Toggle Hints: İpuçlarını değiştir
-AgentErrorResponseFailed: "Hata: Yanıt alınamadı"
-AgentErrorConnectionFailed: "Hata: Bağlantı başarısız"
-Scroll To Bottom: Alta kaydır
-$agent_clear_chat_confirm: Sohbet geçmişini temizlemek istediğinizden emin misiniz?
 $unknown_swap_token: Swap bağlantısında bilinmeyen token. Varsayılan tokenlar kullanıldı.
 $action_not_available_view_mode: Bu işlem Görüntüleme Cüzdanları için kullanılamaz
 Deposit: Yatır

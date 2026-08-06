@@ -180,7 +180,7 @@ export default function useContentTabs({
     () => {
       const tabIndex = tabs.findIndex((tab) => tab.id === activeContentTab);
 
-      // `activeContentTab` can hold a value that is not a visible tab (an overlay section like `Agent`,
+      // `activeContentTab` can hold a value that is not a visible tab (an overlay section,
       // or `Assets` while it is shown as a separate panel), so fall back to the first tab by index
       return tabIndex === -1 ? 0 : tabIndex;
     },
