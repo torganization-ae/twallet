@@ -16,12 +16,13 @@ import {
 } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { calculateTokenPrice } from '../../util/calculatePrice';
-import { getDefaultEnabledSlugs } from '../../util/chain';
+import { findChainConfig, getDefaultEnabledSlugs } from '../../util/chain';
 import { toBig } from '../../util/decimals';
 import memoize from '../../util/memoize';
 import { round } from '../../util/round';
-import { sortTokens } from '../../util/tokens';
+import { getChainBySlug, sortTokens } from '../../util/tokens';
 import withCache from '../../util/withCache';
+import { getHiddenChainsSnapshot } from '../../api/chains/chainVisibility';
 import {
   selectAccountSettings,
   selectAccountState,
@@ -30,6 +31,9 @@ import {
 } from './accounts';
 
 const EMPTY_BALANCES: ApiBalanceBySlug = {};
+
+/** Default Safe-Assets dust threshold (USD) — unknown tokens below this go to Spam/Dust. */
+export const DEFAULT_DUST_THRESHOLD_USD = 1;
 
 function getHasConfirmedActivities(activities: AccountState['activities']) {
   const confirmedCount = (activities?.idsMain?.length ?? 0)
@@ -50,6 +54,41 @@ function getAreAllBalancesNearZero(balancesBySlug: ApiBalanceBySlug, tokenInfo: 
   });
 }
 
+function isSafeAsset(
+  slug: string,
+  token: ApiTokenWithPrice,
+  balance: bigint,
+  accountSettings: AccountSettings,
+  dustThresholdUsd: number,
+  network: ReturnType<typeof parseAccountId>['network'],
+): boolean {
+  if (accountSettings.alwaysShownSlugs?.includes(slug)) return true;
+  if (accountSettings.importedSlugs?.includes(slug)) return true;
+  if (token.isVerified || token.isPopular || token.isFromBackend) return true;
+  if (getDefaultEnabledSlugs(network).has(slug)) return true;
+  if (PRICELESS_TOKEN_HASHES.has(token.codeHash!)) return true;
+
+  const balanceUsd = toBig(balance, token.decimals).mul(token.priceUsd ?? 0);
+  return balanceUsd.gte(dustThresholdUsd);
+}
+
+function isSpamAsset(
+  slug: string,
+  token: ApiTokenWithPrice,
+  balance: bigint,
+  accountSettings: AccountSettings,
+  dustThresholdUsd: number,
+  network: ReturnType<typeof parseAccountId>['network'],
+): boolean {
+  if (token.isSpam) return true;
+  if (accountSettings.importedSlugs?.includes(slug)) return false;
+  if (accountSettings.alwaysShownSlugs?.includes(slug)) return false;
+  if (isSafeAsset(slug, token, balance, accountSettings, dustThresholdUsd, network)) return false;
+  // Unknown token with zero/dust value → spam/dust folder
+  const balanceUsd = toBig(balance, token.decimals).mul(token.priceUsd ?? 0);
+  return balance > 0n && balanceUsd.lt(dustThresholdUsd);
+}
+
 export const selectAccountTokensMemoizedFor = withCache((accountId: string) => memoize((
   balancesBySlug: ApiBalanceBySlug,
   tokenInfo: GlobalState['tokenInfo'],
@@ -60,28 +99,40 @@ export const selectAccountTokensMemoizedFor = withCache((accountId: string) => m
   hasActivities: boolean = false,
 ) => {
   const { network } = parseAccountId(accountId);
+  const hiddenChains = getHiddenChainsSnapshot(network);
   const shouldShowOnlyDefaultTokens = !hasActivities && getAreAllBalancesNearZero(balancesBySlug, tokenInfo);
   const pinnedSlugs = accountSettings.pinnedSlugs ?? [];
+  const dustThresholdUsd = accountSettings.dustThresholdUsd ?? DEFAULT_DUST_THRESHOLD_USD;
 
   const tokens = Object
     .entries(balancesBySlug)
+    .filter(([slug]) => findChainConfig(getChainBySlug(slug)))
+    .filter(([slug]) => !hiddenChains.has(getChainBySlug(slug)))
     .filter(([slug]) => (slug in tokenInfo.bySlug && !accountSettings.deletedSlugs?.includes(slug)))
+    .filter(([slug, balance]) => {
+      const token = tokenInfo.bySlug[slug];
+      // Keep spam out of the main list (unless user forced it visible)
+      return !isSpamAsset(slug, token, balance, accountSettings, dustThresholdUsd, network);
+    })
     .map(([slug, balance]): UserToken => {
       const {
         symbol, name, image, decimals, cmcSlug, color, chain, tokenAddress, codeHash,
-        type, label, keywords, percentChange24h = 0, priceUsd,
+        type, label, keywords, percentChange24h = 0, priceUsd, isVerified, isSpam,
       } = tokenInfo.bySlug[slug];
 
       const price = calculateTokenPrice(priceUsd ?? 0, baseCurrency, currencyRates);
       const balanceBig = toBig(balance, decimals);
       const totalValue = balanceBig.mul(price).round(decimals).toString();
-      const hasCost = balanceBig.mul(priceUsd ?? 0).gte(TINY_TRANSFER_MAX_COST);
+      const hasCost = balanceBig.mul(priceUsd ?? 0).gte(
+        areTokensWithNoCostHidden ? dustThresholdUsd : TINY_TRANSFER_MAX_COST,
+      );
       const isPricelessTokenWithBalance = PRICELESS_TOKEN_HASHES.has(codeHash!) && balance > 0n;
+      const isSafe = isSafeAsset(slug, tokenInfo.bySlug[slug], balance, accountSettings, dustThresholdUsd, network);
 
       const isEnabled = accountSettings.alwaysShownSlugs?.includes(slug)
         || (shouldShowOnlyDefaultTokens
           ? getDefaultEnabledSlugs(network).has(slug)
-          : (hasCost || isPricelessTokenWithBalance || (!areTokensWithNoCostHidden && balance > 0n)));
+          : (isSafe && (hasCost || isPricelessTokenWithBalance || (!areTokensWithNoCostHidden && balance > 0n))));
 
       const isDisabled = !isEnabled || accountSettings.alwaysHiddenSlugs?.includes(slug);
 
@@ -105,6 +156,8 @@ export const selectAccountTokensMemoizedFor = withCache((accountId: string) => m
         type,
         label,
         keywords,
+        isVerified,
+        isSpam,
       };
     });
 
@@ -142,6 +195,58 @@ export function selectAccountTokens(global: GlobalState, accountId: string) {
     global.currencyRates,
     getHasConfirmedActivities(accountState?.activities),
   );
+}
+
+/** Tokens kept out of the main list as spam/dust (for Settings → Hidden Tokens). */
+export function selectHiddenSpamTokens(global: GlobalState): UserToken[] {
+  const accountId = selectCurrentAccountId(global);
+  if (!accountId) return [];
+
+  const accountState = selectAccountState(global, accountId);
+  const balancesBySlug = accountState?.balances?.bySlug;
+  if (!balancesBySlug || !global.tokenInfo) return [];
+
+  const accountSettings = selectAccountSettings(global, accountId) ?? {};
+  const { network } = parseAccountId(accountId);
+  const dustThresholdUsd = accountSettings.dustThresholdUsd ?? DEFAULT_DUST_THRESHOLD_USD;
+  const { baseCurrency } = global.settings;
+  const hiddenChains = getHiddenChainsSnapshot(network);
+
+  return Object.entries(balancesBySlug)
+    .filter(([slug]) => findChainConfig(getChainBySlug(slug)))
+    .filter(([slug]) => !hiddenChains.has(getChainBySlug(slug)))
+    .filter(([slug]) => slug in global.tokenInfo.bySlug && !accountSettings.deletedSlugs?.includes(slug))
+    .filter(([slug, balance]) => (
+      isSpamAsset(slug, global.tokenInfo.bySlug[slug], balance, accountSettings, dustThresholdUsd, network)
+    ))
+    .map(([slug, balance]): UserToken => {
+      const token = global.tokenInfo.bySlug[slug];
+      const price = calculateTokenPrice(token.priceUsd ?? 0, baseCurrency, global.currencyRates);
+      const balanceBig = toBig(balance, token.decimals);
+      return {
+        chain: token.chain,
+        symbol: token.symbol,
+        slug,
+        amount: balance,
+        name: token.name,
+        image: token.image,
+        price,
+        priceUsd: token.priceUsd ?? 0,
+        decimals: token.decimals,
+        change24h: round((token.percentChange24h ?? 0) / 100, 4),
+        isDisabled: true,
+        cmcSlug: token.cmcSlug,
+        totalValue: balanceBig.mul(price).round(token.decimals).toString(),
+        color: token.color,
+        tokenAddress: token.tokenAddress,
+        codeHash: token.codeHash,
+        type: token.type,
+        label: token.label,
+        keywords: token.keywords,
+        isVerified: token.isVerified,
+        isSpam: true,
+      };
+    });
 }
 
 export function selectAccountTokenBySlug(global: GlobalState, slug: string) {

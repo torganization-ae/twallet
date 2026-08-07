@@ -42,6 +42,10 @@ import app.twallet.air.walletcore.moshi.MImportedViewWalletResponse
 import app.twallet.air.walletcore.moshi.MImportedWalletResponse
 import app.twallet.air.walletcore.moshi.MRevokeWalletPermissionOptions
 import app.twallet.air.walletcore.moshi.MRevokeWalletPermissionResult
+import app.twallet.air.walletcore.moshi.MNetworkRpcConfigItem
+import app.twallet.air.walletcore.moshi.MRpcResetResult
+import app.twallet.air.walletcore.moshi.MRpcTestResult
+import app.twallet.air.walletcore.moshi.MRpcUnlockResult
 import app.twallet.air.walletcore.moshi.MSignDataPayload
 import app.twallet.air.walletcore.moshi.MTonPlugin
 import app.twallet.air.walletcore.moshi.MWalletPermission
@@ -116,11 +120,13 @@ sealed class ApiMethod<T> {
 
     /* Auth */
     object Auth {
-        class GenerateMnemonic : ApiMethod<Array<String>>() {
+        class GenerateMnemonic(
+            isBip39: Boolean = true,
+        ) : ApiMethod<Array<String>>() {
             override val name: String = "generateMnemonic"
             override val type: Type = Array<String>::class.java
             override val arguments: String = ArgumentsBuilder()
-                .boolean(true)
+                .boolean(isBip39)
                 .build()
         }
 
@@ -1271,6 +1277,124 @@ sealed class ApiMethod<T> {
                             jsObject(options, MRevokeWalletPermissionOptions.Delegation::class.java)
                     }
                 }
+                .build()
+        }
+    }
+
+    object Networks {
+        class GetRpcConfig(
+            network: String,
+        ) : ApiMethod<Array<MNetworkRpcConfigItem>>() {
+            override val name: String = "getRpcConfig"
+            override val type: Type = Array<MNetworkRpcConfigItem>::class.java
+            override val arguments: String = ArgumentsBuilder()
+                .string(network)
+                .build()
+        }
+
+        class TestRpcEndpoint(
+            chain: String,
+            network: String,
+            field: String,
+            url: String,
+            apiKey: String? = null,
+        ) : ApiMethod<MRpcTestResult>() {
+            override val name: String = "testRpcEndpoint"
+            override val type: Type = MRpcTestResult::class.java
+            override val arguments: String = ArgumentsBuilder()
+                .string(chain)
+                .string(network)
+                .string(field)
+                .string(url)
+                .string(apiKey)
+                .build()
+        }
+
+        class SetRpcOverride(
+            chain: String,
+            network: String,
+            field: String,
+            url: String,
+            apiKey: String? = null,
+            force: Boolean? = null,
+            password: String? = null,
+        ) : ApiMethod<MRpcTestResult>() {
+            override val name: String = "setRpcOverride"
+            override val type: Type = MRpcTestResult::class.java
+            override val arguments: String = ArgumentsBuilder()
+                .string(chain)
+                .string(network)
+                .string(field)
+                .string(url)
+                .string(apiKey)
+                .boolean(force)
+                .string(password)
+                .build()
+        }
+
+        class ResetRpcOverride(
+            chain: String,
+            network: String,
+            field: String,
+        ) : ApiMethod<MRpcResetResult>() {
+            override val name: String = "resetRpcOverride"
+            override val type: Type = MRpcResetResult::class.java
+            override val arguments: String = ArgumentsBuilder()
+                .string(chain)
+                .string(network)
+                .string(field)
+                .build()
+        }
+
+        class UnlockRpcApiKey(
+            chain: String,
+            network: String,
+            password: String,
+            field: String = "rpc",
+        ) : ApiMethod<MRpcUnlockResult>() {
+            override val name: String = "unlockRpcApiKey"
+            override val type: Type = MRpcUnlockResult::class.java
+            override val arguments: String = ArgumentsBuilder()
+                .string(chain)
+                .string(network)
+                .string(password)
+                .string(field)
+                .build()
+        }
+
+        class SetChainVisibility(
+            chain: String,
+            network: String,
+            isHidden: Boolean,
+        ) : ApiMethod<MRpcResetResult>() {
+            override val name: String = "setChainVisibility"
+            override val type: Type = MRpcResetResult::class.java
+            override val arguments: String = ArgumentsBuilder()
+                .string(chain)
+                .string(network)
+                .boolean(isHidden)
+                .build()
+        }
+
+        class SetAccountVaultProfile(
+            accountId: String,
+            isVault: Boolean,
+        ) : ApiMethod<MRpcResetResult>() {
+            override val name: String = "setAccountVaultProfile"
+            override val type: Type = MRpcResetResult::class.java
+            override val arguments: String = ArgumentsBuilder()
+                .string(accountId)
+                .boolean(isVault)
+                .build()
+        }
+
+        class SyncVaultAccounts(
+            accountIds: List<String>,
+        ) : ApiMethod<MRpcResetResult>() {
+            override val name: String = "syncVaultAccounts"
+            override val type: Type = MRpcResetResult::class.java
+            override val arguments: String = ArgumentsBuilder()
+                .jsArray(accountIds, String::class.java)
                 .build()
         }
     }

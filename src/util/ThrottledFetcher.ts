@@ -1,7 +1,4 @@
-import {
-  TONCENTER_MAINNET_URL,
-  TONCENTER_TESTNET_URL,
-} from '../config';
+import { DEFAULT_TON_ENDPOINTS } from '../api/chains/defaultEndpoints';
 import { pause } from './schedulers';
 
 type FetchInput = string | URL | Request;
@@ -9,12 +6,13 @@ type FetchInput = string | URL | Request;
 type CleanupAbortSignal = AbortSignal & { cleanup?: () => void };
 
 const DEFAULT_TIMEOUT_MS = 30000;
-const TONCENTER_MIN_DELAY_MS = 250;
-const TONCENTER_RETRIES = 6;
-const TONCENTER_FALLBACK_RETRY_AFTER_MS = 5000;
+/** Public toncenter (no API key) rate-limits at ~1 rps; keep well under that. */
+const TONCENTER_MIN_DELAY_MS = 1200;
+const TONCENTER_RETRIES = 3;
+const TONCENTER_FALLBACK_RETRY_AFTER_MS = 10000;
 const TONCENTER_ORIGINS = new Set([
-  new URL(TONCENTER_MAINNET_URL).origin,
-  new URL(TONCENTER_TESTNET_URL).origin,
+  new URL(DEFAULT_TON_ENDPOINTS.mainnet.rpcUrl).origin,
+  new URL(DEFAULT_TON_ENDPOINTS.testnet.rpcUrl).origin,
 ]);
 const throttledFetchers = new Map<string, ThrottledFetcher>();
 

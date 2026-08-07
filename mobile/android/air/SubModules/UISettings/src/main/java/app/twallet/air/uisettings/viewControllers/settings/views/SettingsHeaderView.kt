@@ -193,9 +193,10 @@ class SettingsHeaderView(
     }
 
     private fun updateAddressLabel(account: MAccount?) {
-        val style = when (account?.accountType) {
-            MAccount.AccountType.VIEW -> WMultichainAddressLabel.settingsHeaderWalletViewStyle
-            MAccount.AccountType.HARDWARE -> WMultichainAddressLabel.settingsHeaderWalletHardwareStyle
+        val style = when {
+            account?.isVault == true -> WMultichainAddressLabel.settingsHeaderWalletVaultStyle
+            account?.accountType == MAccount.AccountType.VIEW -> WMultichainAddressLabel.settingsHeaderWalletViewStyle
+            account?.accountType == MAccount.AccountType.HARDWARE -> WMultichainAddressLabel.settingsHeaderWalletHardwareStyle
             else -> WMultichainAddressLabel.settingsHeaderWalletStyle
         }
         addressLabel.displayAddresses(account, style)

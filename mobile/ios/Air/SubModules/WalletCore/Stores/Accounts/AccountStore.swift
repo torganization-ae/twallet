@@ -274,6 +274,10 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
             throw SdkError.unexpected(message: "Activated account is missing from account store", context: ["accountId": accountId])
         }
 
+        if account.isVault {
+            _ = try? await Api.setAccountVaultProfile(accountId: accountId, isVault: true)
+        }
+
         if updateCurrentAccountId {
             self.accountId = accountId
             try await db.write { db in
@@ -309,7 +313,7 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
 
     // MARK: - Account management
 
-    public func importMnemonic(network: ApiNetwork, words: [String], passcode: String, isNewMnemonic: Bool) async throws -> [MAccount] {
+    public func importMnemonic(network: ApiNetwork, words: [String], passcode: String, isNewMnemonic: Bool, profile: String? = nil) async throws -> [MAccount] {
         let results = try await Api.importMnemonic(networks: [network], mnemonic: words, password: passcode, isNewMnemonic: isNewMnemonic)
         var accountsById = self.accountsById
         let accounts = try results.map { result in
@@ -318,6 +322,7 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
                 title: _defaultTitle(accountsById: accountsById),
                 type: .mnemonic,
                 byChain: result.byChain,
+                profile: profile,
             )
             accountsById[account.id] = account
             return account
@@ -328,6 +333,13 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
         self.accountsById = accountsById
         self.orderedAccountIds = nextOrderedAccountIds
         await refreshStoredMfaIfPossible(accountIds: accounts.map(\.id), password: passcode)
+
+        if profile == "vault" {
+            for account in accounts {
+                _ = try? await Api.setAccountVaultProfile(accountId: account.id, isVault: true)
+                VaultUnlock.unlock(account.id)
+            }
+        }
 
         let primaryAccount = accounts[0]
         _ = try await self.activateAccount(accountId: primaryAccount.id, isNew: true)
@@ -782,6 +794,7 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
     @MainActor
     public func resetAccounts() async throws {
         log.info("resetAccounts")
+        VaultUnlock.lockAll()
         try await Api.resetAccounts()
         accountId = nil
         accountsById = [:]
@@ -808,6 +821,16 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
         KeychainHelper.deleteAllWallets()
         Api.shared?.webViewBridge.recreateWebView()
         WalletCoreData.notify(event: .accountsReset)
+    }
+
+    /// Push vault profiles into API-side chain visibility (matches Web syncVaultAccountsFromGlobal).
+    public func syncVaultAccountsWithApi() async {
+        let vaultIds = accountsById.compactMap { $0.value.isVault ? $0.key : nil }
+        do {
+            _ = try await Api.syncVaultAccounts(accountIds: vaultIds)
+        } catch {
+            log.error("syncVaultAccounts failed: \(error, .public)")
+        }
     }
 
     @discardableResult

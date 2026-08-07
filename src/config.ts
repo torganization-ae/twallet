@@ -149,20 +149,10 @@ export const THEME_DEFAULT = 'system';
 export const MAIN_ACCOUNT_ID = '0-ton-mainnet';
 export const TEMPORARY_ACCOUNT_NAME = 'Wallet';
 
-export const TONCENTER_MAINNET_URL = process.env.TONCENTER_MAINNET_URL || 'https://toncenter.mytonwallet.org';
-export const TONCENTER_MAINNET_KEY = process.env.TONCENTER_MAINNET_KEY;
-export const ELECTRON_TONCENTER_MAINNET_KEY = process.env.ELECTRON_TONCENTER_MAINNET_KEY;
-export const TONAPIIO_MAINNET_URL = process.env.TONAPIIO_MAINNET_URL || 'https://tonapiio.mytonwallet.org';
-
-export const TONCENTER_TESTNET_URL = process.env.TONCENTER_TESTNET_URL || 'https://toncenter-testnet.mytonwallet.org';
-export const TONCENTER_TESTNET_KEY = process.env.TONCENTER_TESTNET_KEY;
-export const ELECTRON_TONCENTER_TESTNET_KEY = process.env.ELECTRON_TONCENTER_TESTNET_KEY;
-export const TONAPIIO_TESTNET_URL = process.env.TONAPIIO_TESTNET_URL || 'https://tonapiio-testnet.mytonwallet.org';
-
 export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'https://api.mywallet.io';
 export const PROXY_API_BASE_URL = process.env.PROXY_API_BASE_URL || 'https://api.mywallet.io/proxy';
 export const IPFS_GATEWAY_BASE_URL = 'https://ipfs.io/ipfs/';
-export const SSE_BRIDGE_URL = 'https://tonconnectbridge.mytonwallet.org/bridge/';
+export const SSE_BRIDGE_URL = process.env.TONCONNECT_BRIDGE_URL || 'https://bridge.tonapi.io/bridge/';
 
 export const TON_CONNECT_ANALYTICS_URL = 'https://analytics.ton.org';
 
@@ -183,20 +173,7 @@ export const WALLET_CONNECT_PAY_FRAME_ORIGINS = [
 export const WALLET_CONNECT_PROJECT_ID = process.env.WALLET_CONNECT_PROJECT_ID || '';
 export const WALLET_CONNECT_PAY_APP_ID = process.env.WALLET_CONNECT_PAY_APP_ID || '';
 
-export const TRON_MAINNET_API_URL = process.env.TRON_MAINNET_API_URL || 'https://tronapi.mytonwallet.org';
-export const TRON_TESTNET_API_URL = process.env.TRON_TESTNET_API_URL || 'https://api.shasta.trongrid.io';
-
-export const SOLANA_MAINNET_RPC_URL = process.env.SOLANA_MAINNET_RPC_URL || 'https://solanaapi.mytonwallet.org';
-export const SOLANA_MAINNET_API_KEY = process.env.SOLANA_MAINNET_API_KEY;
-export const SOLANA_TESTNET_RPC_URL = process.env.SOLANA_TESTNET_RPC_URL || 'https://solanaapi-devnet.mytonwallet.org';
-export const SOLANA_TESTNET_API_KEY = process.env.SOLANA_TESTNET_API_KEY;
-export const SOLANA_TESTNET_API_URL = process.env.SOLANA_TESTNET_API_URL || 'https://solanaapi-devnet.mytonwallet.org';
-export const SOLANA_MAINNET_API_URL = process.env.SOLANA_MAINNET_API_URL || 'https://solanaapi.mytonwallet.org';
-
 export const SOLANA_GASLESS_PAYER_ADDRESS = process.env.SOLANA_GASLESS_PAYER_ADDRESS || 'BkVfRKjZnnYCcRBgXBsfaWFZFidBL9drm5MZwNqoNGCu';
-
-export const EVM_MAINNET_RPC_URL = process.env.EVM_MAINNET_RPC_URL || 'https://evmapi.mytonwallet.org';
-export const EVM_TESTNET_RPC_URL = process.env.EVM_TESTNET_RPC_URL || 'https://evmapi-testnet.mytonwallet.org';
 
 export const FRACTION_DIGITS = 9;
 export const SHORT_FRACTION_DIGITS = 2;
@@ -217,7 +194,6 @@ export const NFT_MARKETPLACE_TITLES: Record<ApiNftMarketplace, string> = {
   fragment: 'Fragment',
   opensea: 'OpenSea',
 };
-export const MW_STATIC_BASE_URL = 'https://static.mytonwallet.org';
 // Every outbound link the app puts in front of a user follows its brand. The blog and the help center stay on the
 // My Wallet domain for all brands, since that is the only place they are published (Air links them the same way).
 export const APP_PROMO_URL = IS_TWALLETGRAM_WALLET ? 'https://gramwallet.io/' : 'https://mywallet.io/';
@@ -501,7 +477,7 @@ export const ETHENA_ELIGIBILITY_CHECK_URL = 'https://t.me/id_app/start?startapp=
 export const STON_PTON_ADDRESS = 'EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez';
 export const STON_PTON_SLUG = 'ton-eqcm3b12qk';
 
-export const DNS_IMAGE_GEN_URL = 'https://dns-image.mytonwallet.org/img?d=';
+export const DNS_IMAGE_GEN_URL = '';
 
 export const TRC20_USDT_MAINNET = {
   name: 'Tether USD',
@@ -526,7 +502,7 @@ export const TON_USDT_MAINNET = {
   slug: 'ton-eqcxe6mutq',
   decimals: 6,
   tokenAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
-  image: 'https://imgproxy.mytonwallet.org/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
+  image: 'https://tether.to/images/logoCircle.png',
   label: 'TON',
   priceUsd: 1,
 } as const;
@@ -567,7 +543,7 @@ export const SOLANA_USDT_MAINNET = {
   slug: 'solana-es9vmfrzac',
   tokenAddress: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
   label: 'SOL',
-  image: 'https://imgproxy.mytonwallet.org/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
+  image: 'https://tether.to/images/logoCircle.png',
   priceUsd: 1,
 } as const;
 
@@ -591,7 +567,7 @@ export const ETH_USDT_MAINNET = {
   slug: 'ethereum-0xdac17f95',
   tokenAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
   label: 'ERC-20',
-  image: 'https://imgproxy.mytonwallet.org/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
+  image: 'https://tether.to/images/logoCircle.png',
   priceUsd: 1,
 } as const;
 
@@ -615,7 +591,7 @@ export const BASE_USDT_MAINNET = {
   slug: 'base-0xfde4c96c',
   tokenAddress: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
   label: 'ERC-20',
-  image: 'https://imgproxy.mytonwallet.org/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
+  image: 'https://tether.to/images/logoCircle.png',
   priceUsd: 1,
 } as const;
 
@@ -651,7 +627,7 @@ export const BSC_USDT_MAINNET = {
   slug: 'bnb-0x55d39832',
   tokenAddress: '0x55d398326f99059ff775485246999027b3197955',
   label: 'BEP-20',
-  image: 'https://imgproxy.mytonwallet.org/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
+  image: 'https://tether.to/images/logoCircle.png',
   priceUsd: 1,
 } as const;
 
@@ -663,7 +639,7 @@ export const AVALANCHE_USDT_MAINNET = {
   slug: 'avalanche-0x9702230a',
   tokenAddress: '0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7',
   label: 'ERC-20',
-  image: 'https://imgproxy.mytonwallet.org/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp',
+  image: 'https://tether.to/images/logoCircle.png',
   priceUsd: 1,
 } as const;
 
@@ -1031,6 +1007,6 @@ export const UNKNOWN_TOKEN = {
 export const DEFAULT_CHAIN: ApiChain = 'ton';
 
 export const MFA_BOT_URL = process.env.MFA_BOT_URL || 'https://t.me/tgmfabot/auth';
-export const MFA_API_BASE_URL = process.env.MFA_API_BASE_URL || 'https://mfa-server.mytonwallet.org';
+export const MFA_API_BASE_URL = process.env.MFA_API_BASE_URL || '';
 export const MFA_MASTER_ADDRESS = 'UQCIoyc951J4hQwboW1-Gbt0kK0z920N2y8GbNXqCzWqe2ds';
 export const MFA_EXTENSION_CODE_HASH = '701eede652337f699550cc51cb15263259aae6fc6eba976237945f142dda982d';

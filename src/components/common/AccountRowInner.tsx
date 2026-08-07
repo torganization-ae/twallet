@@ -1,7 +1,7 @@
 import type { TeactNode } from '../../lib/teact/teact';
 import React from '../../lib/teact/teact';
 
-import type { Account, AccountType } from '../../global/types';
+import type { Account, AccountProfile, AccountType } from '../../global/types';
 import type { AccountBalance } from '../../hooks/useAccountsBalances';
 
 import buildClassName from '../../util/buildClassName';
@@ -21,6 +21,7 @@ export interface AccountRowInnerProps {
   byChain: Account['byChain'];
   accountType: AccountType;
   title?: string;
+  profile?: AccountProfile;
   isTestnet?: boolean;
   balanceData?: AccountBalance;
   isSensitiveDataHidden?: true;
@@ -38,6 +39,7 @@ function AccountRowInner({
   byChain,
   accountType,
   title,
+  profile,
   isTestnet,
   balanceData,
   isSensitiveDataHidden,
@@ -47,6 +49,7 @@ function AccountRowInner({
 }: AccountRowInnerProps) {
   const isHardware = accountType === 'hardware';
   const isView = isViewAccount(accountType);
+  const isVault = profile === 'vault';
   const isSingleChain = getOrderedAccountChains(byChain).length === 1;
   const formattedAddress = formatAccountAddresses(byChain, isSingleChain ? 'medium' : 'small');
   const resolvedAvatarUrl = avatarUrl ?? getTelegramAvatarUrlFromDomain(byChain.ton?.domain);
@@ -63,8 +66,10 @@ function AccountRowInner({
       <div className={styles.info}>
         <div className={styles.titleRow}>
           <span className={styles.title}>{title}</span>
+          {isVault && <span className={styles.vaultBadge}>Vault</span>}
         </div>
         <div className={styles.address}>
+          {isVault && <i className={buildClassName(styles.icon, 'icon-lock')} aria-hidden />}
           {isTestnet && <i className={buildClassName(styles.icon, 'icon-testnet')} aria-hidden />}
           {isHardware && <i className={buildClassName(styles.icon, 'icon-ledger')} aria-hidden />}
           {isView && <i className={buildClassName(styles.icon, 'icon-eye-filled')} aria-hidden />}

@@ -14,14 +14,13 @@ import { EnvironmentPlugin, IgnorePlugin, ProvidePlugin } from 'webpack';
 
 import WatchFilePlugin from './lib/webpack-watch-file-plugin/index';
 import { convertI18nYamlToJson } from './dev/locales/convertI18nYamlToJson';
+import { getDefaultEndpointHosts } from './src/api/chains/defaultEndpoints';
 import {
   APP_COMMIT_HASH,
   APP_ENV,
   APP_NAME,
   BASE_URL,
   BRILLIANT_API_BASE_URL,
-  EVM_MAINNET_RPC_URL,
-  EVM_TESTNET_RPC_URL,
   EXTENSION_DESCRIPTION,
   EXTENSION_NAME,
   IFRAME_WHITELIST,
@@ -37,22 +36,11 @@ import {
   IS_TON_BRAND,
   IS_TWALLETGRAM_WALLET,
   MFA_API_BASE_URL,
-  MW_STATIC_BASE_URL,
   PORTFOLIO_API_URL,
   PROXY_API_BASE_URL,
-  SOLANA_MAINNET_API_URL,
-  SOLANA_MAINNET_RPC_URL,
-  SOLANA_TESTNET_API_URL,
-  SOLANA_TESTNET_RPC_URL,
   SSE_BRIDGE_URL,
   SUBPROJECT_URL_MASK,
   TON_CONNECT_ANALYTICS_URL,
-  TONAPIIO_MAINNET_URL,
-  TONAPIIO_TESTNET_URL,
-  TONCENTER_MAINNET_URL,
-  TONCENTER_TESTNET_URL,
-  TRON_MAINNET_API_URL,
-  TRON_TESTNET_API_URL,
   WALLET_CONNECT_BRIDGE_PATTERNS,
   WALLET_CONNECT_PAY_CONNECT_ORIGINS,
   WALLET_CONNECT_PAY_FRAME_ORIGINS,
@@ -71,43 +59,28 @@ const cspFrameSrcExtra = IS_FEATURE_LIMITED ? '' : [
   SUBPROJECT_URL_MASK,
 ].join(' ');
 
+// Custom RPC endpoints are user-configured and therefore arbitrary (same approach as MetaMask).
+// Default backend hosts remain listed explicitly for documentation and websocket allowances.
 const cspConnectSrcHosts = Array.from(new Set([
   BRILLIANT_API_BASE_URL,
   BRILLIANT_API_BASE_URL.replace(/^http(s?):/, 'ws$1:'),
   ensureTrailingSlash(PROXY_API_BASE_URL),
-  MW_STATIC_BASE_URL,
-  TONCENTER_MAINNET_URL,
-  TONCENTER_MAINNET_URL.replace(/^http(s?):/, 'ws$1:'),
-  TONCENTER_TESTNET_URL,
-  TONCENTER_TESTNET_URL.replace(/^http(s?):/, 'ws$1:'),
-  TONAPIIO_MAINNET_URL,
-  TONAPIIO_TESTNET_URL,
-  TRON_MAINNET_API_URL,
-  TRON_TESTNET_API_URL,
-  SOLANA_MAINNET_RPC_URL,
-  SOLANA_MAINNET_RPC_URL.replace(/^http(s?):/, 'ws$1:'),
-  SOLANA_TESTNET_RPC_URL,
-  SOLANA_TESTNET_RPC_URL.replace(/^http(s?):/, 'ws$1:'),
-  SOLANA_MAINNET_API_URL,
-  SOLANA_TESTNET_API_URL,
+  ...getDefaultEndpointHosts(),
   WALLET_CONNECT_BRIDGE_PATTERNS,
   ...WALLET_CONNECT_PAY_CONNECT_ORIGINS,
-  EVM_MAINNET_RPC_URL,
-  EVM_TESTNET_RPC_URL,
-  EVM_MAINNET_RPC_URL.replace(/^http(s?):/, 'ws$1:'),
-  EVM_TESTNET_RPC_URL.replace(/^http(s?):/, 'ws$1:'),
   ensureTrailingSlash(IPFS_GATEWAY_BASE_URL),
   ensureTrailingSlash(SSE_BRIDGE_URL),
-  MFA_API_BASE_URL,
+  ...(MFA_API_BASE_URL ? [MFA_API_BASE_URL] : []),
   ensureTrailingSlash(PORTFOLIO_API_URL),
   TON_CONNECT_ANALYTICS_URL,
+  'https://chainlist.org',
+  // User-configured custom EVM RPC hosts are arbitrary and cannot be known at build time.
+  // Keep wss restricted to the explicit defaults above; custom Tier-2 networks use HTTPS polling.
+  'https:',
 ])).join(' ');
 
 const cspImageSrcHosts = [
-  MW_STATIC_BASE_URL,
-  'https://imgproxy.mytonwallet.org',
-  'https://dns-image.mytonwallet.org',
-  'https://mytonwallet.s3.eu-central-1.amazonaws.com',
+  'https://tether.to',
   'https://cache.tonapi.io', // Deprecated
   'https://c.tonapi.io',
   'https://imgproxy.toncenter.com',
@@ -122,7 +95,7 @@ const CSP = `
   script-src 'self' 'wasm-unsafe-eval' ${cspScriptSrcExtra};
   style-src 'self' https://fonts.googleapis.com/;
   img-src 'self' data: blob: https: ${cspImageSrcHosts};
-  media-src 'self' data: https://static.mytonwallet.org/;
+  media-src 'self' data:;
   object-src 'none';
   base-uri 'none';
   font-src 'self' https://fonts.gstatic.com/;
@@ -387,31 +360,13 @@ export default function createConfig(
         APP_VERSION: appVersion,
         APP_COMMIT_HASH: appCommitHash ?? '',
         TEST_SESSION: '',
-        TONCENTER_MAINNET_URL: '',
-        TONCENTER_MAINNET_KEY: '',
-        TONCENTER_TESTNET_URL: '',
-        TONCENTER_TESTNET_KEY: '',
-        TONAPIIO_MAINNET_URL: '',
-        TONAPIIO_TESTNET_URL: '',
         BRILLIANT_API_BASE_URL: '',
-        TRON_MAINNET_API_URL: '',
-        SOLANA_MAINNET_RPC_URL: '',
-        SOLANA_TESTNET_RPC_URL: '',
-        SOLANA_MAINNET_API_URL: '',
-        SOLANA_MAINNET_API_KEY: '',
-        SOLANA_TESTNET_API_URL: '',
-        SOLANA_TESTNET_API_KEY: '',
-        EVM_MAINNET_RPC_URL: '',
-        EVM_TESTNET_RPC_URL: '',
-        TRON_TESTNET_API_URL: '',
         PROXY_HOSTS: '',
         STAKING_POOLS: '',
         LIQUID_POOL: '',
         LIQUID_JETTON: '',
         IS_PACKAGED_ELECTRON: 'false',
         IS_ANDROID_DIRECT: 'false',
-        ELECTRON_TONCENTER_MAINNET_KEY: '',
-        ELECTRON_TONCENTER_TESTNET_KEY: '',
         BASE_URL,
         BOT_USERNAME: '',
         IS_EXTENSION: '', // It's necessary to use an empty string, because it's used in bundle-time conditions

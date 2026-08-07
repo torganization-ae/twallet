@@ -84,6 +84,7 @@ import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.api.activateAccount
 import app.twallet.air.walletcore.api.resetAccounts
 import app.twallet.air.walletcore.api.swapGetAssets
+import app.twallet.air.walletcore.api.syncVaultAccountsFromStorage
 import app.twallet.air.walletcore.deeplink.Deeplink
 import app.twallet.air.walletcore.deeplink.DeeplinkNavigator
 import app.twallet.air.walletcore.deeplink.DeeplinkParser
@@ -222,6 +223,7 @@ class SplashVC(context: Context) : WViewController(context),
             isActivatedInSDK = false
         )
         AccountStore.removeTemporaryAccounts()
+        WalletCore.syncVaultAccountsFromStorage()
     }
 
     // Activates an account. Handles corrupted storage data.

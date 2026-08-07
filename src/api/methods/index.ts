@@ -28,6 +28,7 @@ export {
 } from './dapps';
 export * from './swap';
 export * from './other';
+export * from './networks';
 export * from './portfolio';
 export * from './walletConnectPay';
 export * from './prices';

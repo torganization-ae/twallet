@@ -127,6 +127,8 @@ public struct AccountAddressLine: View {
                         AccountTypeBadge(.hardware, increasedOpacity: false)
                     case .view:
                         AccountTypeBadge(.view, increasedOpacity: false)
+                    case .vault:
+                        AccountTypeBadge(.mnemonic, isVault: true, increasedOpacity: false)
                     }
                 } else {
                     leadingIcon.image
@@ -255,7 +257,6 @@ public struct CardBalanceView: View, Equatable {
         fractionColor: UIColor,
         symbolColor: UIColor,
         showChevron: Bool,
-        sensitiveDataCellSize: CGFloat,
         sensitiveDataTheme: ShyMask.Theme
     ) {
         switch style {
@@ -270,7 +271,6 @@ public struct CardBalanceView: View, Equatable {
                 secondary,
                 secondary,
                 true,
-                16,
                 .light
             )
         case .homeCollapsed:
@@ -283,7 +283,6 @@ public struct CardBalanceView: View, Equatable {
                 secondary,
                 secondary,
                 false,
-                14,
                 .adaptive
             )
         case .grid:
@@ -297,7 +296,6 @@ public struct CardBalanceView: View, Equatable {
                 secondary,
                 secondary,
                 false,
-                6,
                 .adaptive
             )
         }
@@ -330,11 +328,13 @@ public struct CardBalanceView: View, Equatable {
         }
         .backportGeometryGroup()
         .minimumScaleFactor(0.1)
+        // `cellSize: nil` makes the mask grid derive from the real measured content height,
+        //  so it always covers the balance exactly at any card width
         .sensitiveData(
             alignment: .center,
             cols: 14,
             rows: 3,
-            cellSize: config.sensitiveDataCellSize,
+            cellSize: nil,
             theme: config.sensitiveDataTheme,
             cornerRadius: 12,
             onReveal: onSensitiveDataReveal

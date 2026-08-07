@@ -16,8 +16,10 @@ import app.twallet.air.walletcore.POPULAR_WALLET_VERSIONS
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.helpers.PoisoningCacheHelper
+import app.twallet.air.walletcore.helpers.VaultUnlock
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.MBridgeError
+import app.twallet.air.walletcore.moshi.api.ApiMethod
 import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.ActivityStore
@@ -284,6 +286,9 @@ fun WalletCore.fetchAccount(
         )
 
         AccountStore.activeAccount = account
+        if (account.isVault) {
+            call(ApiMethod.Networks.SetAccountVaultProfile(accountId, true)) { _, _ -> }
+        }
         callback(account, null)
 
     } catch (e: Exception) {
@@ -296,6 +301,7 @@ fun WalletCore.resetAccounts(
 ) {
     val accountIds = WGlobalStorage.accountIds()
     AccountStore.updateActiveAccount(null)
+    VaultUnlock.lockAll()
     bridge?.callApi(
         "resetAccounts",
         "[]"
@@ -311,6 +317,13 @@ fun WalletCore.resetAccounts(
             callback(true, null)
         }
     }
+}
+
+fun WalletCore.syncVaultAccountsFromStorage() {
+    val vaultIds = WGlobalStorage.accountIds().filter { accountId ->
+        WGlobalStorage.getAccount(accountId)?.optString("profile") == "vault"
+    }
+    call(ApiMethod.Networks.SyncVaultAccounts(vaultIds)) { _, _ -> }
 }
 
 fun WalletCore.removeAccount(

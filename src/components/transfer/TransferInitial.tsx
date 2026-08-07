@@ -2,7 +2,7 @@ import type { TeactNode } from '../../lib/teact/teact';
 import React, { memo, useCallback, useEffect, useMemo, useRef } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiBaseCurrency, ApiFetchEstimateDieselResult, ApiNft } from '../../api/types';
+import type { ApiBaseCurrency, ApiChain, ApiFetchEstimateDieselResult, ApiNft } from '../../api/types';
 import type { SavedAddress, UserToken } from '../../global/types';
 import type { LangFn } from '../../hooks/useLang';
 import type { ExplainedTransferFee } from '../../util/fee/transferFee';
@@ -12,6 +12,7 @@ import { ScamWarningType, TransferState } from '../../global/types';
 import { DEFAULT_PRICE_CURRENCY, UNKNOWN_TOKEN } from '../../config';
 import { getHelpCenterUrl } from '../../global/helpers/getHelpCenterUrl';
 import {
+  selectCurrentAccount,
   selectCurrentAccountId,
   selectCurrentAccountState,
   selectCurrentAccountTokenBalance,
@@ -26,8 +27,9 @@ import { SECOND } from '../../util/dateFormat';
 import { stopEvent } from '../../util/domEvents';
 import { getMaxTransferAmount, isBalanceSufficientForTransfer } from '../../util/fee/transferFee';
 import { vibrate } from '../../util/haptics';
-import { isValidAddressOrDomain } from '../../util/isValidAddress';
+import { getAmbiguousChainsForAddress, isValidAddressOrDomain } from '../../util/isValidAddress';
 import { debounce } from '../../util/schedulers';
+import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
 import { trimStringByMaxBytes } from '../../util/text';
 import { getChainBySlug, getIsNativeToken, getIsServiceToken, getNativeToken } from '../../util/tokens';
 
@@ -81,6 +83,7 @@ interface StateProps {
   isAllowSuspiciousActions: boolean;
   isTransferReadonly?: boolean;
   explainedFee?: ExplainedTransferFee;
+  accountChains?: ApiChain[];
 }
 
 const COMMENT_MAX_SIZE_BYTES = 5000;
@@ -117,6 +120,7 @@ function TransferInitial({
   isAllowSuspiciousActions,
   isTransferReadonly,
   explainedFee,
+  accountChains,
 }: StateProps) {
   const {
     submitTransferInitial,
@@ -152,6 +156,11 @@ function TransferInitial({
   const amountInputRef = useRef<HTMLInputElement>();
   const isDisabledDebounce = useRef<boolean>(false);
   const isAddressValid = chain ? isValidAddressOrDomain(toAddress, chain) : undefined;
+  const ambiguousChains = useMemo(() => {
+    if (!chain || !toAddress || !isAddressValid || !accountChains?.length) return [];
+    return getAmbiguousChainsForAddress(toAddress, chain, accountChains);
+  }, [accountChains, chain, isAddressValid, toAddress]);
+  const nativeFeeToken = chain ? getChainConfig(chain).nativeToken : undefined;
   const doesSupportComment = chain && getChainConfig(chain).isTransferPayloadSupported;
   const doesSupportCommentEncryption = !!chain
     && getChainConfig(chain).isEncryptedCommentSupported
@@ -536,6 +545,37 @@ function TransferInitial({
           )}
 
           <div className={styles.footer}>
+            {chain && nativeFeeToken && (
+              <div className={styles.networkSafetyBanner}>
+                <img
+                  src={getChainNetworkIcon(chain)}
+                  alt=""
+                  className={styles.networkSafetyIcon}
+                  draggable={false}
+                />
+                <div>
+                  <div className={styles.networkSafetyTitle}>
+                    {lang('Attention! Transaction will run on %chain%.', {
+                      chain: getChainConfig(chain).title,
+                    })}
+                  </div>
+                  <div className={styles.networkSafetySubtitle}>
+                    {lang('Fee will be charged in %symbol%.', { symbol: nativeFeeToken.symbol })}
+                  </div>
+                </div>
+              </div>
+            )}
+            {ambiguousChains.length > 0 && (
+              <div className={styles.networkAmbiguityWarning}>
+                {lang(
+                  'This address is also valid on %chains%. Make sure you are sending on %chain%.',
+                  {
+                    chains: ambiguousChains.map((c) => getChainConfig(c).title).join(', '),
+                    chain: getChainConfig(chain!).title,
+                  },
+                )}
+              </div>
+            )}
             {renderFee()}
 
             <div className={styles.buttons}>
@@ -664,6 +704,7 @@ export default memo(
         isAllowSuspiciousActions: selectIsAllowSuspiciousActions(global, currentAccountId),
         isTransferReadonly,
         explainedFee,
+        accountChains: Object.keys(selectCurrentAccount(global)?.byChain ?? {}) as ApiChain[],
       };
     },
     (global, _, stickToFirst) => stickToFirst(selectCurrentAccountId(global)),

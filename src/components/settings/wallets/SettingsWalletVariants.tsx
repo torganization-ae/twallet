@@ -4,7 +4,7 @@ import { getActions, withGlobal } from '../../../global';
 
 import type { ApiTonWalletVersion } from '../../../api/chains/ton/types';
 import type { ApiBaseCurrency, ApiChain, ApiCurrencyRates, ApiGroupedWalletVariant } from '../../../api/types';
-import type { Account, AccountChain, GlobalState, UserToken } from '../../../global/types';
+import type { Account, AccountChain, AccountProfile, GlobalState, UserToken } from '../../../global/types';
 import type Big from '../../../lib/big.js';
 
 import { selectCurrentAccountId, selectCurrentAccountTokens } from '../../../global/selectors';
@@ -51,6 +51,7 @@ interface OwnProps {
 
 interface StateProps {
   accountId: string;
+  accountProfile?: AccountProfile;
   tokens?: UserToken[];
   tokenInfo: GlobalState['tokenInfo'];
   currencyRates: ApiCurrencyRates;
@@ -78,6 +79,7 @@ function SettingsWalletVariants({
   accountChains,
   onBackClick,
   accountId,
+  accountProfile,
   tokens,
   tokenInfo,
   currencyRates,
@@ -90,6 +92,7 @@ function SettingsWalletVariants({
     createSubWallet,
     setIsPinAccepted,
     clearIsPinAccepted,
+    setAccountProfile,
   } = getActions();
   const lang = useLang();
 
@@ -492,6 +495,52 @@ function SettingsWalletVariants({
     );
   }
 
+  function renderProfileBlock() {
+    const profile = accountProfile ?? 'daily';
+
+    return (
+      <>
+        <p className={buildClassName(styles.blockTitle, styles.blockTitle_small)}>{lang('Wallet Profile')}</p>
+        <div className={styles.settingsBlock}>
+          <MenuItem
+            ignoreBaseClassName
+            className={buildClassName(styles.item, styles.item_wallet_no_arrow)}
+            clickArg={'daily' as const}
+            onClick={(_e, profile) => setAccountProfile({ accountId, profile })}
+          >
+            <div className={styles.walletVersionInfo}>
+              <div className={styles.walletVariantLabelContainer}>
+                <span className={styles.walletVersionTitle}>{lang('Daily')}</span>
+                {profile === 'daily' && (
+                  <span className={styles.walletVariantLabel}>{lang('Active')}</span>
+                )}
+              </div>
+              <span className={styles.walletVersionAddress}>{lang('Multi-chain everyday use')}</span>
+            </div>
+            {profile === 'daily' && <i className="icon-check" aria-hidden />}
+          </MenuItem>
+          <MenuItem
+            ignoreBaseClassName
+            className={buildClassName(styles.item, styles.item_wallet_no_arrow)}
+            clickArg={'vault' as const}
+            onClick={(_e, nextProfile) => setAccountProfile({ accountId, profile: nextProfile })}
+          >
+            <div className={styles.walletVersionInfo}>
+              <div className={styles.walletVariantLabelContainer}>
+                <span className={styles.walletVersionTitle}>{lang('Vault')}</span>
+                {profile === 'vault' && (
+                  <span className={styles.walletVariantLabel}>{lang('Active')}</span>
+                )}
+              </div>
+              <span className={styles.walletVersionAddress}>{lang('TON-only cold storage with unlock')}</span>
+            </div>
+            {profile === 'vault' && <i className="icon-check" aria-hidden />}
+          </MenuItem>
+        </div>
+      </>
+    );
+  }
+
   function renderUnifiedContent() {
     return (
       <div className={styles.slide}>
@@ -509,6 +558,8 @@ function SettingsWalletVariants({
             <div className={styles.blockDescription}>
               {lang('Use subwallets to get additional addresses without creating new secret words.')}
             </div>
+
+            {renderProfileBlock()}
 
             {renderCurrentWalletBlock()}
 
@@ -592,8 +643,10 @@ function SettingsWalletVariants({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const currentAccountId = selectCurrentAccountId(global)!;
+  const account = global.accounts?.byId[currentAccountId];
   return {
     accountId: currentAccountId,
+    accountProfile: account?.profile,
     tokens: selectCurrentAccountTokens(global),
     tokenInfo: global.tokenInfo,
     currencyRates: global.currencyRates,

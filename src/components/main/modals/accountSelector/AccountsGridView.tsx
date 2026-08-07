@@ -56,6 +56,7 @@ function AccountsGridView({
     byChain: Account['byChain'],
     accountType: AccountType,
     title?: string,
+    profile?: Account['profile'],
   ) {
     const isActive = accountId === currentAccountId;
     const balanceData = balancesByAccountId[accountId];
@@ -69,6 +70,7 @@ function AccountsGridView({
         accountType={accountType}
         isActive={isActive}
         title={title}
+        profile={profile}
         balanceData={balanceData}
         withContextMenu={!IS_FEATURE_LIMITED}
         isSensitiveDataHidden={isSensitiveDataHidden}
@@ -102,8 +104,9 @@ function AccountsGridView({
               title,
               byChain,
               type,
+              profile,
             }]) => {
-              return renderCard(accountId, byChain, type, title);
+              return renderCard(accountId, byChain, type, title, profile);
             },
           )}
         </div>

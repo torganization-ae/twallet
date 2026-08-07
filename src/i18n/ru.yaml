@@ -216,6 +216,12 @@ Is it all ok?: Всё верно?
 Receiving Address: Адрес получателя
 Fee: Комиссия
 Edit: Исправить
+Edit Network: Редактировать
+Enable: Включить
+Disable: Отключить
+No endpoint: Нет ссылки
+Show in wallet: Показывать в кошельке
+RPC and API endpoints: RPC и API endpoints
 Confirm: Подтвердить
 Data Signed!: Данные подписаны!
 Details: Инфо

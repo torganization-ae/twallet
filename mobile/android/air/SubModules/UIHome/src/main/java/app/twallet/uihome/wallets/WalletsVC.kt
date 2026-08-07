@@ -51,8 +51,8 @@ import app.twallet.air.walletcontext.models.MWalletSettingsViewMode
 import app.twallet.air.walletcontext.utils.IndexPath
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
-import app.twallet.air.walletcore.api.activateAccount
 import app.twallet.air.walletcore.models.MAccount
+import app.twallet.air.uipasscode.helpers.VaultAccountSwitch
 import app.twallet.uihome.wallets.cells.IWalletCardCell
 import app.twallet.uihome.wallets.cells.WalletCardCell
 import app.twallet.uihome.wallets.cells.WalletCardRowCell
@@ -570,29 +570,29 @@ class WalletsVC(
     private fun switchAccountTo(newAccount: MAccount) {
         window?.dismissLastNav { }
         onSwitchAccountInProgress?.invoke()
-        WalletCore.activateAccount(
-            newAccount.accountId,
-            notifySDK = true,
-            willPopTemporaryPushedWallets = true
-        ) { res, err ->
-            if (res == null || err != null) {
-                // Should not happen!
-                Logger.e(
-                    Logger.LogTag.ACCOUNT,
-                    LogMessage.Builder()
-                        .append(
-                            "activateAccount: Failed on switch account err=$err",
-                            LogMessage.MessagePartPrivacy.PUBLIC
-                        ).build()
-                )
-            } else {
+        VaultAccountSwitch.activate(
+            context = context,
+            window = window,
+            account = newAccount,
+            willPopTemporaryPushedWallets = true,
+            onActivated = {
                 WalletCore.notifyEvent(
                     WalletEvent.AccountChangedInApp(
                         persistedAccountsModified = false
                     )
                 )
+            },
+            onFailed = {
+                Logger.e(
+                    Logger.LogTag.ACCOUNT,
+                    LogMessage.Builder()
+                        .append(
+                            "activateAccount: Failed on switch account",
+                            LogMessage.MessagePartPrivacy.PUBLIC
+                        ).build()
+                )
             }
-        }
+        )
     }
 
     private fun showMenu(cell: IWalletCardCell, cellView: WView, account: MAccount) {

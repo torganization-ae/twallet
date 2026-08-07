@@ -600,6 +600,10 @@ class WMultichainAddressLabel(context: Context) : WRadialGradientLabel(context) 
             prefixIconResList = listOf(app.twallet.air.uicomponents.R.drawable.ic_wallet_ledger)
         )
 
+        val miniCardWalletVaultStyle: Style = miniCardWalletStyle.copy(
+            prefixIconResList = listOf(app.twallet.air.uicomponents.R.drawable.ic_wallet_lock)
+        )
+
         // Select wallet card row screen styles
         val cardRowWalletStyle: Style = Style(
             singleChainStyle = ChainStyle(
@@ -641,6 +645,10 @@ class WMultichainAddressLabel(context: Context) : WRadialGradientLabel(context) 
             prefixIconResList = listOf(app.twallet.air.uicomponents.R.drawable.ic_wallet_ledger)
         )
 
+        val cardRowWalletVaultStyle: Style = cardRowWalletStyle.copy(
+            prefixIconResList = listOf(app.twallet.air.uicomponents.R.drawable.ic_wallet_lock)
+        )
+
         // Select wallet card row screen styles
         val settingsHeaderWalletStyle: Style = Style(
             singleChainStyle = ChainStyle(
@@ -680,6 +688,10 @@ class WMultichainAddressLabel(context: Context) : WRadialGradientLabel(context) 
 
         val settingsHeaderWalletHardwareStyle: Style = settingsHeaderWalletStyle.copy(
             prefixIconResList = listOf(app.twallet.air.uicomponents.R.drawable.ic_wallet_ledger)
+        )
+
+        val settingsHeaderWalletVaultStyle: Style = settingsHeaderWalletStyle.copy(
+            prefixIconResList = listOf(app.twallet.air.uicomponents.R.drawable.ic_wallet_lock)
         )
     }
 }

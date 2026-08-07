@@ -31,7 +31,7 @@ import app.twallet.air.walletcore.models.MToken
 internal object DefaultTokens {
 
     private const val TON_USDT_MAINNET_IMAGE =
-        "https://imgproxy.mytonwallet.org/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp"
+        "https://tether.to/images/logoCircle.png"
     private const val SOLANA_USDC_MAINNET_IMAGE =
         "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png"
     private const val USDE_IMAGE =

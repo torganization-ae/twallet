@@ -651,6 +651,10 @@ private class AppActionsImpl: AppActionsProtocol {
         let nc = WNavigationController(rootViewController: vc)
         topViewController()?.present(nc, animated: true)
     }
+
+    static func switchAccount(accountId: String, then: (() -> Void)?) {
+        VaultAccountSwitch.activate(accountId: accountId, then: then ?? {})
+    }
     
     static func transitionToRootState(_ rootState: AppRootState, animationDuration: Double?) {
         RootStateCoordinator.shared.transition(to: rootState, animationDuration: animationDuration)
@@ -671,6 +675,8 @@ private class AppActionsImpl: AppActionsProtocol {
         case .dapps:
             guard AccountStore.account?.isView != true else { return nil }
             return [ConnectedAppsVC(isModal: false)]
+        case .networks:
+            return [NetworksVC()]
         case .walletVersions:
             guard AccountStore.walletVersionsData?.versions.isEmpty == false else { return nil }
             return [WalletVersionsVC()]

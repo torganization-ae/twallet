@@ -2,29 +2,28 @@ import type { TonTransport } from '@ton-community/ton-ledger';
 
 import type { ApiTonWalletVersion, ContractInfo, ContractName } from './types';
 
-import {
-  TONAPIIO_MAINNET_URL,
-  TONAPIIO_TESTNET_URL,
-  TONCENTER_MAINNET_URL,
-  TONCENTER_TESTNET_URL,
-} from '../../../config';
 import { JettonStakingGas } from './contracts/JettonStaking/imports/constants';
+import { getEffectiveApiUrl, getEffectiveRpcUrl } from '../rpcOverrides';
 
 export const TON_BIP39_PATH = `m/44'/607'/{index}'`;
 export const TON_DEFAULT_DERIVATION_PATH = `m/44'/607'/0'`;
 
 export const NETWORK_CONFIG = {
-  mainnet: {
-    toncenterUrl: TONCENTER_MAINNET_URL,
-    tonApiIoUrl: TONAPIIO_MAINNET_URL,
-    // W5 wallet chain IDs for different subwallet variants
-    chainId: -239,
+  get mainnet() {
+    return {
+      toncenterUrl: getEffectiveRpcUrl('ton', 'mainnet'),
+      tonApiIoUrl: getEffectiveApiUrl('ton', 'mainnet'),
+      // W5 wallet chain IDs for different subwallet variants
+      chainId: -239,
+    };
   },
-  testnet: {
-    toncenterUrl: TONCENTER_TESTNET_URL,
-    tonApiIoUrl: TONAPIIO_TESTNET_URL,
-    // W5 wallet chain IDs for different subwallet variants
-    chainId: -3,
+  get testnet() {
+    return {
+      toncenterUrl: getEffectiveRpcUrl('ton', 'testnet'),
+      tonApiIoUrl: getEffectiveApiUrl('ton', 'testnet'),
+      // W5 wallet chain IDs for different subwallet variants
+      chainId: -3,
+    };
   },
 };
 

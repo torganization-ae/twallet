@@ -167,6 +167,14 @@ function DappTransferInitial({
           customTokenSymbol={tokenToDisplay.symbol}
           customTokenDecimals={tokenToDisplay.decimals}
         />
+        {chain && (
+          <div className={buildClassName(styles.transferWarning, styles.warning)}>
+            {lang('Network: %chain%. Fee in %symbol%.', {
+              chain: getChainConfig(chain).title,
+              symbol: getChainConfig(chain).nativeToken.symbol,
+            })}
+          </div>
+        )}
         {isDangerous && (
           <div className={buildClassName(styles.transferWarning, styles.warning)}>
             {renderText(lang('$hardware_payload_warning'))}

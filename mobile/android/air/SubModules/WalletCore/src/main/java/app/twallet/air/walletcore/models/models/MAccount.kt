@@ -21,6 +21,8 @@ class MAccount(
     var accountType: AccountType,
     var importedAt: Long?,
     var isTemporary: Boolean,
+    /** `"daily"` | `"vault"` — matches Web `Account.profile` */
+    var profile: String? = null,
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -93,6 +95,7 @@ class MAccount(
         AccountType.fromValue(globalJSON.optString("type")) ?: AccountType.MNEMONIC,
         globalJSON.optLong("importedAt"),
         globalJSON.optBoolean("isTemporary"),
+        globalJSON.optString("profile").takeIf { it.isNotEmpty() },
     )
 
     companion object {
@@ -134,6 +137,9 @@ class MAccount(
         get() {
             return accountType == AccountType.HARDWARE
         }
+
+    val isVault: Boolean
+        get() = profile == "vault"
 
     val tonAddress: String?
         get() {

@@ -44,3 +44,4 @@ AGENTS.md
 .build
 /worktrees/
 .cursor/
+.tools/

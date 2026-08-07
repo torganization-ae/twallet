@@ -254,7 +254,7 @@ async function getLogsString({
 }: Partial<StateProps>) {
   const accountsInfo = accountsById && mapValues(accountsById, (account) => ({
     type: account.type,
-    addressByChain: mapValues(account.byChain, (accountChain) => accountChain.address),
+    addressByChain: mapValues(account.byChain, (accountChain) => accountChain?.address),
   }));
 
   const mainLogs = getLogs();

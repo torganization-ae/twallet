@@ -31,7 +31,7 @@ describe('ThrottledFetcher', () => {
         },
       } as unknown as Response);
 
-    const url = 'https://toncenter-testnet.mytonwallet.org/api/v2/jsonRPC';
+    const url = 'https://testnet.toncenter.com/api/v2/jsonRPC';
 
     await fetchWithThrottledProvider(url, { method: 'POST' });
 
@@ -40,7 +40,7 @@ describe('ThrottledFetcher', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    jest.advanceTimersByTime(999);
+    jest.advanceTimersByTime(1199);
     await Promise.resolve();
     await Promise.resolve();
     expect(fetchMock).toHaveBeenCalledTimes(1);

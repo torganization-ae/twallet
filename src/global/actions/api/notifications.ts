@@ -93,7 +93,9 @@ addActionHandler('registerNotifications', async (global, actions, { userToken, p
   }
 
   const newEnabledAccounts = enabledAccounts.filter((accountId) => {
-    return Object.values(accounts[accountId].byChain).some(({ address }) => address in createResult.addressKeys);
+    return Object.values(accounts[accountId].byChain).some((wallet) => (
+      wallet?.address && wallet.address in createResult.addressKeys
+    ));
   });
 
   setGlobal({

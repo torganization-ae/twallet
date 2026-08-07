@@ -169,9 +169,10 @@ class MiniCardView(context: Context, private val containerWidth: Int) : WView(co
     private fun setLabelColors(primaryColor: Int, secondaryColor: Int, drawGradient: Boolean) {
         balanceView.updateColors(primaryColor, secondaryColor, drawGradient)
         addressLabel.setTextColor(primaryColor, secondaryColor, drawGradient)
-        val style = when (account?.accountType) {
-            MAccount.AccountType.VIEW -> WMultichainAddressLabel.miniCardWalletViewStyle
-            MAccount.AccountType.HARDWARE -> WMultichainAddressLabel.miniCardWalletHardwareStyle
+        val style = when {
+            account?.isVault == true -> WMultichainAddressLabel.miniCardWalletVaultStyle
+            account?.accountType == MAccount.AccountType.VIEW -> WMultichainAddressLabel.miniCardWalletViewStyle
+            account?.accountType == MAccount.AccountType.HARDWARE -> WMultichainAddressLabel.miniCardWalletHardwareStyle
             else -> if (isActive()) {
                 WMultichainAddressLabel.miniCardWalletSelectedStyle
             } else {

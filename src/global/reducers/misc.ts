@@ -83,6 +83,7 @@ export function createAccount({
     ...partial,
     type,
     byChain,
+    profile: partial?.profile ?? 'daily',
   };
 
   if (!account.title) {
@@ -186,8 +187,21 @@ export function renameAccount(global: GlobalState, accountId: string, title: str
 }
 
 export function createAccountsFromGlobal(global: GlobalState, isMnemonicImported = false): GlobalState {
+  const profile = global.auth.pendingAccountProfile ?? 'daily';
+
   for (const account of global.auth.accounts ?? []) {
-    global = createAccount({ global, type: 'mnemonic', ...account, isMnemonicImported });
+    const byChain = profile === 'vault' && account.byChain.ton
+      ? { ton: account.byChain.ton }
+      : account.byChain;
+
+    global = createAccount({
+      global,
+      type: 'mnemonic',
+      ...account,
+      byChain,
+      isMnemonicImported,
+      partial: { profile },
+    });
   }
 
   return global;

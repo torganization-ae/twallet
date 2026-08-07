@@ -20,6 +20,7 @@ import {
 } from '@solana/kit';
 
 import type { ExplainedTransferFee } from '../../../util/fee/transferFee';
+import type { PaymasterStatus } from '../../../global/types';
 import type {
   ApiAnyDisplayError,
   ApiFetchEstimateDieselResult,
@@ -865,4 +866,21 @@ export async function buildTransaction(
   const decoder = options.type === 'real' ? getBase58Decoder() : getBase64Decoder();
 
   return decoder.decode(signedBytes);
+}
+
+export type ApiEstimatePaymasterFeeResult = {
+  status: PaymasterStatus;
+  feeTokenSlug?: string;
+};
+
+/**
+ * Architectural hook for Solana gas abstraction (paymaster / gas station).
+ * Returns `not-available` until a relayed-tx backend is wired.
+ * Note: Solana already has a limited gasless path via SOLANA_GASLESS_PAYER / diesel-like flow.
+ */
+export function estimatePaymasterFee(
+  _accountId: string,
+  _options: { tokenSlug?: string },
+): Promise<ApiEstimatePaymasterFeeResult> {
+  return Promise.resolve({ status: 'not-available' });
 }

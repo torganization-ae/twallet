@@ -26,6 +26,7 @@ interface OwnProps {
   byChain: Account['byChain'];
   accountType: AccountType;
   title?: string;
+  profile?: Account['profile'];
   balanceData?: AccountBalance;
   withContextMenu?: boolean;
   isSensitiveDataHidden?: true;
@@ -51,6 +52,7 @@ function AccountWalletItem({
   byChain,
   accountType,
   title,
+  profile,
   balanceData,
   withContextMenu,
   isSensitiveDataHidden,
@@ -158,6 +160,7 @@ function AccountWalletItem({
           byChain={byChain}
           accountType={accountType}
           title={title}
+          profile={profile}
           isTestnet={isTestnet}
           balanceData={balanceData}
           isSensitiveDataHidden={isSensitiveDataHidden}

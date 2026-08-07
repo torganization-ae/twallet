@@ -189,6 +189,7 @@ object WGlobalStorage {
         name: String? = null,
         importedAt: Long?,
         isTemporary: Boolean = false,
+        profile: String? = null,
     ) {
         val suggestedName = name ?: when {
             isTemporary -> LocaleController.getString("Wallet")
@@ -223,12 +224,27 @@ object WGlobalStorage {
             )
             temporaryAddedAccountIds.add(accountId)
         }
+        if (profile != null) {
+            globalStorageProvider.set(
+                "accounts.byId.$accountId.profile",
+                value = profile,
+                persistInstantly = IGlobalStorageProvider.PERSIST_NO
+            )
+        }
         globalStorageProvider.set(
             "byAccountId.$accountId.isBackupRequired",
             value = false,
             persistInstantly = IGlobalStorageProvider.PERSIST_INSTANT
         )
         cachedAccountIds = null
+    }
+
+    fun setAccountProfile(accountId: String, profile: String) {
+        globalStorageProvider.set(
+            "accounts.byId.$accountId.profile",
+            value = profile,
+            persistInstantly = IGlobalStorageProvider.PERSIST_INSTANT
+        )
     }
 
     fun saveAccountByChain(accountId: String, byChain: JSONObject) {

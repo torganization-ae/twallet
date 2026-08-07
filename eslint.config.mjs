@@ -1,9 +1,8 @@
-import { globalIgnores } from 'eslint/config';
-import tseslint from 'typescript-eslint';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
 import mtwConfig from './lib/eslint-config/index.js';
 
-export default tseslint.config(
+export default defineConfig(
   mtwConfig.configs.frontendRecommended,
   globalIgnores([
     'dev',

@@ -13,8 +13,9 @@ import { updateTokensMetadataByAddress } from './util/metadata';
 import { updateActivityMetadata } from '../../common/helpers';
 import { getTokenBySlug } from '../../common/tokens';
 import { buildTokenSlug } from '../../methods';
+import { isEvmEnhancedApiEnabled } from '../rpcOverrides';
 import { normalizeAddress } from './address';
-import { EVM_RPC_URLS } from './constants';
+import { getEvmEnhancedJsonRpcUrl } from './constants';
 
 function normalizeHexTx(rawTx: string): string {
   const trimmed = rawTx.trim();
@@ -253,6 +254,10 @@ async function emulateTransaction(
   address: string,
   tx: Transaction,
 ) {
+  if (!isEvmEnhancedApiEnabled(chain, network)) {
+    return { changes: [], error: 'EVM enhanced API is not configured', gasUsed: '0x0' };
+  }
+
   const payload = {
     method: 'POST',
     body: JSON.stringify({
@@ -276,7 +281,7 @@ async function emulateTransaction(
   };
 
   const response = await fetchJson<AlchemyAssetChangesResponse>(
-    `${EVM_RPC_URLS[network](chain)}/v2`,
+    getEvmEnhancedJsonRpcUrl(network, chain),
     undefined,
     payload,
   );

@@ -26,6 +26,7 @@ import type {
   ApiDappConnectionType,
   ApiDappTransfer,
   ApiDerivation,
+  ApiNetwork,
   ApiNft,
   ApiStakingState,
   ApiTokenWithPrice,
@@ -444,6 +445,11 @@ export type ApiUpdateAccountDomainData = {
   nfts: Record<string, ApiNft>;
 };
 
+export type ApiUpdateChainVisibility = {
+  type: 'updateChainVisibility';
+  hiddenChainsByNetwork: Partial<Record<ApiNetwork, ApiChain[]>>;
+};
+
 export type ApiUpdate =
   | ApiUpdateBalances
   | ApiUpdateInitialActivities
@@ -496,6 +502,7 @@ export type ApiUpdate =
   | ApiMigrateCoreApplication
   | ApiUpdateRemoveAccounts
   | ApiUpdateAccountConfig
-  | ApiUpdateAccountDomainData;
+  | ApiUpdateAccountDomainData
+  | ApiUpdateChainVisibility;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

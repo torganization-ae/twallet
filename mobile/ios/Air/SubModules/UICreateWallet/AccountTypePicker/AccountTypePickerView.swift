@@ -21,10 +21,18 @@ struct AccountTypePickerView: View {
                     InsetSection(addDividers: false) {
                         WalletPickerOptionRow(
                             icon: "CreateWalletIcon30",
-                            title: lang("New Wallet"),
-                            subtitle: lang("From new secret words"),
+                            title: lang("Daily Wallet"),
+                            subtitle: lang("Multi-chain everyday use"),
+                            showsDivider: true,
+                            onTap: { onCreate(isVault: false) }
+                        )
+
+                        WalletPickerOptionRow(
+                            icon: "CreateWalletIcon30",
+                            title: lang("Vault Wallet"),
+                            subtitle: lang("TON-only cold storage with unlock"),
                             showsDivider: canCreateSubwallet,
-                            onTap: onCreate
+                            onTap: { onCreate(isVault: true) }
                         )
 
                         if canCreateSubwallet {
@@ -88,14 +96,20 @@ struct AccountTypePickerView: View {
         }
     }
 
-    private func onCreate() {
+    private func onCreate(isVault: Bool) {
         dismiss()
         if let vc = topViewController() {
             UnlockVC.presentAuth(on: vc, onDone: { passcode in
                 Task { @MainActor in
                     do {
-                        let words = try await Api.generateMnemonic()
-                        let introModel = IntroModel(network: network, password: passcode, words: words)
+                        // Vault uses TON-only mnemonic (isBip39: false), matching Web forceAddingTonOnlyAccount.
+                        let words = try await Api.generateMnemonic(isBip39: !isVault)
+                        let introModel = IntroModel(
+                            network: network,
+                            password: passcode,
+                            words: words,
+                            profile: isVault ? "vault" : "daily"
+                        )
                         let addAccountVC = WordDisplayVC(introModel: introModel, wordList: words)
                         let navVC = WNavigationController(rootViewController: addAccountVC)
                         topViewController()?.present(navVC, animated: true)

@@ -66,6 +66,7 @@ dependencies {
     implementation(project("$airSubModulePath:QRScan"))
     implementation(project("$airSubModulePath:Icons"))
     implementation(project("$airSubModulePath:UIReceive"))
+    implementation(project("$airSubModulePath:UIPasscode"))
     implementation(project("$airSubModulePath:vkryl:core"))
     implementation(project("$airSubModulePath:vkryl:android"))
     testImplementation(libs.junit)

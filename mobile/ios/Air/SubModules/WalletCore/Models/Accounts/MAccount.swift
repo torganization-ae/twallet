@@ -22,24 +22,42 @@ public struct MAccount: Equatable, Hashable, Sendable, Codable, Identifiable, Fe
     public var type: AccountType
     public var byChain: [String: AccountChain] // keys have to be strings because encoding won't work with ApiChain as keys
     public var isTemporary: Bool?
+    /// `"daily"` | `"vault"` — matches Web `Account.profile`
+    public var profile: String?
 
     static public let databaseTableName: String = "accounts"
 
-    init(id: String, title: String?, type: AccountType, byChain: [String : AccountChain], isTemporary: Bool? = nil) {
+    init(
+        id: String,
+        title: String?,
+        type: AccountType,
+        byChain: [String : AccountChain],
+        isTemporary: Bool? = nil,
+        profile: String? = nil
+    ) {
         self.id = id
         self.title = title
         self.type = type
         self.byChain = byChain
         self.isTemporary = isTemporary
+        self.profile = profile
     }
     
-    public init(id: String, title: String?, type: AccountType, byChain: [ApiChain : AccountChain], isTemporary: Bool? = nil) {
+    public init(
+        id: String,
+        title: String?,
+        type: AccountType,
+        byChain: [ApiChain : AccountChain],
+        isTemporary: Bool? = nil,
+        profile: String? = nil
+    ) {
         self.init(
             id: id,
             title: title,
             type: type,
             byChain: Dictionary(byChain.map { ($0.rawValue, $1) }, uniquingKeysWith: { first, _ in first }),
             isTemporary: isTemporary,
+            profile: profile,
         )
     }
 }
@@ -85,6 +103,10 @@ extension MAccount {
     
     public var isTemporaryView: Bool {
         isTemporary == true
+    }
+
+    public var isVault: Bool {
+        profile == "vault"
     }
     
     public var network: ApiNetwork {

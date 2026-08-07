@@ -1,11 +1,10 @@
 import type { ApiNetwork, EVMChain } from '../../types';
 
-import { EVM_MAINNET_RPC_URL, EVM_TESTNET_RPC_URL } from '../../../config';
+import { resolveEvmJsonRpcUrl } from '../defaultEndpoints';
+import { getEffectiveApiUrl } from '../rpcOverrides';
 
 /** Safety multiplier applied to the estimated gas fee when sending the max native balance */
 export const EVM_MAX_TRANSFER_FEE_MULTIPLIER = 1.5;
-
-export const EVM_DEFAULT_DERIVATION_PATH = `m/44'/60'/0'/0/0`;
 
 export const EVM_DERIVATION_PATHS = {
   default: `m/44'/60'/0'/0/{index}`,
@@ -37,13 +36,20 @@ export function getZerionChainByApiChain(chain: EVMChain): string {
 
 export const EVM_MAX_NUMBER = 2n ** 256n - 1n;
 
-export const EVM_RPC_URLS: Record<ApiNetwork, (chain: EVMChain) => string> = {
-  mainnet: (chain: EVMChain) => `${EVM_MAINNET_RPC_URL}/${chain}`,
-  testnet: (chain: EVMChain) => `${EVM_TESTNET_RPC_URL}/${chain}`,
+/** Per-chain EVM enhanced/indexer API base URL. */
+const EVM_ENHANCED_API_URLS: Record<ApiNetwork, (chain: EVMChain) => string> = {
+  mainnet: (chain: EVMChain) => getEffectiveApiUrl(chain, 'mainnet').replace(/\/$/, ''),
+  testnet: (chain: EVMChain) => getEffectiveApiUrl(chain, 'testnet').replace(/\/$/, ''),
 };
 
-export const getEvmApiUrl = (network: ApiNetwork) => {
-  return network === 'mainnet' ? EVM_MAINNET_RPC_URL : EVM_TESTNET_RPC_URL;
+export const getEvmApiUrl = (network: ApiNetwork, chain: EVMChain) => EVM_ENHANCED_API_URLS[network](chain);
+
+/**
+ * Resolve JSON-RPC endpoint for enhanced providers.
+ * Supports Alchemy-style `/v2` URLs and arbitrary custom endpoints.
+ */
+export const getEvmEnhancedJsonRpcUrl = (network: ApiNetwork, chain: EVMChain) => {
+  return resolveEvmJsonRpcUrl(getEvmApiUrl(network, chain));
 };
 
 export const EVM_DALEGATOR_ADDRESSES: Record<string, string> = {

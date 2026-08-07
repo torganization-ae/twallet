@@ -5,12 +5,8 @@
 import type { ApiInitArgs, ApiNetwork } from './types';
 
 import {
-  ELECTRON_TONCENTER_MAINNET_KEY,
-  ELECTRON_TONCENTER_TESTNET_KEY,
   IS_AIR_APP,
   IS_EXTENSION,
-  TONCENTER_MAINNET_KEY,
-  TONCENTER_TESTNET_KEY,
 } from '../config';
 
 const ELECTRON_ORIGIN = 'file://';
@@ -43,10 +39,10 @@ export function setEnvironment(args: ApiInitArgs) {
     apiHeaders: appOrigin ? { 'X-App-Origin': appOrigin } : {},
     byNetwork: {
       mainnet: {
-        toncenterKey: args.isElectron ? ELECTRON_TONCENTER_MAINNET_KEY : TONCENTER_MAINNET_KEY,
+        toncenterKey: undefined,
       },
       testnet: {
-        toncenterKey: args.isElectron ? ELECTRON_TONCENTER_TESTNET_KEY : TONCENTER_TESTNET_KEY,
+        toncenterKey: undefined,
       },
     },
   };
@@ -55,4 +51,26 @@ export function setEnvironment(args: ApiInitArgs) {
 
 export function getEnvironment() {
   return environment;
+}
+
+// Hosts of our own proxies/backends that understand the `X-App-Origin` header
+// and allow it in their CORS policy.
+const OWN_API_HOSTS = ['mywallet.io'];
+
+/**
+ * Returns `apiHeaders` only when the target URL belongs to our own infra.
+ * Public providers (toncenter.com, tonapi.io, Helius, ...) don't allow `X-App-Origin`
+ * in the CORS preflight, so sending it to them breaks every request in CORS-enforcing
+ * environments (web, iOS/Android WebView).
+ */
+export function getApiHeadersForUrl(url: string): AnyLiteral {
+  try {
+    const { hostname } = new URL(url);
+    if (OWN_API_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`))) {
+      return environment.apiHeaders ?? {};
+    }
+  } catch {
+    // Invalid URL — fall through to no headers
+  }
+  return {};
 }

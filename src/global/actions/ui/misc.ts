@@ -41,6 +41,7 @@ import {
   openSection,
   renameAccount,
   setIsPinAccepted,
+  updateAccount,
   updateAccounts,
   updateAuth,
   updateCurrentAccountState,
@@ -48,6 +49,7 @@ import {
   updateSettings,
 } from '../../reducers';
 import {
+  selectAccount,
   selectCurrentAccount,
   selectCurrentAccountId,
   selectCurrentAccountState,
@@ -307,18 +309,50 @@ addActionHandler('renameAccount', (global, actions, { accountId, title }) => {
   actions.renameNotificationAccount({ accountId });
 });
 
+addActionHandler('setAccountProfile', async (global, actions, { accountId, profile }) => {
+  const account = selectAccount(global, accountId);
+  if (!account) return;
+
+  const byChain = profile === 'vault' && account.byChain.ton
+    ? { ton: account.byChain.ton }
+    : account.byChain;
+
+  global = updateAccount(global, accountId, { profile, byChain });
+  setGlobal(global);
+
+  await callApi('setAccountVaultProfile', accountId, profile === 'vault');
+});
+
+addActionHandler('setPendingAccountProfile', (global, _, payload) => {
+  return updateAuth(global, {
+    pendingAccountProfile: payload?.profile,
+    forceAddingTonOnlyAccount: payload?.profile === 'vault' ? true : undefined,
+  });
+});
+
 addActionHandler('clearAccountError', (global) => {
   return updateAccounts(global, { error: undefined });
 });
 
 addActionHandler('openAddAccountModal', (global, _, props) => {
-  const { forceAddingTonOnlyAccount, initialState, shouldHideBackButton } = props || {};
+  const {
+    forceAddingTonOnlyAccount,
+    pendingAccountProfile,
+    initialState,
+    shouldHideBackButton,
+  } = props || {};
 
   global = { ...global, isAccountSelectorOpen: true };
 
-  if (forceAddingTonOnlyAccount || initialState !== undefined || shouldHideBackButton) {
+  if (
+    forceAddingTonOnlyAccount
+    || pendingAccountProfile
+    || initialState !== undefined
+    || shouldHideBackButton
+  ) {
     global = updateAuth(global, {
-      forceAddingTonOnlyAccount,
+      forceAddingTonOnlyAccount: forceAddingTonOnlyAccount || pendingAccountProfile === 'vault',
+      pendingAccountProfile,
       initialAddAccountState: initialState,
       shouldHideAddAccountBackButton: shouldHideBackButton,
     });
@@ -334,6 +368,7 @@ addActionHandler('closeAddAccountModal', (global, _, props) => {
 
   global = updateAuth(global, {
     forceAddingTonOnlyAccount: undefined,
+    pendingAccountProfile: undefined,
     initialAddAccountState: undefined,
     shouldHideAddAccountBackButton: undefined,
   });

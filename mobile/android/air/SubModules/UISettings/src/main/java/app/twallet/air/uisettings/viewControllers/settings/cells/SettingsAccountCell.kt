@@ -245,9 +245,10 @@ class SettingsAccountCell(context: Context) : WCell(context), ISettingsItemCell,
     }
 
     private fun updateAddressLabel() {
-        val style = when (account?.accountType) {
-            MAccount.AccountType.VIEW -> WMultichainAddressLabel.cardRowWalletViewStyle
-            MAccount.AccountType.HARDWARE -> WMultichainAddressLabel.cardRowWalletHardwareStyle
+        val style = when {
+            account?.isVault == true -> WMultichainAddressLabel.cardRowWalletVaultStyle
+            account?.accountType == MAccount.AccountType.VIEW -> WMultichainAddressLabel.cardRowWalletViewStyle
+            account?.accountType == MAccount.AccountType.HARDWARE -> WMultichainAddressLabel.cardRowWalletHardwareStyle
             else -> WMultichainAddressLabel.cardRowWalletStyle
         }
         addressLabel.displayAddresses(account, style)

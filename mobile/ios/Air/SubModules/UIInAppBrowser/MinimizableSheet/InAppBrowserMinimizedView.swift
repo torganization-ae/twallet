@@ -95,7 +95,7 @@ private struct InAppBrowserMinimizedViewContent: View {
 #Preview {
     @Previewable let viewModel = InAppBrowserMinimizedViewModel(
         title: "Fragment",
-        iconUrl: "https://static.mytonwallet.org/explore-icons/mtwcards.webp",
+        iconUrl: "",
         titleTapAction: { },
         closeAction: { }
     )

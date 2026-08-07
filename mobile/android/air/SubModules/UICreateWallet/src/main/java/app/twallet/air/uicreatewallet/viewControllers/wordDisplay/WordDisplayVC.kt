@@ -23,7 +23,8 @@ class WordDisplayVC(
     private val isFirstWalletToAdd: Boolean,
     private val isFirstPasscodeProtectedWallet: Boolean,
     // Used when adding new account (not first account!)
-    private val passedPasscode: String?
+    private val passedPasscode: String?,
+    private val profile: String = "daily",
 ) : RecoveryPhraseVC(context, network, words), WalletCreationVM.Delegate {
 
     override val shouldDisplayTopBar = false
@@ -34,7 +35,8 @@ class WordDisplayVC(
         WordCheckMode.CheckAndImport(
             isFirstWalletToAdd = isFirstWalletToAdd,
             isFirstPasscodeProtectedWallet = isFirstPasscodeProtectedWallet,
-            passedPasscode = passedPasscode
+            passedPasscode = passedPasscode,
+            profile = profile,
         )
 
     private val walletCreationVM by lazy {
@@ -51,14 +53,14 @@ class WordDisplayVC(
     override fun skipPressed() {
         if (isFirstPasscodeProtectedWallet) {
             push(SetPasscodeVC(context, true, null) { passcode, biometricsActivated ->
-                walletCreationVM.finalizeAccount(window!!, network, words, passcode, biometricsActivated, 0)
+                walletCreationVM.finalizeAccount(window!!, network, words, passcode, biometricsActivated, 0, profile)
             }, onCompletion = {
                 navigationController?.removePrevViewControllers()
             })
         } else {
             skipButton.isLoading = true
             view.lockView()
-            walletCreationVM.finalizeAccount(window!!, network, words, passedPasscode ?: "", null, 0)
+            walletCreationVM.finalizeAccount(window!!, network, words, passedPasscode ?: "", null, 0, profile)
         }
     }
 

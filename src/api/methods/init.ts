@@ -2,6 +2,8 @@ import type { ApiInitArgs, OnApiUpdate } from '../types';
 
 import { NO_MFA, NO_STAKING, NO_SWAP } from '../../config';
 import { initWindowConnector } from '../../util/windowProvider/connector';
+import { getHiddenChainsStateSnapshot, loadChainVisibility } from '../chains/chainVisibility';
+import { loadRpcOverrides } from '../chains/rpcOverrides';
 import * as ton from '../chains/ton';
 import { fetchBackendReferrer } from '../common/backend';
 import { connectUpdater, disconnectUpdater, tryMigrateStorage } from '../common/helpers';
@@ -25,6 +27,12 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
   await withStorage(runtimeStorage, async () => {
     await initClientId();
     await tryMigrateStorage(onUpdate, ton, args.accountIds);
+    await loadRpcOverrides();
+    await loadChainVisibility();
+    onUpdate({
+      type: 'updateChainVisibility',
+      hiddenChainsByNetwork: getHiddenChainsStateSnapshot(),
+    });
   });
 
   methods.initAccounts(onUpdate);

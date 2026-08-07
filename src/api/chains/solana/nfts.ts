@@ -26,6 +26,7 @@ import { getSolanaClient } from './util/client';
 import { fetchStoredChainAccount, fetchStoredWallet } from '../../common/accounts';
 import { checkHasScamLink } from '../../common/addresses';
 import { fetchAllPaginated, streamPaginated } from '../../common/pagination';
+import { isSolanaEnhancedApiEnabled } from '../rpcOverrides';
 import { fetchPrivateKeyString, getSignerFromPrivateKey } from './auth';
 import { NETWORK_CONFIG } from './constants';
 import { buildTransaction, estimateTransactionFee, FALLBACK_FEE, sendSignedTransaction } from './transfer';
@@ -95,6 +96,10 @@ export async function fetchAccountNfts(network: ApiNetwork, address: string, opt
   limit?: number;
   page?: number;
 }) {
+  if (!isSolanaEnhancedApiEnabled(network)) {
+    return [];
+  }
+
   const { collectionAddress, page = 1, limit = getChainConfig('solana').nftBatchLimit! } = options ?? {};
 
   const params = collectionAddress
@@ -133,7 +138,7 @@ export async function fetchAccountNfts(network: ApiNetwork, address: string, opt
     }),
   };
 
-  const res = await fetchJson<SolanaSPLTokensByAddressRaw>(NETWORK_CONFIG[network].rpcUrl, undefined, request);
+  const res = await fetchJson<SolanaSPLTokensByAddressRaw>(NETWORK_CONFIG[network].apiUrl, undefined, request);
 
   return res.result.items;
 }
@@ -159,7 +164,7 @@ export async function fetchNftByAddress(network: ApiNetwork, address: string) {
   };
 
   const res = await fetchJson<SolanaSPLTokenByAddressRaw>(
-    NETWORK_CONFIG[network].rpcUrl,
+    NETWORK_CONFIG[network].apiUrl,
     undefined,
     request,
   );
@@ -188,7 +193,7 @@ export async function fetchNftsByAddresses(network: ApiNetwork, addresses: strin
   };
 
   const { result: assets } = await fetchJson<{ result: SolanaSPLToken[] }>(
-    NETWORK_CONFIG[network].rpcUrl,
+    NETWORK_CONFIG[network].apiUrl,
     undefined,
     options,
   );
@@ -277,7 +282,7 @@ export async function getAssetProof(network: ApiNetwork, nftAddress: string) {
     }),
   };
   const response = await fetchJson<SolanaAssetProofRaw>(
-    NETWORK_CONFIG[network].rpcUrl,
+    NETWORK_CONFIG[network].apiUrl,
     undefined,
     options,
   );

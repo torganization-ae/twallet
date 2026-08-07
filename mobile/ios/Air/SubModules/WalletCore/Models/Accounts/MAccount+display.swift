@@ -72,17 +72,24 @@ public extension MAccount {
     struct AddressLine: Equatable, Hashable {
         public var isTestnet: Bool
         public enum LeadingIcon {
-            case ledger, view
+            case ledger, view, vault
             public var symbolName: String {
                 switch self {
                 case .ledger:
                     "inline_ledger"
                 case .view:
                     "inline_view"
+                case .vault:
+                    "lock.fill"
                 }
             }
             public var image: Image {
-                Image.airBundle(symbolName)
+                switch self {
+                case .vault:
+                    Image(systemName: symbolName)
+                default:
+                    Image.airBundle(symbolName)
+                }
             }
         }
         public var leadingIcon: LeadingIcon?
@@ -137,6 +144,17 @@ public extension MAccount {
             }
 
             func appendSymbol(_ name: String) {
+                if name == "lock.fill" {
+                    let configuration = UIImage.SymbolConfiguration(font: font, scale: .small)
+                    guard let image = UIImage(systemName: name, withConfiguration: configuration)?
+                        .withTintColor(color, renderingMode: .alwaysOriginal)
+                    else {
+                        return
+                    }
+                    let attachment = NSTextAttachment(image: image)
+                    result.append(NSAttributedString(attachment: attachment))
+                    return
+                }
                 let configuration = UIImage.SymbolConfiguration(font: font, scale: .small)
                 guard let image = UIImage(named: name, in: AirBundle, compatibleWith: nil)?
                     .withConfiguration(configuration)
@@ -215,7 +233,9 @@ public extension MAccount {
     
     private func makeAddressLine(orderedChains: [(ApiChain, AccountChain)]) -> AddressLine {
         let isTestnet = network == .testnet
-        let leadingIcon: AddressLine.LeadingIcon? = isTemporary == true ? nil : isView ? .view : isHardware ? .ledger : nil
+        let leadingIcon: AddressLine.LeadingIcon? = isTemporary == true
+            ? nil
+            : isVault ? .vault : isView ? .view : isHardware ? .ledger : nil
         var items: [AddressLine.Item] = []
         for (idx, chainInfo) in orderedChains.enumerated() {
             let (chain, info) = chainInfo

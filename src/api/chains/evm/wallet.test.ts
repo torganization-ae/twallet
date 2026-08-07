@@ -1,7 +1,12 @@
 import type { ZerionPositionsResponse } from './types';
 
 import { fetchJson } from '../../../util/fetch';
+import { getEvmProvider } from './util/client';
 import { updateTokens } from '../../common/tokens';
+import {
+  __resetRpcOverridesForTests,
+  writeRpcOverride,
+} from '../rpcOverrides';
 import { fetchAccountAssets, fetchCrosschainAccountAssets } from './wallet';
 
 jest.mock('../../../util/fetch', () => ({
@@ -13,12 +18,25 @@ jest.mock('../../common/tokens', () => ({
   buildTokenSlug: jest.fn((chain: string, address: string) => `${chain}-${address}`),
 }));
 
+jest.mock('./util/client', () => ({
+  getEvmProvider: jest.fn(),
+}));
+
+jest.mock('../../storages', () => ({
+  storage: {
+    getItem: jest.fn().mockResolvedValue(undefined),
+    setItem: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 const mockedFetchJson = jest.mocked(fetchJson);
+const mockedGetEvmProvider = jest.mocked(getEvmProvider);
 const mockedUpdateTokens = jest.mocked(updateTokens);
 
 const NETWORK = 'mainnet';
 const ADDRESS_A = '0x5819e5Ff34198F315322e1863Be6C3dC927cC5C3';
 const ADDRESS_B = '0x1111111111111111111111111111111111111111';
+const ENHANCED_API = 'https://enhanced-api.example';
 
 const EMPTY_RESPONSE: ZerionPositionsResponse = {
   links: { self: 'https://example.com' },
@@ -37,9 +55,17 @@ function createDeferred<T>() {
 }
 
 describe('fetchAccountAssets in-flight coalescing', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     mockedUpdateTokens.mockResolvedValue(undefined);
+    __resetRpcOverridesForTests();
+    // Enhanced API is off by default; enable it so Zerion positions path (and coalescing) is exercised.
+    await writeRpcOverride('bnb', NETWORK, 'api', ENHANCED_API);
+    await writeRpcOverride('ethereum', NETWORK, 'api', ENHANCED_API);
+  });
+
+  afterEach(() => {
+    __resetRpcOverridesForTests();
   });
 
   it('coalesces two concurrent identical fetches into a single request', async () => {
@@ -123,5 +149,18 @@ describe('fetchAccountAssets in-flight coalescing', () => {
     mockedFetchJson.mockResolvedValueOnce(EMPTY_RESPONSE);
     await fetchAccountAssets('bnb', NETWORK, ADDRESS_A, sendUpdateTokens);
     expect(mockedFetchJson).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses native-only RPC path when enhanced API is not configured', async () => {
+    __resetRpcOverridesForTests();
+    mockedGetEvmProvider.mockReturnValue({
+      getBalance: jest.fn().mockResolvedValue(42n),
+    } as any);
+
+    const sendUpdateTokens = jest.fn();
+    const result = await fetchAccountAssets('bnb', NETWORK, ADDRESS_A, sendUpdateTokens);
+
+    expect(result).toEqual({ bnb: 42n });
+    expect(mockedFetchJson).not.toHaveBeenCalled();
   });
 });

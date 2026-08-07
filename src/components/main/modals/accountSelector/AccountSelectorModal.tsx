@@ -21,7 +21,9 @@ import { captureEvents, SwipeDirection } from '../../../../util/captureEvents';
 import { getChainsSupportingLedger } from '../../../../util/chain';
 import { vibrate } from '../../../../util/haptics';
 import { disableSwipeToClose, enableSwipeToClose } from '../../../../util/modalSwipeManager';
+import { isVaultUnlocked, unlockVaultAccount } from '../../../../util/vaultUnlock';
 import { IS_LEDGER_SUPPORTED, IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
+import { callApi } from '../../../../api';
 import { buildTabs, getCurrentTabIndex } from './helpers/tabsHelper';
 import { AccountTab, DEFAULT_TAB, OPEN_CONTEXT_MENU_CLASS_NAME } from './constants';
 
@@ -74,6 +76,7 @@ interface AccountSelectorOpenProps {
   accountWalletVersions?: ApiWalletWithVersionInfo[];
   canAddSubwallet: boolean;
   forceAddingTonOnlyAccount?: boolean;
+  pendingAccountProfile?: Account['profile'];
   initialAuthState?: AccountSelectorState;
   shouldHideAddAccountBackButton?: boolean;
 }
@@ -103,6 +106,7 @@ function AccountSelectorModal({
   accountWalletVersions,
   canAddSubwallet = false,
   forceAddingTonOnlyAccount,
+  pendingAccountProfile,
   initialAuthState,
   shouldHideAddAccountBackButton,
 }: StateProps) {
@@ -119,6 +123,7 @@ function AccountSelectorModal({
     resetHardwareWalletConnect,
     clearAccountLoading,
     openWalletRenameModal,
+    setPendingAccountProfile,
   } = getActions();
 
   const lang = useLang();
@@ -133,6 +138,9 @@ function AccountSelectorModal({
   const [logOutAccountId, setLogOutAccountId] = useState<string | undefined>();
   const [isNewAccountImporting, setIsNewAccountImporting] = useState<boolean>(false);
   const [isAddingSubwallet, setIsAddingSubwallet] = useState<boolean>(false);
+  const [pendingVaultUnlockAccountId, setPendingVaultUnlockAccountId] = useState<string | undefined>();
+  const [vaultUnlockError, setVaultUnlockError] = useState<string | undefined>();
+  const [isVaultUnlockLoading, setIsVaultUnlockLoading] = useState(false);
   const [previousViewMode, setPreviousViewMode] = useState<AccountSelectorState>(initialRenderingKey);
   const [shouldReturnToStartScreen, setShouldReturnToStartScreen] = useState<boolean>(false);
 
@@ -199,14 +207,18 @@ function AccountSelectorModal({
     if (!isOpen) return;
 
     if (forceAddingTonOnlyAccount) {
-      handleNewAccountClick();
+      if (pendingAccountProfile === 'vault') {
+        handleNewVaultAccountClick();
+      } else {
+        handleNewAccountClick();
+      }
       return;
     }
 
     if (initialAuthState === AccountSelectorState.AddAccountConnectHardware && IS_LEDGER_SUPPORTED && !isTestnet) {
       handleImportHardwareWalletClick();
     }
-  }, [isOpen, forceAddingTonOnlyAccount, initialAuthState, isTestnet]);
+  }, [isOpen, forceAddingTonOnlyAccount, pendingAccountProfile, initialAuthState, isTestnet]);
 
   useEffect(() => {
     if (!IS_TOUCH_ENV || !isOpen) return;
@@ -252,6 +264,9 @@ function AccountSelectorModal({
     setIsAddingSubwallet(false);
     setShouldReturnToStartScreen(false);
     setPreviousViewMode(initialRenderingKey);
+    setPendingVaultUnlockAccountId(undefined);
+    setVaultUnlockError(undefined);
+    setIsVaultUnlockLoading(false);
     clearAccountLoading();
   });
 
@@ -261,6 +276,13 @@ function AccountSelectorModal({
         setRenderingKey(AccountSelectorState.AddAccountInitial);
         setIsAddingSubwallet(false);
         clearAccountError();
+        break;
+
+      case AccountSelectorState.UnlockVault:
+        setPendingVaultUnlockAccountId(undefined);
+        setVaultUnlockError(undefined);
+        setIsVaultUnlockLoading(false);
+        setRenderingKey(previousViewMode);
         break;
 
       case AccountSelectorState.AddAccountViewMode:
@@ -282,13 +304,68 @@ function AccountSelectorModal({
     }
   });
 
-  const handleSwitchAccount = useLastCallback((accountId: string) => {
+  const completeSwitchAccount = useLastCallback((accountId: string) => {
     vibrate();
     handleCloseAccountSelectorForced();
 
     if (accountId !== currentAccountId) {
       switchAccount({ accountId });
     }
+  });
+
+  const handleSwitchAccount = useLastCallback((accountId: string) => {
+    if (accountId === currentAccountId) {
+      handleCloseAccountSelectorForced();
+      return;
+    }
+
+    const account = networkAccounts?.[accountId]
+      ?? orderedAccounts?.find(([id]) => id === accountId)?.[1];
+    if (account?.profile === 'vault' && !isVaultUnlocked(accountId)) {
+      if (getHasInMemoryPassword()) {
+        void getInMemoryPassword().then(async (password) => {
+          if (password && await callApi('verifyPassword', password)) {
+            unlockVaultAccount(accountId);
+            completeSwitchAccount(accountId);
+            return;
+          }
+
+          setPreviousViewMode(renderingKey);
+          setPendingVaultUnlockAccountId(accountId);
+          setVaultUnlockError(undefined);
+          setRenderingKey(AccountSelectorState.UnlockVault);
+        });
+        return;
+      }
+
+      setPreviousViewMode(renderingKey);
+      setPendingVaultUnlockAccountId(accountId);
+      setVaultUnlockError(undefined);
+      setRenderingKey(AccountSelectorState.UnlockVault);
+      return;
+    }
+
+    completeSwitchAccount(accountId);
+  });
+
+  const handleUnlockVaultSubmit = useLastCallback(async (password: string) => {
+    if (!pendingVaultUnlockAccountId) return;
+
+    setIsVaultUnlockLoading(true);
+    setVaultUnlockError(undefined);
+
+    const isValid = await callApi('verifyPassword', password);
+    if (!isValid) {
+      setIsVaultUnlockLoading(false);
+      setVaultUnlockError(lang('Wrong password, please try again.'));
+      return;
+    }
+
+    unlockVaultAccount(pendingVaultUnlockAccountId);
+    const accountId = pendingVaultUnlockAccountId;
+    setPendingVaultUnlockAccountId(undefined);
+    setIsVaultUnlockLoading(false);
+    completeSwitchAccount(accountId);
   });
 
   const handleAddAccountAction = useLastCallback((method: 'createAccount' | 'importMnemonic') => {
@@ -311,10 +388,17 @@ function AccountSelectorModal({
   });
 
   const handleNewAccountClick = useLastCallback(() => {
+    setPendingAccountProfile({ profile: 'daily' });
+    handleAddAccountAction('createAccount');
+  });
+
+  const handleNewVaultAccountClick = useLastCallback(() => {
+    setPendingAccountProfile({ profile: 'vault' });
     handleAddAccountAction('createAccount');
   });
 
   const handleImportAccountClick = useLastCallback(() => {
+    setPendingAccountProfile({ profile: 'daily' });
     handleAddAccountAction('importMnemonic');
   });
 
@@ -528,6 +612,7 @@ function AccountSelectorModal({
             shouldHideBackButton={shouldHideAddAccountBackButton}
             onBack={handleBackFromAddAccount}
             onNewAccountClick={handleNewAccountClick}
+            onNewVaultAccountClick={handleNewVaultAccountClick}
             onNewSubwalletClick={handleNewSubwalletClick}
             onImportAccountClick={handleImportAccountClick}
             onImportHardwareWalletClick={handleImportHardwareWalletClick}
@@ -545,6 +630,19 @@ function AccountSelectorModal({
             error={error}
             onClearError={clearAccountError}
             onSubmit={handleSubmitPassword}
+            onBack={handleBackFromAddAccount}
+            onClose={handleCloseAccountSelectorForced}
+          />
+        );
+
+      case AccountSelectorState.UnlockVault:
+        return (
+          <AddAccountPasswordModal
+            isActive={isActive}
+            isLoading={isVaultUnlockLoading}
+            error={vaultUnlockError}
+            onClearError={() => setVaultUnlockError(undefined)}
+            onSubmit={handleUnlockVaultSubmit}
             onBack={handleBackFromAddAccount}
             onClose={handleCloseAccountSelectorForced}
           />
@@ -640,6 +738,7 @@ export default memo(withGlobal(
       accountSelectorViewMode: viewModeInitial,
       auth: {
         forceAddingTonOnlyAccount,
+        pendingAccountProfile,
         initialAddAccountState: initialAuthState,
         shouldHideAddAccountBackButton,
       },
@@ -687,6 +786,7 @@ export default memo(withGlobal(
       accountWalletVersions,
       canAddSubwallet,
       forceAddingTonOnlyAccount,
+      pendingAccountProfile,
       initialAuthState,
       shouldHideAddAccountBackButton,
     };

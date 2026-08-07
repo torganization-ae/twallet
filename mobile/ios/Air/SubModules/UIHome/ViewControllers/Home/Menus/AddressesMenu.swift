@@ -12,8 +12,6 @@ struct AddressesMenuContentRow {
 
 @MainActor func makeAddressesMenuConfig(accountContext: AccountContext) -> () -> ContextMenuConfiguration {
     return {
-        let account = accountContext.account
-        
         let rows: [AddressesMenuContentRow] = accountContext.orderedChains
             .map { (chain, info) in
                 AddressesMenuContentRow(chain: chain, accountChain: info)
@@ -29,15 +27,13 @@ struct AddressesMenuContentRow {
             )
         }
 
-        items.append(.separator)
         items.append(
             .action(
                 ContextMenuAction(
-                    title: lang("Share Wallet Link"),
-                    icon: .airBundle("MenuShare28"),
+                    title: lang("Networks"),
+                    icon: .airBundle("MenuNetworks28"),
                     handler: {
-                        UIPasteboard.general.url = account.shareLink
-                        AppActions.shareUrl(account.shareLink)
+                        AppActions.showSettings(section: .networks)
                     }
                 )
             )

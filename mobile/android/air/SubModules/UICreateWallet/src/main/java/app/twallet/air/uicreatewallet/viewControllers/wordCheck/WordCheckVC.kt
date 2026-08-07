@@ -271,7 +271,8 @@ class WordCheckVC(
                                 words,
                                 passcode,
                                 biometricsActivated,
-                                0
+                                0,
+                                mode.profile,
                             )
                         }, onCompletion = {
                             navigationController?.removePrevViewControllers()
@@ -284,7 +285,8 @@ class WordCheckVC(
                             words,
                             mode.passedPasscode ?: "",
                             null,
-                            0
+                            0,
+                            mode.profile,
                         )
                     }
                 }

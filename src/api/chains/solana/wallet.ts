@@ -5,12 +5,14 @@ import type { SolanaSPLToken, SolanaSplTokenAccountsByAddressRaw, SolanaSPLToken
 import { ApiCommonError } from '../../types';
 
 import { SOLANA } from '../../../config';
+import { getChainConfig } from '../../../util/chain';
 import { fetchJson } from '../../../util/fetch';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { getSolanaClient } from './util/client';
 import { getKnownAddressInfo } from '../../common/addresses';
 import { callBackendGet } from '../../common/backend';
 import { buildTokenSlug, updateTokens } from '../../common/tokens';
+import { isSolanaEnhancedApiEnabled } from '../rpcOverrides';
 import { isValidAddress } from './address';
 import { NETWORK_CONFIG, SOLANA_DERIVATION_PATHS, SOLANA_PROGRAM_IDS } from './constants';
 
@@ -36,7 +38,7 @@ export async function getTokenBalance(network: ApiNetwork, address: string, toke
     }),
   };
 
-  const res = await fetchJson<SolanaSplTokenAccountsByAddressRaw>(NETWORK_CONFIG[network].rpcUrl, undefined, request);
+  const res = await fetchJson<SolanaSplTokenAccountsByAddressRaw>(NETWORK_CONFIG[network].apiUrl, undefined, request);
 
   return BigInt(res.result.token_accounts[0].amount);
 }
@@ -54,6 +56,20 @@ export async function fetchAccountAssets(
   address: string,
   sendUpdateTokens: NoneToVoidFunction,
 ): Promise<ApiBalanceBySlug> {
+  // Without a Helius-compatible API URL, searchAssets would POST to "/" (or localhost) and
+  // retry — native RPC balance is enough until the user configures an indexer.
+  if (!isSolanaEnhancedApiEnabled(network)) {
+    const nativeToken = getChainConfig('solana').nativeToken;
+    const balance = await getWalletBalance(network, address);
+    await updateTokens([{
+      ...nativeToken,
+      priceUsd: undefined,
+      percentChange24h: undefined,
+      isFromBackend: true,
+    }], sendUpdateTokens, [], true);
+    return { [nativeToken.slug]: balance };
+  }
+
   const options = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -80,7 +96,7 @@ export async function fetchAccountAssets(
   const slugPairs: Record<string, bigint> = {};
 
   const response = await fetchJson<SolanaSPLTokensByAddressRaw>(
-    NETWORK_CONFIG[network].rpcUrl,
+    NETWORK_CONFIG[network].apiUrl,
     undefined,
     options,
   );
@@ -145,7 +161,7 @@ export async function fetchAssetsByAddresses(
   const tokenEntities: ApiTokenWithMaybePrice[] = [];
 
   const { result: assets } = await fetchJson<{ result: SolanaSPLToken[] }>(
-    NETWORK_CONFIG[network].rpcUrl,
+    NETWORK_CONFIG[network].apiUrl,
     undefined,
     options,
   );

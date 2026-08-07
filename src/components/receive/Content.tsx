@@ -1,7 +1,7 @@
-import React, { memo, useMemo } from '../../lib/teact/teact';
+import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiChain } from '../../api/types';
+import type { ApiChain, ApiNetwork } from '../../api/types';
 import type { Account } from '../../global/types';
 import type { TabWithProperties } from '../ui/TabList';
 
@@ -13,7 +13,7 @@ import {
   selectIsCurrentAccountViewMode,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { getChainTitle, getDisplayOrderedChains } from '../../util/chain';
+import { getChainTitle, getDisplayOrderedChains, getVisibleChains } from '../../util/chain';
 import { swapKeysAndValues } from '../../util/iteratees';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
@@ -26,13 +26,12 @@ import Address from './content/Address';
 
 import styles from './ReceiveModal.module.scss';
 
-const ORDERED_SUPPORTED_CHAINS = getDisplayOrderedChains();
-
 interface StateProps {
   accountChains?: Account['byChain'];
   isLedger?: boolean;
   isViewMode: boolean;
   chain: ApiChain;
+  network: ApiNetwork;
 }
 
 type OwnProps = {
@@ -40,14 +39,8 @@ type OwnProps = {
   onClose?: NoneToVoidFunction;
 };
 
-const tabIdByChain = Object.fromEntries(
-  ORDERED_SUPPORTED_CHAINS.map((chain, index) => [chain, index]),
-) as Record<ApiChain, number>;
-
-const chainByTabId = swapKeysAndValues(tabIdByChain);
-
 function Content({
-  isOpen, accountChains, chain, isLedger, isViewMode, onClose,
+  isOpen, accountChains, chain, isLedger, isViewMode, network, onClose,
 }: StateProps & OwnProps) {
   const { setReceiveActiveTab } = getActions();
 
@@ -56,8 +49,13 @@ function Content({
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
 
-  const tabs = useMemo(() => getChainTabs(accountChains ?? {}), [accountChains]);
-  const activeTab = tabIdByChain[chain];
+  const orderedChains = getVisibleChains(getDisplayOrderedChains(network), network);
+  const tabIdByChain = Object.fromEntries(
+    orderedChains.map((orderedChain, index) => [orderedChain, index]),
+  ) as Record<ApiChain, number>;
+  const chainByTabId = swapKeysAndValues(tabIdByChain);
+  const tabs = getChainTabs(accountChains ?? {}, orderedChains, tabIdByChain);
+  const activeTab = tabIdByChain[chain] ?? 0;
 
   const handleSwitchTab = useLastCallback((tabId: number) => {
     const newChain = chainByTabId[tabId];
@@ -119,15 +117,20 @@ export default memo(
       isLedger: account?.type === 'hardware',
       isViewMode: selectIsCurrentAccountViewMode(global),
       chain: receiveModalChain ?? DEFAULT_CHAIN,
+      network: global.settings.isTestnet ? 'testnet' : 'mainnet',
     };
   },
   (global, _, stickToFirst) => stickToFirst(selectCurrentAccountId(global)))(Content),
 );
 
-function getChainTabs(accountChains: Partial<Record<ApiChain, unknown>>) {
+function getChainTabs(
+  accountChains: Partial<Record<ApiChain, unknown>>,
+  orderedChains: ApiChain[],
+  tabIdByChain: Record<ApiChain, number>,
+) {
   const result: TabWithProperties[] = [];
 
-  for (const chain of ORDERED_SUPPORTED_CHAINS) {
+  for (const chain of orderedChains) {
     if (!(chain in accountChains)) {
       continue;
     }

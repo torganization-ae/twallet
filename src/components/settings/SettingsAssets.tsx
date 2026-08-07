@@ -14,6 +14,7 @@ import {
   selectCurrentAccountState,
   selectCurrentAccountTokens,
 } from '../../global/selectors';
+import { selectHiddenSpamTokens } from '../../global/selectors/tokens';
 import buildClassName from '../../util/buildClassName';
 import { MEMO_EMPTY_ARRAY } from '../../util/memo';
 
@@ -50,6 +51,7 @@ interface StateProps {
   whitelistedNftAddresses: string[];
   states?: ApiStakingState[];
   currencyRates?: ApiCurrencyRates;
+  spamTokensCount?: number;
 }
 
 function SettingsAssets({
@@ -67,6 +69,7 @@ function SettingsAssets({
   whitelistedNftAddresses,
   states,
   currencyRates,
+  spamTokensCount = 0,
   onBackClick,
 }: OwnProps & StateProps) {
   const {
@@ -112,6 +115,10 @@ function SettingsAssets({
 
   const handleOpenHiddenNfts = useLastCallback(() => {
     setSettingsState({ state: SettingsState.HiddenNfts });
+  });
+
+  const handleOpenHiddenTokens = useLastCallback(() => {
+    setSettingsState({ state: SettingsState.HiddenTokens });
   });
 
   const handleTokensWithNoPriceToggle = useLastCallback(() => {
@@ -215,6 +222,15 @@ function SettingsAssets({
             </div>
           )
         }
+        <div className={styles.settingsBlock}>
+          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleOpenHiddenTokens}>
+            <span className={styles.itemTitle}>{lang('Spam / Dust Tokens')}</span>
+            <div className={styles.itemInfo}>
+              {spamTokensCount}
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            </div>
+          </div>
+        </div>
         <p className={styles.blockTitle}>{lang('Token Settings')}</p>
         <div className={styles.settingsBlock}>
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleTokensWithNoPriceToggle}>
@@ -287,5 +303,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     isSensitiveDataHidden,
     states: selectAccountStakingStates(global, currentAccountId!),
     currencyRates: global.currencyRates,
+    spamTokensCount: selectHiddenSpamTokens(global).length,
   };
 })(SettingsAssets));

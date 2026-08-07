@@ -127,6 +127,7 @@ export type DeveloperSettingsOverridePayload = {
 }[DeveloperSettingsOverrideKey];
 
 export type ToastType = {
+  id: number;
   icon?: string;
   message: string;
 } & (
@@ -229,6 +230,7 @@ export enum AccountSelectorState {
   AddAccountConnectHardware,
   AddAccountSelectHardware,
   AddAccountViewMode,
+  UnlockVault,
 }
 
 export enum BiometricsState {
@@ -406,6 +408,7 @@ export enum SettingsState {
   Security,
   Dapps,
   Language,
+  Networks,
   About,
   Disclaimer,
   NativeBiometricsTurnOn,
@@ -415,6 +418,7 @@ export enum SettingsState {
   LedgerConnectHardware,
   LedgerSelectWallets,
   HiddenNfts,
+  HiddenTokens,
   BackupWallet,
   Permissions,
 }
@@ -458,6 +462,8 @@ export type UserToken = {
   /** True if this is a staking token (created from ApiStakingState) */
   isStaking?: boolean;
   stakingId?: string;
+  isVerified?: boolean;
+  isSpam?: boolean;
 };
 
 export type UserSwapToken = Omit<UserToken, 'change24h' | 'chain'> & {
@@ -472,6 +478,9 @@ export type TokenChartMode = 'price' | 'netWorth';
 export type PriceHistoryPeriods = Partial<Record<ApiPriceHistoryPeriod, ApiHistoryList>>;
 
 export type DieselStatus = 'not-available' | 'not-authorized' | 'pending-previous' | 'available' | 'stars-fee';
+
+/** Architectural hook for EVM/Solana gas abstraction (pay gas in USDT/TON via a relay). */
+export type PaymasterStatus = 'not-available' | 'not-authorized' | 'pending' | 'available';
 
 export type AccountType = 'mnemonic' | 'hardware' | 'view';
 
@@ -492,11 +501,19 @@ export interface AccountChain {
   };
 }
 
+export type AccountProfile = 'daily' | 'vault';
+
 export interface Account {
   title?: string;
   type: AccountType;
   byChain: Partial<Record<ApiChain, AccountChain>>;
   isTemporary?: true;
+  /**
+   * Usage profile:
+   * - `daily` (default) — multi-chain with all hygiene filters
+   * - `vault` — single-chain (TON) cold storage; foreign chains are hidden and require biometry to open
+   */
+  profile?: AccountProfile;
 }
 
 export type AssetPairs = Record<string, {
@@ -616,6 +633,8 @@ export interface AccountSettings {
   areAssetsHidden?: boolean;
   areCollectiblesHidden?: boolean;
   overviewCellSize?: OverviewCellSize;
+  /** USD value below which unknown tokens are treated as dust/spam. Defaults to 1. */
+  dustThresholdUsd?: number;
 }
 
 export type OverviewCellSize = 'small' | 'medium' | 'big';
@@ -660,6 +679,8 @@ export type GlobalState = {
     isImportModalOpen?: boolean;
     accounts?: AuthAccount[];
     forceAddingTonOnlyAccount?: boolean;
+    /** Profile applied to the next account(s) created from the auth flow. */
+    pendingAccountProfile?: AccountProfile;
     initialAddAccountState?: AccountSelectorState; // Initial rendering state for the `AddAccountModal` component
     shouldHideAddAccountBackButton?: boolean;
   };
@@ -1208,8 +1229,8 @@ export interface ActionPayloads {
   showDialog: DialogType;
   dismissDialog: undefined;
   showError: { error?: ApiAnyDisplayError | TeactNode | string };
-  showToast: ToastType;
-  dismissToast: undefined;
+  showToast: Omit<ToastType, 'id'>;
+  dismissToast: { id: number };
   initLedgerPage: undefined;
   afterSignIn: undefined;
   signOut: { level: SignOutLevel; accountId?: string };
@@ -1219,6 +1240,7 @@ export interface ActionPayloads {
   addAccount2: { method: AuthMethod; password: string };
   switchAccount: { accountId: string; newNetwork?: ApiNetwork };
   renameAccount: { accountId: string; title: string };
+  setAccountProfile: { accountId: string; profile: AccountProfile };
   clearAccountError: undefined;
   clearAccountLoading: undefined;
   setIsAccountLoading: { isLoading: true | undefined };
@@ -1292,9 +1314,11 @@ export interface ActionPayloads {
   setCurrentTokenPeriod: { period: TokenPeriod };
   openAddAccountModal: {
     forceAddingTonOnlyAccount?: boolean;
+    pendingAccountProfile?: AccountProfile;
     initialState?: AccountSelectorState;
     shouldHideBackButton?: boolean;
   } | undefined;
+  setPendingAccountProfile: { profile: AccountProfile } | undefined;
   closeAddAccountModal: undefined;
 
   setActiveContentTab: { tab: ContentTab };

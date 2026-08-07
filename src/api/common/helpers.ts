@@ -97,6 +97,10 @@ export function disconnectUpdater() {
   currentOnUpdate = undefined;
 }
 
+export function getCurrentUpdater() {
+  return currentOnUpdate;
+}
+
 export function isUpdaterAlive(onUpdate: OnApiUpdate) {
   return currentOnUpdate === onUpdate;
 }

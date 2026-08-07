@@ -975,7 +975,7 @@ function parseToncenterNft(
     const { zone: domainZone, base: domainBase } = getDnsDomainZone(domain) ?? {};
 
     if (domainZone && (!collectionAddress || !image)) {
-      if (domainZone.suffixes[0] === 'ton') {
+      if (domainZone.suffixes[0] === 'ton' && DNS_IMAGE_GEN_URL) {
         image = `${DNS_IMAGE_GEN_URL}${domainBase}`;
       }
 

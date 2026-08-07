@@ -2,11 +2,13 @@ import type {
   ApiAccountWithChain,
   ApiActivity,
   ApiActivityTimestamps,
+  ApiBalanceBySlug,
   OnApiUpdate,
   OnUpdatingStatusChange,
 } from '../../types';
 
 import { parseAccountId } from '../../../util/account';
+import { areDeepEqual } from '../../../util/areDeepEqual';
 import { getChainConfig } from '../../../util/chain';
 import { focusAwareDelay } from '../../../util/focusAwareDelay';
 import { compact } from '../../../util/iteratees';
@@ -24,6 +26,7 @@ import { sendUpdateTokens } from '../../common/tokens';
 import { txCallbacks } from '../../common/txCallbacks';
 import { BalanceStream } from '../../common/websocket/balanceStream';
 import { FIRST_TRANSACTIONS_LIMIT, MINUTE } from '../../constants';
+import { isSolanaEnhancedApiEnabled } from '../rpcOverrides';
 import { getTokenActivitySlice } from './activities';
 import { fetchAccountAssets, getIsWalletActive } from './wallet';
 
@@ -46,21 +49,27 @@ export function setupActivePolling(
   shouldResetBalances?: boolean,
 ): NoneToVoidFunction {
   const { address } = account.byChain.solana;
+  const { network } = parseAccountId(accountId);
+  const hasEnhancedApi = isSolanaEnhancedApiEnabled(network);
 
-  const activityPolling = setupActivityPolling(
-    accountId,
-    newestActivityTimestamps,
-    onUpdate,
-    onUpdatingStatusChange.bind(undefined, 'activities'),
-  );
+  const activityPolling = hasEnhancedApi
+    ? setupActivityPolling(
+      accountId,
+      newestActivityTimestamps,
+      onUpdate,
+      onUpdatingStatusChange.bind(undefined, 'activities'),
+    )
+    : setupDisabledActivityPolling(accountId, onUpdate, onUpdatingStatusChange.bind(undefined, 'activities'));
 
-  const nftPolling = setupNftPolling(
-    accountId,
-    address,
-    true,
-    activityPolling.update,
-    onUpdate,
-  );
+  const nftPolling = hasEnhancedApi
+    ? setupNftPolling(
+      accountId,
+      address,
+      true,
+      activityPolling.update,
+      onUpdate,
+    )
+    : undefined;
 
   const balancePolling = setupBalancePolling(
     accountId,
@@ -73,7 +82,7 @@ export function setupActivePolling(
   );
 
   return () => {
-    nftPolling.stop();
+    nftPolling?.stop();
     balancePolling.stop();
   };
 }
@@ -106,7 +115,7 @@ function setupBalancePolling(
 
   const balanceStream = new BalanceStream({
     chain: 'solana',
-    wsClient: getHeliusSocket(network),
+    wsClient: isSolanaEnhancedApiEnabled(network) ? getHeliusSocket(network) : undefined,
     network,
     address,
     sendUpdateTokens: () => sendUpdateTokens(onUpdate),
@@ -118,6 +127,8 @@ function setupBalancePolling(
     ensureIsPollingNeeded: checkIsWalletActive,
   });
 
+  let lastEmittedBalances: ApiBalanceBySlug | undefined;
+
   balanceStream.onUpdate((balances) => {
     onUpdate({
       type: 'updateBalances',
@@ -125,7 +136,10 @@ function setupBalancePolling(
       chain: 'solana',
       balances,
     });
-    activityUpdate();
+    if (!areDeepEqual(balances, lastEmittedBalances)) {
+      lastEmittedBalances = balances;
+      activityUpdate();
+    }
   });
 
   if (onUpdatingStatusChange) {
@@ -169,7 +183,13 @@ function setupActivityPolling(
         const result = await loadInitialActivities(accountId, onUpdate);
         const timestamps = compact(Object.values(result));
 
-        newestConfirmedActivityTimestamp = timestamps.length ? Math.max(...timestamps) : undefined;
+        if (timestamps.length) {
+          newestConfirmedActivityTimestamp = Math.max(...timestamps);
+        } else {
+          // Empty feed: stamp so balance ticks don't re-run the full initial Helius fetch.
+          newestConfirmedActivityTimestamp = Date.now();
+          lastEmptyTimestamp = newestConfirmedActivityTimestamp;
+        }
       } else {
         const result = await loadNewActivities(accountId, newestConfirmedActivityTimestamp, onUpdate);
         const newTimestamps = compact(Object.values(result));
@@ -195,6 +215,24 @@ function setupActivityPolling(
   }
 
   return { update };
+}
+
+/** When Solana indexer is disabled, still unblock the UI activity gate without HTTP. */
+function setupDisabledActivityPolling(
+  accountId: string,
+  onUpdate: OnApiUpdate,
+  onUpdatingStatusChange: (isUpdating: boolean) => void,
+) {
+  onUpdate({
+    type: 'initialActivities',
+    chain: 'solana',
+    accountId,
+    mainActivities: [],
+    mainHistoryHasMore: false,
+    bySlug: {},
+  });
+  onUpdatingStatusChange(false);
+  return { update() {} };
 }
 
 function setupNftPolling(

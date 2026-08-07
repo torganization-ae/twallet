@@ -8,29 +8,26 @@ import type { ChainSdk } from '../types/chains';
  * all chain methods should be universal. If a chain doesn't support some functionality yet, the corresponding methods
  * should simply throw an error.
  *
- * Every chain is registered behind a `process.env.NO_*` build flag, letting Webpack dead-code elimination drop unused
- * chain modules and their heavy npm dependencies. The exported type is intentionally the full `Record<ApiChain, ...>`
- * (not `Partial`): a disabled chain is simply absent at runtime, but it is never indexed because polling iterates
- * `Object.keys(chains)` and the UI never initiates actions for a chain the account doesn't have.
+ * Built-in chains are registered behind `process.env.NO_*` build flags.
  */
 /* eslint-disable @typescript-eslint/no-require-imports */
-export const chains = {} as { [K in ApiChain]: ChainSdk<K> };
+const chainInstances = {} as { [K in ApiChain]: ChainSdk<K> };
 
 if (process.env.NO_TON !== '1') {
-  chains.ton = require('./ton').default;
+  chainInstances.ton = require('./ton').default;
 }
 
 if (process.env.NO_TRON !== '1') {
-  chains.tron = require('./tron').default;
+  chainInstances.tron = require('./tron').default;
 }
 
 if (process.env.NO_SOLANA !== '1') {
-  chains.solana = require('./solana').default;
+  chainInstances.solana = require('./solana').default;
 }
 
 if (process.env.NO_EVM !== '1') {
   const EVMSdk = require('./evm').default;
-  Object.assign(chains, {
+  Object.assign(chainInstances, {
     ethereum: new EVMSdk('ethereum'),
     base: new EVMSdk('base'),
     bnb: new EVMSdk('bnb'),
@@ -41,6 +38,8 @@ if (process.env.NO_EVM !== '1') {
     hyperliquid: new EVMSdk('hyperliquid'),
   });
 }
+
+export const chains = chainInstances;
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 export default chains;

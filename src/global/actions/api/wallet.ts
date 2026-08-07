@@ -72,6 +72,13 @@ addActionHandler('cancelSignature', (global) => {
 });
 
 addActionHandler('addToken', (global, actions, { token }) => {
+  if (!token.isVerified) {
+    actions.showDialog({
+      title: 'Unverified Token',
+      message: 'This token is not on the verified list. Only continue if you trust the contract.',
+    });
+  }
+
   if (!global.tokenInfo?.bySlug?.[token.slug]) {
     global = updateTokenInfo(global, {
       [token.slug]: {

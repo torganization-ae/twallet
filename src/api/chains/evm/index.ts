@@ -1,4 +1,10 @@
-import type { EVMChain } from '../../types';
+import type {
+  ApiAccountWithChain,
+  ApiActivityTimestamps,
+  EVMChain,
+  OnApiUpdate,
+  OnUpdatingStatusChange,
+} from '../../types';
 import type { ChainSdk } from '../../types/chains';
 import { DappProtocolType } from '../../dappProtocols/types';
 
@@ -68,8 +74,26 @@ class EVMChainSdk<T extends EVMChain> implements ChainSdk<T> {
 
   createSubWalletFromDerivation = this.#bindChain(createSubWalletFromDerivation<T>);
 
-  setupActivePolling = this.#bindChain(setupActivePolling);
-  setupInactivePolling = this.#bindChain(setupInactivePolling);
+  setupActivePolling = (
+    accountId: string,
+    account: ApiAccountWithChain<T>,
+    onUpdate: OnApiUpdate,
+    onUpdatingStatusChange: OnUpdatingStatusChange,
+    newestActivityTimestamps: ApiActivityTimestamps,
+  ) => setupActivePolling(
+    this.chain,
+    accountId,
+    account,
+    onUpdate,
+    onUpdatingStatusChange,
+    newestActivityTimestamps,
+  );
+
+  setupInactivePolling = (
+    accountId: string,
+    account: ApiAccountWithChain<T>,
+    onUpdate: OnApiUpdate,
+  ) => setupInactivePolling(this.chain, accountId, account, onUpdate);
 
   fetchToken = notSupported;
   importToken = notSupported;

@@ -39,6 +39,7 @@ import {
   removeTemporaryAccount,
 } from '../../helpers/auth';
 import { isErrorTransferResult } from '../../helpers/transfer';
+import { syncVaultAccountsFromGlobal } from '../../helpers/vault';
 import { INITIAL_STATE } from '../../initialState';
 import {
   clearIsPinAccepted,
@@ -458,6 +459,7 @@ addActionHandler('afterCheckMnemonic', (global) => {
   global = updateAuth(global, { state: AuthState.congratulations });
   global = updateCurrentAccountId(global, global.auth.accounts![0].accountId);
   setGlobal(global);
+  syncVaultAccountsFromGlobal(global);
 });
 
 addActionHandler('afterCongratulations', (global, actions, { isImporting }) => {
@@ -502,6 +504,7 @@ addActionHandler('skipCheckMnemonic', (global, actions) => {
   global = updateCurrentAccountId(global, global.auth.accounts![0].accountId);
   global = updateCurrentAccountState(global, { isBackupRequired: true });
   setGlobal(global);
+  syncVaultAccountsFromGlobal(global);
 
   actions.tryAddNotificationAccount({ accountId: global.auth.accounts![0].accountId });
 
@@ -589,6 +592,7 @@ addActionHandler('afterConfirmDisclaimer', (global, actions) => {
   global = updateCurrentAccountId(global, accountId);
   global = updateAuth(global, { state: AuthState.ready });
   setGlobal(global);
+  syncVaultAccountsFromGlobal(global);
 
   actions.tryAddNotificationAccount({ accountId });
 

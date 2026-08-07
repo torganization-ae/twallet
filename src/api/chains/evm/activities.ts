@@ -17,6 +17,7 @@ import { updateActivityMetadata } from '../../common/helpers';
 import { getTokenBySlug } from '../../common/tokens';
 import { SEC } from '../../constants';
 import { ApiServerError } from '../../errors';
+import { isEvmEnhancedApiEnabled } from '../rpcOverrides';
 import { normalizeAddress } from './address';
 import { getApiChainByZerionChain, getEvmApiUrl, getZerionChainByApiChain } from './constants';
 
@@ -31,6 +32,8 @@ export async function fetchActivitySlice(
   }: ApiFetchActivitySliceOptions,
 ): Promise<ApiActivity[]> {
   const { network } = parseAccountId(accountId);
+  if (!isEvmEnhancedApiEnabled(chain, network)) return [];
+
   const { address } = await fetchStoredWallet(accountId, chain);
 
   const { activities } = await getTokenActivitySlice(
@@ -56,6 +59,10 @@ export async function getTokenActivitySlice(
   limit?: number,
   isCrossChain?: boolean,
 ): Promise<{ activities: ApiActivity[]; hasMore: boolean }> {
+  if (!isEvmEnhancedApiEnabled(chain, network)) {
+    return { activities: [], hasMore: false };
+  }
+
   const checksumAddress = normalizeAddress(address);
 
   const txs = await fetchEvmTxs({
@@ -106,6 +113,10 @@ export async function fetchEvmTxs(options: {
 }) {
   const { chain, network, address, slug, toTimestamp, fromTimestamp, limit, isCrossChain, hash } = options;
 
+  if (!isEvmEnhancedApiEnabled(chain, network)) {
+    return [];
+  }
+
   const isUntrackableGuarded = getIsNegVerdictCacheEnabled();
   if (isUntrackableGuarded && untrackableRegistry.has(network, address)) {
     // Zerion already told us this address is untrackable; skip the round-trip and return an
@@ -131,7 +142,7 @@ export async function fetchEvmTxs(options: {
 
   try {
     const data = await fetchJson<ZerionTransactionsResponse>(
-      `${getEvmApiUrl(network)}/v1/wallets/${address}/transactions/`,
+      `${getEvmApiUrl(network, chain)}/v1/wallets/${address}/transactions/`,
       params,
     );
 

@@ -153,7 +153,7 @@ struct SelectableAccountRow: View {
                 HStack(spacing: 6) {
                     Text(account.displayName)
                         .font(.system(size: 16, weight: .medium))
-                    AccountTypeBadge(account.type)
+                    AccountTypeBadge(account: account)
                         .foregroundStyle(Color.air.secondaryLabel)
                 }
                 let firstAddress = account.firstAddress

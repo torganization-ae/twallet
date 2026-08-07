@@ -1,5 +1,9 @@
 import type { ApiTonWalletVersion } from '../chains/ton/types';
-import type { ApiChain, ApiDerivation, ApiLedgerDriver } from './misc';
+import type {
+  ApiChain,
+  ApiDerivation,
+  ApiLedgerDriver,
+} from './misc';
 
 type ApiBaseWallet = {
   address: string;

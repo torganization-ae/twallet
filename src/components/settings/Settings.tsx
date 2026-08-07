@@ -77,7 +77,9 @@ import SettingsDeveloperOptions from './SettingsDeveloperOptions';
 import SettingsDisclaimer from './SettingsDisclaimer';
 import SettingsHeader from './SettingsHeader';
 import SettingsHiddenNfts from './SettingsHiddenNfts';
+import SettingsHiddenTokens from './SettingsHiddenTokens';
 import SettingsLanguage from './SettingsLanguage';
+import SettingsNetworks from './SettingsNetworks';
 import SettingsPermissions from './SettingsPermissions';
 import SettingsPushNotifications from './SettingsPushNotifications';
 import SettingsSecurity from './SettingsSecurity';
@@ -98,6 +100,7 @@ import installAppImg from '../../assets/settings/settings_install-app.svg';
 import installMobileImg from '../../assets/settings/settings_install-mobile.svg';
 import languageImg from '../../assets/settings/settings_language.svg';
 import upgradeImg from '../../assets/settings/settings_mywallet.png';
+import networksImg from '../../assets/settings/settings_networks.svg';
 import notifications from '../../assets/settings/settings_notifications.svg';
 import portfolioImg from '../../assets/settings/settings_portfolio.svg';
 import securityImg from '../../assets/settings/settings_security.svg';
@@ -277,6 +280,10 @@ function Settings({
     setSettingsState({ state: SettingsState.Language });
   }
 
+  function handleNetworksOpen() {
+    setSettingsState({ state: SettingsState.Networks });
+  }
+
   function handleAboutOpen() {
     setSettingsState({ state: SettingsState.About });
   }
@@ -292,6 +299,7 @@ function Settings({
   const handleBackClick = useLastCallback(() => {
     switch (renderingKey) {
       case SettingsState.HiddenNfts:
+      case SettingsState.HiddenTokens:
       case SettingsState.SelectTokenList:
         setSettingsState({ state: SettingsState.Assets });
         break;
@@ -594,6 +602,14 @@ function Settings({
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             )}
+            <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleNetworksOpen}>
+              <img className={styles.menuIcon} src={networksImg} alt={lang('Networks')} />
+              <div className={styles.itemContent}>
+                <span className={styles.itemTitle}>{lang('Networks')}</span>
+                <span className={styles.itemSubtitle}>{lang('RPC and API endpoints')}</span>
+              </div>
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            </div>
           </div>
 
           {!IS_FEATURE_LIMITED && (
@@ -764,6 +780,13 @@ function Settings({
             onBackClick={handleBackClick}
           />
         );
+      case SettingsState.Networks:
+        return (
+          <SettingsNetworks
+            isActive={isActive && isSlideActive}
+            onBackClick={handleBackClick}
+          />
+        );
       case SettingsState.About:
         return (
           <SettingsAbout
@@ -836,6 +859,13 @@ function Settings({
       case SettingsState.HiddenNfts:
         return (
           <SettingsHiddenNfts
+            isActive={isActive && isSlideActive}
+            onBackClick={handleBackClickToAssets}
+          />
+        );
+      case SettingsState.HiddenTokens:
+        return (
+          <SettingsHiddenTokens
             isActive={isActive && isSlideActive}
             onBackClick={handleBackClickToAssets}
           />

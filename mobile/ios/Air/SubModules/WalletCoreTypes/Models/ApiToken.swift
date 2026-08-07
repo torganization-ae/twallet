@@ -282,7 +282,7 @@ extension ApiToken {
     }
 }
 
-private let TON_USDT_MAINNET_IMAGE = "https://imgproxy.mytonwallet.org/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp"
+private let TON_USDT_MAINNET_IMAGE = "https://tether.to/images/logoCircle.png"
 private let SOLANA_USDC_MAINNET_IMAGE = "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png"
 
 extension ApiToken {

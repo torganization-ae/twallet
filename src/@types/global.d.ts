@@ -159,7 +159,7 @@ interface Navigator {
 type Falsy = false | 0 | '' | null | undefined;
 
 interface BooleanConstructor {
-  new <T>(value: T | Falsy): value is T;
+  new<T>(value: T | Falsy): value is T;
   <T>(value: T | Falsy): value is T;
   readonly prototype: boolean;
 }

@@ -567,7 +567,7 @@ class TonConnectAdapter implements DappProtocolAdapter<DappProtocolType.TonConne
 
       const { messages, network: dappNetworkRaw } = txPayload;
 
-      const account = await fetchStoredChainAccount(accountId, message.chain);
+      const account = await fetchStoredChainAccount(accountId, message.chain as 'ton');
       const {
         type,
         byChain: {

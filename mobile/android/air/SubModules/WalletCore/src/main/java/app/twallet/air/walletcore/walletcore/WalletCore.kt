@@ -22,6 +22,7 @@ import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import app.twallet.air.walletbasecontext.theme.ThemeManager.setDefaultAccentColor
 import app.twallet.air.walletbasecontext.theme.ThemeManager.setNftAccentColor
 import app.twallet.air.walletbasecontext.theme.NftAccentColors
+import app.twallet.air.walletcore.models.blockchain.SharedNetworksConfig
 import app.twallet.air.walletcontext.WalletContextManager
 import app.twallet.air.walletcontext.cacheStorage.WCacheStorage
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
@@ -378,6 +379,7 @@ object WalletCore {
         isOnAirApp: Boolean = true,
         onReady: () -> Unit
     ) {
+        SharedNetworksConfig.ensureLoaded(context)
         if (forcedRecreation || bridge == null) {
             val newBridge = JSWebViewBridge(context)
             newBridge.isVisible = false

@@ -270,6 +270,15 @@ function InteractiveTextField({
       renderedContent = <span className={styles.dimmedPart}>{content}</span>;
     }
 
+    const chainIcon = chain && !isTransaction
+      ? (
+        <i
+          className={buildClassName(styles.chainIcon, `icon-chain-${String(chain)}`)}
+          aria-label={getChainTitle(chain)}
+        />
+      )
+      : undefined;
+
     return (
       <span
         className={buildClassName(styles.button, isScam && styles.scam, textClassName)}
@@ -279,12 +288,7 @@ function InteractiveTextField({
         onClick={!shouldUseMenu ? handleCopy : undefined}
       >
         {isScam && <img src={scamImg} alt={lang('Scam')} className={styles.scamImage} />}
-        {Boolean(chain) && !isTransaction && (
-          <i
-            className={buildClassName(styles.chainIcon, `icon-chain-${chain}`)}
-            aria-label={chain && getChainTitle(chain)}
-          />
-        )}
+        {chainIcon}
         {renderedContent}
         {Boolean(addressName) && (
           <span className={buildClassName(styles.shortAddress, isScam && styles.scam)}>

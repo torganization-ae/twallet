@@ -19,7 +19,8 @@ import { fetchStoredWallet } from '../../common/accounts';
 import { updateActivityMetadata } from '../../common/helpers';
 import { buildTokenSlug, getTokenBySlug } from '../../common/tokens';
 import { SEC } from '../../constants';
-import { getEnvironment } from '../../environment';
+import { getApiHeadersForUrl } from '../../environment';
+import { isSolanaEnhancedApiEnabled } from '../rpcOverrides';
 import { NETWORK_CONFIG, SOLANA_PROGRAM_IDS, WSOL_MINT } from './constants';
 import { fetchNftsByAddresses } from './nfts';
 
@@ -54,6 +55,10 @@ export async function getTokenActivitySlice(
   fromTimestamp?: number,
   limit?: number,
 ): Promise<{ activities: ApiActivity[]; hasMore: boolean }> {
+  if (!isSolanaEnhancedApiEnabled(network)) {
+    return { activities: [], hasMore: false };
+  }
+
   let activities: ApiActivity[] = [];
 
   let rawTransactions: SolanaParsedTransaction[] = [];
@@ -158,12 +163,13 @@ async function fetchSolTxs(
   };
 
   // Use non-standard Helius API to retrieve parsed txs by 1 call and with timestamp filtering
+  const url = NETWORK_CONFIG[network].getApiUrl(`/v0/addresses/${address}/transactions`);
   const response = await fetchJson<SolanaParsedTransaction[]>(
-    NETWORK_CONFIG[network].getApiUrl(`/v0/addresses/${address}/transactions`),
+    url,
     params,
     {
       headers: {
-        ...getEnvironment().apiHeaders,
+        ...getApiHeadersForUrl(url),
       },
     },
   );

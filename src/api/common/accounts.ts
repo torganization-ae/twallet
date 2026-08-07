@@ -181,10 +181,10 @@ export function waitLogin() {
 
 export function getAccountChains(account: ApiAccountAny): Partial<Record<ApiChain, AccountChain>> {
   return mapValues(account.byChain, (wallet) => ({
-    address: wallet.address,
-    derivation: wallet.derivation,
-    ledgerIndex: account.type === 'ledger' ? wallet.index : undefined,
-    mfa: (wallet as { mfa?: AccountChain['mfa'] }).mfa,
+    address: wallet!.address,
+    derivation: wallet!.derivation,
+    ledgerIndex: account.type === 'ledger' ? wallet!.index : undefined,
+    mfa: (wallet as { mfa?: AccountChain['mfa'] } | undefined)?.mfa,
   }));
 }
 

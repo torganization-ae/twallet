@@ -59,36 +59,42 @@ class AddAccountOptionsVC(
     private val accountId: String
         get() = AccountStore.activeAccountId ?: ""
 
-    private val createWalletRow: SettingsItemCell by lazy {
+    private val createDailyWalletRow: SettingsItemCell by lazy {
         SettingsItemCell(context, 64f, SettingsItemCell.SIMPLE_ROW_HEIGHT).apply {
             configure(
                 item = SettingsItem(
                     SettingsItem.Identifier.NONE,
                     app.twallet.air.uicreatewallet.R.drawable.ic_add_create,
-                    LocaleController.getString("New Wallet"),
-                    LocaleController.getString("From new secret words"),
+                    LocaleController.getString("Daily Wallet"),
+                    LocaleController.getString("Multi-chain everyday use"),
                     value = null,
                     hasTintColor = false
                 ),
                 subtitle = null,
                 isFirst = true,
+                isLast = false,
+                isEnabled = true,
+                onTap = { startCreateWallet(isVault = false) }
+            )
+        }
+    }
+
+    private val createVaultWalletRow: SettingsItemCell by lazy {
+        SettingsItemCell(context, 64f, SettingsItemCell.SIMPLE_ROW_HEIGHT).apply {
+            configure(
+                item = SettingsItem(
+                    SettingsItem.Identifier.NONE,
+                    app.twallet.air.uicomponents.R.drawable.ic_wallet_lock,
+                    LocaleController.getString("Vault Wallet"),
+                    LocaleController.getString("TON-only cold storage with unlock"),
+                    value = null,
+                    hasTintColor = false
+                ),
+                subtitle = null,
+                isFirst = false,
                 isLast = !showCreateSubWalletButton,
                 isEnabled = true,
-                onTap = {
-                    view.lockView()
-                    WalletCore.doOnBridgeReady {
-                        WalletCore.call(
-                            ApiMethod.Auth.GenerateMnemonic(),
-                            callback = { words, err ->
-                                if (words != null) {
-                                    mnemonicGenerated(words)
-                                } else {
-                                    view.unlockView()
-                                    showError(err?.parsed)
-                                }
-                            })
-                    }
-                }
+                onTap = { startCreateWallet(isVault = true) }
             )
         }
     }
@@ -123,24 +129,43 @@ class AddAccountOptionsVC(
 
     private val createNewWalletView: WView by lazy {
         WView(context).apply {
-            addView(createWalletRow, FrameLayout.LayoutParams(0, WRAP_CONTENT))
+            addView(createDailyWalletRow, FrameLayout.LayoutParams(0, WRAP_CONTENT))
+            addView(createVaultWalletRow, FrameLayout.LayoutParams(0, WRAP_CONTENT))
             if (showCreateSubWalletButton) {
                 addView(createSubWalletRow, FrameLayout.LayoutParams(0, WRAP_CONTENT))
             }
             addView(orImportTitleView, FrameLayout.LayoutParams(0, WRAP_CONTENT))
             setConstraints {
-                toTop(createWalletRow)
-                toCenterX(createWalletRow, ViewConstants.HORIZONTAL_PADDINGS.toFloat())
+                toTop(createDailyWalletRow)
+                toCenterX(createDailyWalletRow, ViewConstants.HORIZONTAL_PADDINGS.toFloat())
+                topToBottom(createVaultWalletRow, createDailyWalletRow)
+                toCenterX(createVaultWalletRow, ViewConstants.HORIZONTAL_PADDINGS.toFloat())
                 if (showCreateSubWalletButton) {
-                    topToBottom(createSubWalletRow, createWalletRow)
+                    topToBottom(createSubWalletRow, createVaultWalletRow)
                     toCenterX(createSubWalletRow, ViewConstants.HORIZONTAL_PADDINGS.toFloat())
                     topToBottom(orImportTitleView, createSubWalletRow, 2f)
                 } else {
-                    topToBottom(orImportTitleView, createWalletRow, 2f)
+                    topToBottom(orImportTitleView, createVaultWalletRow, 2f)
                 }
                 toCenterX(orImportTitleView)
                 toBottom(orImportTitleView)
             }
+        }
+    }
+
+    private fun startCreateWallet(isVault: Boolean) {
+        view.lockView()
+        WalletCore.doOnBridgeReady {
+            WalletCore.call(
+                ApiMethod.Auth.GenerateMnemonic(isBip39 = !isVault),
+                callback = { words, err ->
+                    if (words != null) {
+                        mnemonicGenerated(words, profile = if (isVault) "vault" else "daily")
+                    } else {
+                        view.unlockView()
+                        showError(err?.parsed)
+                    }
+                })
         }
     }
 
@@ -340,7 +365,7 @@ class AddAccountOptionsVC(
         return calculatedHeight ?: super.getModalHalfExpandedHeight()
     }
 
-    private fun mnemonicGenerated(words: Array<String>) {
+    private fun mnemonicGenerated(words: Array<String>, profile: String = "daily") {
         view.unlockView()
         val isFirstPasscodeProtectedWallet = !WGlobalStorage.isPasscodeSet()
         if (isFirstPasscodeProtectedWallet) {
@@ -351,7 +376,8 @@ class AddAccountOptionsVC(
                     words = words,
                     isFirstWalletToAdd = false,
                     isFirstPasscodeProtectedWallet = true,
-                    passedPasscode = null
+                    passedPasscode = null,
+                    profile = profile,
                 )
             )
         } else {
@@ -372,7 +398,8 @@ class AddAccountOptionsVC(
                         words = words,
                         isFirstWalletToAdd = false,
                         isFirstPasscodeProtectedWallet = false,
-                        passcode
+                        passcode,
+                        profile = profile,
                     )
                     passcodeConfirmVC.push(
                         vc,

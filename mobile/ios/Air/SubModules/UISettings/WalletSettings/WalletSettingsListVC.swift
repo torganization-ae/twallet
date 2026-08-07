@@ -403,8 +403,7 @@ final class WalletSettingsListVC: SettingsBaseVC, WSegmentedControllerContent, R
             toggleSelection(accountId)
         case .normal:
             if accountId != accountStore.currentAccountId {
-                Task {
-                    _ = try await accountStore.activateAccount(accountId: accountId)
+                AppActions.switchAccount(accountId: accountId) {
                     topViewController()?.dismiss(animated: true)
                     AppActions.showHome(popToRoot: true)
                 }

@@ -169,7 +169,6 @@ function CardAddress({
           anchor={menuAnchor}
           items={menuItems}
           menuRef={menuRef}
-          isTestnet={isTestnet}
           onClose={closeMenu}
           onExplorerClick={handleExplorerClick}
           onMouseEnter={handleMouseEnter}
@@ -192,7 +191,12 @@ export default memo(withGlobal((global): StateProps => {
   const accountTokens = selectCurrentAccountTokens(global);
   const stakingStates = accountId ? selectAccountStakingStates(global, accountId) : undefined;
 
-  const displayByChain = getAddressDisplayByChain(byChain || {}, accountTokens, stakingStates);
+  const displayByChain = getAddressDisplayByChain(
+    byChain || {},
+    accountTokens,
+    stakingStates,
+    global.settings.isTestnet ? 'testnet' : 'mainnet',
+  );
 
   // Maps preserve an order
   const byChainWithBalances = new Map(Object.entries(displayByChain).map(([chainKey, account]) => {

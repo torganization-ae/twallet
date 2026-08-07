@@ -127,6 +127,29 @@ Share this URL to receive %token%: Share this URL to receive %token%
 Invoice Link Copied: Invoice Link Copied
 Theme: Theme
 Language: Language
+RPC and API endpoints: RPC and API endpoints
+RPC URL: RPC URL
+API URL: API URL
+API Key: API Key
+Enhanced API Key: Enhanced API Key
+Leave empty to use the default enhanced API; add your own key for better reliability.: Leave empty to use the default enhanced API; add your own key for better reliability.
+Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.: Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.
+Enhanced API disabled: Enhanced API disabled
+Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.: Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.
+Reset to Default: Reset to Default
+Save Anyway: Save Anyway
+Default: Default
+Custom: Custom
+Hidden: Hidden
+Disabled — add endpoint to enable: Disabled — add endpoint to enable
+No endpoint: No endpoint
+Using default endpoint: Using default endpoint
+Using custom endpoint: Using custom endpoint
+Show API Key: Show API Key
+Endpoint is unreachable: Endpoint is unreachable
+Unexpected response from endpoint: Unexpected response from endpoint
+Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.: Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.
+Password required to save API key: Password required to save API key
 Enable Animations: Enable Animations
 Enable Seasonal Theming: Enable Seasonal Theming
 Enable Landscape Mode: Enable Landscape Mode
@@ -207,6 +230,9 @@ Is it all ok?: Is it all ok?
 Receiving Address: Receiving Address
 Fee: Fee
 Edit: Edit
+Edit Network: Edit
+Enable: Enable
+Disable: Disable
 Confirm: Confirm
 Data Signed!: Data Signed!
 Details: Details
@@ -216,6 +242,9 @@ Amount value: Amount value
 Save Address: Save Address
 Name: Name
 Save: Save
+Saved: Saved
+Show in wallet: Show in wallet
+Hide from wallet: Hide from wallet
 Copy: Copy
 Remove from Saved: Remove from Saved
 View on Explorer: View on Explorer
@@ -1257,6 +1286,14 @@ Burned NFT: Burned NFT
 Burning NFT: Burning NFT
 $burn_nft_action: Burn NFT
 New Wallet: New Wallet
+Daily Wallet: Daily Wallet
+Vault Wallet: Vault Wallet
+Multi-chain everyday use: Multi-chain everyday use
+TON-only cold storage with unlock: TON-only cold storage with unlock
+Wallet Profile: Wallet Profile
+Daily: Daily
+Vault: Vault
+Active: Active
 From new secret words: From new secret words
 New Subwallet: New Subwallet
 From current secret words: From current secret words

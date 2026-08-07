@@ -29,6 +29,8 @@ type OwnProps = ColsProps & {
   align?: 'left' | 'center' | 'right';
   maskSkin?: SensitiveDataMaskSkin;
   shouldHoldSize?: boolean;
+  // When enabled, the mask grid adapts to the real content bounds instead of the fixed cols/rows
+  isAdaptive?: boolean;
   className?: string;
   maskClassName?: string;
   contentClassName?: string;
@@ -46,6 +48,7 @@ function SensitiveData({
   align = 'left',
   maskSkin,
   shouldHoldSize,
+  isAdaptive,
   className,
   maskClassName,
   contentClassName,
@@ -128,6 +131,7 @@ function SensitiveData({
           rows={rows}
           cellSize={cellSize}
           skin={maskSkin}
+          isAdaptive={isAdaptive}
           className={spoilerClassName}
         />
       )}

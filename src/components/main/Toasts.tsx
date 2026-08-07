@@ -25,15 +25,15 @@ function Toasts({ toasts }: StateProps) {
   return (
     <div>
       {toasts.map(({
-        message, icon, actionText, action,
+        id, message, icon, actionText, action,
       }) => (
         <Toast
-          key={message}
+          key={id}
           icon={icon}
           message={message}
           actionText={actionText}
           onAction={action ? TOAST_ACTION_HANDLERS[action] : undefined}
-          onDismiss={dismissToast}
+          onDismiss={() => dismissToast({ id })}
         />
       ))}
     </div>

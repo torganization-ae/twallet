@@ -7,7 +7,8 @@ import { buildTxId } from '../../../../util/activities';
 import { fetchJson } from '../../../../util/fetch';
 import { buildCollectionByKey, split } from '../../../../util/iteratees';
 import { toRawAddress } from '../util/tonCore';
-import { getEnvironment } from '../../../environment';
+import { getApiHeadersForUrl } from '../../../environment';
+import { getEffectiveRpcApiKey } from '../../rpcOverrides';
 import { NETWORK_CONFIG } from '../constants';
 
 const ADDRESS_BOOK_CHUNK_SIZE = 128;
@@ -119,12 +120,27 @@ export function callToncenterV3<T = any>(network: ApiNetwork, path: string, data
 }
 
 export function getToncenterHeaders(network: ApiNetwork) {
-  const { apiHeaders, byNetwork } = getEnvironment();
-  const apiKey = byNetwork[network].toncenterKey;
+  // Prefer the Settings → Networks override (or default endpoint key). The env
+  // `toncenterKey` was wiped when we moved off the mytonwallet proxy — without
+  // this, every V3 call hit public toncenter unauthenticated and got 429s.
+  const apiKey = getEffectiveRpcApiKey('ton', network);
+  const toncenterUrl = NETWORK_CONFIG[network].toncenterUrl;
 
   return {
-    ...apiHeaders,
+    ...getApiHeadersForUrl(toncenterUrl),
     ...(apiKey && { 'X-Api-Key': apiKey }),
-    'X-Actions-Version': TONCENTER_ACTIONS_VERSION,
+    // `X-Actions-Version` is a proprietary header of our own toncenter proxy.
+    // Public toncenter.com doesn't allow it in the CORS preflight (and ignores it anyway),
+    // so it must only be sent to hosts that understand it.
+    ...(isOwnToncenterHost(toncenterUrl) && { 'X-Actions-Version': TONCENTER_ACTIONS_VERSION }),
   };
+}
+
+function isOwnToncenterHost(toncenterUrl: string) {
+  try {
+    const { hostname } = new URL(toncenterUrl);
+    return hostname === 'mywallet.io' || hostname.endsWith('.mywallet.io');
+  } catch {
+    return false;
+  }
 }

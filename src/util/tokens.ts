@@ -24,7 +24,11 @@ const chainByNativeSlug = Object.fromEntries(
 );
 
 export function getIsNativeToken(slug?: string) {
-  return slug ? slug in chainByNativeSlug : false;
+  if (!slug) return false;
+  if (slug in chainByNativeSlug) return true;
+
+  const chain = getChainBySlug(slug);
+  return findChainConfig(chain)?.nativeToken.slug === slug;
 }
 
 export function getIsNativeStakedToken(slug?: string) {

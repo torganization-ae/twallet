@@ -11,6 +11,7 @@ import type {
   ApiTransferPayload,
   EVMChain,
 } from '../../types';
+import type { PaymasterStatus } from '../../../global/types';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
 import { parseAccountId } from '../../../util/account';
@@ -395,4 +396,21 @@ function encodePayload(payload: ApiTransferPayload | undefined): string | undefi
   }
 
   return undefined;
+}
+
+export type ApiEstimatePaymasterFeeResult = {
+  status: PaymasterStatus;
+  /** Token slug the user would pay the fee in, when available. */
+  feeTokenSlug?: string;
+};
+
+/**
+ * Architectural hook for EVM gas abstraction (paymaster / gas station).
+ * Returns `not-available` until a relayed-tx backend is wired.
+ */
+export function estimatePaymasterFee(
+  _accountId: string,
+  _options: { tokenSlug?: string },
+): Promise<ApiEstimatePaymasterFeeResult> {
+  return Promise.resolve({ status: 'not-available' });
 }

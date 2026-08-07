@@ -10,7 +10,7 @@ import type { ApiParsedPayload } from './payload';
 import type { ApiSseOptions, ApiWalletByChain } from './storage';
 import type { ApiUpdatingStatus } from './updates';
 
-export type EVMChain =
+export type BuiltinEVMChain =
   'ethereum'
   | 'base'
   | 'bnb'
@@ -19,7 +19,9 @@ export type EVMChain =
   | 'monad'
   | 'avalanche'
   | 'hyperliquid';
-export type ApiChain = 'ton' | 'tron' | 'solana' | EVMChain;
+export type EVMChain = BuiltinEVMChain;
+export type ApiBuiltinChain = 'ton' | 'tron' | 'solana' | BuiltinEVMChain;
+export type ApiChain = ApiBuiltinChain;
 export type ApiNetwork = 'mainnet' | 'testnet';
 export type ApiLedgerDriver = 'HID' | 'USB';
 export type ApiTokenType = 'lp_token' | 'legacy_token' | 'token_2022';
@@ -64,6 +66,10 @@ export interface ApiToken {
   /* Means the token is fetched from the backend by default and already includes price
   and other details (`ApiTokenDetails`), so no separate requests are needed. */
   isFromBackend?: boolean;
+  /** Present on curated / registry-verified tokens (Safe Assets whitelist). */
+  isVerified?: boolean;
+  /** Flagged phishing / dust / unknown spam — shown only in Hidden/Spam folder. */
+  isSpam?: boolean;
 }
 
 export type ApiTokenWithPrice = ApiToken & {

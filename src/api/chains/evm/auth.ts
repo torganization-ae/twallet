@@ -175,7 +175,8 @@ export async function createSubWalletFromDerivation<C extends EVMChain>(
   account: ApiAccountWithChain<C>,
   mnemonic: string[],
 ): Promise<ApiEVMWallet | { error: ApiAnyDisplayError }> {
-  const current = account.byChain[chain];
+  // The cast is needed because indexing `byChain` by a generic chain key loses the wallet type
+  const current = account.byChain[chain] as ApiEVMWallet | undefined;
   if (!current) {
     return { error: ApiCommonError.Unexpected };
   }

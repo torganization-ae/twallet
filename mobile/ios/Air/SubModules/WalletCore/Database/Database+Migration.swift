@@ -320,5 +320,11 @@ func makeMigrator() -> DatabaseMigrator {
         }
     }
 
+    migrator.registerMigration("v21") { db in
+        try db.alter(table: "accounts") { t in
+            t.add(column: "profile", .text)
+        }
+    }
+
     return migrator
 }

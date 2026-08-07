@@ -78,7 +78,6 @@ import app.twallet.air.walletbasecontext.utils.trimDomain
 import app.twallet.air.walletbasecontext.utils.x
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.helpers.DevicePerformanceClassifier
-import app.twallet.air.walletcontext.helpers.ShareHelpers
 import app.twallet.air.walletcontext.models.MBlockchainNetwork
 import app.twallet.air.walletcontext.utils.AnimUtils.Companion.lerp
 import app.twallet.air.walletcontext.utils.VerticalImageSpan
@@ -92,6 +91,7 @@ import app.twallet.air.walletcore.models.MAccount.AccountChain
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.stores.BalanceStore
 import app.twallet.air.walletcore.stores.ConfigStore
+import app.twallet.air.uisettings.viewControllers.networks.NetworksVC
 import app.twallet.uihome.home.views.UpdateStatusView
 import app.twallet.uihome.home.views.header.seasonal.SeasonalOverlayView
 import java.math.BigInteger
@@ -225,7 +225,8 @@ class WalletCardView(
                 9, 4, Gravity.CENTER,
                 skin = SensitiveDataMaskView.Skin.DARK_THEME,
                 cellSize = 14.dp,
-                protectContentLayoutSize = false
+                protectContentLayoutSize = false,
+                adaptiveGrid = true
             )
         ).apply {
             clipChildren = false
@@ -268,7 +269,8 @@ class WalletCardView(
                 16.dp,
                 cellSize = 10.dp,
                 skin = SensitiveDataMaskView.Skin.DARK_THEME,
-                protectContentLayoutSize = false
+                protectContentLayoutSize = false,
+                adaptiveGrid = true
             )
         )
     }
@@ -1020,30 +1022,29 @@ class WalletCardView(
                     }
                 }
             }?.toMutableList() ?: mutableListOf()
-        account?.shareLink?.let { shareLink ->
-            items.lastOrNull()?.also { it.hasSeparator = true }
-            items.add(
-                WMenuPopup.Item(
-                    WMenuPopup.Item.Config.Item(
-                        icon = Icon(
-                            R.drawable.ic_share,
-                            tintColor = WColor.SecondaryText,
-                            iconSize = 30.dp,
-                            iconMargin = 16.dp
-                        ),
-                        title = LocaleController.getString("Share Wallet Link"),
-                        textMargin = 58.dp
+        items.add(
+            WMenuPopup.Item(
+                WMenuPopup.Item.Config.Item(
+                    icon = Icon(
+                        R.drawable.ic_networks_menu,
+                        tintColor = WColor.SecondaryText,
+                        iconSize = 28.dp,
+                        iconMargin = 16.dp
                     ),
-                    false,
-                ) {
-                    ShareHelpers.shareText(
-                        context,
-                        shareLink,
-                        LocaleController.getString("Share Wallet Link")
-                    )
+                    title = LocaleController.getString("Networks"),
+                    textMargin = 58.dp
+                ),
+                false,
+            ) {
+                val tabNav =
+                    (window.topNavigationController?.viewControllers?.firstOrNull() as? ITabsVC)?.mainNavigationController
+                if (tabNav != null) {
+                    tabNav.push(NetworksVC(context))
+                } else {
+                    window.navigationControllers.last().push(NetworksVC(context))
                 }
-            )
-        }
+            }
+        )
 
         popup = WMenuPopup.present(
             anchor,

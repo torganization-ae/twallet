@@ -65,6 +65,7 @@ private func moveAccounts(global: GlobalStorage, db: any DatabaseWriter) async t
             title: string(dict["title"]),
             type: accountType(from: dict),
             byChain: byChain,
+            profile: string(dict["profile"]),
         )
         accounts.append(account)
     }

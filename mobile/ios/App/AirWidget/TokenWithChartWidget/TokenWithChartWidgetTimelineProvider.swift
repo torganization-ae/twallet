@@ -83,14 +83,38 @@ struct TokenWithChartWidgetTimelineProvider: AppIntentTimelineProvider {
     }
 
     private func fetchChartData(assetId: String, baseCurrency: MBaseCurrency, period: PricePeriod) async throws -> [(Double, Double)] {
-        var components = URLComponents(string: "https://api.mytonwallet.org/prices/chart/\(assetId)")!
+        // Public tonapi rates chart (replaces former api.mytonwallet.org proxy)
+        var components = URLComponents(string: "https://tonapi.io/v2/rates/chart")!
         components.queryItems = [
-            URLQueryItem(name: "base", value: baseCurrency.rawValue),
-            URLQueryItem(name: "period", value: period.rawValue),
+            URLQueryItem(name: "token", value: assetId),
+            URLQueryItem(name: "currency", value: baseCurrency.rawValue.lowercased()),
+            URLQueryItem(name: "points_count", value: Self.pointsCount(for: period)),
         ]
         let (data, _) = try await URLSession.shared.data(from: components.url!)
-        let decoded = try JSONDecoder().decode(ApiHistoryList.self, from: data)
-        return decoded.map { ($0[0], $0[1]) }
+        if let decoded = try? JSONDecoder().decode(ApiHistoryList.self, from: data) {
+            return decoded.map { ($0[0], $0[1]) }
+        }
+        // tonapi returns { points: [[ts, price], ...] }
+        struct TonapiChart: Decodable {
+            let points: [[Double]]?
+        }
+        let tonapi = try JSONDecoder().decode(TonapiChart.self, from: data)
+        guard let points = tonapi.points, !points.isEmpty else {
+            throw URLError(.cannotParseResponse)
+        }
+        return points.compactMap { point in
+            guard point.count >= 2 else { return nil }
+            return (point[0], point[1])
+        }
+    }
+
+    private static func pointsCount(for period: PricePeriod) -> String {
+        switch period {
+        case .day: return "24"
+        case .week: return "48"
+        case .month: return "60"
+        default: return "100"
+        }
     }
 
     private func chartBaseCurrency(for baseCurrency: MBaseCurrency) -> MBaseCurrency {

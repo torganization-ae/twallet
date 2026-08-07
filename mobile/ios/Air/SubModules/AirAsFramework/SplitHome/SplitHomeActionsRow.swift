@@ -156,6 +156,7 @@ final class SplitHomeActionsRowView: UIView, UICollectionViewDelegate {
     static let rowHeight: CGFloat = WActionTileButton.sideLength
     static let itemSpacing: CGFloat = 16
     static let horizontalInset: CGFloat = S.insetSectionHorizontalMargin
+    private static let minimumItemWidth: CGFloat = 64
     
     private enum Section: Hashable {
         case main
@@ -207,7 +208,27 @@ final class SplitHomeActionsRowView: UIView, UICollectionViewDelegate {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateItemSize()
+    }
+
+    private func updateItemSize() {
+        guard let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else { return }
+        let itemCount = max(collectionView.numberOfItems(inSection: 0), 1)
+        let availableWidth = bounds.width
+            - 2 * Self.horizontalInset
+            - CGFloat(itemCount - 1) * Self.itemSpacing
+        let itemWidth = min(
+            WActionTileButton.sideLength,
+            max(Self.minimumItemWidth, (availableWidth / CGFloat(itemCount)).rounded(.down))
+        )
+        guard itemWidth > 0, layout.itemSize.width != itemWidth else { return }
+        layout.itemSize = CGSize(width: itemWidth, height: WActionTileButton.sideLength)
+        layout.invalidateLayout()
+    }
+
     private weak var accountContext: AccountContext?
     private var viewModel: SplitHomeActionsViewModel?
     

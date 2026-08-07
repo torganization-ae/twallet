@@ -10,9 +10,11 @@ import app.twallet.air.walletcore.ALL_DEFAULT_TOKENS
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.api.activateAccount
 import app.twallet.air.walletcore.api.importWallet
+import app.twallet.air.walletcore.helpers.VaultUnlock
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.MBridgeError
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
+import app.twallet.air.walletcore.moshi.api.ApiMethod
 import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.air.walletcore.stores.BalanceStore
 import app.twallet.air.walletcore.utils.jsonObject
@@ -34,7 +36,8 @@ class WalletCreationVM(delegate: Delegate) {
         words: Array<String>,
         passcode: String,
         biometricsActivated: Boolean?,
-        retriesLeft: Int
+        retriesLeft: Int,
+        profile: String = "daily",
     ) {
         WalletCore.importWallet(network, words, passcode, true) { accounts, error ->
             if (accounts.isNullOrEmpty() || error != null) {
@@ -45,7 +48,8 @@ class WalletCreationVM(delegate: Delegate) {
                         words,
                         passcode,
                         biometricsActivated,
-                        retriesLeft - 1
+                        retriesLeft - 1,
+                        profile,
                     )
                 } else {
                     delegate.get()?.showError(error)
@@ -73,8 +77,10 @@ class WalletCreationVM(delegate: Delegate) {
                         accountId = account.accountId,
                         accountType = MAccount.AccountType.MNEMONIC.value,
                         byChain = account.byChain.jsonObject,
-                        importedAt = account.importedAt
+                        importedAt = account.importedAt,
+                        profile = profile,
                     )
+                    account.profile = profile
                     WGlobalStorage.setIsHistoryEndReached(account.accountId, null, true)
                     val seededBalances = HashMap<String, BigInteger>().apply {
                         ALL_DEFAULT_TOKENS[account.network]?.forEach { slug ->
@@ -83,6 +89,14 @@ class WalletCreationVM(delegate: Delegate) {
                     }
                     BalanceStore.setBalances(account.accountId, seededBalances, true)
                     AirPushNotifications.subscribe(account, ignoreIfLimitReached = true)
+                }
+                if (profile == "vault") {
+                    accounts.forEach { account ->
+                        WalletCore.call(
+                            ApiMethod.Networks.SetAccountVaultProfile(account.accountId, true)
+                        ) { _, _ -> }
+                        VaultUnlock.unlock(account.accountId)
+                    }
                 }
                 if (biometricsActivated != null) {
                     if (biometricsActivated) {

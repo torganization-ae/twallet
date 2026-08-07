@@ -52,6 +52,7 @@ interface OwnProps {
   baseCurrency: ApiBaseCurrency;
   appTheme: AppTheme;
   withChainIcon?: boolean;
+  withChainColorRing?: boolean;
   withContextMenu?: boolean;
   isSensitiveDataHidden?: true;
   isSwapDisabled?: boolean;
@@ -83,6 +84,7 @@ function Token({
   isActive,
   baseCurrency,
   withChainIcon,
+  withChainColorRing,
   withContextMenu,
   isSensitiveDataHidden,
   isStakingAvailable,
@@ -258,6 +260,7 @@ function Token({
           size="large"
           token={token}
           withChainIcon={withChainIconRendered}
+          withChainColorRing={withChainColorRing}
           className={styles.tokenIcon}
         >
           <>
@@ -358,6 +361,7 @@ function Token({
           token={token}
           size="large"
           withChainIcon={withChainIconRendered}
+          withChainColorRing={withChainColorRing}
           className={styles.tokenIcon}
         >
           <>

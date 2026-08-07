@@ -1463,3 +1463,59 @@ $externalRadius: $internalRadius + $borderWidth;
   gap: 0.375rem;
   align-items: center;
 }
+
+.networkIconWrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.networkStatusDot {
+  position: absolute;
+  right: -0.125rem;
+  bottom: -0.125rem;
+
+  box-sizing: border-box;
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 0.125rem solid var(--color-background-first);
+  border-radius: 50%;
+
+  &_active {
+    background-color: var(--color-green);
+  }
+
+  &_inactive {
+    background-color: var(--color-red);
+  }
+
+  &_warning {
+    background-color: var(--color-yellow);
+  }
+}
+
+.networkMenuButton {
+  cursor: var(--custom-cursor, pointer);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+
+  font-size: 1.125rem;
+  color: var(--color-gray-3);
+
+  appearance: none;
+  background: transparent;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-black);
+  }
+}

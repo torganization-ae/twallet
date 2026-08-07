@@ -217,6 +217,8 @@ public class SettingsVC: SettingsBaseVC, Sendable, WalletCoreData.EventsObserver
             navigationController?.pushViewController(ConnectedAppsVC(isModal: false), animated: true)
         case .language:
             navigationController?.pushViewController(LanguageVC(), animated: true)
+        case .networks:
+            navigationController?.pushViewController(NetworksVC(), animated: true)
         case .security:
             Task { @MainActor in
                 if let password = await UnlockVC.presentAuthAsync(on: self) {
@@ -340,6 +342,7 @@ public class SettingsVC: SettingsBaseVC, Sendable, WalletCoreData.EventsObserver
         }
         snapshot.appendItems([.notifications])
         snapshot.appendItems([.language])
+        snapshot.appendItems([.networks])
 
         // Questions and answers
         snapshot.appendSections([.questionAndAnswers])

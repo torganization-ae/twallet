@@ -21,14 +21,40 @@ import { getKnownAddressInfo } from '../../common/addresses';
 import { getIsNegVerdictCacheEnabled } from '../../common/cache';
 import { buildTokenSlug, updateTokens } from '../../common/tokens';
 import { ApiServerError } from '../../errors';
+import { isEvmEnhancedApiEnabled } from '../rpcOverrides';
 import { isValidAddress } from './address';
-import { EVM_RPC_URLS, getApiChainByZerionChain, getEvmApiUrl, getZerionChainByApiChain } from './constants';
+import {
+  getApiChainByZerionChain,
+  getEvmApiUrl,
+  getEvmEnhancedJsonRpcUrl,
+  getZerionChainByApiChain,
+} from './constants';
+
+// Coalesce concurrent eth_getBalance for the same chain/address (active + inactive accounts
+// that share a BIP39 address would otherwise hammer publicnode on the same tick).
+const inFlightNativeBalances = new Map<string, Promise<bigint>>();
 
 export async function getWalletBalance(chain: EVMChain, network: ApiNetwork, address: string) {
-  return getEvmProvider(network, chain).getBalance(address);
+  const key = `${network}:${chain}:${address.toLowerCase()}`;
+  const existing = inFlightNativeBalances.get(key);
+  if (existing) {
+    return existing;
+  }
+
+  const promise = getEvmProvider(network, chain).getBalance(address)
+    .finally(() => {
+      inFlightNativeBalances.delete(key);
+    });
+
+  inFlightNativeBalances.set(key, promise);
+  return promise;
 }
 
 export async function fetchAssetsByAddresses(network: ApiNetwork, chain: EVMChain, addresses: string[]) {
+  if (!isEvmEnhancedApiEnabled(chain, network)) {
+    return [];
+  }
+
   const assets = await Promise.all(addresses.map(async (e) => {
     const payload = {
       method: 'POST',
@@ -46,7 +72,7 @@ export async function fetchAssetsByAddresses(network: ApiNetwork, chain: EVMChai
     };
 
     const response = await fetchJson<AlchemyGetTokenAssetResponse>(
-      `${EVM_RPC_URLS[network](chain)}/v2`,
+      getEvmEnhancedJsonRpcUrl(network, chain),
       undefined,
       payload,
     );
@@ -100,13 +126,27 @@ export async function fetchCrosschainAccountAssets(
 // otherwise it would corrupt a sibling account that coalesced onto the same fetch.
 const inFlightPositions = new Map<string, Promise<ApiBalanceBySlug>>();
 
-export function fetchAccountAssets(
+export async function fetchAccountAssets(
   chain: EVMChain,
   network: ApiNetwork,
   address: string,
   sendUpdateTokens: NoneToVoidFunction,
   isCrossChain?: boolean,
 ): Promise<ApiBalanceBySlug> {
+  // Built-in EVM without an enhanced API runs native-only via RPC.
+  if (!isEvmEnhancedApiEnabled(chain, network)) {
+    const nativeToken = getChainConfig(chain).nativeToken;
+    const balance = await getWalletBalance(chain, network, address);
+    await updateTokens([{
+      ...nativeToken,
+      priceUsd: undefined,
+      percentChange24h: undefined,
+      isFromBackend: true,
+    }], sendUpdateTokens, [], true);
+
+    return { [nativeToken.slug]: balance };
+  }
+
   // The address is lowercased so the same wallet passed in different casing (EIP-55 checksummed vs
   // lowercase) still coalesces onto one request. The `isCrossChain` component is required so a
   // cross-chain ethereum fetch does not collide with a single-chain ethereum fetch for the same address.
@@ -155,7 +195,7 @@ async function fetchAccountAssetsUncoalesced(
   let response: ZerionPositionsResponse;
   try {
     response = await fetchJson<ZerionPositionsResponse>(
-      `${getEvmApiUrl(network)}/v1/wallets/${address}/positions/`,
+      `${getEvmApiUrl(network, chain)}/v1/wallets/${address}/positions/`,
       params,
     );
   } catch (err) {
@@ -312,6 +352,11 @@ export const getIsWalletActive = withCacheAsync(
       return true;
     }
 
+    // Without an enhanced API we cannot probe transfer history; treat zero native balance as inactive.
+    if (!isEvmEnhancedApiEnabled(chain, network)) {
+      return false;
+    }
+
     const payload = {
       method: 'POST',
       body: JSON.stringify({
@@ -341,7 +386,7 @@ export const getIsWalletActive = withCacheAsync(
     };
 
     const response = await fetchJson<AlchemyGetAssetTransfersResponse>(
-      `${EVM_RPC_URLS[network](chain)}/v2`,
+      getEvmEnhancedJsonRpcUrl(network, chain),
       undefined,
       payload,
     );

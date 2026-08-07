@@ -15,11 +15,13 @@ import { getZerionFungibleImplementation } from './util/tokens';
 import { fetchStoredChainAccount } from '../../common/accounts';
 import { getKnownAddressInfo } from '../../common/addresses';
 import { buildTokenSlug } from '../../common/tokens';
+import { isEvmEnhancedApiEnabled } from '../rpcOverrides';
 import { normalizeAddress } from './address';
 import { fetchPrivateKeyString, getSignerFromPrivateKey } from './auth';
 import {
   EVM_DALEGATOR_ADDRESSES,
   EVM_MAX_NUMBER,
+  getApiChainByZerionChain,
   getEvmApiUrl,
   getZerionChainByApiChain,
   ZERO_ADDRESS,
@@ -161,8 +163,9 @@ async function fetchZerionPermissionCandidates(
 ): Promise<ZerionPermissionCandidates> {
   const approvalCandidates = new Map<string, ApprovalCandidate>();
   const delegationCandidates = new Map<string, DelegationCandidate>();
+  const chain = getApiChainByZerionChain(zerionChain);
 
-  const baseUrl = `${getEvmApiUrl(network)}/v1/wallets/${checksumAddress}/transactions/`;
+  const baseUrl = `${getEvmApiUrl(network, chain)}/v1/wallets/${checksumAddress}/transactions/`;
   let afterCursor: string | undefined;
   let page = 0;
 
@@ -277,6 +280,8 @@ export async function fetchEvmWalletPermissions(
   network: ApiNetwork,
   address: string,
 ): Promise<ApiWalletPermission[]> {
+  if (!isEvmEnhancedApiEnabled(chain, network)) return [];
+
   const zerionChain = getZerionChainByApiChain(chain);
   const checksumAddress = normalizeAddress(address);
 

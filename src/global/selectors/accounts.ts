@@ -167,7 +167,7 @@ export function selectIsMultichainAccount(global: GlobalState, accountId: string
 
 export function selectIsMultisigAccount(global: GlobalState, accountId: string) {
   const account = selectAccount(global, accountId);
-  return Object.values(account?.byChain ?? {}).some((wallet) => wallet.isMultisig);
+  return Object.values(account?.byChain ?? {}).some((wallet) => wallet?.isMultisig);
 }
 
 export function selectIsMultisigWallet(global: GlobalState, accountId: string, chain: ApiChain) {

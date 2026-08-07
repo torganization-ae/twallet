@@ -9,7 +9,8 @@
     "coverage/**",
     "dist-electron/*.css",
     "dist-push/*.css",
-    "mobile/**/public/*.css"
+    "mobile/**/public/*.css",
+    "mobile/**/build/**"
   ],
   "plugins": [
     "stylelint-declaration-block-no-ignored-properties",

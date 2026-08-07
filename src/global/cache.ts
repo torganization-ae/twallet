@@ -509,7 +509,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
         if (account.byChain) continue; // The migration has passed already
 
         account.byChain = mapValues(account.addressByChain ?? {}, (address, chain) => ({
-          address,
+          address: address!,
           domain: account.domainByChain?.[chain as ApiChain],
           isMultisig: account.isMultisigByChain?.[chain as ApiChain] || undefined,
         }));

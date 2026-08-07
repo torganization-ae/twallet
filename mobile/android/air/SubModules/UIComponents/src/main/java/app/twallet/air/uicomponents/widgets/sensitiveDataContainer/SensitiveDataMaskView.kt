@@ -79,6 +79,10 @@ class SensitiveDataMaskView(context: Context) : View(context) {
     var cellSize = 8.dp
     var cornerRadius = 16f
 
+    // In adaptive mode cols/rows are derived from the measured bounds on every pass,
+    //  so the grid always covers the real component exactly.
+    var isAdaptive = false
+
     init {
         initMask()
     }
@@ -111,9 +115,22 @@ class SensitiveDataMaskView(context: Context) : View(context) {
         }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = calculatedWidth
-        val height = rows * cellSize
+        if (!isAdaptive) {
+            setMeasuredDimension(calculatedWidth, rows * cellSize)
+            return
+        }
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val height = MeasureSpec.getSize(heightMeasureSpec)
         setMeasuredDimension(width, height)
+        if (cellSize <= 0)
+            return
+        val newCols = (width + cellSize - 1) / cellSize
+        val newRows = (height + cellSize - 1) / cellSize
+        if (newCols != cols || newRows != rows) {
+            cols = newCols
+            rows = newRows
+            initMask()
+        }
     }
 
     override fun onDraw(canvas: Canvas) {

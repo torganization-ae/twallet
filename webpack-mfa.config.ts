@@ -11,7 +11,8 @@ import { EnvironmentPlugin, NormalModuleReplacementPlugin, ProvidePlugin } from 
 import WatchFilePlugin from './lib/webpack-watch-file-plugin/index';
 import { buildMfaLocales } from './dev/locales/buildMfaLocales';
 import { convertI18nYamlToJson } from './dev/locales/convertI18nYamlToJson';
-import { APP_ENV, IS_TELEGRAM_APP, TONAPIIO_MAINNET_URL } from './src/config';
+import { DEFAULT_TON_ENDPOINTS } from './src/api/chains/defaultEndpoints';
+import { APP_ENV, IS_TELEGRAM_APP } from './src/config';
 import { MFA_API_URL } from './src/mfa/config';
 
 const destinationDir = path.resolve(__dirname, 'dist-mfa');
@@ -20,12 +21,11 @@ const defaultI18nSourceFilename = path.resolve(generatedI18nDir, 'en.yaml');
 const defaultI18nFilename = path.resolve(generatedI18nDir, 'en.json');
 
 const cspConnectSrcHosts = [
-  'https://toncenter.mytonwallet.org/',
+  'https://toncenter.com/',
   'https://raw.githubusercontent.com/ton-blockchain/wallets-list/',
-  'https://tonconnectbridge.mytonwallet.org/',
+  'https://bridge.tonapi.io/',
   MFA_API_URL,
-  TONAPIIO_MAINNET_URL,
-  'https://mytonwalletorg--jwt-prover-v0-1-0-jwtprover-endpoint.modal.run',
+  DEFAULT_TON_ENDPOINTS.mainnet.apiUrl,
 ].filter(Boolean).join(' ');
 
 const cspConnectSrcExtra = APP_ENV === 'development'
@@ -219,9 +219,6 @@ export default function createConfig(
         IS_TELEGRAM_APP: 'false',
         MFA_APP_URL: '',
         MFA_API_URL: '',
-        TONCENTER_MAINNET_URL: 'https://toncenter.mytonwallet.org',
-        TONCENTER_MAINNET_KEY: '',
-        TONAPIIO_MAINNET_URL: '',
       }),
       new CopyWebpackPlugin({
         patterns: [

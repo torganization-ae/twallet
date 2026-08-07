@@ -57,6 +57,11 @@ jest.mock('./wallet', () => ({
   getIsWalletActive: jest.fn(),
 }));
 
+jest.mock('../rpcOverrides', () => ({
+  ...jest.requireActual('../rpcOverrides'),
+  isEvmEnhancedApiEnabled: jest.fn(() => true),
+}));
+
 const ADDRESS = '0x5819e5Ff34198F315322e1863Be6C3dC927cC5C3';
 
 const mockedFetchStoredWallet = jest.mocked(fetchStoredWallet);
@@ -166,9 +171,9 @@ describe('EVM polling', () => {
   });
 
   it('emits an empty bySlug for a wallet with no activity so the reducer dedup guard holds', async () => {
-    // An empty wallet keeps `newestConfirmedActivityTimestamp` undefined and re-runs the initial
-    // load on every catch-up; a `{ [nativeSlug]: [] }` payload would have one key and defeat the
-    // reducer's empty-update short-circuit (which requires zero keys), re-rendering on every poll.
+    // An empty wallet must still emit `{ bySlug: {} }` (zero keys) so the reducer's empty-update
+    // short-circuit holds. The in-memory poller stamps a "now" cursor after this load so later
+    // balance ticks do incremental polls instead of repeating the initial slice.
     mockedGetTokenActivitySlice.mockResolvedValue({ activities: [], hasMore: false });
 
     const onUpdate = jest.fn() as OnApiUpdate;
@@ -185,6 +190,18 @@ describe('EVM polling', () => {
     await flushPromises();
 
     expect(getInitialActivitiesUpdate(onUpdate)?.bySlug).toEqual({});
+    expect(mockedGetTokenActivitySlice).toHaveBeenCalledTimes(1);
+
+    // A second balance-driven catch-up must not repeat the initial activity fetch.
+    const balanceStream = getBalanceStreamInstance();
+    const onBalancesUpdate = balanceStream.onUpdate.mock.calls[0][0] as (
+      balances: Record<string, bigint>,
+      source: 'poll' | 'socket',
+    ) => void;
+    onBalancesUpdate({ [getChainConfig('bnb').nativeToken.slug]: 0n }, 'poll');
+    await flushPromises();
+
+    expect(mockedGetTokenActivitySlice).toHaveBeenCalledTimes(1);
   });
 
   it('omits the native slug when the initial page has no native-coin activity', async () => {
@@ -377,7 +394,11 @@ describe('EVM polling', () => {
       balances: Record<string, bigint>,
       source: 'poll' | 'socket',
     ) => void;
+    // First poll after initial catch-up is intentionally skipped; a later balance change
+    // (or socket) must still run an incremental activity fetch from the NFT fallback cursor.
     balanceUpdate({ bnb: 1n }, 'poll');
+    await flushPromises();
+    balanceUpdate({ bnb: 2n }, 'poll');
 
     await flushPromises();
 

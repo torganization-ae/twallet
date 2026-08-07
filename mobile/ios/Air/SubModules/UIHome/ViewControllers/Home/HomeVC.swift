@@ -715,7 +715,11 @@ public class HomeVC: ActivityListViewController, WSensitiveDataProtocol, HomeVMD
             transactionsUpdated(accountChanged: false, isUpdateEvent: false)
 
             try await Task.sleep(for: .seconds(0.45))
-            try await AccountStore.activateAccount(accountId: accountId)
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                AppActions.switchAccount(accountId: accountId) {
+                    continuation.resume()
+                }
+            }
         }
     }
 

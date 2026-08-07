@@ -19,9 +19,10 @@ import { getEvmProvider } from './util/client';
 import { fetchStoredChainAccount, fetchStoredWallet } from '../../common/accounts';
 import { checkHasScamLink } from '../../common/addresses';
 import { handleServerError } from '../../errors';
+import { isEvmEnhancedApiEnabled } from '../rpcOverrides';
 import { isValidAddress } from './address';
 import { fetchPrivateKeyString, getSignerFromPrivateKey } from './auth';
-import { EVM_RPC_URLS } from './constants';
+import { getEvmApiUrl } from './constants';
 import { buildTransaction, estimateEvmFee } from './transfer';
 import { getIsWalletActive, getWalletBalance } from './wallet';
 
@@ -39,6 +40,8 @@ export async function getAccountNfts(
   },
 ): Promise<ApiNft[]> {
   const { network } = parseAccountId(accountId);
+  if (!isEvmEnhancedApiEnabled(chain, network)) return [];
+
   const { address } = await fetchStoredWallet(accountId, chain);
 
   if (options?.offset !== undefined || options?.limit !== undefined) {
@@ -63,6 +66,11 @@ export async function streamAllAccountNfts(
   },
 ): Promise<void> {
   const { network } = parseAccountId(accountId);
+  if (!isEvmEnhancedApiEnabled(chain, network)) {
+    options.onPreCheckResult?.(false);
+    return;
+  }
+
   const { address } = await fetchStoredWallet(accountId, chain);
 
   if (!options.ignorePreCheck) {
@@ -101,7 +109,11 @@ export async function fetchNftByAddress(
   tokenId: string,
   ownerAddress: string,
 ): Promise<ApiNft> {
-  const nftApiUrl = `${EVM_RPC_URLS[network](chain)}/nft/v3/getNFTMetadata`;
+  if (!isEvmEnhancedApiEnabled(chain, network)) {
+    throw new Error('EVM enhanced API is not configured');
+  }
+
+  const nftApiUrl = `${getEvmApiUrl(network, chain)}/nft/v3/getNFTMetadata`;
 
   const raw = await fetchJson<AlchemyNftMetadataResponse>(nftApiUrl, {
     contractAddress,
@@ -157,7 +169,7 @@ async function fetchNftsPage(
     params.pageKey = options.pageKey;
   }
 
-  const nftApiUrl = `${EVM_RPC_URLS[network](chain)}/nft/v3/getNFTsForOwner`;
+  const nftApiUrl = `${getEvmApiUrl(network, chain)}/nft/v3/getNFTsForOwner`;
 
   return fetchJson<AlchemyNftsForOwnerResponse>(nftApiUrl, params);
 }

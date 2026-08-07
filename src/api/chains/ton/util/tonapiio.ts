@@ -4,23 +4,43 @@ import type { ApiNetwork } from '../../../types';
 
 import { getChainConfig } from '../../../../util/chain';
 import { fetchWithRetry } from '../../../../util/fetch';
-import withCache from '../../../../util/withCache';
-import { getEnvironment } from '../../../environment';
+import { getApiHeadersForUrl } from '../../../environment';
+import { onRpcOverrideChanged } from '../../rpcOverrides';
 import { NETWORK_CONFIG } from '../constants';
 
 const EVENTS_LIMIT = 100;
 
-const getApi = withCache((network: ApiNetwork) => {
+const apiCache = new Map<ApiNetwork, Api<unknown>>();
+
+function getApi(network: ApiNetwork) {
+  const cached = apiCache.get(network);
+  if (cached) return cached;
+
   const headers = {
-    ...getEnvironment().apiHeaders,
+    ...getApiHeadersForUrl(NETWORK_CONFIG[network].tonApiIoUrl),
     'Content-Type': 'application/json',
   };
 
-  return new Api(new HttpClient({
+  const api = new Api(new HttpClient({
     baseUrl: NETWORK_CONFIG[network].tonApiIoUrl,
     baseApiParams: { headers },
     customFetch: fetchWithRetry as typeof fetch,
   }));
+  apiCache.set(network, api);
+  return api;
+}
+
+function invalidateTonApiIoClient(network?: ApiNetwork) {
+  if (network) {
+    apiCache.delete(network);
+    return;
+  }
+  apiCache.clear();
+}
+
+onRpcOverrideChanged((chain, network, field) => {
+  if (chain !== 'ton' || field !== 'api') return;
+  invalidateTonApiIoClient(network);
 });
 
 export async function fetchNftItems(network: ApiNetwork, addresses: string[]) {

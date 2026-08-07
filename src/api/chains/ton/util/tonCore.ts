@@ -21,7 +21,6 @@ import { DEFAULT_TIMEOUT } from '../../../../config';
 import { getDnsZoneByCollection } from '../../../../util/dns';
 import { fromKeyValueArrays, mapValues } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
-import withCache from '../../../../util/withCache';
 import withCacheAsync from '../../../../util/withCacheAsync';
 import { DnsItem } from '../contracts/DnsItem';
 import { JettonMinter } from '../contracts/JettonMaster';
@@ -30,7 +29,8 @@ import { StakeWallet } from '../contracts/JettonStaking/StakeWallet';
 import { StakingPool } from '../contracts/JettonStaking/StakingPool';
 import { JettonWallet } from '../contracts/JettonWallet';
 import { hexToBytes } from '../../../common/utils';
-import { getEnvironment } from '../../../environment';
+import { getApiHeadersForUrl, getEnvironment } from '../../../environment';
+import { getEffectiveRpcApiKey, onRpcOverrideChanged } from '../../rpcOverrides';
 import { DEFAULT_IS_BOUNCEABLE, JettonOpCode, LiquidStakingOpCode, NETWORK_CONFIG, OpCode } from '../constants';
 import { generateQueryId } from './index';
 
@@ -70,15 +70,37 @@ export const walletClassMap: Record<ApiTonWalletVersion, TonWalletType> = {
   W5: WalletContractV5R1,
 };
 
-export const getTonClient = withCache((network: ApiNetwork) => {
-  const { apiHeaders, byNetwork } = getEnvironment();
+const tonClientCache = new Map<ApiNetwork, TonClient>();
 
-  return new TonClient({
-    endpoint: `${NETWORK_CONFIG[network].toncenterUrl}/api/v2/jsonRPC`,
+export function getTonClient(network: ApiNetwork) {
+  const cached = tonClientCache.get(network);
+  if (cached) return cached;
+
+  const { byNetwork } = getEnvironment();
+  const apiKey = getEffectiveRpcApiKey('ton', network) ?? byNetwork[network].toncenterKey;
+  const endpoint = `${NETWORK_CONFIG[network].toncenterUrl}/api/v2/jsonRPC`;
+
+  const client = new TonClient({
+    endpoint,
     timeout: DEFAULT_TIMEOUT,
-    apiKey: byNetwork[network].toncenterKey,
-    headers: apiHeaders,
+    apiKey,
+    headers: getApiHeadersForUrl(endpoint),
   });
+  tonClientCache.set(network, client);
+  return client;
+}
+
+function invalidateTonClient(network?: ApiNetwork) {
+  if (network) {
+    tonClientCache.delete(network);
+    return;
+  }
+  tonClientCache.clear();
+}
+
+onRpcOverrideChanged((chain, network, field) => {
+  if (chain !== 'ton' || field !== 'rpc') return;
+  invalidateTonClient(network);
 });
 
 export const resolveTokenWalletAddress = withCacheAsync(

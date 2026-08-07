@@ -302,12 +302,7 @@ final class SplitRootSidebarViewController: WViewController, WalletCoreData.Even
         guard AccountStore.accountId != accountId else { return }
         activateAccountTask?.cancel()
         activateAccountTask = Task {
-            do {
-                _ = try await AccountStore.activateAccount(accountId: accountId)
-            } catch is CancellationError {
-            } catch {
-                AppActions.showError(error: error)
-            }
+            AppActions.switchAccount(accountId: accountId)
         }
     }
     

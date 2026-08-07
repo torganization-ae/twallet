@@ -132,13 +132,8 @@ enum SwitchAccountMenu {
     }
 
     private static func switchAccount(to account: MAccount) {
-        Task {
-            do {
-                _ = try await AccountStore.activateAccount(accountId: account.id)
-                AppActions.showHome(popToRoot: true)
-            } catch {
-                fatalError("failed to activate account: \(account.id)")
-            }
+        AppActions.switchAccount(accountId: account.id) {
+            AppActions.showHome(popToRoot: true)
         }
     }
 }

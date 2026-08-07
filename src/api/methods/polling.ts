@@ -17,17 +17,21 @@ import type {
 import { IS_FEATURE_LIMITED, IS_STAKING_DISABLED, NO_MFA, NO_STAKING, NO_SWAP } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
+import { findChainConfig } from '../../util/chain';
 import { omit } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { OrGate } from '../../util/orGate';
-import { forbidConcurrency } from '../../util/schedulers';
+import { forbidConcurrency, pause } from '../../util/schedulers';
 import { getNativeToken } from '../../util/tokens';
 import chains from '../chains';
+import { isChainHidden } from '../chains/chainVisibility';
+import { isEvmChain } from '../chains/defaultEndpoints';
+import { hasSharedDefaultRpc } from '../chains/networksConfig';
+import { getEffectiveRpcUrl, isEvmEnhancedApiEnabled, isRpcFieldDefault } from '../chains/rpcOverrides';
 import {
   doesAccountHaveChain,
   fetchMaybeStoredAccount,
   fetchStoredAccount,
-  fetchStoredAccounts,
 } from '../common/accounts';
 import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet, callBackendPost } from '../common/backend';
@@ -48,6 +52,24 @@ const INCORRECT_TIME_DIFF = 30 * SEC;
 const ACCOUNT_CONFIG_INTERVAL = { focused: MINUTE, notFocused: 10 * MINUTE };
 const MFA_INTERVAL = MINUTE;
 
+/**
+ * Only TON starts immediately for the active wallet. Everything else is deferred + staggered so
+ * launch does not fan out eth_getBalance / Solana / Tron / … across all networks at once.
+ */
+const IMMEDIATE_ACTIVE_POLL_CHAINS = new Set<ApiChain>(['ton']);
+const DEFERRED_ACTIVE_POLL_BASE_DELAY = 8 * SEC;
+const DEFERRED_ACTIVE_POLL_STAGGER = 4 * SEC;
+
+/**
+ * A chain is scannable when it has a usable RPC endpoint (shared default or user override).
+ * Empty shared `rpc` without an override means the chain stays dormant until the user
+ * fills Settings → Networks.
+ */
+function isChainRpcConfigured(chain: ApiChain, network: ApiNetwork): boolean {
+  if (hasSharedDefaultRpc(chain, network)) return true;
+  return !isRpcFieldDefault(chain, network, 'rpc') && Boolean(getEffectiveRpcUrl(chain, network));
+}
+
 const MAX_POST_TOKENS = 1500;
 
 let onUpdate: OnApiUpdate;
@@ -55,6 +77,15 @@ let stopCommonBackendPolling: NoneToVoidFunction | undefined;
 let stopActiveAccountPolling: NoneToVoidFunction | undefined;
 const inactiveAccountPolling = createInactiveAccountsPollingManager();
 const setUpdatingStatus = createUpdatingStatusManager();
+
+/** Last timestamps passed into `setActivePollingAccount` — reused when restarting after network edits. */
+let lastActivePollingTimestamps: ApiActivityTimestamps = {};
+let lastActivePollingAccountId: string | undefined;
+
+export function getLastActivePollingTimestamps(accountId: string): ApiActivityTimestamps {
+  if (accountId !== lastActivePollingAccountId) return {};
+  return lastActivePollingTimestamps;
+}
 
 export function initPolling(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
@@ -232,31 +263,67 @@ export async function setActivePollingAccount(
   stopActiveAccountPolling = undefined;
 
   if (accountId) {
-    const account = await fetchStoredAccount(accountId);
+    lastActivePollingAccountId = accountId;
+    lastActivePollingTimestamps = newestActivityTimestamps;
 
-    const stopPollingFns = [
+    const account = await fetchStoredAccount(accountId);
+    const { network } = parseAccountId(accountId);
+    const visibleChains = (await Promise.all(
+      (Object.keys(account.byChain) as ApiChain[]).map(async (apiChain) => {
+        if (!findChainConfig(apiChain) || !chains[apiChain]) return undefined;
+        if (!doesAccountHaveChain(account, apiChain)) return undefined;
+        if (!isChainRpcConfigured(apiChain, network)) return undefined;
+        const hidden = await isChainHidden(apiChain, network, accountId);
+        return hidden ? undefined : apiChain;
+      }),
+    )).filter((chain): chain is ApiChain => Boolean(chain));
+
+    const immediateChains = visibleChains.filter((chain) => IMMEDIATE_ACTIVE_POLL_CHAINS.has(chain));
+    const deferredChains = visibleChains.filter((chain) => !IMMEDIATE_ACTIVE_POLL_CHAINS.has(chain));
+
+    const stopPollingFns: Array<NoneToVoidFunction | undefined> = [
       !IS_FEATURE_LIMITED ? setupAccountConfigPolling(accountId, account).stop : undefined,
       !NO_MFA && doesAccountHaveChain(account, 'ton') ? setupMfaPolling(accountId).stop : undefined,
-
-      ...(Object.keys(chains) as (keyof typeof chains)[]).map((chain) => {
-        if (doesAccountHaveChain(account, chain)) {
-          return chains[chain].setupActivePolling(
-            accountId,
-            account,
-            onUpdate,
-            setUpdatingStatus.bind(undefined, accountId, chain),
-            pickChainTimestamps(newestActivityTimestamps, chain),
-            shouldResetBalances,
-          );
-        }
-      }),
     ];
 
+    let deferredGeneration = 0;
+    const startChainPolling = (chain: ApiChain) => {
+      const stopFn = chains[chain].setupActivePolling(
+        accountId,
+        account as any,
+        onUpdate,
+        setUpdatingStatus.bind(undefined, accountId, chain),
+        pickChainTimestamps(newestActivityTimestamps, chain),
+        shouldResetBalances,
+      );
+      stopPollingFns.push(stopFn);
+    };
+
+    for (const chain of immediateChains) {
+      startChainPolling(chain);
+    }
+
+    // Defer non-TON chains so the Network panel is not a simultaneous multi-RPC storm.
+    const thisDeferredGeneration = ++deferredGeneration;
+    void (async () => {
+      for (let i = 0; i < deferredChains.length; i++) {
+        await pause(i === 0 ? DEFERRED_ACTIVE_POLL_BASE_DELAY : DEFERRED_ACTIVE_POLL_STAGGER);
+        if (thisDeferredGeneration !== deferredGeneration) {
+          return;
+        }
+        startChainPolling(deferredChains[i]);
+      }
+    })();
+
     stopActiveAccountPolling = () => {
+      deferredGeneration += 1;
       for (const stopFn of stopPollingFns) {
         stopFn?.();
       }
     };
+  } else {
+    lastActivePollingAccountId = undefined;
+    lastActivePollingTimestamps = {};
   }
 
   // Setting up inactive account polling at the end in order to give the active account polling a higher priority in the connection queue
@@ -357,6 +424,10 @@ function createUpdatingStatusManager() {
  * Manages polling for the inactive accounts.
  * The goal is polling the accounts from the network of the current active account, but not the active account itself.
  *
+ * Inactive polling is deferred and staggered so the current wallet's first wave is not starved.
+ * Built-in EVM without an enhanced indexer is skipped for inactive wallets (RPC eth_getBalance ×
+ * 8 chains × N accounts is the main first-launch flood); those balances load when the account becomes active.
+ *
  * @todo: Deduplicate polling the same addresses, if multiple accounts have it
  */
 function createInactiveAccountsPollingManager() {
@@ -374,7 +445,7 @@ function createInactiveAccountsPollingManager() {
     }
 
     if (!activeAccountId || parseAccountId(accountId).network !== parseAccountId(activeAccountId).network) {
-      await switchNetwork(accountId);
+      switchNetwork(accountId);
       return;
     }
 
@@ -388,7 +459,7 @@ function createInactiveAccountsPollingManager() {
     // Start polling the previous active account
     const previousActiveAccount = await fetchMaybeStoredAccount(previousActiveAccountId);
     if (previousActiveAccount) { // The previously active account may get removed at this moment
-      startAccountPolling(previousActiveAccountId, previousActiveAccount);
+      await startAccountPolling(previousActiveAccountId, previousActiveAccount);
     }
   }
 
@@ -398,7 +469,7 @@ function createInactiveAccountsPollingManager() {
       && parseAccountId(accountId).network === parseAccountId(activeAccountId).network;
 
     if (!isActiveAccount && isCurrentNetwork) {
-      startAccountPolling(accountId, account);
+      void startAccountPolling(accountId, account);
     }
   }
 
@@ -418,27 +489,43 @@ function createInactiveAccountsPollingManager() {
     stopAllPollings();
   }
 
-  async function switchNetwork(newActiveAccountId: string) {
+  function switchNetwork(newActiveAccountId: string) {
     stopAllPollings();
     activeAccountId = newActiveAccountId;
-    const { network } = parseAccountId(activeAccountId);
-    const accounts = await fetchStoredAccounts();
-    const otherAccountIds = Object.keys(accounts).filter((accountId) => (
-      accountId !== activeAccountId
-      && parseAccountId(accountId).network === network
-    ));
-    otherAccountIds.map((accountId) => startAccountPolling(accountId, accounts[accountId]));
+    // Inactive multi-account polling stays off on network switch (avoids N×M RPC storms).
+    // Other wallets refresh when they become the active account.
   }
 
-  function startAccountPolling(accountId: string, account: ApiAccountAny) {
+  async function startAccountPolling(accountId: string, account: ApiAccountAny) {
     if (stopByAccount[accountId]) return;
+    const { network } = parseAccountId(accountId);
+    const visibleChains = await Promise.all(
+      (Object.keys(account.byChain) as ApiChain[]).map(async (apiChain) => {
+        if (!findChainConfig(apiChain) || !chains[apiChain]) return undefined;
+        if (!doesAccountHaveChain(account, apiChain)) return undefined;
+        if (!isChainRpcConfigured(apiChain, network)) return undefined;
+        // Skip public-RPC EVM for inactive wallets — biggest N×8 amplification with empty indexer.
+        if (isEvmChain(apiChain) && !isEvmEnhancedApiEnabled(apiChain, network)) {
+          return undefined;
+        }
+        // Solana without indexer still hits RPC; skip for inactive wallets.
+        if (apiChain === 'solana') {
+          return undefined;
+        }
+        const hidden = await isChainHidden(apiChain, network, accountId);
+        return hidden ? undefined : apiChain;
+      }),
+    );
+
+    // Prefer not polling inactive accounts at all (see switchNetwork). Kept for the
+    // account-switch path that re-polls the previous active wallet lightly (TON only).
+    const tonOnly = visibleChains.filter((chain) => chain === 'ton');
 
     const stopFns = [
       !NO_MFA && doesAccountHaveChain(account, 'ton') ? setupMfaPolling(accountId).stop : undefined,
-      ...(Object.keys(chains) as (keyof typeof chains)[]).map((chain) => {
-        if (doesAccountHaveChain(account, chain)) {
-          return chains[chain].setupInactivePolling(accountId, account, onUpdate);
-        }
+      ...tonOnly.map((chain) => {
+        if (!chain) return undefined;
+        return chains[chain].setupInactivePolling(accountId, account as any, onUpdate);
       }),
     ];
 

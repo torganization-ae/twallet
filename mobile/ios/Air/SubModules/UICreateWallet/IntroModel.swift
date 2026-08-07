@@ -26,16 +26,19 @@ enum WalletSetupResult {
     private var password: String?
     private var words: [String]?
     private var pendingToastWorkItem: DispatchWorkItem?
+    /// `"daily"` | `"vault"` — applied after successful create
+    public let profile: String?
     
     let allowOpenWithoutChecking: Bool = IS_DEBUG_OR_TESTFLIGHT
     var hasExistingPassword: Bool {
         password?.nilIfEmpty != nil
     }
     
-    public init(network: ApiNetwork, password: String?, words: [String]? = nil) {
+    public init(network: ApiNetwork, password: String?, words: [String]? = nil, profile: String? = nil) {
         self.network = network
         self.password = password
         self.words = words
+        self.profile = profile
     }
        
     // MARK: - Navigation
@@ -191,7 +194,8 @@ enum WalletSetupResult {
             network: network,
             words: words.orThrow(),
             passcode: passcode,
-            isNewMnemonic: true
+            isNewMnemonic: true,
+            profile: profile ?? "daily"
         )
         KeychainHelper.save(biometricPasscode: passcode)
         if let biometricsEnabled { // nil if not first wallet

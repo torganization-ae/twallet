@@ -30,6 +30,7 @@ interface OwnProps {
   byChain: Account['byChain'];
   accountType: AccountType;
   title?: string;
+  profile?: Account['profile'];
   balanceData?: {
     wholePart: string;
     fractionPart?: string;
@@ -56,6 +57,7 @@ function AccountWalletCard({
   byChain,
   accountType,
   title,
+  profile,
   balanceData,
   withContextMenu,
   isSensitiveDataHidden,
@@ -77,6 +79,7 @@ function AccountWalletCard({
   const screenWidthDep = isPortrait ? screenWidth : 0;
   const isHardware = accountType === 'hardware';
   const isViewMode = accountType === 'view';
+  const isVault = profile === 'vault';
   const formattedAddress = formatAccountAddresses(byChain, 'x-small');
 
   const handleRenameClick = useLastCallback(() => {
@@ -186,6 +189,7 @@ function AccountWalletCard({
             </SensitiveData>
           )}
           <div className={styles.accountAddressBlock}>
+            {isVault && <i className="icon-lock" aria-hidden />}
             {isTestnet && <i className="icon-testnet" aria-hidden />}
             {isHardware && <i className="icon-ledger" aria-hidden />}
             {isViewMode && <i className="icon-eye-filled" aria-hidden />}
@@ -198,7 +202,12 @@ function AccountWalletCard({
             onClick={handleContextMenu}
           />
         </div>
-        {title && <div className={styles.accountName}>{title}</div>}
+        {(title || isVault) && (
+          <div className={styles.accountName}>
+            {title}
+            {isVault && <span className={styles.vaultBadge}>{lang('Vault')}</span>}
+          </div>
+        )}
         {withContextMenu && isContextMenuShown && (
           <DropdownMenu
             ref={menuRef}

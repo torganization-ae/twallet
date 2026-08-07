@@ -67,6 +67,7 @@ import WalletCoreTypes
     static func showTokenByAddress(chain: ApiChain, tokenAddress: String)
     static func showTokenBySlug(_ slug: String)
     static func showWalletSettings()
+    static func switchAccount(accountId: String, then: (() -> Void)?)
     static func transitionToRootState(_ rootState: AppRootState, animationDuration: Double?)
 }
 
@@ -126,6 +127,10 @@ public extension AppActionsProtocol {
             return
         }
         Self.openInBrowser(url, title: lang("Multisend"), injectDappConnect: true)
+    }
+
+    static func switchAccount(accountId: String) {
+        Self.switchAccount(accountId: accountId, then: nil)
     }
 }
 
@@ -190,5 +195,6 @@ private class DummyAppActionProtocolImpl: AppActionsProtocol {
     static func showTokenByAddress(chain: ApiChain, tokenAddress: String) { }
     static func showTokenBySlug(_ slug: String) { }
     static func showWalletSettings() { }
+    static func switchAccount(accountId: String, then: (() -> Void)?) { }
     static func transitionToRootState(_ rootState: AppRootState, animationDuration: Double?) { }
 }

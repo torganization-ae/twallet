@@ -144,19 +144,19 @@ extension ApiDapp {
 #if DEBUG
     extension ApiDapp {
         public static let sample = ApiDapp(
-            url: "https://static.mytonwallet.org",
+            url: "https://example.com",
             name: "Sample name",
-            iconUrl: "https://static.mytonwallet.org/explore-icons/mtwcards.webp",
-            manifestUrl: "https://static.mytonwallet.org/explore-icons/mtwcards.webp",
+            iconUrl: "",
+            manifestUrl: "",
             connectedAt: nil,
             urlTrustStatus: nil,
             sse: nil,
         )
     
         public static let sampleList: [ApiDapp] = [
-            ApiDapp(url: "https://static.mytonwallet.org",
+            ApiDapp(url: "https://example.com",
                     name: "Sample name",
-                    iconUrl: "https://static.mytonwallet.org/explore-icons/mtwcards.webp",
+                    iconUrl: "",
                     manifestUrl: "https://fragment.com/tonconnect-manifest.json",
                     connectedAt: nil,
                     urlTrustStatus: nil,
@@ -164,7 +164,7 @@ extension ApiDapp {
             
             ApiDapp(url: "https://app.storm.tg",
                     name: "Storm Trade",
-                    iconUrl: "https://static.mytonwallet.org/explore-icons/storm.jpg",
+                    iconUrl: "",
                     manifestUrl: "https://fragment.com/tonconnect-manifest.json",
                     connectedAt: nil,
                     urlTrustStatus: nil,
@@ -172,7 +172,7 @@ extension ApiDapp {
             
             ApiDapp(url: "https://app.upscale.trade",
                     name: "Upscale",
-                    iconUrl: "https://static.mytonwallet.org/explore-icons/upscale.png",
+                    iconUrl: "",
                     manifestUrl: "https://fragment.com/tonconnect-manifest.json",
                     connectedAt: nil,
                     urlTrustStatus: nil,
@@ -180,7 +180,7 @@ extension ApiDapp {
             
             ApiDapp(url: "https://app.bidask.finance",
                     name: "Bidask",
-                    iconUrl: "https://static.mytonwallet.org/explore-icons/bidask.png",
+                    iconUrl: "",
                     manifestUrl: "https://fragment.com/tonconnect-manifest.json",
                     connectedAt: nil,
                     urlTrustStatus: nil,
@@ -188,7 +188,7 @@ extension ApiDapp {
             
             ApiDapp(url: "https://app.hipo.finance",
                     name: "Hipo",
-                    iconUrl: "https://static.mytonwallet.org/explore-icons/hipo_dark.png",
+                    iconUrl: "",
                     manifestUrl: "https://fragment.com/tonconnect-manifest.json",
                     connectedAt: nil,
                     urlTrustStatus: nil,
@@ -197,33 +197,33 @@ extension ApiDapp {
     
 //    static let sampleList: [ApiDapp] = [
 //        ApiDapp(dictionary: [
-//            "url": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#0",
-//            "iconUrl": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#0",
+//            "url": "#0",
+//            "iconUrl": "#0",
 //            "name": "Sample 1",
 //        ]),
 //        ApiDapp(dictionary: [
-//            "url": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#1",
-//            "iconUrl": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#1",
+//            "url": "#1",
+//            "iconUrl": "#1",
 //             "name": "Sample 2",
 //        ]),
 //        ApiDapp(dictionary: [
-//            "url": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#2",
-//            "iconUrl": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#2",
+//            "url": "#2",
+//            "iconUrl": "#2",
 //            "name": "Sample 3",
 //        ]),
 //        ApiDapp(dictionary: [
-//            "url": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#3",
-//            "iconUrl": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#3",
+//            "url": "#3",
+//            "iconUrl": "#3",
 //            "name": "Sample 4",
 //        ]),
 //        ApiDapp(dictionary: [
-//            "url": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#4",
-//            "iconUrl": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#4",
+//            "url": "#4",
+//            "iconUrl": "#4",
 //            "name": "Sample 5",
 //        ]),
 //        ApiDapp(dictionary: [
-//            "url": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#5",
-//            "iconUrl": "https://static.mytonwallet.org/explore-icons/mtwcards.webp#5",
+//            "url": "#5",
+//            "iconUrl": "#5",
 //            "name": "Sample 6",
 //        ]),
 //    ]

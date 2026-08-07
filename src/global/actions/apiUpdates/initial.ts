@@ -14,6 +14,7 @@ import { areDeepEqual } from '../../../util/areDeepEqual';
 import { buildCollectionByKey, unique } from '../../../util/iteratees';
 import { openUrl } from '../../../util/openUrl';
 import { getIsActiveStakingState } from '../../../util/staking';
+import { setHiddenChainsSnapshot } from '../../../api/chains/chainVisibility';
 import { omitAccounts } from '../../helpers/auth';
 import { addActionHandler, setGlobal } from '../../index';
 import {
@@ -295,6 +296,12 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       }
       global = updateAccountChain(global, accountId, chain, chainUpdate);
       setGlobal(global);
+      break;
+    }
+
+    case 'updateChainVisibility': {
+      setHiddenChainsSnapshot(update.hiddenChainsByNetwork);
+      setGlobal({ ...global });
       break;
     }
 

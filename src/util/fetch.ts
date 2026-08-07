@@ -2,11 +2,10 @@ import {
   DEFAULT_ERROR_PAUSE,
   DEFAULT_RETRIES,
   DEFAULT_TIMEOUT,
-  EVM_MAINNET_RPC_URL,
-  EVM_TESTNET_RPC_URL,
   IPFS_GATEWAY_BASE_URL,
   PROXY_API_BASE_URL,
 } from '../config';
+import { DEFAULT_EVM_API_BASE } from '../api/chains/defaultEndpoints';
 import { getIsNegVerdictCacheEnabled } from '../api/common/cache';
 import { ApiServerError } from '../api/errors';
 import {
@@ -44,15 +43,46 @@ const MAX_BACKOFF_MS = 10000; // 10 sec - jitter ceiling for retryable failures
 // terminal (no retry) but are NOT cached, so a transient auth state is never masked for the TTL.
 const NEGATIVE_CACHEABLE_STATUSES = [400, 404, 422];
 
-// The negative-verdict cache is scoped to the evmapi (Zerion) origin - the only path with the
-// deterministic-4xx storm class. Other origins are excluded deliberately: toncenter GETs carry a
-// `_=<time>` cache-buster (every URL unique, they would only pollute the bounded LRU) and some
-// non-evmapi GETs legitimately poll a 404 until it flips to 200 (a fresh NFT before indexing, a
-// dapp manifest), which a cached 4xx would stall.
-const EVM_API_ORIGINS = new Set([
-  new URL(EVM_MAINNET_RPC_URL).origin,
-  new URL(EVM_TESTNET_RPC_URL).origin,
-]);
+// The negative-verdict cache is scoped to configured EVM enhanced-API origins - the only path
+// with the deterministic-4xx storm class. Other origins are excluded deliberately: toncenter GETs
+// carry a `_=<time>` cache-buster (every URL unique, they would only pollute the bounded LRU) and
+// some non-enhanced GETs legitimately poll a 404 until it flips to 200 (a fresh NFT before
+// indexing, a dapp manifest), which a cached 4xx would stall.
+// Empty DEFAULT_EVM_API_BASE (enhanced disabled by default) yields an empty set.
+const EVM_API_ORIGINS = new Set(
+  [DEFAULT_EVM_API_BASE.mainnet, DEFAULT_EVM_API_BASE.testnet]
+    .filter(Boolean)
+    .map((url) => {
+      try {
+        return new URL(url).origin;
+      } catch {
+        return undefined;
+      }
+    })
+    .filter((origin): origin is string => Boolean(origin)),
+);
+
+/** Test helper: register an enhanced-API origin so negative-verdict caching applies to it. */
+export function __registerEvmApiOriginForTests(originOrUrl: string) {
+  try {
+    EVM_API_ORIGINS.add(new URL(originOrUrl).origin);
+  } catch {
+    // ignore invalid
+  }
+}
+
+/** Test helper: clear origins registered via __registerEvmApiOriginForTests (keeps defaults). */
+export function __resetEvmApiOriginsForTests() {
+  EVM_API_ORIGINS.clear();
+  for (const url of [DEFAULT_EVM_API_BASE.mainnet, DEFAULT_EVM_API_BASE.testnet]) {
+    if (!url) continue;
+    try {
+      EVM_API_ORIGINS.add(new URL(url).origin);
+    } catch {
+      // ignore
+    }
+  }
+}
 
 export function fetchJsonWithProxy(url: string | URL, data?: QueryParams, init?: RequestInit) {
   return fetchJson(getProxiedJsonUrl(url.toString()), data, init);
@@ -64,6 +94,13 @@ export async function fetchJson<T extends AnyLiteral>(
   init?: RequestInit,
   options?: FetchOptions,
 ): Promise<T> {
+  const raw = url.toString().trim();
+  // Reject empty / relative URLs early (e.g. Solana indexer disabled → "") so we never hit the
+  // page origin with `/v0/...` and retry into a Network storm of 404s.
+  if (!raw || raw === '/' || (!/^https?:\/\//i.test(raw) && !(url instanceof URL && url.protocol.startsWith('http')))) {
+    throw new ApiServerError(`Invalid fetch URL: ${raw || '(empty)'}`, 0);
+  }
+
   const urlObject = new URL(url);
   if (data) {
     Object.entries(data).forEach(([key, value]) => {

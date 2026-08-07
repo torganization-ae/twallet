@@ -22,6 +22,7 @@ import {
 import { isNetWorthChartAvailable } from '../../../../util/assets/netWorth';
 import buildClassName from '../../../../util/buildClassName';
 import { calcBigChangeValue } from '../../../../util/calcChangeValue';
+import { getCardGradientStyle, TOKEN_CARD_GRADIENTS } from '../../../../util/cardColor';
 import { formatChartDate, formatShortDay, SECOND } from '../../../../util/dateFormat';
 import { toBig, toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
@@ -31,7 +32,6 @@ import { round } from '../../../../util/round';
 import { getExplorerName, getExplorerTokenUrl } from '../../../../util/url';
 import { IS_IOS } from '../../../../util/windowEnvironment';
 import { calculateTokenCardColor } from '../../helpers/cardColors';
-import { getCardGradientStyle, TOKEN_CARD_GRADIENTS } from '../../../../util/cardColor';
 
 import useFlag from '../../../../hooks/useFlag';
 import useForceUpdate from '../../../../hooks/useForceUpdate';

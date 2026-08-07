@@ -1,20 +1,17 @@
 import type { ElementRef } from '../../../../lib/teact/teact';
 import React, { memo } from '../../../../lib/teact/teact';
-import { getActions, withGlobal } from '../../../../global';
+import { getActions } from '../../../../global';
 
 import type { ApiChain } from '../../../../api/types';
-import type { Account } from '../../../../global/types';
 import type { IAnchorPosition } from '../../../../global/types';
 import type { Layout } from '../../../../hooks/useMenuPosition';
+import { SettingsState } from '../../../../global/types';
 
-import { selectCurrentAccount } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
-import { getChainConfig, getChainTitle, getOrderedAccountChains } from '../../../../util/chain';
+import { getChainConfig, getChainTitle } from '../../../../util/chain';
 import { copyTextToClipboard } from '../../../../util/clipboard';
 import { stopEvent } from '../../../../util/domEvents';
-import { shareUrl } from '../../../../util/share';
 import { shortenDomain } from '../../../../util/shortenDomain';
-import { getViewAccountUrl } from '../../../../util/url';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 
 import useLang from '../../../../hooks/useLang';
@@ -40,7 +37,6 @@ interface OwnProps {
   anchor?: IAnchorPosition;
   items: MenuItem[];
   menuRef: ElementRef<HTMLDivElement>;
-  isTestnet?: boolean;
   onClose: NoneToVoidFunction;
   onExplorerClick: (chain: ApiChain, address: string) => void;
   onMouseEnter?: NoneToVoidFunction;
@@ -51,10 +47,6 @@ interface OwnProps {
   getLayout: () => Layout;
 }
 
-interface StateProps {
-  byChain?: Account['byChain'];
-}
-
 const FULL_DOMAIN_LENGTH = 20;
 
 function AddressMenu({
@@ -62,7 +54,6 @@ function AddressMenu({
   anchor,
   items,
   menuRef,
-  isTestnet,
   onClose,
   onExplorerClick,
   onMouseEnter,
@@ -71,9 +62,8 @@ function AddressMenu({
   getRootElement,
   getMenuElement,
   getLayout,
-  byChain,
-}: OwnProps & StateProps) {
-  const { showToast } = getActions();
+}: OwnProps) {
+  const { showToast, openSettingsWithState } = getActions();
 
   const lang = useLang();
 
@@ -89,13 +79,9 @@ function AddressMenu({
     onClose();
   });
 
-  const handleShareClick = useLastCallback((e: React.MouseEvent) => {
+  const handleNetworksClick = useLastCallback((e: React.MouseEvent) => {
     stopEvent(e);
-
-    const addressByChain = getAddressByChain(byChain);
-    if (!addressByChain) return;
-
-    void shareUrl(getViewAccountUrl(addressByChain, isTestnet));
+    openSettingsWithState({ state: SettingsState.Networks });
     onClose();
   });
 
@@ -128,32 +114,12 @@ function AddressMenu({
           onMenuClose={onClose}
         />
       ))}
-      <ShareButton onClick={handleShareClick} lang={lang} />
+      <NetworksButton onClick={handleNetworksClick} lang={lang} />
     </Menu>
   );
 }
 
-export default memo(
-  withGlobal<OwnProps>((global): StateProps => {
-    const account = selectCurrentAccount(global);
-    return {
-      byChain: account?.byChain,
-    };
-  })(AddressMenu),
-);
-
-function getAddressByChain(byChain: Account['byChain'] | undefined): Partial<Record<ApiChain, string>> | undefined {
-  if (!byChain) return undefined;
-
-  const orderedChains = getOrderedAccountChains(byChain);
-  return orderedChains.reduce((acc, chain) => {
-    const chainData = byChain[chain];
-    if (chainData) {
-      acc[chain] = chainData.address;
-    }
-    return acc;
-  }, {} as Partial<Record<ApiChain, string>>);
-}
+export default memo(AddressMenu);
 
 function MenuItem({
   item,
@@ -246,28 +212,22 @@ function MenuItem({
   );
 }
 
-function ShareButton({
+function NetworksButton({
   onClick,
   lang,
 }: {
   onClick: (e: React.MouseEvent) => void;
   lang: ReturnType<typeof useLang>;
 }) {
-  const shareIconClassName = buildClassName(
-    menuStyles.fontIcon,
-    menuStyles.fontIconBig,
-    'icon-link',
-  );
-
   return (
     <button
       type="button"
-      className={buildClassName(menuStyles.item, menuStyles.delimiter, styles.menuItem)}
+      className={buildClassName(menuStyles.item, styles.menuItem)}
       onClick={onClick}
     >
-      <i className={shareIconClassName} aria-hidden />
+      <i className={styles.networksMenuIcon} aria-hidden />
       <span className={buildClassName(menuStyles.itemName, styles.menuItemName)}>
-        {lang('Copy Wallet Link')}
+        {lang('Networks')}
       </span>
     </button>
   );

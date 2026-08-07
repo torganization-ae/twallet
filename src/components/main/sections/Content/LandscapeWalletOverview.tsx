@@ -27,7 +27,6 @@ import useCollectionOverviewMenu from './hooks/useCollectionOverviewMenu';
 import useNftCollectionMenuItems from './hooks/useNftCollectionMenuItems';
 
 import EdgeScrollButton from '../../../common/EdgeScrollButton';
-import LandscapeTopActions from '../Actions/LandscapeTopActions';
 import Activities from './Activities';
 import Assets from './Assets';
 import Nfts from './Nfts';
@@ -165,7 +164,6 @@ function LandscapeWalletOverview({
 
   return (
     <div className={buildClassName(styles.wrapper, 'custom-scroll', SCROLL_CONTAINER_CLASS)}>
-      <LandscapeTopActions />
       <div ref={rowContainerRef} className={styles.rowContainer}>
         <div
           ref={rowRef}

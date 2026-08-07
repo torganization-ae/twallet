@@ -70,7 +70,7 @@ async function withFlavor(
 // Identity/storage + brand + feature constants.
 const CONFIG_EXPECTATIONS: Record<Flavor, Record<string, string | boolean | number[]>> = {
   default: {
-    APP_NAME: 'Twallet',
+    APP_NAME: 'tWallet',
     IS_TON_BRAND: false,
     IS_MY_WALLET_BRAND: true,
     IS_FEATURE_LIMITED: false,
@@ -113,7 +113,7 @@ const CONFIG_EXPECTATIONS: Record<Flavor, Record<string, string | boolean | numb
     WINDOW_PROVIDER_PORT: 'TonWallet_popup_reversed',
   },
   twalletgram: {
-    APP_NAME: 'Twallet Gram',
+    APP_NAME: 'tWallet Gram',
     IS_TON_BRAND: false,
     IS_MY_WALLET_BRAND: false,
     IS_FEATURE_LIMITED: false,
@@ -135,7 +135,7 @@ const CONFIG_EXPECTATIONS: Record<Flavor, Record<string, string | boolean | numb
   },
   // The crux: Gram brand strings and the full feature set, over Core identity/storage strings.
   combo: {
-    APP_NAME: 'Twallet Gram',
+    APP_NAME: 'tWallet Gram',
     IS_TON_BRAND: false,
     IS_MY_WALLET_BRAND: false,
     IS_FEATURE_LIMITED: false,

@@ -1,5 +1,10 @@
 import type {
-  ApiChain, ApiNetwork, ApiStakingState, ApiToken, ApiTokenWithPrice,
+  ApiBuiltinChain,
+  ApiChain,
+  ApiNetwork,
+  ApiStakingState,
+  ApiToken,
+  ApiTokenWithPrice,
 } from '../api/types';
 import type { UserToken } from '../global/types';
 
@@ -19,7 +24,6 @@ import {
   ETH_USDT_MAINNET,
   HYPERLIQUID,
   HYPERLIQUID_USDC_MAINNET,
-  IS_CORE_WALLET,
   IS_TWALLETGRAM_WALLET,
   MONAD,
   MYCOIN_MAINNET,
@@ -37,7 +41,14 @@ import {
   TRC20_USDT_TESTNET,
   TRX,
 } from '../config';
+import { getHiddenChainsSnapshot } from '../api/chains/chainVisibility';
 import { EVM_DERIVATION_PATHS } from '../api/chains/evm/constants';
+import {
+  getSharedChainConfig,
+  getSharedDisplayOrder,
+  getSharedChainOrder,
+  isSharedChainDefaultEnabled,
+} from '../api/chains/networksConfig';
 import { SOLANA_DERIVATION_PATHS } from '../api/chains/solana/constants';
 import { TON_BIP39_PATH } from '../api/chains/ton/constants';
 import { TRON_BIP39_PATH } from '../api/chains/tron/constants';
@@ -163,41 +174,18 @@ export interface ChainConfig {
 }
 
 // Address-matching precedence order (NOT the display order — see `CHAIN_DISPLAY_ORDER` below).
+// Loaded from `shared/networks.json` — the single source of truth across Web/iOS/Android.
 // A pasted address is matched against chains in this order and the first match wins, so the chain with the more
 // specific address regex must come first: e.g. a TRON address also matches Solana's regex, so `tron` must precede
 // `solana`; and all EVM chains share the same regex, so the first EVM chain (`ethereum`) is the default match.
-export const CHAIN_ORDER: ApiChain[] = [
-  'ton',
-  'tron',
-  'solana',
-  'ethereum',
-  'base',
-  'bnb',
-  'polygon',
-  'arbitrum',
-  'monad',
-  'avalanche',
-  'hyperliquid',
-];
+export const CHAIN_ORDER: ApiBuiltinChain[] = getSharedChainOrder();
 
 // Display order for chains everywhere in the UI. Independent of `CHAIN_ORDER`,
 // which is constrained by address-matching correctness.
-// Must contain the same chains as `CHAIN_ORDER`.
-export const CHAIN_DISPLAY_ORDER: ApiChain[] = [
-  'ethereum',
-  'solana',
-  'hyperliquid',
-  'ton',
-  'tron',
-  'base',
-  'bnb',
-  'polygon',
-  'avalanche',
-  'arbitrum',
-  'monad',
-];
+// Must contain the same chains as `CHAIN_ORDER`. Loaded from `shared/networks.json`.
+export const CHAIN_DISPLAY_ORDER: ApiBuiltinChain[] = getSharedDisplayOrder();
 
-const CHAIN_CONFIG: Record<ApiChain, ChainConfig> = {
+const CHAIN_CONFIG: Record<ApiBuiltinChain, ChainConfig> = {
   ton: {
     title: 'TON',
     isDnsSupported: true,
@@ -909,13 +897,13 @@ export const VIEW_ACCOUNT_EVM_PARAM = 'evm';
 
 if (DEBUG) {
   const configKeys = new Set(Object.keys(CHAIN_CONFIG));
-  const supportedSet = new Set(CHAIN_ORDER);
+  const supportedSet = new Set<ApiChain>(CHAIN_ORDER);
   const missing = [...configKeys].filter((k) => !supportedSet.has(k as ApiChain));
   if (missing.length) {
     throw new Error(`SUPPORTED_CHAINS is missing chains from CHAIN_CONFIG: ${missing.join(', ')}`);
   }
 
-  const displaySet = new Set(CHAIN_DISPLAY_ORDER);
+  const displaySet = new Set<ApiChain>(CHAIN_DISPLAY_ORDER);
   const displayMissing = [...supportedSet].filter((k) => !displaySet.has(k));
   if (displayMissing.length || displaySet.size !== supportedSet.size) {
     throw new Error(`CHAIN_DISPLAY_ORDER must contain the same chains as CHAIN_ORDER: ${displayMissing.join(', ')}`);
@@ -923,9 +911,8 @@ if (DEBUG) {
 }
 
 export function getChainConfig(chain: ApiChain): ChainConfig {
-  // The `ApiChain` parameter type is statically narrow, but persisted storage can hold chain
-  // keys from older schemas, so guard here so callers see the chain name instead of an opaque
-  // `undefined.<prop>` further down the stack
+  // Persisted storage can hold chain keys from older schemas, so guard here so callers see the
+  // chain name instead of an opaque `undefined.<prop>` further down the stack.
   const config = CHAIN_CONFIG[chain];
   if (!config) {
     throw new Error(`Unsupported chain "${chain}" — not present in CHAIN_CONFIG`);
@@ -934,7 +921,8 @@ export function getChainConfig(chain: ApiChain): ChainConfig {
 }
 
 export function findChainConfig(chain: string | undefined): ChainConfig | undefined {
-  return chain ? CHAIN_CONFIG[chain as ApiChain] : undefined;
+  if (!chain) return undefined;
+  return CHAIN_CONFIG[chain as ApiBuiltinChain];
 }
 
 export function getAvailableExplorers(chain: ApiChain): ExplorerConfig[] {
@@ -975,12 +963,12 @@ export function getIsSupportedChain(chain?: string): chain is ApiChain {
   return !!findChainConfig(chain);
 }
 
-export function getSupportedChains() {
+export function getSupportedChains(): ApiChain[] {
   return CHAIN_ORDER;
 }
 
-/** All supported chains in the UI display order (see `CHAIN_DISPLAY_ORDER`) */
-export function getDisplayOrderedChains() {
+/** All built-in chains in the UI display order. */
+export function getDisplayOrderedChains(_network?: ApiNetwork): ApiChain[] {
   return CHAIN_DISPLAY_ORDER;
 }
 
@@ -992,9 +980,15 @@ export function getEvmChains() {
   return getChainsByStandard('ethereum');
 }
 
+export function getVisibleChains(chains: ApiChain[], network?: ApiNetwork): ApiChain[] {
+  if (!network) return chains;
+  const hiddenChains = getHiddenChainsSnapshot(network);
+  return chains.filter((chain) => findChainConfig(chain) && !hiddenChains.has(chain));
+}
+
 /** Returns the chains supported by the given account in the proper order for showing in the UI */
-export function getOrderedAccountChains(byChain: Partial<Record<ApiChain, unknown>>) {
-  return getDisplayOrderedChains().filter((chain) => chain in byChain);
+export function getOrderedAccountChains(byChain: Partial<Record<ApiChain, unknown>>, network?: ApiNetwork) {
+  return getVisibleChains(getDisplayOrderedChains(), network).filter((chain) => chain in byChain);
 }
 
 /**
@@ -1046,13 +1040,13 @@ export function getChainsWithBalance(tokens?: UserToken[], stakingStates?: ApiSt
 
 export function getChainsSupportingLedger(): ApiChain[] {
   return getSupportedChains()
-    .filter((chain) => CHAIN_CONFIG[chain].isLedgerSupported);
+    .filter((chain) => getChainConfig(chain).isLedgerSupported);
 }
 
 export const getChainsSupportingNft = /* #__PURE__ */ withCache((): ReadonlySet<ApiChain> => {
   return new Set(
     getSupportedChains()
-      .filter((chain) => CHAIN_CONFIG[chain].isNftSupported),
+      .filter((chain) => getChainConfig(chain).isNftSupported),
   );
 });
 
@@ -1067,17 +1061,18 @@ export const getTrustedUsdtSlugs = /* #__PURE__ */ withCache((): ReadonlySet<str
   );
 });
 
-export const getDefaultEnabledSlugs = /* #__PURE__ */ withCache((network: ApiNetwork): ReadonlySet<string> => {
-  // Deliberately keyed on the build, not on the feature axis: the TON-forward brands default to TON tokens even
-  // though they support every chain, matching Air (`ApiToken.defaultSlugs`). It also spares the wallet.ton.org
-  // accounts, whose TON-native mnemonic cannot derive foreign addresses, zero-balance rows they can never use:
-  // `updateBalances` (`global/reducers/misc.ts`) seeds every default slug and empty wallets render them all.
-  const chainConfigs = IS_CORE_WALLET ? [CHAIN_CONFIG.ton] : Object.values(CHAIN_CONFIG);
-
+export function getDefaultEnabledSlugs(network: ApiNetwork): ReadonlySet<string> {
+  // Driven by `shared/networks.json`: only chains with `defaultEnabled[network] === true` AND a non-empty
+  // `endpoints[network].rpc` contribute their default slugs. Zero-bloat: TON only on first run.
   return new Set(
-    chainConfigs.flatMap((chainConfig) => chainConfig.defaultEnabledSlugs[network]),
+    getDisplayOrderedChains(network)
+      .filter((chain) => isSharedChainDefaultEnabled(chain, network))
+      .flatMap((chain) => {
+        const shared = getSharedChainConfig(chain);
+        return shared?.defaultEnabledSlugs[network] ?? getChainConfig(chain).defaultEnabledSlugs[network];
+      }),
   );
-});
+}
 
 export const getSlugsSupportingCexSwap = /* #__PURE__ */ withCache((): ReadonlySet<string> => {
   return new Set(

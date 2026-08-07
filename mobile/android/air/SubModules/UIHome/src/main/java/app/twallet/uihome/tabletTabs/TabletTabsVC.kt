@@ -38,7 +38,7 @@ import app.twallet.air.walletcontext.models.MBlockchainNetwork
 import app.twallet.air.walletcontext.models.MWalletSettingsViewMode
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
-import app.twallet.air.walletcore.api.activateAccount
+import app.twallet.air.uipasscode.helpers.VaultAccountSwitch
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.uihome.R
@@ -366,13 +366,16 @@ class TabletTabsVC(context: Context) : BaseTabsVC(context), WThemedView,
     private fun onAccountSelected(account: MAccount) {
         if (account.accountId == AccountStore.activeAccountId)
             return
-        WalletCore.activateAccount(account.accountId, notifySDK = true) { res, _ ->
-            if (res != null) {
+        VaultAccountSwitch.activate(
+            context = context,
+            window = window,
+            account = account,
+            onActivated = {
                 WalletCore.notifyEvent(
                     WalletEvent.AccountChangedInApp(persistedAccountsModified = false)
                 )
             }
-        }
+        )
     }
 
     private fun selectTab(id: Int) {

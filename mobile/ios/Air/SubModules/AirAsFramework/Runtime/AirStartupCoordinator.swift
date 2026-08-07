@@ -137,5 +137,8 @@ final class AirStartupCoordinator {
         guard account != nil else { return }
         StartupTrace.mark("splashVM.activateAccount.success")
         StartupTrace.endInterval("splashVM.activateAccount", details: "result=success")
+        Task {
+            await AccountStore.syncVaultAccountsWithApi()
+        }
     }
 }

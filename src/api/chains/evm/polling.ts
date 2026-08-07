@@ -4,6 +4,7 @@ import type {
   ApiActivityTimestamps,
   ApiBalanceBySlug,
   ApiChain,
+  ApiEVMWallet,
   EVMChain,
   OnApiUpdate,
   OnUpdatingStatusChange,
@@ -11,6 +12,7 @@ import type {
 
 import { parseAccountId } from '../../../util/account';
 import { getActivityTokenSlugs } from '../../../util/activities';
+import { areDeepEqual } from '../../../util/areDeepEqual';
 import { getChainConfig, getSupportedChains } from '../../../util/chain';
 import { compact } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
@@ -23,14 +25,19 @@ import {
   activeNftTiming,
   activeWalletTiming,
   inactiveWalletTiming,
+  pollingLoop,
 } from '../../common/polling/utils';
 import { swapReplaceActivities } from '../../common/swap';
 import { sendUpdateTokens } from '../../common/tokens';
 import { txCallbacks } from '../../common/txCallbacks';
 import { BalanceStream } from '../../common/websocket/balanceStream';
 import { FIRST_TRANSACTIONS_LIMIT, MINUTE, SEC } from '../../constants';
+import { isEvmEnhancedApiEnabled } from '../rpcOverrides';
 import { getTokenActivitySlice } from './activities';
 import { fetchAccountAssets, fetchCrosschainAccountAssets, getIsWalletActive } from './wallet';
+
+/** Builtin EVM poll stagger so 8× eth_getBalance don't all fire on the same tick at launch. */
+const CUSTOM_BALANCE_STAGGER_MS = 400;
 
 const activeEvmWalletTiming = {
   ...activeWalletTiming,
@@ -50,12 +57,26 @@ export function setupActivePolling<C extends EVMChain>(
   onUpdatingStatusChange: OnUpdatingStatusChange,
   newestActivityTimestamps: ApiActivityTimestamps,
 ): NoneToVoidFunction {
-  const { address } = account.byChain[chain];
+  // The cast is needed because indexing `byChain` by a generic chain key loses the wallet type
+  const { address } = account.byChain[chain] as ApiEVMWallet;
+
+  if (!isEvmEnhancedApiEnabled(chain, parseAccountId(accountId).network)) {
+    return setupCustomBalancePolling(
+      chain,
+      accountId,
+      address,
+      true,
+      onUpdate,
+      onUpdatingStatusChange.bind(undefined, 'balance'),
+    ).stop;
+  }
+
   let markWalletActiveForBalancePolling: NoneToVoidFunction = () => {};
 
   const {
     scheduleCrossApiActivityCatchUp,
     cancelCrossApiActivityCatchUp,
+    didScheduleInitialCatchUp,
   } = setupActivityPolling(
     chain, accountId, newestActivityTimestamps, onUpdate,
     onUpdatingStatusChange.bind(undefined, 'activities'),
@@ -75,6 +96,7 @@ export function setupActivePolling<C extends EVMChain>(
     cancelCrossApiActivityCatchUp,
     onUpdate,
     onUpdatingStatusChange.bind(undefined, 'balance'),
+    didScheduleInitialCatchUp,
   );
   markWalletActiveForBalancePolling = balancePolling.markWalletActiveAndForcePoll;
 
@@ -96,6 +118,7 @@ function setupActivityPolling(
 ): {
     scheduleCrossApiActivityCatchUp: (source: 'socket' | 'poll') => void;
     cancelCrossApiActivityCatchUp: NoneToVoidFunction;
+    didScheduleInitialCatchUp: boolean;
   } {
   const initialTimestamps = compact(Object.values(newestActivityTimestamps));
   let newestConfirmedActivityTimestamp = initialTimestamps.length ? Math.max(...initialTimestamps) : undefined;
@@ -115,12 +138,17 @@ function setupActivityPolling(
         const result = await loadInitialActivities(chain, accountId, onUpdate);
         const timestamps = compact(Object.values(result));
 
-        newestConfirmedActivityTimestamp = timestamps.length ? Math.max(...timestamps) : undefined;
         if (timestamps.length) {
+          newestConfirmedActivityTimestamp = Math.max(...timestamps);
           onActivityDetected();
+          return true;
         }
 
-        return timestamps.length > 0;
+        // Empty wallet: stamp "now" so the next balance tick does incremental polls instead of
+        // repeating the full initial slice forever (undefined cursor = always initial).
+        newestConfirmedActivityTimestamp = Date.now();
+        lastEmptyTimestamp = newestConfirmedActivityTimestamp;
+        return false;
       } else {
         const result = await loadNewActivities(chain, accountId, newestConfirmedActivityTimestamp, onUpdate);
         const newTimestamps = compact(Object.values(result));
@@ -178,14 +206,22 @@ function setupActivityPolling(
     balanceCatchUpGeneration += 1;
   }
 
-  if (newestConfirmedActivityTimestamp === undefined) {
+  const didScheduleInitialCatchUp = newestConfirmedActivityTimestamp === undefined;
+  if (didScheduleInitialCatchUp) {
     scheduleCrossApiActivityCatchUp('poll');
   }
 
-  return {
+  const activityPolling: {
+    scheduleCrossApiActivityCatchUp: (source: 'socket' | 'poll') => void;
+    cancelCrossApiActivityCatchUp: NoneToVoidFunction;
+    didScheduleInitialCatchUp: boolean;
+  } = {
     scheduleCrossApiActivityCatchUp,
     cancelCrossApiActivityCatchUp,
+    didScheduleInitialCatchUp,
   };
+
+  return activityPolling;
 }
 
 function setupNftPolling(
@@ -248,6 +284,7 @@ function setupBalancePolling(
   cancelCrossApiActivityCatchUp: NoneToVoidFunction,
   onUpdate: OnApiUpdate,
   onUpdatingStatusChange?: (isUpdating: boolean) => void,
+  skipFirstPollActivityCatchUp?: boolean,
 ) {
   const { network } = parseAccountId(accountId);
   const checkIsWalletActive = async () => {
@@ -256,7 +293,7 @@ function setupBalancePolling(
 
   const balanceStream = new BalanceStream({
     chain,
-    wsClient: getAlchemySocket(network, chain),
+    wsClient: isEvmEnhancedApiEnabled(chain, network) ? getAlchemySocket(network, chain) : undefined,
     network,
     address,
     sendUpdateTokens: () => sendUpdateTokens(onUpdate),
@@ -267,6 +304,8 @@ function setupBalancePolling(
     loadingConcurrencyLimiter: undefined,
     ensureIsPollingNeeded: checkIsWalletActive,
   });
+
+  let lastEmittedBalances: ApiBalanceBySlug | undefined;
 
   balanceStream.onUpdate((balances, updateSource) => {
     const crosschainAssetsByChain = new Map<ApiChain, ApiBalanceBySlug>();
@@ -286,16 +325,26 @@ function setupBalancePolling(
       });
     }
 
-    for (const [assetChain, balances] of crosschainAssetsByChain.entries()) {
+    for (const [assetChain, chainBalances] of crosschainAssetsByChain.entries()) {
       onUpdate({
         type: 'updateBalances',
         accountId,
         chain: assetChain,
-        balances,
+        balances: chainBalances,
       });
     }
 
-    scheduleCrossApiActivityCatchUp(updateSource);
+    const isFirstPoll = lastEmittedBalances === undefined;
+    const balancesChanged = !areDeepEqual(balances, lastEmittedBalances);
+    lastEmittedBalances = balances;
+
+    // Socket always; poll only when balances changed. Skip the first poll catch-up when setup
+    // already ran the initial activity fetch (avoids an empty-wallet double-hit on launch).
+    if (updateSource === 'socket') {
+      scheduleCrossApiActivityCatchUp('socket');
+    } else if (balancesChanged && !(isFirstPoll && skipFirstPollActivityCatchUp)) {
+      scheduleCrossApiActivityCatchUp('poll');
+    }
   });
 
   if (onUpdatingStatusChange) {
@@ -314,13 +363,87 @@ function setupBalancePolling(
   };
 }
 
+function setupCustomBalancePolling(
+  chain: EVMChain,
+  accountId: string,
+  address: string,
+  isActive: boolean,
+  onUpdate: OnApiUpdate,
+  onUpdatingStatusChange?: (isUpdating: boolean) => void,
+) {
+  const { network } = parseAccountId(accountId);
+
+  if (isActive) {
+    onUpdate({
+      type: 'initialActivities',
+      chain,
+      accountId,
+      mainActivities: [],
+      mainHistoryHasMore: false,
+      bySlug: {},
+    });
+  }
+
+  const timing = isActive ? activeEvmWalletTiming : inactiveEvmWalletTiming;
+  // Spread first eth_getBalance across builtin EVM chains so launch doesn't DDoS publicnode.
+  const staggerIndex = Math.abs(
+    [...chain].reduce((acc, ch) => acc + ch.charCodeAt(0), 0),
+  ) % 8;
+  let lastBalances: ApiBalanceBySlug | undefined;
+  let didInitialPoll = false;
+
+  const loop = pollingLoop({
+    period: timing.pollingPeriod,
+    skipInitialPoll: !isActive,
+    async poll() {
+      if (isActive && !didInitialPoll && staggerIndex > 0) {
+        didInitialPoll = true;
+        await pause(staggerIndex * CUSTOM_BALANCE_STAGGER_MS);
+      } else {
+        didInitialPoll = true;
+      }
+
+      onUpdatingStatusChange?.(true);
+      try {
+        const balances = await fetchAccountAssets(
+          chain,
+          network,
+          address,
+          () => sendUpdateTokens(onUpdate),
+        );
+        if (areDeepEqual(balances, lastBalances)) {
+          return;
+        }
+        lastBalances = balances;
+        onUpdate({
+          type: 'updateBalances',
+          accountId,
+          chain,
+          balances,
+        });
+      } catch (err) {
+        logDebugError(`EVM:${chain} setupCustomBalancePolling`, err);
+      } finally {
+        onUpdatingStatusChange?.(false);
+      }
+    },
+  });
+
+  return loop;
+}
+
 export function setupInactivePolling<C extends EVMChain>(
   chain: C,
   accountId: string,
   account: ApiAccountWithChain<C>,
   onUpdate: OnApiUpdate,
 ): NoneToVoidFunction {
-  const { address } = account.byChain[chain];
+  // The cast is needed because indexing `byChain` by a generic chain key loses the wallet type
+  const { address } = account.byChain[chain] as ApiEVMWallet;
+
+  if (!isEvmEnhancedApiEnabled(chain, parseAccountId(accountId).network)) {
+    return setupCustomBalancePolling(chain, accountId, address, false, onUpdate).stop;
+  }
 
   const balancePolling = setupBalancePolling(
     chain,

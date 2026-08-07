@@ -4,6 +4,7 @@ import type { ApiSwapAsset, ApiToken } from '../../api/types';
 import type { UserSwapToken, UserToken } from '../../global/types';
 
 import buildClassName from '../../util/buildClassName';
+import { findChainConfig } from '../../util/chain';
 import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
 import { getIsNativeStakedToken, getIsNativeToken, getIsRwaStockToken } from '../../util/tokens';
 
@@ -14,6 +15,7 @@ import styles from './TokenIcon.module.scss';
 interface OwnProps {
   token: UserToken | UserSwapToken | ApiSwapAsset | ApiToken;
   withChainIcon?: boolean;
+  withChainColorRing?: boolean;
   size?: 'x-small' | 'small' | 'middle' | 'large' | 'x-large';
   className?: string;
   iconClassName?: string;
@@ -21,7 +23,7 @@ interface OwnProps {
 }
 
 function TokenIcon({
-  token, size, withChainIcon, className, iconClassName, children,
+  token, size, withChainIcon, withChainColorRing, className, iconClassName, children,
 }: OwnProps) {
   const { symbol, image, chain, slug } = token;
   const [isLoadingError, markLoadingError] = useFlag();
@@ -30,6 +32,9 @@ function TokenIcon({
   const shouldRenderImage = Boolean(image) && !isLoadingError;
   const shapeClassName = getIsRwaStockToken(token) ? styles.square : styles.circle;
   const iconFullClassName = buildClassName(styles.icon, size && styles[size], shapeClassName, iconClassName);
+  const chainColor = withChainColorRing && chain
+    ? findChainConfig(chain)?.displayColor
+    : undefined;
 
   function renderDefaultIcon() {
     return (
@@ -40,14 +45,17 @@ function TokenIcon({
   }
 
   return (
-    <div className={buildClassName(styles.wrapper, className)}>
+    <div
+      className={buildClassName(styles.wrapper, className)}
+      style={chainColor ? `--token-chain-ring: ${chainColor}` : undefined}
+    >
       {
         shouldRenderImage ? (
           <img
             key={image}
             src={image}
             alt={symbol}
-            className={iconFullClassName}
+            className={buildClassName(iconFullClassName, chainColor && styles.withChainRing)}
             draggable={false}
             onError={markLoadingError}
           />

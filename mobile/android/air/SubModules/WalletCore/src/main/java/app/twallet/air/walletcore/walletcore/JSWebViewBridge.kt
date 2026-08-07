@@ -161,9 +161,12 @@ class JSWebViewBridge(context: Context) : WebView(context) {
         val script = "if (!window.airBridge?.callApi) {\n" +
             "androidApp.callback(${thisCallIdentifier}, false, 'airBridge not working!');" +
             "} else {" +
+            // null args are converted to undefined, mirroring the iOS bridge: the JS SDK
+            // treats undefined as "argument not passed" (e.g. preserves a stored API key),
+            // while a literal null would overwrite it
             "   let call = window.airBridge.callApi('$methodName',...JSON.parse(${
                 JSONObject.quote(args)
-            }, window.airBridge.bigintReviver));" +
+            }, window.airBridge.bigintReviver).map((v) => v === null ? undefined : v));" +
             "   if (call?.then) {" +
             "       call.then((res) => {" +
             "           if (res?.error || res?.err) {" +

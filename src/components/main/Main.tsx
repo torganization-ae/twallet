@@ -54,6 +54,7 @@ import MainSkeleton from './MainSkeleton';
 import AccountSelectorModal from './modals/accountSelector/AccountSelectorModal';
 import {
   LandscapeNavBar,
+  LandscapeTopActions,
   LandscapeWalletList,
   PortraitActions,
 } from './sections/Actions';
@@ -263,6 +264,8 @@ function Main({
             tokenChartMode={tokenChartMode}
             onYieldClick={handleEarnClick}
           />
+
+          <LandscapeTopActions className={styles.landscapeActions} />
 
           <LandscapeNavBar />
           {/* Core is single-account, and its `Add Wallet` would be dead anyway: AccountSelectorModal is not rendered below. */}

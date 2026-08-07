@@ -104,6 +104,7 @@ function AccountsListView({
             title,
             byChain,
             type,
+            profile,
           }], index) => {
             const isCurrentAccount = accountId === currentAccountId;
             const balanceData = balancesByAccountId[accountId];
@@ -129,6 +130,7 @@ function AccountsListView({
                 accountId={accountId}
                 byChain={byChain}
                 accountType={type}
+                profile={profile}
                 isSelected={isCurrentAccount}
                 title={title}
                 balanceData={balanceData}

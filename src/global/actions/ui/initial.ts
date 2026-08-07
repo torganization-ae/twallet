@@ -29,6 +29,7 @@ import { initializeSounds } from '../../../util/notificationSound';
 import switchAnimationLevel from '../../../util/switchAnimationLevel';
 import switchTheme, { setStatusBarStyle } from '../../../util/switchTheme';
 import { initTelegramWithGlobal } from '../../../util/telegram';
+import { lockAllVaultAccounts } from '../../../util/vaultUnlock';
 import {
   getIsMobileTelegramApp,
   IS_ANDROID,
@@ -45,6 +46,7 @@ import {
 import { callApi } from '../../../api';
 import { errorCodeToMessage } from '../../helpers/errors';
 import { isErrorTransferResult } from '../../helpers/transfer';
+import { syncVaultAccountsFromGlobal } from '../../helpers/vault';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import {
   updateCurrentAccountId,
@@ -180,6 +182,7 @@ async function tryAutoImportTestMnemonic(actions: any) {
   nextGlobal = createAccountsFromGlobal(nextGlobal, true);
   nextGlobal = updateCurrentAccountId(nextGlobal, firstAccount.accountId);
   setGlobal(nextGlobal);
+  syncVaultAccountsFromGlobal(nextGlobal);
 
   actions.tryAddNotificationAccount({ accountId: firstAccount.accountId });
   actions.afterSignIn();
@@ -187,6 +190,7 @@ async function tryAutoImportTestMnemonic(actions: any) {
 
 addActionHandler('afterSignIn', (global, actions) => {
   setGlobal({ ...global, appState: AppState.Main });
+  syncVaultAccountsFromGlobal(global);
 
   setTimeout(() => {
     actions.resetAuth();
@@ -196,6 +200,8 @@ addActionHandler('afterSignIn', (global, actions) => {
 });
 
 addActionHandler('afterSignOut', (global, actions, payload) => {
+  lockAllVaultAccounts();
+
   if (payload?.shouldReset) {
     if (global.settings.authConfig?.kind === 'native-biometrics') {
       void authApi.removeNativeBiometrics();
@@ -287,6 +293,8 @@ addActionHandler('showError', (global, actions, { error } = {}) => {
   });
 });
 
+let nextToastId = 0;
+
 addActionHandler('showToast', (global, actions, payload) => {
   const newToasts: ToastType[] = [...global.toasts];
   const existingToastIndex = newToasts.findIndex((n) => n.message === payload.message);
@@ -294,7 +302,7 @@ addActionHandler('showToast', (global, actions, payload) => {
     newToasts.splice(existingToastIndex, 1);
   }
 
-  newToasts.push(payload);
+  newToasts.push({ ...payload, id: nextToastId++ } as ToastType);
 
   return {
     ...global,
@@ -302,14 +310,10 @@ addActionHandler('showToast', (global, actions, payload) => {
   };
 });
 
-addActionHandler('dismissToast', (global) => {
-  const newToasts = [...global.toasts];
-
-  newToasts.pop();
-
+addActionHandler('dismissToast', (global, actions, { id }) => {
   return {
     ...global,
-    toasts: newToasts,
+    toasts: global.toasts.filter((toast) => toast.id !== id),
   };
 });
 

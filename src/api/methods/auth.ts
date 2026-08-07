@@ -556,6 +556,7 @@ export async function importViewAccount(
     const errors: { error: string; chain: ApiChain }[] = [];
 
     await Promise.all(Object.entries(addressByChain).map(async ([_chain, address]) => {
+      if (!address) return;
       // TypeScript emits false notices, because it doesn't see relations between the key and value types in record
       // mapping. We lock the key type to one of the possible values to resolve the TS notices and have at least
       // some type checking.

@@ -22,6 +22,7 @@ struct SettingsItem: Equatable, Identifiable {
         case subwallets
         case connectedApps
         case language
+        case networks
         case security
         case walletVersions
         case tips
@@ -138,6 +139,16 @@ extension SettingsItem.Identifier {
                 icon: .airBundle("LanguageIcon"),
                 title: lang("Language"),
                 value: Language.current.nativeName,
+                hasPrimaryColor: false,
+                hasChild: true,
+                isDangerous: false
+            )
+        case .networks:
+            return SettingsItem(
+                id: self,
+                icon: .airBundle("NetworksIcon"),
+                title: lang("Networks"),
+                subtitle: lang("RPC and API endpoints"),
                 hasPrimaryColor: false,
                 hasChild: true,
                 isDangerous: false

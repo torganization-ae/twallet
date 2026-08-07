@@ -1,4 +1,5 @@
 import type { DefaultActivitiesUpdate, InMessageCallback } from '../../../common/websocket/abstractWsClient';
+import type { WalletWatcher } from '../../../common/websocket/abstractWsClient';
 import type { ApiNetwork, EVMChain } from '../../../types';
 import type {
   AlchemySocketClientMessage,
@@ -13,9 +14,9 @@ import type {
 
 import { logDebugError } from '../../../../util/logs';
 import safeExec from '../../../../util/safeExec';
-import withCache from '../../../../util/withCache';
 import { AbstractWebsocketClient } from '../../../common/websocket/abstractWsClient';
-import { EVM_RPC_URLS } from '../constants';
+import { isEvmEnhancedApiEnabled, onRpcOverrideChanged } from '../../rpcOverrides';
+import { getEvmEnhancedJsonRpcUrl } from '../constants';
 import { getErc20Balance, getWalletBalance } from '../wallet';
 
 type Subscription = {
@@ -403,7 +404,7 @@ function buildSubscribeMessage(sub: Subscription): AlchemySocketClientMessage {
 }
 
 function getSocketUrl(network: ApiNetwork, chain: EVMChain) {
-  const url = new URL(`${EVM_RPC_URLS[network](chain)}/v2`);
+  const url = new URL(getEvmEnhancedJsonRpcUrl(network, chain));
   url.protocol = 'wss:';
 
   return url;
@@ -419,9 +420,47 @@ function isSubscriptionMessage(message: AlchemySocketServerMessage): message is 
   return 'method' in message && message.method === 'eth_subscription';
 }
 
-/** Returns a singleton (one constant instance per network+chain combination) */
-export const getAlchemySocket = withCache((network: ApiNetwork, chain: EVMChain) => {
-  return new AlchemySocket(network, chain);
+/** Live Alchemy sockets, keyed by network_chain. Disabled stubs are not cached. */
+const alchemySocketCache = new Map<string, AlchemySocket>();
+
+function alchemySocketCacheKey(network: ApiNetwork, chain: EVMChain) {
+  return `${network}_${chain}`;
+}
+
+/**
+ * Returns a singleton AlchemySocket per network+chain when the enhanced API is configured.
+ * When disabled, returns a no-op stub so callers never open a WebSocket (no reconnect storm).
+ */
+export function getAlchemySocket(network: ApiNetwork, chain: EVMChain): AlchemySocket | DisabledAlchemySocket {
+  if (!isEvmEnhancedApiEnabled(chain, network)) {
+    return createDisabledAlchemySocket();
+  }
+
+  const key = alchemySocketCacheKey(network, chain);
+  const cached = alchemySocketCache.get(key);
+  if (cached) return cached;
+
+  const socket = new AlchemySocket(network, chain);
+  alchemySocketCache.set(key, socket);
+  return socket;
+}
+
+onRpcOverrideChanged((changedChain, network, field) => {
+  if (field !== 'api') return;
+  alchemySocketCache.delete(alchemySocketCacheKey(network, changedChain as EVMChain));
 });
 
-export type { AlchemySocket };
+type DisabledAlchemySocket = {
+  watchWallets: AlchemySocket['watchWallets'];
+};
+
+function createDisabledAlchemySocket(): DisabledAlchemySocket {
+  return {
+    watchWallets(): WalletWatcher {
+      return {
+        isConnected: false,
+        destroy() {},
+      };
+    },
+  };
+}

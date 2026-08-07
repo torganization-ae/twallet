@@ -46,6 +46,7 @@ class AccountItemView(
         val network: MBlockchainNetwork,
         val byChain: Map<String, AccountChain>,
         val accountType: MAccount.AccountType?,
+        val profile: String? = null,
     )
 
     private val iconView: AccountIconView by lazy {
@@ -113,15 +114,17 @@ class AccountItemView(
             label.text = accountData.title
             val style =
                 if (isTrusted) {
-                    when (accountData.accountType) {
-                        MAccount.AccountType.VIEW -> WMultichainAddressLabel.miniCardWalletViewStyle
-                        MAccount.AccountType.HARDWARE -> WMultichainAddressLabel.miniCardWalletHardwareStyle
+                    when {
+                        accountData.profile == "vault" -> WMultichainAddressLabel.miniCardWalletVaultStyle
+                        accountData.accountType == MAccount.AccountType.VIEW -> WMultichainAddressLabel.miniCardWalletViewStyle
+                        accountData.accountType == MAccount.AccountType.HARDWARE -> WMultichainAddressLabel.miniCardWalletHardwareStyle
                         else -> WMultichainAddressLabel.miniCardWalletStyle
                     }
                 } else {
-                    when (accountData.accountType) {
-                        MAccount.AccountType.VIEW -> WMultichainAddressLabel.cardRowWalletViewStyle
-                        MAccount.AccountType.HARDWARE -> WMultichainAddressLabel.cardRowWalletHardwareStyle
+                    when {
+                        accountData.profile == "vault" -> WMultichainAddressLabel.cardRowWalletVaultStyle
+                        accountData.accountType == MAccount.AccountType.VIEW -> WMultichainAddressLabel.cardRowWalletViewStyle
+                        accountData.accountType == MAccount.AccountType.HARDWARE -> WMultichainAddressLabel.cardRowWalletHardwareStyle
                         else -> WMultichainAddressLabel.cardRowWalletStyle
                     }
                 }

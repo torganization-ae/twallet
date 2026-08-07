@@ -318,7 +318,7 @@ export function removeActivities(
   localActivityIds = localActivityIds?.filter((id) => !ids.has(id));
 
   pendingActivityIds = pendingActivityIds
-    && mapValues(pendingActivityIds, (pendingIds) => pendingIds.filter((id) => !ids.has(id)));
+    && mapValues(pendingActivityIds, (pendingIds) => pendingIds?.filter((id) => !ids.has(id)) ?? []);
 
   return updateAccountState(global, accountId, {
     activities: {

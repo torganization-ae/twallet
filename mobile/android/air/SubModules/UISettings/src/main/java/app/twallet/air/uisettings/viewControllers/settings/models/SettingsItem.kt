@@ -21,6 +21,7 @@ data class SettingsItem(
         ASSETS_AND_ACTIVITY,
         CONNECTED_APPS,
         LANGUAGE,
+        NETWORKS,
         SECURITY,
         MFA,
         SUBWALLETS,

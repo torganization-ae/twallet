@@ -141,3 +141,7 @@
 
   @include mixins.squircleIcon();
 }
+
+.withChainRing {
+  box-shadow: 0 0 0 0.125rem var(--token-chain-ring, transparent);
+}

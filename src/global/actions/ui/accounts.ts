@@ -6,6 +6,7 @@ import { selectNetworkAccounts } from '../../selectors';
 addActionHandler('openAccountSelector', (global) => {
   global = updateAuth(global, {
     forceAddingTonOnlyAccount: undefined,
+    pendingAccountProfile: undefined,
     initialAddAccountState: undefined,
     shouldHideAddAccountBackButton: undefined,
   });
@@ -16,6 +17,7 @@ addActionHandler('openAccountSelector', (global) => {
 addActionHandler('closeAccountSelector', (global) => {
   global = updateAuth(global, {
     forceAddingTonOnlyAccount: undefined,
+    pendingAccountProfile: undefined,
     initialAddAccountState: undefined,
     shouldHideAddAccountBackButton: undefined,
   });

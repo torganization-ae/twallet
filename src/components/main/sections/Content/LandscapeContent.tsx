@@ -29,7 +29,6 @@ import useContentTabs from './hooks/useContentTabs';
 import BackHeader from '../../../common/BackHeader';
 import Transition from '../../../ui/Transition';
 import HideNftModal from '../../modals/HideNftModal';
-import LandscapeTopActions from '../Actions/LandscapeTopActions';
 import ContentSlide from './ContentSlide';
 import LandscapeWalletOverview from './LandscapeWalletOverview';
 import NftCollectionHeader from './NftCollectionHeader';
@@ -208,11 +207,8 @@ function LandscapeContent({
       );
     }
 
-    const isActivitySlide = tabs[currentKey - 1]?.id === ContentTab.Activity;
-
     return (
       <div className={styles.landscapeContentPanel}>
-        {isActivitySlide && <LandscapeTopActions className={styles.topActions} />}
         {renderHeader()}
         <div className={styles.slides}>
           <div className={buildClassName(styles.landscapeSlide, 'custom-scroll', 'landscape-content-scroll')}>

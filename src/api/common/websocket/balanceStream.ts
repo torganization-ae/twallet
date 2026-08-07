@@ -34,7 +34,8 @@ const crosschainAssetsByChain = new Map<ApiChain, ApiBalanceBySlug>();
 
 type BalanceStreamOptions = {
   chain: ApiChain;
-  wsClient: AbstractWebsocketClient<any, any, any, any, any>;
+  /** When omitted, balance updates come from HTTP polling only (no live websocket). */
+  wsClient?: Pick<AbstractWebsocketClient<any, any, any, any, any>, 'watchWallets'>;
   network: ApiNetwork;
   address: string;
   sendUpdateTokens: NoneToVoidFunction;
@@ -137,15 +138,20 @@ export class BalanceStream {
     this.#importUnknownTokens = importUnknownTokens;
     this.#ensureIsPollingNeeded = ensureIsPollingNeeded;
     this.#fallbackPollingOptions = fallbackPollingOptions;
-    this.#walletWatcher = wsClient.watchWallets(
-      [{ address, chain }],
-      {
-        onConnect: this.#handleSocketConnect,
-        onDisconnect: this.#handleSocketDisconnect,
-        onBalanceUpdate: throttleSocketBalanceUpdates(this.#handleSocketBalanceUpdate),
-        onTraceInvalidated: this.#handleTraceInvalidated,
-      },
-    );
+    this.#walletWatcher = wsClient
+      ? wsClient.watchWallets(
+        [{ address, chain }],
+        {
+          onConnect: this.#handleSocketConnect,
+          onDisconnect: this.#handleSocketDisconnect,
+          onBalanceUpdate: throttleSocketBalanceUpdates(this.#handleSocketBalanceUpdate),
+          onTraceInvalidated: this.#handleTraceInvalidated,
+        },
+      )
+      : {
+        isConnected: false,
+        destroy() {},
+      };
 
     if (!ensureIsPollingNeeded) {
       this.#walletStatus = 'active';

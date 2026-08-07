@@ -50,13 +50,13 @@ import { fetchVestings } from './vesting';
 import { fetchBalances, getWalletInfo, getWalletVersionInfos, isAddressInitialized } from './wallet';
 
 const POLL_DELAY_AFTER_SOCKET = 3 * SEC;
-const POLL_MIN_INTERVAL = { focused: 2 * SEC, notFocused: 10 * SEC };
+const POLL_MIN_INTERVAL = { focused: 10 * SEC, notFocused: 30 * SEC };
 const DOMAIN_INTERVAL = { focused: MINUTE, notFocused: 5 * MINUTE };
 const INITIALIZATION_INTERVAL = { focused: MINUTE, notFocused: 5 * MINUTE };
 const STAKING_INTERVAL = { focused: 30 * SEC, notFocused: 2 * MINUTE };
 const VERSIONS_INTERVAL = { focused: 5 * MINUTE, notFocused: 15 * MINUTE };
-const VESTING_INTERVAL = { focused: 10 * SEC, notFocused: MINUTE };
-const TON_DNS_INTERVAL = { focused: 15 * SEC, notFocused: 2 * MINUTE };
+const VESTING_INTERVAL = { focused: 30 * SEC, notFocused: 2 * MINUTE };
+const TON_DNS_INTERVAL = { focused: 30 * SEC, notFocused: 2 * MINUTE };
 
 const NFT_FULL_INTERVAL = { focused: MINUTE, notFocused: 5 * MINUTE };
 const DOUBLE_CHECK_NFT_PAUSE = 5 * SEC;

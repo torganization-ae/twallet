@@ -6,6 +6,7 @@ sealed class WordCheckMode {
         val isFirstWalletToAdd: Boolean,
         val isFirstPasscodeProtectedWallet: Boolean,
         // Used when adding new account (not first account!)
-        var passedPasscode: String?
+        var passedPasscode: String?,
+        val profile: String = "daily",
     ) : WordCheckMode()
 }

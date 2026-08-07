@@ -22,6 +22,7 @@ type OwnProps = {
   shouldHideBackButton?: boolean;
   onBack: NoneToVoidFunction;
   onNewAccountClick: NoneToVoidFunction;
+  onNewVaultAccountClick: NoneToVoidFunction;
   onNewSubwalletClick: NoneToVoidFunction;
   onImportAccountClick: NoneToVoidFunction;
   onImportHardwareWalletClick: NoneToVoidFunction;
@@ -39,6 +40,7 @@ function AddAccountSelector({
   shouldHideBackButton,
   onBack,
   onNewAccountClick,
+  onNewVaultAccountClick,
   onNewSubwalletClick,
   onImportAccountClick,
   onImportHardwareWalletClick,
@@ -59,10 +61,17 @@ function AddAccountSelector({
       <div className={buildClassName(styles.actionsSection, styles.actionsSectionShift)}>
         <ListItem
           icon="wallet-add"
-          label={lang('New Wallet')}
-          description={lang('From new secret words')}
+          label={lang('Daily Wallet')}
+          description={lang('Multi-chain everyday use')}
           isLoading={!isNewAccountImporting && isLoading}
           onClick={onNewAccountClick}
+        />
+        <ListItem
+          icon="lock"
+          label={lang('Vault Wallet')}
+          description={lang('TON-only cold storage with unlock')}
+          isLoading={!isNewAccountImporting && isLoading}
+          onClick={onNewVaultAccountClick}
         />
         {canAddSubwallet && (
           <ListItem

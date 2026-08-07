@@ -30,6 +30,9 @@ type TelegramAccount = {
 export async function createMfaRequest(
   opts: { walletAddress: string; payload: Buffer; signature: Buffer },
 ): Promise<MfaRequestCreated> {
+  if (!MFA_API_BASE_URL) {
+    throw new ApiServerError('MFA is not configured');
+  }
   const response = await fetch(`${MFA_API_BASE_URL}/transaction`, {
     method: 'POST',
     body: JSON.stringify({
@@ -46,6 +49,9 @@ export async function createMfaRequest(
 }
 
 export async function createInstallMfaRequest(opts: { walletAddress: string }): Promise<InstallRequestCreated> {
+  if (!MFA_API_BASE_URL) {
+    throw new ApiServerError('MFA is not configured');
+  }
   const response = await fetch(`${MFA_API_BASE_URL}/installRequest`, {
     method: 'POST',
     body: JSON.stringify({ ...opts }),
@@ -58,12 +64,18 @@ export async function createInstallMfaRequest(opts: { walletAddress: string }): 
 }
 
 export async function getMfaRequest(opts: { hash: string }): Promise<MfaRequest> {
+  if (!MFA_API_BASE_URL) {
+    throw new ApiServerError('MFA is not configured');
+  }
   const response = await fetch(`${MFA_API_BASE_URL}/transaction/${opts.hash}`);
 
   return await response.json();
 };
 
 export async function getInstallMfaRequest({ reqId }: { reqId: string }): Promise<InstallMfaRequest> {
+  if (!MFA_API_BASE_URL) {
+    throw new ApiServerError('MFA is not configured');
+  }
   const response = await fetch(`${MFA_API_BASE_URL}/installRequest/${reqId}`);
 
   return await response.json();
@@ -73,6 +85,9 @@ export async function getTelegramAccount(opts: {
   walletAddress: string;
   authToken: string;
 }): Promise<TelegramAccount | undefined> {
+  if (!MFA_API_BASE_URL) {
+    throw new ApiServerError('MFA is not configured');
+  }
   const url = new URL(`${MFA_API_BASE_URL}/telegramAccount`);
   url.searchParams.set('walletAddress', opts.walletAddress);
 
@@ -104,6 +119,9 @@ export async function upsertTelegramAccount(opts: {
   user: TelegramAccount['user'];
   authToken: string;
 }): Promise<void> {
+  if (!MFA_API_BASE_URL) {
+    throw new ApiServerError('MFA is not configured');
+  }
   await fetch(`${MFA_API_BASE_URL}/telegramAccount`, {
     method: 'PUT',
     body: JSON.stringify({

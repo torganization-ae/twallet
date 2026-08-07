@@ -56,6 +56,10 @@ public struct AccountListCell: View {
                                 .allowsTightening(true)
                                 .foregroundStyle(Color.air.primaryLabel)
                                 .layoutPriority(1)
+                            if accountContext.account.isVault {
+                                AccountTypeBadge(account: accountContext.account)
+                                    .foregroundStyle(Color.air.secondaryLabel)
+                            }
                         }
                         .frame(height: Self.topRowHeight)
                         ListAddressLine(addressLine: accountContext.addressLine, suffix: addressLineSuffix)

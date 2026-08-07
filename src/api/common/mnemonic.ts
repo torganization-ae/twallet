@@ -28,7 +28,7 @@ export function validateBip39Mnemonic(mnemonic: string[]) {
   return bip39.validateMnemonic(mnemonic.join(' '));
 }
 
-export async function tryMigratingMnemonicEncryption(accountId: string, mnemonic: string[], password: string) {
+async function tryMigratingMnemonicEncryption(accountId: string, mnemonic: string[], password: string) {
   const sensitiveData = [password, ...mnemonic];
 
   try {
@@ -53,6 +53,11 @@ export async function tryMigratingMnemonicEncryption(accountId: string, mnemonic
 
 export async function encryptMnemonic(mnemonic: string[], password: string) {
   const plaintext = mnemonic.join(',');
+  return encryptSecret(plaintext, password);
+}
+
+/** Encrypt an arbitrary secret string with the same password-derived AES-GCM scheme as mnemonics. */
+export async function encryptSecret(plaintext: string, password: string) {
   const salt = crypto.getRandomValues(new Uint8Array(16)); // generate a 128-bit salt
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -85,6 +90,12 @@ export async function decryptMnemonic(encrypted: string, password: string) {
     return decryptMnemonicLegacy(encrypted, password);
   }
 
+  const plaintext = await decryptSecret(encrypted, password);
+  return plaintext.split(',');
+}
+
+/** Decrypt a secret previously encrypted with `encryptSecret` / `encryptMnemonic`. */
+export async function decryptSecret(encrypted: string, password: string) {
   const [saltHex, ivHex, encryptedData] = encrypted.split(':');
   const salt = new Uint8Array(saltHex.match(/.{2}/g)!.map((b) => parseInt(b, 16)));
   const iv = new Uint8Array(ivHex.match(/.{2}/g)!.map((b) => parseInt(b, 16)));
@@ -103,9 +114,7 @@ export async function decryptMnemonic(encrypted: string, password: string) {
   const ctStr = atob(encryptedData); // decode base64 ciphertext
   const ctUint8 = new Uint8Array(ctStr.match(/[\s\S]/g)!.map((ch) => ch.charCodeAt(0))); // ciphertext as Uint8Array
   const plainBuffer = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ctUint8); // decrypt ciphertext using key
-  const plaintext = new TextDecoder().decode(plainBuffer); // decode password from UTF-8
-
-  return plaintext.split(',');
+  return new TextDecoder().decode(plainBuffer);
 }
 
 async function decryptMnemonicLegacy(encrypted: string, password: string) {

@@ -13,10 +13,10 @@ import {
 import { base64ToHex } from './base64toHex';
 import {
   getAvailableExplorers,
+  getDisplayOrderedChains,
   getEvmChains,
   getExplorer,
   getMarketplace,
-  getSupportedChains,
   VIEW_ACCOUNT_EVM_PARAM,
 } from './chain';
 import { logDebugError } from './logs';
@@ -287,6 +287,7 @@ export function getViewAccountUrl(addressByChain: Partial<Record<ApiChain, strin
   let isEvmAdded = false;
 
   Object.entries(addressByChain).forEach(([chain, address]) => {
+    if (!address) return;
     if (evmAddress && evmChains.has(chain as ApiChain)) {
       if (!isEvmAdded) {
         params.append(VIEW_ACCOUNT_EVM_PARAM, evmAddress);
@@ -321,7 +322,7 @@ export function getViewNftUrl(nftAddress: string, isTestnet?: boolean): string {
 export function getExplorerByUrl(url: string): { chain: ApiChain; explorerId: string } | undefined {
   const hostname = getHostnameFromUrl(url);
 
-  for (const chain of getSupportedChains()) {
+  for (const chain of getDisplayOrderedChains()) {
     const explorers = getAvailableExplorers(chain);
 
     for (const explorer of explorers) {

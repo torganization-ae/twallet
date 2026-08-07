@@ -1,5 +1,5 @@
 import type { RefObject } from 'react';
-import React, { memo, useLayoutEffect, useRef } from '../../lib/teact/teact';
+import React, { memo, useLayoutEffect, useRef, useState } from '../../lib/teact/teact';
 import { withGlobal } from '../../global';
 
 import type { Theme } from '../../global/types';
@@ -29,6 +29,9 @@ interface OwnProps {
   cellSize: number;
   skin?: SensitiveDataMaskSkin;
   className?: string;
+  // When enabled, cols/rows are derived from the real element bounds on every resize,
+  //  so the grid always covers the component exactly
+  isAdaptive?: boolean;
 }
 
 interface StateProps {
@@ -81,6 +84,7 @@ function SensitiveDataMask({
   cellSize,
   skin,
   className,
+  isAdaptive,
   theme,
 }: OwnProps & StateProps) {
   let canvasRef = useRef<HTMLCanvasElement>();
@@ -89,6 +93,29 @@ function SensitiveDataMask({
   }
 
   const cellSizeDpr = cellSize * DPR;
+  const [adaptiveSize, setAdaptiveSize] = useState<{ width: number; height: number }>();
+
+  useLayoutEffect(() => {
+    if (!isAdaptive) return undefined;
+
+    const canvas = canvasRef.current!;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setAdaptiveSize((prev) => (
+        prev && prev.width === width && prev.height === height ? prev : { width, height }
+      ));
+    });
+    observer.observe(canvas);
+
+    return () => observer.disconnect();
+  }, [isAdaptive]);
+
+  const resolvedCols = isAdaptive && cellSize > 0
+    ? Math.max(0, Math.ceil((adaptiveSize?.width ?? 0) / cellSize))
+    : cols;
+  const resolvedRows = isAdaptive && cellSize > 0
+    ? Math.max(0, Math.ceil((adaptiveSize?.height ?? 0) / cellSize))
+    : rows;
 
   const appTheme = useAppTheme(theme);
   const color = SKIN_COLORS[skin ?? `${appTheme}Theme`];
@@ -114,8 +141,16 @@ function SensitiveDataMask({
 
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext('2d')!;
-    const width = cols * cellSizeDpr;
-    const height = rows * cellSizeDpr;
+    // In adaptive mode the backing store matches the real element bounds, so edge cells
+    //  are clipped by the bitmap bounds exactly at the component edge
+    const width = isAdaptive
+      ? Math.round((adaptiveSize?.width ?? 0) * DPR)
+      : resolvedCols * cellSizeDpr;
+    const height = isAdaptive
+      ? Math.round((adaptiveSize?.height ?? 0) * DPR)
+      : resolvedRows * cellSizeDpr;
+
+    if (width <= 0 || height <= 0 || resolvedCols <= 0 || resolvedRows <= 0) return undefined;
 
     let shouldStop = false;
     let lastFrameAt: number | undefined;
@@ -125,7 +160,7 @@ function SensitiveDataMask({
 
     state.lastSpeedChangeAt = undefined;
 
-    const renderOptions = { ctx, cols, rows, width, height, cellSizeDpr, color };
+    const renderOptions = { ctx, cols: resolvedCols, rows: resolvedRows, width, height, cellSizeDpr, color };
 
     animateInstantly(() => {
       if (shouldStop || (state.isRendered && !getShouldAnimate())) return false;
@@ -141,12 +176,14 @@ function SensitiveDataMask({
     return () => {
       shouldStop = true;
     };
-  }, [cols, rows, cellSizeDpr, getShouldAnimate, color]);
+  }, [resolvedCols, resolvedRows, isAdaptive, adaptiveSize, cellSizeDpr, getShouldAnimate, color]);
 
   return (
     <canvas
       ref={canvasRef}
-      style={`width: ${cellSize * cols}px; height: ${cellSize * rows}px`}
+      style={isAdaptive
+        ? 'width: 100%; height: 100%'
+        : `width: ${cellSize * cols}px; height: ${cellSize * rows}px`}
       className={buildClassName(styles.canvas, className)}
     />
   );

@@ -202,7 +202,7 @@ private let MYCOIN_MAINNET_IMAGE = "https://mytonwallet.io/logo-256-blue.png"
 private let MYCOIN_TESTNET_SLUG = "ton-kqawlxpebw"
 private let MYCOIN_TESTNET_ADDRESS = "kQAWlxpEbwhCDFX9gp824ee2xVBhAh5VRSGWfbNFDddAbQoQ"
 
-private let TON_USDT_MAINNET_IMAGE = "https://imgproxy.mytonwallet.org/imgproxy/T3PB4s7oprNVaJkwqbGg54nexKE0zzKhcrPv8jcWYzU/rs:fill:200:200:1/g:no/aHR0cHM6Ly90ZXRoZXIudG8vaW1hZ2VzL2xvZ29DaXJjbGUucG5n.webp"
+private let TON_USDT_MAINNET_IMAGE = "https://tether.to/images/logoCircle.png"
 private let TRON_USDT_MAINNET_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
 
 private extension ApiToken {

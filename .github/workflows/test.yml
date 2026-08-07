@@ -25,7 +25,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Test
+      - name: Check
         run: |
           npm run i18n:build:default
+          npm run check
+
+      - name: Test
+        run: |
           npm test

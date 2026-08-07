@@ -134,7 +134,7 @@ export default class WatchFilePlugin {
         if (rule.sharedAction && now - lastChangeTime < WATCHER_DEBOUNCE) return;
         lastChangeTime = now;
 
-        this.runAction(rule, file);
+        void this.runAction(rule, file);
       };
 
       watcher.on('change', run)
@@ -147,7 +147,7 @@ export default class WatchFilePlugin {
   private async runAction(rule: WatchRule, file: string, isSync?: boolean) {
     this.logger?.info(`${file} changed, running ${rule.name ? `"${rule.name}"` : 'action'}`);
 
-    if (!this.ignoreCycles) this.checkForCycles(file);
+    if (!this.ignoreCycles) void this.checkForCycles(file);
 
     try {
       if (typeof rule.action === 'string') {

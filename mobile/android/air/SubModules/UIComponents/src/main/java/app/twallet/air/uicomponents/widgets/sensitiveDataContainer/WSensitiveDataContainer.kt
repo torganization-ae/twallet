@@ -37,8 +37,16 @@ class WSensitiveDataContainer<V : View>(
         // `protectContentLayoutSize` is used to hide real content size, from the view hierarchy.
         //  may cause ui glitches if the content size is not correct in the first frame,
         //  so pass it false unless it's necessary; to prevent any issues or un-necessary processes.
-        val protectContentLayoutSize: Boolean = true
+        val protectContentLayoutSize: Boolean = true,
+        // `adaptiveGrid` makes the mask track the real content bounds instead of the fixed
+        //  cols/rows grid, so it never under-covers or overflows the component.
+        //  `protectContentLayoutSize` is ignored in this mode.
+        val adaptiveGrid: Boolean = false
     )
+
+    // Adaptive grid tracks the real content bounds, so there is no layout size left to protect.
+    private val shouldProtectContentLayoutSize =
+        maskConfig.protectContentLayoutSize && !maskConfig.adaptiveGrid
 
     val maskView = SensitiveDataMaskView(context).apply {
         cols = maskConfig.cols
@@ -46,6 +54,7 @@ class WSensitiveDataContainer<V : View>(
         cellSize = maskConfig.cellSize
         cornerRadius = maskConfig.cornerRadius.toFloat()
         skin = maskConfig.skin
+        isAdaptive = maskConfig.adaptiveGrid
         initMask()
         setOnClickListener {
             if (WGlobalStorage.getIsSensitiveDataProtectionOn())
@@ -61,10 +70,16 @@ class WSensitiveDataContainer<V : View>(
         addView(contentView, LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
             gravity = maskConfig.gravity
         })
-        addView(maskView, LayoutParams(WRAP_CONTENT, MATCH_PARENT).apply {
-            gravity = maskConfig.gravity
-            marginEnd = maskConfig.endMargin
-        })
+        addView(
+            maskView,
+            LayoutParams(
+                if (maskConfig.adaptiveGrid) MATCH_PARENT else WRAP_CONTENT,
+                MATCH_PARENT
+            ).apply {
+                gravity = maskConfig.gravity
+                marginEnd = maskConfig.endMargin
+            }
+        )
 
         maskView.visibility = GONE
         if (isSensitiveData && WGlobalStorage.getIsSensitiveDataProtectionOn()) {
@@ -75,7 +90,7 @@ class WSensitiveDataContainer<V : View>(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        if (maskConfig.protectContentLayoutSize && WGlobalStorage.getIsSensitiveDataProtectionOn()) {
+        if (shouldProtectContentLayoutSize && WGlobalStorage.getIsSensitiveDataProtectionOn()) {
             contentView.post {
                 updateProtectedView(false)
             }
@@ -92,7 +107,7 @@ class WSensitiveDataContainer<V : View>(
         if (isSensitiveData && WGlobalStorage.getIsSensitiveDataProtectionOn()) {
             if (maskState == MaskState.SHOWING || maskState == MaskState.ANIMATING_IN)
                 return
-            if (maskConfig.protectContentLayoutSize && (layoutParams == null || contentView.height == 0)) {
+            if (shouldProtectContentLayoutSize && (layoutParams == null || contentView.height == 0)) {
                 // View is not attached to the window yet, wait...
                 return
             }
@@ -129,7 +144,7 @@ class WSensitiveDataContainer<V : View>(
             if (maskState == MaskState.HIDDEN || maskState == MaskState.ANIMATING_OUT)
                 return
             maskState = if (animated) MaskState.ANIMATING_OUT else MaskState.HIDDEN
-            if (maskConfig.protectContentLayoutSize)
+            if (shouldProtectContentLayoutSize)
                 layoutParams = layoutParams.apply {
                     width = WRAP_CONTENT
                     height = WRAP_CONTENT
@@ -166,7 +181,7 @@ class WSensitiveDataContainer<V : View>(
         val changed = maskView.initMask()
         if (!changed)
             return
-        if (maskConfig.protectContentLayoutSize)
+        if (shouldProtectContentLayoutSize)
             setMaskedLayoutParams()
         requestLayout()
     }
@@ -184,7 +199,7 @@ class WSensitiveDataContainer<V : View>(
     }
 
     private fun hideContent() {
-        if (maskConfig.protectContentLayoutSize) {
+        if (shouldProtectContentLayoutSize) {
             setMaskedLayoutParams()
             contentView.visibility = GONE
         } else {

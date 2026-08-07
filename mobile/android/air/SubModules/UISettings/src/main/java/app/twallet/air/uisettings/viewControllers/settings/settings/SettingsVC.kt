@@ -31,6 +31,7 @@ import app.twallet.air.uicomponents.widgets.WProtectedView
 import app.twallet.air.uicomponents.widgets.WRecyclerView
 import app.twallet.air.uicomponents.widgets.menu.WMenuPopup
 import app.twallet.air.uiinappbrowser.InAppBrowserVC
+import app.twallet.air.uipasscode.helpers.VaultAccountSwitch
 import app.twallet.air.uipasscode.viewControllers.passcodeConfirm.PasscodeConfirmVC
 import app.twallet.air.uipasscode.viewControllers.passcodeConfirm.PasscodeViewState.Default
 import app.twallet.air.uiportfolio.viewControllers.portfolio.PortfolioVC
@@ -41,6 +42,7 @@ import app.twallet.air.uisettings.viewControllers.assetsAndActivities.AssetsAndA
 import app.twallet.air.uisettings.viewControllers.connectedApps.ConnectedAppsVC
 import app.twallet.air.uisettings.viewControllers.debugMenu.DebugMenuVC
 import app.twallet.air.uisettings.viewControllers.language.LanguageVC
+import app.twallet.air.uisettings.viewControllers.networks.NetworksVC
 import app.twallet.air.uisettings.viewControllers.notificationSettings.NotificationSettingsVC
 import app.twallet.air.uisettings.viewControllers.security.SecurityVC
 import app.twallet.air.uisettings.viewControllers.settings.cells.ISettingsItemCell
@@ -72,7 +74,6 @@ import app.twallet.air.walletcontext.utils.IndexPath
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.WalletEvent.AccountChangedInApp
-import app.twallet.air.walletcore.api.activateAccount
 import app.twallet.air.walletcore.models.InAppBrowserConfig
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
@@ -424,29 +425,29 @@ class SettingsVC(context: Context) : WViewController(context),
             }
 
             SettingsItem.Identifier.ACCOUNT -> {
-                val newAccountId = item.account?.accountId ?: return
-                WalletCore.activateAccount(
-                    newAccountId,
-                    notifySDK = true
-                ) { res, err ->
-                    if (res == null || err != null) {
-                        // Should not happen!
-                        Logger.e(
-                            Logger.LogTag.ACCOUNT,
-                            Builder()
-                                .append(
-                                    "activateAccount: Failed in settings err=$err",
-                                    LogMessage.MessagePartPrivacy.PUBLIC
-                                ).build()
-                        )
-                    } else {
+                val account = item.account ?: return
+                VaultAccountSwitch.activate(
+                    context = context,
+                    window = window,
+                    account = account,
+                    onActivated = {
                         WalletCore.notifyEvent(
                             AccountChangedInApp(
                                 persistedAccountsModified = false
                             )
                         )
+                    },
+                    onFailed = {
+                        Logger.e(
+                            Logger.LogTag.ACCOUNT,
+                            Builder()
+                                .append(
+                                    "activateAccount: Failed in settings",
+                                    LogMessage.MessagePartPrivacy.PUBLIC
+                                ).build()
+                        )
                     }
-                }
+                )
             }
 
             SettingsItem.Identifier.SHOW_ALL_WALLETS -> {
@@ -490,6 +491,12 @@ class SettingsVC(context: Context) : WViewController(context),
             SettingsItem.Identifier.LANGUAGE -> {
                 navigationController?.tabBarController?.mainNavigationController?.push(
                     LanguageVC(context)
+                )
+            }
+
+            SettingsItem.Identifier.NETWORKS -> {
+                navigationController?.tabBarController?.mainNavigationController?.push(
+                    NetworksVC(context)
                 )
             }
 

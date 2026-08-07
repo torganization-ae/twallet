@@ -12,10 +12,12 @@ export type Period = number | {
 
 export const activeWalletTiming: FallbackPollingOptions = {
   pollOnStart: true,
-  minPollDelay: { focused: SEC, notFocused: 3 * SEC },
-  pollingStartDelay: 3 * SEC,
-  pollingPeriod: { focused: 3 * SEC, notFocused: 10 * SEC },
-  forcedPollingPeriod: { focused: MINUTE, notFocused: 2 * MINUTE },
+  minPollDelay: { focused: 5 * SEC, notFocused: 15 * SEC },
+  pollingStartDelay: 5 * SEC,
+  // Public providers (toncenter without key, publicnode, …) rate-limit hard.
+  // 3s was fine behind our keyed proxy; on public endpoints it DDoSes and gets 429s.
+  pollingPeriod: { focused: 30 * SEC, notFocused: MINUTE },
+  forcedPollingPeriod: { focused: 2 * MINUTE, notFocused: 5 * MINUTE },
 };
 
 export const inactiveWalletTiming: FallbackPollingOptions = {

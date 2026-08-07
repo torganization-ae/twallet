@@ -1,23 +1,40 @@
-import {
-  SOLANA_MAINNET_API_KEY,
-  SOLANA_MAINNET_API_URL,
-  SOLANA_MAINNET_RPC_URL,
-  SOLANA_TESTNET_API_KEY,
-  SOLANA_TESTNET_API_URL,
-  SOLANA_TESTNET_RPC_URL,
-} from '../../../config';
+import { getEffectiveApiApiKey, getEffectiveApiUrl, getEffectiveRpcApiKey, getEffectiveRpcUrl } from '../rpcOverrides';
 
-const mainnetQueryString = SOLANA_MAINNET_API_KEY ? `?api-key=${SOLANA_MAINNET_API_KEY}` : '';
-const testnetQueryString = SOLANA_TESTNET_RPC_URL ? `?api-key=${SOLANA_TESTNET_API_KEY}` : '';
+function buildQueryString(
+  network: 'mainnet' | 'testnet',
+  field: 'rpc' | 'api',
+) {
+  const apiKey = field === 'rpc'
+    ? getEffectiveRpcApiKey('solana', network)
+    : getEffectiveApiApiKey('solana', network);
+  return apiKey ? `?api-key=${apiKey}` : '';
+}
 
 export const NETWORK_CONFIG = {
-  mainnet: {
-    rpcUrl: `${SOLANA_MAINNET_RPC_URL}/${mainnetQueryString}`,
-    getApiUrl: (path: string) => `${SOLANA_MAINNET_API_URL}${path}${mainnetQueryString}`,
+  get mainnet() {
+    const rpcQuery = buildQueryString('mainnet', 'rpc');
+    const apiQuery = buildQueryString('mainnet', 'api');
+    const rpcBase = getEffectiveRpcUrl('solana', 'mainnet').replace(/\/$/, '');
+    const apiBase = getEffectiveApiUrl('solana', 'mainnet').replace(/\/$/, '');
+    return {
+      // Keep historical `${rpc}/` + query shape used by consumers.
+      rpcUrl: `${rpcBase}/${rpcQuery}`,
+      // Empty string when indexer is disabled — never synthesize "/" or relative
+      // `/v0/...` URLs (those hit the webpack origin and flood Network with 404s).
+      apiUrl: apiBase ? `${apiBase}/${apiQuery}` : '',
+      getApiUrl: (path: string) => (apiBase ? `${apiBase}${path}${apiQuery}` : ''),
+    };
   },
-  testnet: {
-    rpcUrl: `${SOLANA_TESTNET_RPC_URL}/${testnetQueryString}`,
-    getApiUrl: (path: string) => `${SOLANA_TESTNET_API_URL}${path}${testnetQueryString}`,
+  get testnet() {
+    const rpcQuery = buildQueryString('testnet', 'rpc');
+    const apiQuery = buildQueryString('testnet', 'api');
+    const rpcBase = getEffectiveRpcUrl('solana', 'testnet').replace(/\/$/, '');
+    const apiBase = getEffectiveApiUrl('solana', 'testnet').replace(/\/$/, '');
+    return {
+      rpcUrl: `${rpcBase}/${rpcQuery}`,
+      apiUrl: apiBase ? `${apiBase}/${apiQuery}` : '',
+      getApiUrl: (path: string) => (apiBase ? `${apiBase}${path}${apiQuery}` : ''),
+    };
   },
 };
 

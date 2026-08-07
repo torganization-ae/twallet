@@ -17,7 +17,7 @@ sealed class SDKApiMethod<T> {
     }
 
     enum class Service(val baseUrl: String) {
-        MyTonWallet("https://api.mytonwallet.org/")
+        TonApi("https://tonapi.io/")
     }
 
     abstract val service: Service
@@ -32,8 +32,8 @@ sealed class SDKApiMethod<T> {
                 val rates: Map<String, Double>
             )
 
-            override val service = Service.MyTonWallet
-            override val path = "currency-rates"
+            override val service = Service.TonApi
+            override val path = "v2/rates?tokens=ton&currencies=usd,eur,rub,cny"
             override val method = NetworkUtils.Method.GET
             override val responseType: Type = CurrencyRates::class.java
         }
@@ -45,8 +45,9 @@ sealed class SDKApiMethod<T> {
             period: String,
             baseCurrency: String
         ) : SDKApiMethod<Array<Array<Double>>>() {
-            override val service = Service.MyTonWallet
-            override val path = "prices/chart/${assetId}?period=$period&base=$baseCurrency"
+            override val service = Service.TonApi
+            override val path =
+                "v2/rates/chart?token=${assetId}&currency=${baseCurrency.lowercase()}&points_count=100"
             override val method = NetworkUtils.Method.GET
             override val responseType: Type = Array<Array<Double>>::class.java
         }

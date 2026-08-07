@@ -1527,7 +1527,8 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
       const { network } = parseAccountId(accountId);
       const provider = getEvmProvider(network, message.chain as EVMChain);
       const params = Array.isArray(message.params) ? message.params : [];
-      const result = await provider.send(message.method, params);
+      const result = await (provider as { send(method: string, params: unknown[]): Promise<unknown> })
+        .send(message.method, params);
       return { success: true, result };
     } catch (err) {
       logDebugError('walletConnect:proxyEvmRpc', err);

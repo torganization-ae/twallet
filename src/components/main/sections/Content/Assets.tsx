@@ -334,6 +334,7 @@ function Assets({
           isActive={token.slug === currentTokenSlug}
           baseCurrency={baseCurrency}
           withChainIcon={isMultichainAccount}
+          withChainColorRing={isMultichainAccount}
           appTheme={appTheme}
           isSensitiveDataHidden={isSensitiveDataHidden}
           withContextMenu

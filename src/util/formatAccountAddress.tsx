@@ -1,11 +1,16 @@
 import type { TeactNode } from '../lib/teact/teact';
 import React from '../lib/teact/teact';
 
-import type { ApiChain, ApiStakingState } from '../api/types';
+import type { ApiChain, ApiNetwork, ApiStakingState } from '../api/types';
 import type { Account, UserToken } from '../global/types';
 
 import { IS_TWALLETGRAM_WALLET } from '../config';
-import { getAddressLineChains, getChainsWithBalance, getOrderedAccountChains } from './chain';
+import {
+  getAddressLineChains,
+  getChainsWithBalance,
+  getOrderedAccountChains,
+  getVisibleChains,
+} from './chain';
 import { pick } from './iteratees';
 import { shortenAddress } from './shortenAddress';
 import { shortenDomain } from './shortenDomain';
@@ -68,18 +73,22 @@ export function getAddressDisplayByChain(
   byChain: Account['byChain'],
   accountTokens?: UserToken[],
   stakingStates?: ApiStakingState[],
+  network?: ApiNetwork,
 ): Account['byChain'] {
+  const allChains = Object.keys(byChain) as ApiChain[];
+  const visibleChains = getVisibleChains(allChains, network);
+  const visibleByChain = visibleChains.length === allChains.length ? byChain : pick(byChain, visibleChains);
+
   // The gate applies to the Gram Wallet build only; every other build must not pay for the work below,
   // as the callers sit on hot paths (`withGlobal` mappers)
-  if (!IS_TWALLETGRAM_WALLET || !accountTokens) return byChain;
+  if (!IS_TWALLETGRAM_WALLET || !accountTokens) return visibleByChain;
 
   // Disabled (hidden) tokens must not expand the line - same as the master-side `getHasOnlyTonTokens`
   const fundedChains = getChainsWithBalance(accountTokens.filter(({ isDisabled }) => !isDisabled), stakingStates);
-  const chains = Object.keys(byChain) as ApiChain[];
-  const shownChains = getAddressLineChains(chains, fundedChains);
-  if (shownChains.length === chains.length) return byChain;
+  const shownChains = getAddressLineChains(visibleChains, fundedChains);
+  if (shownChains.length === visibleChains.length) return visibleByChain;
 
-  return pick(byChain, shownChains);
+  return pick(visibleByChain, shownChains);
 }
 
 export function formatAccountAddresses(
@@ -145,5 +154,5 @@ function getShortText(text: string, size: SizeConfig, type: keyof SizeConfig) {
 }
 
 function renderIcon(chain: ApiChain) {
-  return <i key={`icon-${chain}`} className={`icon-chain-${chain}`} aria-hidden />;
+  return <i key={`icon-${String(chain)}`} className={`icon-chain-${String(chain)}`} aria-hidden />;
 }
