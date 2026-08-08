@@ -1,38 +1,36 @@
 import React, { memo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import { selectCurrentAccountId, selectIsHardwareAccount, selectIsMultichainAccount } from '../../global/selectors';
-import buildClassName from '../../util/buildClassName';
+import type { ApiChain, ApiNetwork } from '../../api/types';
 
-import useLang from '../../hooks/useLang';
+import {
+  selectCurrentAccount,
+  selectCurrentAccountId,
+  selectCurrentAccountState,
+} from '../../global/selectors';
+import { getOrderedAccountChains, resolveReceiveChain } from '../../util/chain';
 
 import Modal from '../ui/Modal';
 import ModalHeader from '../ui/ModalHeader';
 import Content from './Content';
+import ReceiveChainSelector from './ReceiveChainSelector';
 
 import styles from './ReceiveModal.module.scss';
 
 type StateProps = {
   isOpen?: boolean;
-  isLedger?: boolean;
-  isTestnet?: boolean;
-  isSwapDisabled: boolean;
-  isMultichainAccount: boolean;
+  visibleChains: ApiChain[];
+  chain?: ApiChain;
 };
 
 function ReceiveModal({
   isOpen,
-  isTestnet,
-  isLedger,
-  isSwapDisabled,
-  isMultichainAccount,
+  visibleChains,
+  chain,
 }: StateProps) {
   const { closeReceiveModal } = getActions();
 
-  const lang = useLang();
-
-  const isSwapAllowed = !isTestnet && !isLedger && !isSwapDisabled;
-  const modalTitle = lang(isSwapAllowed ? 'Fund' : 'Add');
+  const selectedChain = resolveReceiveChain(visibleChains, chain);
 
   return (
     <Modal
@@ -41,8 +39,13 @@ function ReceiveModal({
       onClose={closeReceiveModal}
     >
       <ModalHeader
-        title={modalTitle}
-        className={buildClassName(styles.receiveHeader, !isMultichainAccount && styles.receiveHeaderNoTabs)}
+        className={styles.receiveHeader}
+        leftContent={selectedChain ? (
+          <ReceiveChainSelector
+            chains={visibleChains}
+            selectedChain={selectedChain}
+          />
+        ) : undefined}
         onClose={closeReceiveModal}
       />
       <Content
@@ -54,16 +57,14 @@ function ReceiveModal({
 }
 
 export default memo(withGlobal((global): StateProps => {
-  const { isSwapDisabled } = global.restrictions;
-  const currentAccountId = selectCurrentAccountId(global);
-  const isLedger = selectIsHardwareAccount(global);
-  const isMultichainAccount = selectIsMultichainAccount(global, currentAccountId!);
+  const account = selectCurrentAccount(global);
+  const { receiveModalChain } = selectCurrentAccountState(global) || {};
+  const network: ApiNetwork = global.settings.isTestnet ? 'testnet' : 'mainnet';
+  const visibleChains = getOrderedAccountChains(account?.byChain ?? {}, network);
 
   return {
     isOpen: global.isReceiveModalOpen,
-    isTestnet: global.settings.isTestnet,
-    isSwapDisabled,
-    isLedger,
-    isMultichainAccount,
+    visibleChains,
+    chain: receiveModalChain,
   };
-})(ReceiveModal));
+}, (global, _, stickToFirst) => stickToFirst(selectCurrentAccountId(global)))(ReceiveModal));

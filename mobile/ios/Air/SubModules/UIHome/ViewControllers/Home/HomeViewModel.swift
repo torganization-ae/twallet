@@ -105,7 +105,7 @@ private let UPDATING_DELAY = 2
         case .accountNameChanged:
             dataUpdated()
             break
-        case .assetsAndActivityDataUpdated:
+        case .assetsAndActivityDataUpdated, .chainVisibilityChanged:
             dataUpdated()
         case .updatingStatusChanged:
             updateStatus()

@@ -11,7 +11,6 @@ function ChartSkeleton() {
   return (
     <>
       <Skeleton className={styles.plot} />
-      <Skeleton className={styles.minimap} />
 
       <div className={styles.legend}>
         {LEGEND_PILL_WIDTHS.map((width) => (

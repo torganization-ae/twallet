@@ -98,7 +98,7 @@ public let HELP_CENTER_SEED_SCAM_URL = "https://help.mywallet.io/intro/scams/lea
 public let HELP_CENTER_SEED_SCAM_URL_RU = "https://help.mywallet.io/ru/baza-znanii/moshennichestvo-i-skamy/slitye-sid-frazy"
 public var DOMAIN_SCAM_REGEX: Regex<Substring> { /^[-\w]{26,}\./ }
 
-public let CARD_RATIO: CGFloat = 208/358
+public let CARD_RATIO: CGFloat = 176/358
 public let SMALL_CARD_RATIO: CGFloat = 116/80
 public let MEDIUM_CARD_RATIO: CGFloat = 110/75
 public let LARGE_CARD_RATIO: CGFloat = 274/176

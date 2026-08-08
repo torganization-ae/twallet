@@ -35,6 +35,7 @@ import app.twallet.air.walletcore.models.MAccount.AccountChain
 import app.twallet.air.walletcore.models.MSavedAddress
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.stores.BalanceStore
+import app.twallet.air.walletcore.stores.ChainVisibilityStore
 import app.twallet.air.walletcore.stores.TokenStore
 import java.math.BigInteger
 import kotlin.math.min
@@ -116,10 +117,14 @@ class WMultichainAddressLabel(context: Context) : WRadialGradientLabel(context) 
             displayAddresses(emptyList(), style, keyword)
             return
         }
+        val network = account.network.value
+        val visibleByChain = account.byChain.filterKeys {
+            !ChainVisibilityStore.isHidden(it, network)
+        }
         displayAddresses(
             account.network,
             account.accountId,
-            account.byChain.appAddressLineChains(account.accountId),
+            visibleByChain.appAddressLineChains(account.accountId),
             style,
             keyword
         )

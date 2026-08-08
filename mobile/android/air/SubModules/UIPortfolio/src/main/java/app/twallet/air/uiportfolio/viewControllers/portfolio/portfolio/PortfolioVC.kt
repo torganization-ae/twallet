@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.app.DatePickerDialog
 import android.content.Context
 import android.graphics.Color
 import android.text.TextPaint
@@ -13,6 +14,7 @@ import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -37,6 +39,7 @@ import app.twallet.air.uicomponents.extensions.setPaddingLocalized
 import app.twallet.air.uicomponents.widgets.WBaseView
 import app.twallet.air.uicomponents.widgets.WBlurryBackgroundView
 import app.twallet.air.uicomponents.widgets.WButton
+import app.twallet.air.uicomponents.widgets.WImageButton
 import app.twallet.air.uicomponents.widgets.WScrollView
 import app.twallet.air.uicomponents.widgets.WView
 import app.twallet.air.uicomponents.widgets.chart.extended.BarChartView
@@ -64,10 +67,14 @@ import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.toString
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
+import app.twallet.air.icons.R as IconsR
 import java.math.BigInteger
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 import kotlin.math.abs
 import kotlin.math.pow
 import app.twallet.air.uiportfolio.viewControllers.portfolio.models.PortfolioChartKind
@@ -157,12 +164,33 @@ class PortfolioVC(context: Context) : WViewControllerWithModelStore(context) {
         setBackgroundColor(Color.TRANSPARENT, 24f.dp, clipToBounds = true)
         addView(periodSelector, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
     }
-    private val periodSelectorContainer = WFrameLayout(context).apply {
+    private val calendarButton = WImageButton(context).apply {
+        id = ViewGroup.generateViewId()
+        scaleType = ImageView.ScaleType.CENTER_INSIDE
+        contentDescription = LocaleController.getString("Custom Date Range")
+        setImageResource(IconsR.drawable.ic_calendar_24)
+        isClickable = true
+        isFocusable = true
+        setOnClickListener { openCustomDateRangePicker() }
+    }
+    // ConstraintLayout (not LinearLayout): PillShadowView.attachTo inserts a sibling that
+    // positions itself over the pill; in a LinearLayout that sibling steals a layout slot
+    // and can intercept hits meant for the calendar.
+    private val periodSelectorContainer = WView(context).apply {
         id = ViewGroup.generateViewId()
         clipChildren = false
         clipToPadding = false
         setPaddingDp(8, 4, 8, 8)
-        addView(periodSelectorPill, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        addView(calendarButton, ConstraintLayout.LayoutParams(44.dp, 44.dp))
+        addView(periodSelectorPill, ConstraintLayout.LayoutParams(MATCH_CONSTRAINT, 48.dp))
+        setConstraints {
+            toStart(calendarButton)
+            toCenterY(calendarButton)
+            startToEnd(periodSelectorPill, calendarButton, 8f)
+            toEnd(periodSelectorPill)
+            toCenterY(periodSelectorPill)
+        }
+        // Absorb taps in the fade area so they don't fall through to charts underneath
         setOnClickListener {}
     }
     private var periodSelectorShadow: PillShadowView? = null
@@ -219,11 +247,17 @@ class PortfolioVC(context: Context) : WViewControllerWithModelStore(context) {
             periodSelectorContainer,
             ConstraintLayout.LayoutParams(MATCH_CONSTRAINT, PERIOD_SELECTOR_SECTION_HEIGHT.dp)
         )
-        periodSelectorShadow = PillShadowView.attachTo(periodSelectorPill, 24f.dp)
+        periodSelectorShadow = PillShadowView.attachTo(periodSelectorPill, 24f.dp).also { shadow ->
+            shadow.isClickable = false
+            shadow.isFocusable = false
+            shadow.isEnabled = false
+        }
         periodSelectorPill.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             periodSelectorShadow?.sync()
         }
         periodSelectorBlurView.setupWith(view)
+        periodSelectorContainer.bringToFront()
+        calendarButton.bringToFront()
 
         view.setConstraints {
             topToBottom(scrollView, navigationBar!!)
@@ -256,6 +290,7 @@ class PortfolioVC(context: Context) : WViewControllerWithModelStore(context) {
 
         selectableCharts.forEach { chart ->
             chart.selectOnTapOnly = true
+            chart.isPickerEnabled = false
             chart.setDateSelectionListener(object : BaseChartView.DateSelectionListener {
                 override fun onDateSelected(date: Long) {
                     if (date >= 0) clearChartSelections(except = chart)
@@ -295,6 +330,7 @@ class PortfolioVC(context: Context) : WViewControllerWithModelStore(context) {
         periodSelector.setBackgroundColor(Color.TRANSPARENT, 24f.dp)
         periodSelector.setSliderColor(WColor.SecondaryBackground.color)
         periodSelectorBlurView.updateTheme()
+        updateCalendarButtonTheme()
     }
 
     override fun updateProtectedView() {
@@ -1613,11 +1649,72 @@ class PortfolioVC(context: Context) : WViewControllerWithModelStore(context) {
             }
             setOnSelectedOptionChangeCallback { index ->
                 viewModel.selectPeriod(MHistoryTimePeriod.allPeriods[index])
+                updateCalendarButtonTheme()
             }
             setSelectedIndex(
                 MHistoryTimePeriod.allPeriods.indexOf(viewModel.selectedPeriod)
                     .coerceAtLeast(0)
             )
+        }
+    }
+
+    private fun updateCalendarButtonTheme() {
+        calendarButton.updateColors(
+            tint = if (viewModel.hasCustomRange) WColor.Tint else WColor.PrimaryText,
+            rippleColor = WColor.SecondaryBackground,
+        )
+    }
+
+    private fun openCustomDateRangePicker() {
+        val utc = TimeZone.getTimeZone("UTC")
+        val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = utc }
+        val initialFrom = viewModel.customFromDay
+            ?: dayFormat.format(Calendar.getInstance(utc).apply { add(Calendar.DAY_OF_YEAR, -90) }.time)
+        val initialTo = viewModel.customToDay
+            ?: dayFormat.format(Calendar.getInstance(utc).time)
+
+        fun parseDay(value: String): Calendar {
+            return Calendar.getInstance(utc).apply {
+                time = dayFormat.parse(value) ?: time
+            }
+        }
+
+        val fromCal = parseDay(initialFrom)
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                val fromDay = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, dayOfMonth)
+                val toCal = parseDay(initialTo.coerceAtLeast(fromDay))
+                DatePickerDialog(
+                    context,
+                    { _, toYear, toMonth, toDayOfMonth ->
+                        val toDay = String.format(
+                            Locale.US,
+                            "%04d-%02d-%02d",
+                            toYear,
+                            toMonth + 1,
+                            toDayOfMonth,
+                        )
+                        viewModel.selectCustomRange(fromDay, toDay)
+                        updateCalendarButtonTheme()
+                    },
+                    toCal.get(Calendar.YEAR),
+                    toCal.get(Calendar.MONTH),
+                    toCal.get(Calendar.DAY_OF_MONTH),
+                ).apply {
+                    setTitle(LocaleController.getString("To"))
+                    datePicker.maxDate = System.currentTimeMillis()
+                    datePicker.minDate = parseDay(fromDay).timeInMillis
+                    show()
+                }
+            },
+            fromCal.get(Calendar.YEAR),
+            fromCal.get(Calendar.MONTH),
+            fromCal.get(Calendar.DAY_OF_MONTH),
+        ).apply {
+            setTitle(LocaleController.getString("From"))
+            datePicker.maxDate = System.currentTimeMillis()
+            show()
         }
     }
 

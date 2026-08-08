@@ -2,20 +2,8 @@ package app.twallet.air.walletcore.stores
 
 import app.twallet.air.walletcontext.WalletContextManager
 import app.twallet.air.walletcore.WalletCore
-import app.twallet.air.walletcore.WalletEvent
 
 object ConfigStore : IStore {
-    enum class SeasonalTheme(val value: String) {
-        NEW_YEAR("newYear"),
-        VALENTINE("valentine");
-
-        companion object {
-            fun fromString(value: String?): SeasonalTheme? {
-                return entries.firstOrNull { it.value == value }
-            }
-        }
-    }
-
     var isCopyStorageEnabled: Boolean? = null
         private set
     var supportAccountsCount: Double? = null
@@ -28,15 +16,6 @@ object ConfigStore : IStore {
         private set
     var swapVersion: Int? = null
         private set
-    var seasonalTheme: SeasonalTheme? = null
-        private set
-
-    @Volatile
-    var seasonalThemeOverride: SeasonalTheme? = null
-
-    fun getEffectiveSeasonalTheme(): SeasonalTheme? {
-        return seasonalThemeOverride ?: seasonalTheme
-    }
 
     fun init(configMap: Map<String, Any>?) {
         if (configMap == null) return
@@ -50,13 +29,6 @@ object ConfigStore : IStore {
         countryCode = configMap["countryCode"] as? String
         isAppUpdateRequired = configMap["isAppUpdateRequired"] as? Boolean
         swapVersion = (configMap["swapVersion"] as? Number)?.toInt()
-
-        // Seasonal Theme
-        val oldEffectiveSeasonalTheme = getEffectiveSeasonalTheme()
-        seasonalTheme = SeasonalTheme.fromString(configMap["seasonalTheme"] as? String)
-        if (getEffectiveSeasonalTheme() != oldEffectiveSeasonalTheme) {
-            WalletCore.notifyEvent(WalletEvent.SeasonalThemeChanged)
-        }
     }
 
     override fun wipeData() {

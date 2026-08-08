@@ -12,7 +12,8 @@
     "system.display",
     "proxy",
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "clipboardRead"
   ],
   "background": {
     "service_worker": "/extensionServiceWorker.js"

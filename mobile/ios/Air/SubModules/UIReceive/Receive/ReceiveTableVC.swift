@@ -9,7 +9,7 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
 
     private enum Section: Hashable {
         case address
-        case buyCrypto
+        case actions
     }
 
     @AccountContext private var account: MAccount
@@ -22,7 +22,7 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
         self._account = account
         self.chain = chain
         super.init(nibName: nil, bundle: nil)
-        title = lang("Add Crypto")
+        title = nil
     }
 
     required init?(coder: NSCoder) {
@@ -90,15 +90,15 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
         }
 
         let addressRegistration = AddressCell.makeRegistration(address: address, chain: chain)
-        let buyCryptoRegistration = BuyCryptoItemCell.makeRegistration()
+        let actionRegistration = ReceiveActionItemCell.makeRegistration()
         let warningFooterRegistration = ViewWalletWarningFooter.makeFooterRegistration()
 
         dataSource = UICollectionViewDiffableDataSource<Section, ReceiveItem>(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
             case .address:
                 collectionView.dequeueConfiguredReusableCell(using: addressRegistration, for: indexPath, item: ())
-            case .buyWithCrypto, .depositLink:
-                collectionView.dequeueConfiguredReusableCell(using: buyCryptoRegistration, for: indexPath, item: item)
+            case .depositLink:
+                collectionView.dequeueConfiguredReusableCell(using: actionRegistration, for: indexPath, item: item)
             }
         }
 
@@ -120,14 +120,9 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
         snapshot.appendSections([.address])
         snapshot.appendItems([.address], toSection: .address)
 
-        if !ConfigStore.shared.shouldRestrictSwaps && !isViewWalletMode && !account.isHardware {
-            snapshot.appendSections([.buyCrypto])
-
-            var buyCryptoItems: [ReceiveItem] = [.buyWithCrypto]
-            if chain.formatTransferUrl != nil {
-                buyCryptoItems.append(.depositLink)
-            }
-            snapshot.appendItems(buyCryptoItems, toSection: .buyCrypto)
+        if !isViewWalletMode, chain.formatTransferUrl != nil {
+            snapshot.appendSections([.actions])
+            snapshot.appendItems([.depositLink], toSection: .actions)
         }
 
         dataSource.apply(snapshot, animatingDifferences: animated)
@@ -144,14 +139,6 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
         switch item {
         case .address:
             break
-        case .buyWithCrypto:
-            AppActions.showSwap(
-                accountContext: $account,
-                defaultSellingToken: chain.defaultSellingSlug,
-                defaultBuyingToken: chain.defaultBuyingSlug,
-                defaultSellingAmount: nil,
-                push: true
-            )
         case .depositLink:
             topWViewController()?.navigationController?.pushViewController(
                 DepositLinkVC(accountContext: $account, chain: chain),
@@ -173,27 +160,4 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
     public var scrollingView: UIScrollView? { collectionView }
     public func calculateHeight(isHosted: Bool) -> CGFloat { 0 }
 
-}
-
-private extension ApiChain {
-    var defaultSellingSlug: String {
-        switch self {
-        case .ton:
-            TRON_USDT_SLUG
-        case .tron:
-            TON_USDT_SLUG
-        case .solana:
-            TON_USDT_SLUG
-        default:
-            TON_USDT_SLUG
-        }
-    }
-    
-    var defaultBuyingSlug: String {
-        let crosschainSwapSlugs = getChainConfig(chain: self).crosschainSwapSlugs
-        if let usdtSlug = self.usdtSlug[.mainnet], crosschainSwapSlugs.contains(usdtSlug) {
-            return usdtSlug
-        }
-        return crosschainSwapSlugs.first ?? self.nativeToken.slug
-    }
 }

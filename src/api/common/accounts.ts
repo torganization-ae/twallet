@@ -25,7 +25,7 @@ const loginPromise = new Promise<void>((resolve) => {
   loginResolve = resolve;
 });
 
-function getWriteQueue(key: StorageKey) {
+export function getStorageWriteQueue(key: StorageKey) {
   let queue = storageWriteQueues.get(key);
   if (!queue) {
     queue = createTaskQueue(1);
@@ -123,7 +123,7 @@ export async function getAccountValue(accountId: string, key: StorageKey) {
 }
 
 export async function removeAccountValue(accountId: string, key: StorageKey) {
-  return getWriteQueue(key).run(async () => {
+  return getStorageWriteQueue(key).run(async () => {
     await storage.mutateItem!(key, (data) => {
       if (!data) return data;
 
@@ -134,13 +134,13 @@ export async function removeAccountValue(accountId: string, key: StorageKey) {
 }
 
 export async function setAccountValue(accountId: string, key: StorageKey, value: any) {
-  return getWriteQueue(key).run(async () => {
+  return getStorageWriteQueue(key).run(async () => {
     await storage.mutateItem!(key, (data) => ({ ...data, [accountId]: value }));
   });
 }
 
 export async function removeNetworkAccountsValue(network: string, key: StorageKey) {
-  return getWriteQueue(key).run(async () => {
+  return getStorageWriteQueue(key).run(async () => {
     await storage.mutateItem!(key, (data) => {
       if (!data) return data;
 
@@ -181,10 +181,10 @@ export function waitLogin() {
 
 export function getAccountChains(account: ApiAccountAny): Partial<Record<ApiChain, AccountChain>> {
   return mapValues(account.byChain, (wallet) => ({
-    address: wallet!.address,
-    derivation: wallet!.derivation,
-    ledgerIndex: account.type === 'ledger' ? wallet!.index : undefined,
-    mfa: (wallet as { mfa?: AccountChain['mfa'] } | undefined)?.mfa,
+    address: wallet.address,
+    derivation: wallet.derivation,
+    ledgerIndex: account.type === 'ledger' ? wallet.index : undefined,
+    mfa: 'mfa' in wallet ? (wallet as { mfa?: AccountChain['mfa'] }).mfa : undefined,
   }));
 }
 

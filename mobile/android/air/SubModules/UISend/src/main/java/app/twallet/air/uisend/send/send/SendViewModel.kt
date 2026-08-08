@@ -154,6 +154,10 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
     }
 
     fun onInputToken(slug: String) {
+        val newChain = TokenStore.getToken(slug)?.mBlockchain
+        if (newChain != MBlockchain.ton && _aliasModeFlow.value != AliasMode.AUTO) {
+            _aliasModeFlow.value = AliasMode.AUTO
+        }
         _inputStateFlow.value = _inputStateFlow.value.copy(
             tokenSlug = slug,
             tokenCodeHash = TokenStore.getToken(slug)?.codeHash,
@@ -281,6 +285,10 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
             chain.isValidAddress(destination) ||
                 (chain == MBlockchain.ton && (DNSHelpers.isDnsDomain(destination) || TmailHelpers.isTmailAlias(destination)))
         if (!isValid) return null
+        val ownAddress = AccountStore.activeAccount?.byChain?.get(chain.name)?.address
+        if (!chain.isSendToSelfAllowed && ownAddress != null && destination == ownAddress) {
+            return null
+        }
         val network = AccountStore.activeAccount?.network ?: return null
         return try {
             val result = withTimeoutOrNull(100) {
@@ -292,10 +300,14 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
                     )
                 )
             }
+            val resolved = result?.resolvedAddress
+            if (!chain.isSendToSelfAllowed && ownAddress != null && resolved == ownAddress) {
+                return null
+            }
             AddressInfo(
                 chain = chain,
                 input = destination,
-                resolvedAddress = result?.resolvedAddress,
+                resolvedAddress = resolved,
                 addressName = result?.addressName,
                 isMemoRequired = result?.isMemoRequired,
                 isScam = result?.isScam,
@@ -830,13 +842,24 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
                     LocaleController.getString("Enter Address")
                 )
             }
-            val isValidAddress =
-                destination != AccountStore.activeAccount?.tronAddress &&
-                    (
-                        chain?.isValidAddress(destination) != false ||
-                            (chain == MBlockchain.ton && (DNSHelpers.isDnsDomain(destination) || TmailHelpers.isTmailAlias(destination)))
-                        )
-            if (!isValidAddress) {
+            if (chain == null) {
+                return ButtonState(
+                    ButtonStatus.Error,
+                    LocaleController.getString("Invalid address")
+                )
+            }
+            val isFormatValid =
+                chain.isValidAddress(destination) ||
+                    (chain == MBlockchain.ton &&
+                        (DNSHelpers.isDnsDomain(destination) || TmailHelpers.isTmailAlias(destination)))
+            // Prefer draft-resolved address when available. Companion helpers cannot read instance flows.
+            val resolvedOrDestination =
+                (estimated as? DraftResult.Result)?.resolvedAddress ?: destination
+            val ownAddress = AccountStore.activeAccount?.byChain?.get(chain.name)?.address
+            val isSelfSend = !chain.isSendToSelfAllowed &&
+                ownAddress != null &&
+                (resolvedOrDestination == ownAddress || destination == ownAddress)
+            if (!isFormatValid || isSelfSend) {
                 return ButtonState(
                     ButtonStatus.Error,
                     LocaleController.getString("Invalid address")

@@ -24,7 +24,7 @@ type OwnProps = {
   onDismiss: NoneToVoidFunction;
 };
 
-const DURATION_MS = 5000;
+const DURATION_MS = 2500;
 const ANIMATION_DURATION = 250;
 
 const Toast: FC<OwnProps> = ({
@@ -73,6 +73,11 @@ const Toast: FC<OwnProps> = ({
     closeAndDismiss();
   });
 
+  const handleCloseClick = useLastCallback((e: React.MouseEvent) => {
+    stopEvent(e);
+    closeAndDismiss();
+  });
+
   return (
     <Portal
       className={buildClassName(
@@ -85,11 +90,10 @@ const Toast: FC<OwnProps> = ({
       <div
         ref={ref}
         className={styles.toast}
-        onClick={closeAndDismiss}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <div className={buildClassName(styles.content, withAction && styles.content_withAction)}>
+        <div className={styles.content}>
           {icon && <i className={buildClassName(styles.icon, icon)} aria-hidden />}
           {message}
         </div>
@@ -98,6 +102,14 @@ const Toast: FC<OwnProps> = ({
             {actionText}
           </button>
         )}
+        <button
+          type="button"
+          className={styles.closeButton}
+          aria-label="Close"
+          onClick={handleCloseClick}
+        >
+          <i className={buildClassName(styles.closeIcon, 'icon-close')} aria-hidden />
+        </button>
       </div>
     </Portal>
   );

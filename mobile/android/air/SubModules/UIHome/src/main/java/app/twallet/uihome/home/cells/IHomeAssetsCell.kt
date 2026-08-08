@@ -5,9 +5,8 @@ import app.twallet.air.uiassets.viewControllers.tokens.TokensVC
 import app.twallet.air.uicomponents.widgets.WCell
 
 /**
- * Shared surface of the home-screen assets cell, implemented by both [HomePhoneAssetsCell]
- * (segmented control) and [HomeTabletAssetsCell] (side-by-side columns). ActivityListView/HomeVC
- * talk to whichever variant is active through this interface.
+ * Shared surface of the home-screen assets cell ([HomePhoneAssetsCell] segmented control).
+ * ActivityListView/HomeVC talk to the active cell through this interface.
  *
  * The hosted ViewControllers live in a shared [HomeAssetsVCPool] that outlives the cell, so a cell
  * is a thin host: [attachHost] points the pool's per-host callbacks and mutable callbacks at this
@@ -20,6 +19,9 @@ interface IHomeAssetsCell {
     val horizontalScrollOffset: Int get() = 0
 
     var onScrollToVisibleRequested: (() -> Unit)?
+
+    /** Current peer-tab identifier (`app:coins` / `app:activity` / `app:collectibles` / pinned). */
+    val selectedContentTabIdentifier: String?
 
     /** Make this cell the active host for [pool]'s ViewControllers; re-binds per-host callbacks. */
     fun attachHost(pool: HomeAssetsVCPool)

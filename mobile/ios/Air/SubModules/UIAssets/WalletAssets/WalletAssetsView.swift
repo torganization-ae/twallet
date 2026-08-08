@@ -31,7 +31,7 @@ final class WalletAssetsView: WTouchPassView {
         items: [
             WSegmentedPagerItem(
                 id: "tokens_placeholder",
-                title: lang("Assets"),
+                title: lang("Tokens"),
                 viewController: walletTokensVC
             ),
             WSegmentedPagerItem(

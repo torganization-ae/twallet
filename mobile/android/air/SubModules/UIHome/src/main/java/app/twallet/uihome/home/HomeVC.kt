@@ -417,7 +417,7 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
             HeaderActionsView.Identifier.RECEIVE -> {
                 val receiveVC = ReceiveVC.createIfAvailable(
                     context,
-                    homeVM.showingAccount?.firstChain
+                    defaultChain = null,
                 ) ?: return
                 val navVC = WNavigationController(
                     window!!,
@@ -1229,10 +1229,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         phoneHeaderView.accountRenamed(accountId, accountName)
         if (headerView.centerAccount?.accountId == accountId)
             phoneHeaderView.updateAccountName(accountName)
-    }
-
-    override fun seasonalThemeChanged() {
-        phoneHeaderView.updateSeasonalTheme()
     }
 
     override fun accountWillChange(fromHome: Boolean) {

@@ -31,6 +31,9 @@ export enum ElectronAction {
 
   RESTORE_STORAGE = 'restore-storage',
 
+  READ_TEXT_FROM_CLIPBOARD = 'read-text-from-clipboard',
+  WRITE_TEXT_TO_CLIPBOARD = 'write-text-to-clipboard',
+
   OPEN_WALLET_CONNECT_PAY_COLLECT = 'open-wallet-connect-pay-collect',
   CLOSE_WALLET_CONNECT_PAY_COLLECT = 'close-wallet-connect-pay-collect',
 }
@@ -59,6 +62,9 @@ export interface ElectronApi {
   changeAppLayout: (layout: AppLayout) => Promise<void>;
 
   restoreStorage: () => Promise<void>;
+
+  readTextFromClipboard: () => Promise<string>;
+  writeTextToClipboard: (text: string) => Promise<void>;
 
   openWalletConnectPayCollect: (
     url: string,

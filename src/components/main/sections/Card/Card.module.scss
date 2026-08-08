@@ -22,9 +22,9 @@ $signSizeDiff: 0.375rem;
   box-sizing: border-box;
   width: 100%;
   min-width: 16rem;
-  height: 0;
+  aspect-ratio: 358 / 176;
+  height: auto;
   margin: 0 auto;
-  padding-top: v.$cardAspectRatioPortrait;
 
   :global(html.is-electron) &,
   :global(html.is-mobile-telegram-app.with-safe-area-top) & {
@@ -33,7 +33,11 @@ $signSizeDiff: 0.375rem;
 
   @include mixins.respond-above(xs) {
     margin-top: 0;
-    padding-top: v.$cardAspectRatioLandscape;
+    aspect-ratio: 358 / 182;
+  }
+
+  &.withChart {
+    aspect-ratio: 358 / 220;
   }
 }
 
@@ -48,20 +52,6 @@ $signSizeDiff: 0.375rem;
   transform: translate(0, -50%);
   margin-right: auto;
   margin-left: auto
-}
-
-.seasonalPlaceholder {
-  pointer-events: auto;
-
-  position: absolute;
-  z-index: var(--z-card-decoration);
-  top: 0;
-  right: 0;
-  left: 0;
-
-  overflow: visible;
-
-  width: 100%;
 }
 
 .container {
@@ -121,18 +111,15 @@ $signSizeDiff: 0.375rem;
 
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
+  gap: 0.75rem;
 
   width: 100%;
   height: 100%;
-  padding: max(3.75rem, 17.4927%) 1rem 0.25rem;
+  padding: 5%;
 
   > * {
     pointer-events: auto;
-  }
-
-  @media (max-width: 360px) {
-    padding: max(2rem, 14%) 1rem 0.25rem;
   }
 }
 
@@ -144,10 +131,6 @@ $signSizeDiff: 0.375rem;
   --border-radius-value: var(--border-radius-default);
 
   max-height: 3.5rem;
-
-  @include mixins.respond-below(xs) {
-    margin-bottom: 0.375rem;
-  }
 }
 
 .currencySymbol {
@@ -218,6 +201,32 @@ $signSizeDiff: 0.375rem;
   @include mixins.transition($color-transition);
 }
 
+.portfolioIcon {
+  display: inline-block;
+  flex-shrink: 0;
+
+  width: calc(1rem * var(--font-size-scale, 1));
+  height: calc(1rem * var(--font-size-scale, 1));
+  margin-inline-start: 0.25rem;
+
+  vertical-align: middle;
+
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.portfolioIconDefault {
+  position: relative;
+  top: -0.1875rem;
+  width: calc(1.125rem * var(--font-size-scale, 1));
+  height: calc(1.125rem * var(--font-size-scale, 1));
+}
+
+.portfolioIconFraction {
+  position: relative;
+  top: -0.0625rem;
+}
+
 .currencySwitcher {
   cursor: var(--custom-cursor, pointer);
   position: relative;
@@ -243,7 +252,7 @@ $signSizeDiff: 0.375rem;
 
 .cardAddressContainer {
   height: 1.125rem;
-  margin: auto auto 0.75rem;
+  margin: 0 auto;
 }
 
 .cardAddressSlide {
@@ -927,12 +936,11 @@ $signSizeDiff: 0.375rem;
 .chainBreakdown {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.5rem;
   align-items: stretch;
 
   width: 100%;
-  max-width: 16rem;
-  margin: 0.5rem auto 0;
+  margin: 0;
   padding: 0;
   border: 0;
 

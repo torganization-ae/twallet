@@ -1,6 +1,5 @@
 import React, { memo, useEffect, useLayoutEffect, useState } from '../../lib/teact/teact';
 
-import { MULTICHAIN_ENABLED, NEW_CHARTS_ENABLED } from '../config';
 import buildClassName from '../../util/buildClassName';
 import {
   IS_ANDROID,
@@ -11,10 +10,9 @@ import {
   IS_SAFARI,
   IS_WINDOWS,
 } from '../../util/windowEnvironment';
-import { fetchNetWorthHistory, fetchPnlCumulativeHistory, fetchPnlHistory } from '../utils/api';
+import { fetchNetWorthHistory } from '../utils/api';
 
 import Transition from '../../components/ui/Transition';
-import ChartPage from './ChartPage';
 import LoadingPage from './LoadingPage';
 
 import styles from './App.module.scss';
@@ -30,45 +28,13 @@ enum PageKey {
 }
 
 function App({ addresses, baseCurrency = 'USD' }: OwnProps) {
-  const [netWorthData, setNetWorthData] = useState<any>();
-  const [pnlCumulativeData, setPnlCumulativeData] = useState<any>();
-  const [pnlData, setPnlData] = useState<any>();
   const [chartError, setChartError] = useState<string>();
-  const [loadingSubtitle, setLoadingSubtitle] = useState<string>();
   const [renderKey, setRenderKey] = useState<PageKey>(PageKey.Loading);
 
   useLayoutEffect(applyDocumentClasses, []);
 
-  if (!MULTICHAIN_ENABLED) {
-    // Only request TON wallets, strip out other chains
-    addresses = addresses
-      ?.split(',')
-      .filter((wallet) => wallet.startsWith('ton:'))
-      .join(',');
-  }
-
   useEffect(() => {
-    if (!addresses) {
-      setChartError('No wallet addresses provided');
-      setRenderKey(PageKey.Chart);
-      return;
-    }
-
-    const onProgress = (attempt: number, maxRetries: number) => {
-      setLoadingSubtitle(`Still loading (${attempt}/${maxRetries})...`);
-    };
-
-    void Promise.all([
-      fetchNetWorthHistory(addresses, baseCurrency, onProgress),
-      NEW_CHARTS_ENABLED ? fetchPnlCumulativeHistory(addresses, baseCurrency, onProgress) : undefined,
-      NEW_CHARTS_ENABLED ? fetchPnlHistory(addresses, baseCurrency, onProgress) : undefined,
-    ])
-      .then(([netWorth, pnlCumulative, pnl]) => {
-        setNetWorthData(netWorth);
-        setPnlCumulativeData(pnlCumulative);
-        setPnlData(pnl);
-        setRenderKey(PageKey.Chart);
-      })
+    void fetchNetWorthHistory()
       .catch((err: Error) => {
         setChartError(err.message);
         setRenderKey(PageKey.Chart);
@@ -78,24 +44,17 @@ function App({ addresses, baseCurrency = 'USD' }: OwnProps) {
   function renderPage() {
     switch (renderKey) {
       case PageKey.Chart:
-        return chartError ? (
+        return (
           <div className={styles.error}>
-            <div className={styles.errorTitle}>Error</div>
-            <div className={styles.errorSubtitle}>{chartError}</div>
+            <div className={styles.errorTitle}>Portfolio</div>
+            <div className={styles.errorSubtitle}>
+              {chartError || 'Portfolio history is saved in the wallet app on this device.'}
+            </div>
           </div>
-        ) : !netWorthData || (NEW_CHARTS_ENABLED && (!pnlCumulativeData || !pnlData)) ? (
-          <LoadingPage subtitle={loadingSubtitle} />
-        ) : (
-          <ChartPage
-            netWorthData={netWorthData}
-            pnlCumulativeData={pnlCumulativeData}
-            pnlData={pnlData}
-            baseCurrency={baseCurrency}
-          />
         );
 
       default:
-        return <LoadingPage subtitle={loadingSubtitle} />;
+        return <LoadingPage />;
     }
   }
 

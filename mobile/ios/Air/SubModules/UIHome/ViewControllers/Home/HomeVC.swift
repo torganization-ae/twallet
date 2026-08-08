@@ -76,6 +76,11 @@ public class HomeVC: ActivityListViewController, WSensitiveDataProtocol, HomeVMD
     private let actionsVC: ActionsVC
     private var actionsBottomConstraint: NSLayoutConstraint!
     private var walletAssetsVC: WalletAssetsVC!
+    private var selectedAssetsTab: DisplayAssetTab = .tokens
+
+    public override var isActivityContentVisible: Bool {
+        selectedAssetsTab == .activity
+    }
 
     private var headerBottomConstraint: NSLayoutConstraint!
     private var headerContainerHeightConstraint: NSLayoutConstraint?
@@ -581,7 +586,21 @@ public class HomeVC: ActivityListViewController, WSensitiveDataProtocol, HomeVMD
             StartupTrace.endInterval("startup.toHomeReady", details: "layout=tab")
             WalletContextManager.delegate?.walletIsReady(isReady: true)
         }
-        super.applySnapshot(snapshot, animatingDifferences: animatingDifferences)
+        var filtered = snapshot
+        if selectedAssetsTab != .activity {
+            for section in filtered.sectionIdentifiers {
+                switch section {
+                case .placeholderTransactionsSection, .transactions, .emptyPlaceholder:
+                    filtered.deleteSections([section])
+                case .headerPlaceholder, .custom:
+                    break
+                }
+            }
+        }
+        super.applySnapshot(filtered, animatingDifferences: animatingDifferences)
+        if selectedAssetsTab != .activity {
+            collectionView.isScrollEnabled = true
+        }
     }
 
     @objc private func scanPressed() {
@@ -674,6 +693,7 @@ public class HomeVC: ActivityListViewController, WSensitiveDataProtocol, HomeVMD
     }
 
     func changeAccountTo(accountId: String, isNew: Bool) async {
+        selectedAssetsTab = .tokens
         if activityViewModel?.accountId != accountId {
             activityViewModel = await ActivityListViewModel(accountId: accountId, token: nil, customSectionIDs: customSectionIDs(for: accountId), delegate: self)
             transactionsUpdated(accountChanged: true, isUpdateEvent: false)
@@ -694,6 +714,7 @@ public class HomeVC: ActivityListViewController, WSensitiveDataProtocol, HomeVMD
 
         guard homeVM.isTrackingActiveAccount else { return }
 
+        selectedAssetsTab = .tokens
         walletAssetsVC.interactivelySwitchAccountTo(accountId: accountId)
 
         switchActivitiesTask?.cancel()

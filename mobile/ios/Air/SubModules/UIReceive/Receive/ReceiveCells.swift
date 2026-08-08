@@ -36,7 +36,7 @@ struct AddressCell: View {
     }
 }
 
-struct BuyCryptoItemCell: View {
+struct ReceiveActionItemCell: View {
     let imageName: String
     let title: String
 
@@ -72,13 +72,13 @@ extension AddressCell {
     }
 }
 
-extension BuyCryptoItemCell {
+extension ReceiveActionItemCell {
     static func makeRegistration() -> UICollectionView.CellRegistration<UICollectionViewListCell, ReceiveItem> {
         UICollectionView.CellRegistration<UICollectionViewListCell, ReceiveItem> { cell, _, item in
             let (imageName, title) = item.displayInfo
             cell.configurationUpdateHandler = { cell, state in
                 cell.contentConfiguration = UIHostingConfiguration {
-                    BuyCryptoItemCell(imageName: imageName, title: title)
+                    ReceiveActionItemCell(imageName: imageName, title: title)
                 }
                 .background {
                     CellBackgroundHighlight(isHighlighted: state.isHighlighted)
@@ -130,15 +130,12 @@ extension ViewWalletWarningFooter {
 
 enum ReceiveItem: Hashable {
     case address
-    case buyWithCrypto
     case depositLink
 
     var displayInfo: (imageName: String, title: String) {
         switch self {
         case .address:
             ("", "")
-        case .buyWithCrypto:
-            ("CryptoIcon", lang("Buy with Crypto"))
         case .depositLink:
             ("AssetsAndActivityIcon", lang("Create Deposit Link"))
         }

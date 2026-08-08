@@ -12,9 +12,7 @@ import UIComponents
 import WalletCore
 import WalletContext
 import SwiftUI
-import SwiftUIIntrospect
 import Perception
-import Dependencies
 
 struct HomeCardContent: View {
     
@@ -27,9 +25,8 @@ struct HomeCardContent: View {
     
     var body: some View {
         WithPerceptionTracking {
-            ZStack {
+            VStack(spacing: 14) {
                 _CenterContent(
-                    headerViewModel: headerViewModel,
                     accountContext: accountContext,
                     layout: layout,
                     minimumHomeCardFontScale: minimumHomeCardFontScale
@@ -41,12 +38,10 @@ struct HomeCardContent: View {
                     .animation(.default, value: accountContext.balance)
 
                 _AddressLine(accountContext: accountContext)
-                    .frame(maxHeight: .infinity, alignment: .bottom)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .overlay(alignment: .top) {
-                SeasonalOverlay(seasonalTheme: headerViewModel.seasonalTheme)
-            }
+            .padding(.horizontal, layout.itemWidth * 0.05)
+            .padding(.vertical, layout.itemHeight * 0.05)
             .opacity(headerViewModel.isCardHidden ? 0 : 1)
         }
     }
@@ -61,21 +56,14 @@ struct HomeCardContent: View {
 
 private struct _CenterContent: View {
     
-    let headerViewModel: HomeHeaderViewModel
     let accountContext: AccountContext
     let layout: HomeCardLayoutMetrics
     let minimumHomeCardFontScale: CGFloat
     
     var body: some View {
         WithPerceptionTracking {
-            VStack(spacing: 5) {
-                _BalanceView(accountContext: accountContext, layout: layout, minimumHomeCardFontScale: minimumHomeCardFontScale)
-                    .padding(.leading, 1)
-                    .padding(.horizontal, 32)
-                
-                _BalanceChange(accountContext: accountContext)
-            }
-            .offset(y: -5)
+            _BalanceView(accountContext: accountContext, layout: layout, minimumHomeCardFontScale: minimumHomeCardFontScale)
+                .padding(.leading, 1)
         }
     }
 }
@@ -88,20 +76,23 @@ private struct _BalanceView: View {
 
     var body: some View {
         WithPerceptionTracking {
-            _BalanceViewContent(
-                accountId: accountContext.accountId,
-                balance: accountContext.balance,
-                isCurrent: accountContext.isCurrent,
-                cardWidth: layout.itemWidth,
-                minimumHomeCardFontScale: minimumHomeCardFontScale
-            )
+            Button {
+                AppActions.showPortfolio(accountContext: accountContext)
+            } label: {
+                _BalanceViewContent(
+                    balance: accountContext.balance,
+                    isCurrent: accountContext.isCurrent,
+                    cardWidth: layout.itemWidth,
+                    minimumHomeCardFontScale: minimumHomeCardFontScale
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 }
 
 private struct _BalanceViewContent: View, Equatable {
 
-    var accountId: String
     var balance: BaseCurrencyAmount?
     var isCurrent: Bool
     var cardWidth: CGFloat
@@ -113,135 +104,9 @@ private struct _BalanceViewContent: View, Equatable {
             isNumericTransitionEnabled: isCurrent,
             style: .homeCard(cardWidth: cardWidth, minimumScale: minimumHomeCardFontScale)
         )
-        .contextMenuSource(configuration: makeBaseCurrencyMenuConfig(accountId: accountId))
         .backportGeometryGroup()
     }
     
-}
-
-private struct _BalanceChange: View {
-
-    let accountContext: AccountContext
-
-    var body: some View {
-        WithPerceptionTracking {
-            _BalanceChangeContent(
-                balance: accountContext.balance,
-                balance24h: accountContext.balance24h,
-                balanceChange: accountContext.balanceChange,
-                onTap: {
-                    AppActions.showPortfolio(accountContext: accountContext)
-                }
-            )
-        }
-    }
-}
-
-private struct _BalanceChangeContent: View, Equatable {
-    let text: String?
-    let isPositive: Bool
-    let onTap: () -> Void
-    
-    init(
-        balance: BaseCurrencyAmount?,
-        balance24h: BaseCurrencyAmount?,
-        balanceChange: Double?,
-        onTap: @escaping () -> Void
-    ) {
-        self.text = Self.makeText(balance: balance, balance24h: balance24h, balanceChange: balanceChange)
-        self.onTap = onTap
-        if let balance, let balance24h, balance.amount > 0, balance24h.amount > 0 {
-            self.isPositive = balance.amount > balance24h.amount
-        } else {
-            self.isPositive = false
-        }
-    }
-    
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.text == rhs.text && lhs.isPositive == rhs.isPositive
-    }
-
-    var body: some View {
-        ZStack {
-            if let text {
-                if text.isEmpty {
-                    emptyView()
-                } else {
-                    mainView(text)
-                }
-            } else {
-                placeholderView()
-            }
-        }
-        .backportGeometryGroup()
-    }
-    
-    private static func makeText(
-        balance: BaseCurrencyAmount?,
-        balance24h: BaseCurrencyAmount?,
-        balanceChange: Double?
-    ) -> String? {
-        guard let balance
-        else { return nil }
-        
-        guard let balance24h, balance.amount > 0, balance24h.amount > 0
-        else { return "" }
-        
-        let change = BaseCurrencyAmount(balance.amount - balance24h.amount, balance.baseCurrency)
-        let string = change.formatted(.baseCurrencyEquivalent, showMinus: false)
-        let percentString =
-            if let balanceChange { "\(formatPercent(balanceChange)) · " }
-            else { "" }
-        
-        return "\(percentString)\(string)"
-    }
-    
-    private func mainView(_ text: String) -> some View {
-        let usesPositiveColor = isPositive
-        let baseColor: Color = usesPositiveColor ? .air.positiveBalance : .white
-        let textColor = usesPositiveColor ? baseColor : baseColor.opacity(0.8)
-        let bgColor = baseColor.opacity(usesPositiveColor ? 0.16 : 0.10)
-        return Button(action: onTap) {
-            HStack(spacing: 4) {
-                Text(text)
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
-            }
-            .font(.compactDisplay(size: 17, weight: .medium))
-            .foregroundStyle(textColor)
-            .fixedSize(horizontal: true, vertical: false)
-            .padding(.horizontal, 8)
-            .background {
-                ZStack {
-                    BackgroundBlur(radius: 12)
-                    Capsule().fill(bgColor)
-                }
-                .clipShape(.capsule)
-                .frame(height: 26)
-            }
-        }
-        .buttonStyle(.plain)
-        .sensitiveData(
-            alignment: .center,
-            cols: 10,
-            rows: 2,
-            cellSize: 13,
-            theme: .light,
-            cornerRadius: 13
-        )
-    }
-    
-    private func placeholderView() -> some View {
-        Rectangle()
-            .fill(.white.opacity(0.12))
-            .clipShape(.capsule)
-            .frame(idealWidth: 76, maxWidth: 76, minHeight: 26, maxHeight: 26)
-    }
-    
-    private func emptyView() -> some View {
-        Color.clear
-            .frame(width: 76, height: 26)
-    }
 }
 
 private struct _AddressLine: View {
@@ -284,8 +149,6 @@ private struct _AddressLineContent: View {
                 .padding(.trailing, -8)
                 .backportGeometryGroup()
         }
-        .padding(.horizontal, 40)
-        .padding(.bottom, 9)
         .animation(.smooth.delay(0.18), value: isTemporary)
     }
 }

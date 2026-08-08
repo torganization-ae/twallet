@@ -87,6 +87,7 @@ import app.twallet.air.walletcore.models.MSavedAddress
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.moshi.MApiTransaction
 import app.twallet.air.walletcore.stores.AccountStore
+import app.twallet.air.walletcore.stores.ChainVisibilityStore
 import app.twallet.air.walletcore.stores.TokenStore
 import java.lang.ref.WeakReference
 import kotlin.math.max
@@ -355,6 +356,14 @@ class SendVC(
         }
     }
 
+    private val networkAmbiguityWarning by lazy {
+        WAlertLabel(
+            context,
+            alertColor = WColor.Orange.color,
+            coloredText = true
+        ).apply { isGone = true }
+    }
+
     private val signatureWarningGap by lazy { ListGapCell(context, ViewConstants.GAP.dp) }
 
     private val signatureWarning by lazy {
@@ -454,6 +463,7 @@ class SendVC(
                 amountInputView,
                 ConstraintLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
             )
+            addView(networkAmbiguityWarning, ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
             if (!hasBinary) {
                 addView(gap2)
                 addView(title2, ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
@@ -558,6 +568,7 @@ class SendVC(
             } else {
                 switchTokenBasedOnChain(address)
             }
+            updateNetworkBanners()
         }
 
         override fun afterTextChanged(s: Editable?) {}
@@ -777,6 +788,7 @@ class SendVC(
         navigationBar?.setTitleView(navSegmentedControl, animated = false)
         navigationBar?.addCloseButton()
         navigationBar?.setTitleGravity(Gravity.CENTER)
+        updateNavNetworkSubtitle(animated = false)
 
         view.addHorizontalGuideline(bottomGuideline)
         view.addView(scrollView, ViewGroup.LayoutParams(MATCH_PARENT, 0))
@@ -917,6 +929,7 @@ class SendVC(
 
         updateTheme()
         setInitialValues()
+        updateNetworkBanners()
     }
 
     private fun buildSegmentedItems(): List<WClearSegmentedControl.Item> {
@@ -1075,12 +1088,53 @@ class SendVC(
         viewModel.onInputToken(tokenSlug)
         updateCommentViews()
         showServiceTokenWarningIfRequired()
+        updateNetworkBanners()
+        updateNavNetworkSubtitle()
 
         navSegmentedControl.setItems(
             buildSegmentedItems(),
             0,
             segmentedDelegate
         )
+    }
+
+    private fun updateNavNetworkSubtitle(animated: Boolean = true) {
+        val displayName = TokenStore.getToken(viewModel.getTokenSlug())?.mBlockchain?.displayName
+        setNavSubtitle(displayName.orEmpty(), animated)
+    }
+
+    private fun updateNetworkBanners() {
+        val token = TokenStore.getToken(viewModel.getTokenSlug())
+        val chain = token?.mBlockchain
+        if (chain == null) {
+            networkAmbiguityWarning.isGone = true
+            return
+        }
+
+        val address = viewModel.inputStateFlow.value.destination.trim()
+        val account = AccountStore.activeAccount
+        val network = account?.network?.value
+        val ambiguous = if (address.isEmpty() || !chain.isValidAddress(address) || account == null || network == null) {
+            emptyList()
+        } else {
+            account.byChain.keys.mapNotNull { name ->
+                val other = MBlockchain.valueOfOrNull(name) ?: return@mapNotNull null
+                if (other == chain) return@mapNotNull null
+                if (ChainVisibilityStore.isHidden(name, network)) return@mapNotNull null
+                if (!other.isValidAddress(address)) return@mapNotNull null
+                other
+            }
+        }
+        if (ambiguous.isEmpty()) {
+            networkAmbiguityWarning.isGone = true
+        } else {
+            networkAmbiguityWarning.isGone = false
+            networkAmbiguityWarning.text = LocaleController.getString(
+                "This address is also valid on %chains%. Make sure you are sending on %chain%."
+            )
+                .replace("%chains%", ambiguous.joinToString(", ") { it.displayName })
+                .replace("%chain%", chain.displayName)
+        }
     }
 
     private fun updateCommentTitleLabel() {
@@ -1155,8 +1209,16 @@ class SendVC(
             )
         }
 
-        if (addressInputView.getKeyword() != destination) {
-            addressInputView.setText(destination)
+        // In tmail mode the field shows the local part (same as web/iOS displayValue).
+        val displayDestination = if (
+            viewModel.isTmailMode && destination.endsWith("@tmail.ton", ignoreCase = true)
+        ) {
+            destination.dropLast("@tmail.ton".length)
+        } else {
+            destination
+        }
+        if (addressInputView.getKeyword() != displayDestination) {
+            addressInputView.setText(displayDestination)
         }
     }
 
@@ -1361,11 +1423,7 @@ class SendVC(
         if (token?.mBlockchain?.isValidAddress(address) != true) {
             for (blockchain in MBlockchain.supportedChains) {
                 if (blockchain.isValidAddress(address)) {
-                    viewModel.onInputToken(blockchain.nativeSlug)
-                    addressInputView.activeChain = blockchain
-                    suggestionsBoxView.activeChain = blockchain
-                    suggestionsBoxView.search(addressInputView.getKeyword())
-                    updateCommentViews()
+                    onAssetSelected(blockchain.nativeSlug)
                     break
                 }
             }

@@ -14,6 +14,10 @@ export function selectPortfolioHistoryBundle(
   baseCurrency: ApiBaseCurrency,
   range: ApiPriceHistoryPeriod,
 ) {
+  if (global.portfolio?.customDateRange) {
+    return global.portfolio.customHistoryByAccountId?.[accountId]?.[baseCurrency];
+  }
+
   return global.portfolio?.historyByAccountId?.[accountId]?.[baseCurrency]?.[range];
 }
 

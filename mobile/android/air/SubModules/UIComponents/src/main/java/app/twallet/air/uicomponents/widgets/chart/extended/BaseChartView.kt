@@ -157,6 +157,20 @@ abstract class BaseChartView<T : ChartData, L : LineViewData>(
     private val touchSlop: Int = ViewConfiguration.get(context).scaledTouchSlop
 
     var pikerHeight = 46.dp
+    var isPickerEnabled = true
+        set(value) {
+            if (field == value) return
+            field = value
+            if (!value) {
+                pikerHeight = 0
+                pickerDelegate.pickerStart = 0f
+                pickerDelegate.pickerEnd = 1f
+            } else if (pikerHeight == 0) {
+                pikerHeight = 46.dp
+            }
+            requestLayout()
+            invalidate()
+        }
     var pickerWidth = 0f
     var chartStart = 0f
     var chartEnd = 0f
@@ -371,7 +385,7 @@ abstract class BaseChartView<T : ChartData, L : LineViewData>(
         chartFullWidth = chartWidth / (pickerDelegate.pickerEnd - pickerDelegate.pickerStart)
 
         updateLineSignature()
-        chartBottom = 100.dp
+        chartBottom = if (isPickerEnabled) 100.dp else 28.dp
         legendSignatureView.setMaxChartHeight((measuredHeight - chartBottom - 16.dp).coerceAtLeast(0))
         chartArea.set(
             chartStart - HORIZONTAL_PADDING,
@@ -422,7 +436,9 @@ abstract class BaseChartView<T : ChartData, L : LineViewData>(
 
         canvas.restoreToCount(count)
         drawBottomSignature(canvas)
-        drawPicker(canvas)
+        if (isPickerEnabled) {
+            drawPicker(canvas)
+        }
         drawSelection(canvas)
 
         super.onDraw(canvas)
@@ -1398,7 +1414,7 @@ abstract class BaseChartView<T : ChartData, L : LineViewData>(
             MotionEvent.ACTION_DOWN -> {
                 capturedTime = System.currentTimeMillis()
                 if (!selectOnTapOnly) parent.requestDisallowInterceptTouchEvent(true)
-                if (pickerDelegate.capture(x, y, pointerIndex)) {
+                if (isPickerEnabled && pickerDelegate.capture(x, y, pointerIndex)) {
                     parent.requestDisallowInterceptTouchEvent(true)
                     return true
                 }
@@ -1420,7 +1436,9 @@ abstract class BaseChartView<T : ChartData, L : LineViewData>(
                 return false
             }
 
-            MotionEvent.ACTION_POINTER_DOWN -> return pickerDelegate.capture(x, y, pointerIndex)
+            MotionEvent.ACTION_POINTER_DOWN -> {
+                return isPickerEnabled && pickerDelegate.capture(x, y, pointerIndex)
+            }
 
             MotionEvent.ACTION_MOVE -> {
                 val dx = x - lastX

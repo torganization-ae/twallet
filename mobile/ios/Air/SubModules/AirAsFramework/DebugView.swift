@@ -25,7 +25,6 @@ struct DebugView: View {
     @AppStorage(DebugBypassLockscreen.userDefaultsKey) private var bypassLockscreen = false
 #endif
     @State private var isLimitedOverride: Bool? = ConfigStore.shared.isLimitedOverride
-    @State private var seasonalThemeOverride: ApiUpdate.UpdateConfig.SeasonalTheme? = ConfigStore.shared.seasonalThemeOverride
 
     @Environment(\.dismiss) private var dismiss
     
@@ -116,28 +115,14 @@ struct DebugView: View {
                                 .tag(Optional(false))
                         }
                         .pickerStyle(.navigationLink)
-
-                        Picker("Seasonal Theme Override", selection: $seasonalThemeOverride) {
-                            Text("Disabled")
-                                .tag(Optional<ApiUpdate.UpdateConfig.SeasonalTheme>.none)
-                            ForEach(ApiUpdate.UpdateConfig.SeasonalTheme.allCases, id: \.self) { seasonalTheme in
-                                Text(seasonalTheme.rawValue)
-                                    .tag(Optional(seasonalTheme))
-                            }
-                        }
-                        .pickerStyle(.navigationLink)
                     } header: {
                         Text("Config")
                     }
                     .onAppear {
                         isLimitedOverride = ConfigStore.shared.isLimitedOverride
-                        seasonalThemeOverride = ConfigStore.shared.seasonalThemeOverride
                     }
                     .onChange(of: isLimitedOverride) { isLimitedOverride in
                         ConfigStore.shared.isLimitedOverride = isLimitedOverride
-                    }
-                    .onChange(of: seasonalThemeOverride) { seasonalThemeOverride in
-                        ConfigStore.shared.seasonalThemeOverride = seasonalThemeOverride
                     }
                     .onChange(of: forceMfaEnabled) { _ in
                         Task { @MainActor in

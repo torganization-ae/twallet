@@ -145,6 +145,10 @@ enum class MBlockchain(
     val canSwapByBuyAmount get() = config?.canSwapByBuyAmount ?: false
     val multiWalletSupport get() = config?.multiWalletSupport
 
+    /** Send-to-self is allowed only on TON (parity with iOS `isSendToSelfAllowed`). */
+    val isSendToSelfAllowed: Boolean
+        get() = this == ton
+
     fun isValidAddress(address: String) =
         config?.isValidAddress(address) ?: false
 

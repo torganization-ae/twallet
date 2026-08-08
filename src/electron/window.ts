@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, systemPreferences } from 'electron';
+import { app, BrowserWindow, clipboard, ipcMain, shell, systemPreferences } from 'electron';
 import windowStateKeeper from 'electron-window-state';
 import path from 'path';
 
@@ -188,6 +188,22 @@ export function setupElectronActionHandlers() {
     validateIpcSender(event);
 
     return restoreStorage();
+  });
+
+  ipcMain.handle(ElectronAction.READ_TEXT_FROM_CLIPBOARD, (event) => {
+    validateIpcSender(event);
+
+    return clipboard.readText();
+  });
+
+  ipcMain.handle(ElectronAction.WRITE_TEXT_TO_CLIPBOARD, (event, text: unknown) => {
+    validateIpcSender(event);
+
+    if (typeof text !== 'string') {
+      throw new Error('Invalid clipboard text');
+    }
+
+    clipboard.writeText(text);
   });
 }
 

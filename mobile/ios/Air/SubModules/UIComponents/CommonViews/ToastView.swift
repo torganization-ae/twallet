@@ -322,10 +322,17 @@ private final class ToastContentView: UIView {
             contentLayoutGuide.leadingAnchor.constraint(equalTo: leadingAnchor, constant: leftContentInsets),
         ]
 
+        let closeButton = makeCloseButton(pointSize: style == .large ? 12 : 10)
+        addSubview(closeButton)
+        constraints += [
+            closeButton.trailingAnchor.constraint(equalTo: trailingAnchor),
+            closeButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ]
+
         if let actionTitle {
             var config = UIButton.Configuration.plain()
             config.baseForegroundColor = .air.toastAction
-            config.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 18, bottom: 16, trailing: 18)
+            config.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 12, bottom: 16, trailing: 4)
             var titleAttr = AttributedString(actionTitle)
             titleAttr.font = actionFont
             config.attributedTitle = titleAttr
@@ -338,18 +345,16 @@ private final class ToastContentView: UIView {
             addSubview(actionButton)
 
             constraints += [
-                actionButton.trailingAnchor.constraint(equalTo: trailingAnchor),
+                actionButton.trailingAnchor.constraint(equalTo: closeButton.leadingAnchor),
                 actionButton.centerYAnchor.constraint(equalTo: centerYAnchor),
                 contentLayoutGuide.trailingAnchor.constraint(equalTo: actionButton.leadingAnchor, constant: -4),
             ]
 
             actionButton.addTarget(self, action: #selector(onActionTap), for: .touchUpInside)
-            addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onDismissTap)))
         } else {
             constraints += [
-                contentLayoutGuide.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12)
+                contentLayoutGuide.trailingAnchor.constraint(equalTo: closeButton.leadingAnchor, constant: -4)
             ]
-            addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onActionTap)))
         }
 
         let lbl = UILabel()
@@ -371,6 +376,21 @@ private final class ToastContentView: UIView {
         ]
 
         NSLayoutConstraint.activate(constraints)
+    }
+
+    private func makeCloseButton(pointSize: CGFloat) -> UIButton {
+        let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: pointSize, weight: .semibold)
+        var config = UIButton.Configuration.plain()
+        config.baseForegroundColor = .white.withAlphaComponent(0.7)
+        config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 10, bottom: 12, trailing: 12)
+        config.image = UIImage(systemName: "xmark", withConfiguration: symbolConfiguration)
+
+        let closeButton = UIButton(configuration: config)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.setContentCompressionResistancePriority(.required, for: .horizontal)
+        closeButton.setContentHuggingPriority(.required, for: .horizontal)
+        closeButton.addTarget(self, action: #selector(onDismissTap), for: .touchUpInside)
+        return closeButton
     }
 
     func replayIcon() {

@@ -25,7 +25,16 @@ export function getTimeRangeStartTs(range: ApiPriceHistoryPeriod, nowTs: number 
   return nowTs - DURATION_MS[range];
 }
 
-// Quantizes `nowTs` to the backend point density for `range`. While the slot matches the one
+/** Sampling density for an arbitrary custom window. */
+export function getDensityForDateSpan(fromMs: number, toMs: number) {
+  const span = Math.max(0, toMs - fromMs);
+  if (span <= DAY) return '5m';
+  if (span <= 7 * DAY) return '1h';
+  if (span <= 30 * DAY) return '4h';
+  return '1d';
+}
+
+// Quantizes `nowTs` to the chart point density for `range`. While the slot matches the one
 // stored alongside cached data, refetching can only return the same series the cache already holds
 export function getPortfolioHistorySlot(
   range: ApiPriceHistoryPeriod,

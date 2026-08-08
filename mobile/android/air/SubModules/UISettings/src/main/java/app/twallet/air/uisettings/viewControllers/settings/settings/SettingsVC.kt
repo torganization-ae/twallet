@@ -165,7 +165,7 @@ class SettingsVC(context: Context) : WViewController(context),
         btn.setOnClickListener {
             val receiveVC = ReceiveVC.createIfAvailable(
                 context,
-                AccountStore.activeAccount?.firstChain
+                defaultChain = null,
             ) ?: return@setOnClickListener
             val navVC = WNavigationController(window!!, PresentationConfig.PreferredFullScreen)
             navVC.setRoot(receiveVC)

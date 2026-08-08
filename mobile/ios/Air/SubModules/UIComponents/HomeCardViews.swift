@@ -319,10 +319,13 @@ public struct CardBalanceView: View, Equatable {
             .lineLimit(1)
 
             if config.showChevron {
-                Image.airBundle("ArrowUpDown")
+                Image.airBundle("PortfolioBars")
+                    .resizable()
+                    .renderingMode(.template)
+                    .frame(width: 16, height: 16)
+                    .foregroundStyle(.white)
                     .opacity(0.5)
                     .offset(y: -1)
-                    .padding(.vertical, -8)
                     .accessibilityHidden(true)
             }
         }

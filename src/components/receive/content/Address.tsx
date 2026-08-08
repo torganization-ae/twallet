@@ -83,7 +83,7 @@ function Address({
         </div>
       )}
 
-      {!isViewMode && <Actions chain={chain} isLedger={isLedger} onClose={onClose} />}
+      {!isViewMode && <Actions chain={chain} onClose={onClose} />}
     </div>
   );
 }

@@ -128,6 +128,7 @@ Invoice Link Copied: Invoice Link Copied
 Theme: Theme
 Language: Language
 At least one network must stay enabled.: At least one network must stay enabled.
+This address is also valid on %chains%. Make sure you are sending on %chain%.: This address is also valid on %chains%. Make sure you are sending on %chain%.
 Network Menu: Network Menu
 Show Wallet QR: Show Wallet QR
 Enter URL: Enter URL
@@ -155,13 +156,8 @@ Unexpected response from endpoint: Unexpected response from endpoint
 Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.: Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.
 Password required to save API key: Password required to save API key
 Enable Animations: Enable Animations
-Enable Seasonal Theming: Enable Seasonal Theming
 Enable Landscape Mode: Enable Landscape Mode
-Disable Seasonal Theming: Disable Seasonal Theming
-You can always enable seasonal theming again in the appearance settings.: You can always enable seasonal theming again in the appearance settings.
 Base Currency: Base Currency
-Investor View: Investor View
-Toggle Investor View: Toggle Investor View
 Hide Tiny Transfers: Hide Tiny Transfers
 Toggle Hide Tiny Transfers: Toggle Hide Tiny Transfers
 Network: Network
@@ -194,6 +190,7 @@ Copy wallet address: Copy wallet address
 View address on %explorer_name%: View address on %explorer_name%
 You have just created a new wallet: You have just created a new wallet
 Assets: Assets
+Tokens: Tokens
 Activity: Activity
 NFT: NFT
 No NFTs yet: No NFTs yet
@@ -254,7 +251,6 @@ Remove from Saved: Remove from Saved
 View on Explorer: View on Explorer
 No suggestions, you're on your own!: No suggestions, you're on your own!
 Play Sounds: Play Sounds
-Focus on asset value rather than current balance: Focus on asset value rather than current balance
 $logout_confirm: Remove **all** wallets
 $tiny_transfers_help: "Hide transfers worth less than $%value%. Keep in mind: small amounts are often sent by spammers and scammers."
 Today: Today
@@ -356,6 +352,9 @@ No active connections: No active connections
 Other: Other
 Portfolio: Portfolio
 Performance, insights and P&L: Performance, insights and P&L
+Custom Date Range: Custom Date Range
+From: From
+To: To
 Overview: Overview
 Total Balance: Total Balance
 Net Change: Net Change
@@ -367,6 +366,7 @@ Daily P&L: Daily P&L
 Portfolio Share: Portfolio Share
 Current allocation across tracked assets.: Current allocation across tracked assets.
 Deep history analysis will be available in upcoming updates.: Deep history analysis will be available in upcoming updates.
+PortfolioHistoryPending: Building portfolio history from your balances and market prices…
 By Chain: By Chain
 No chain balances: No chain balances
 Native: Native

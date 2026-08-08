@@ -17,7 +17,6 @@ public struct MSettings: Equatable, Hashable, Codable, Sendable, FetchableRecord
     public let id: Int64
     public var theme: String
     public var areAnimationsDisabled: Bool
-    public var isSeasonalThemingDisabled: Bool
     public var canPlaySounds: Bool
     public var areTinyTransfersHidden: Bool
     public var areTokensWithNoCostHidden: Bool
@@ -39,7 +38,6 @@ public struct MSettings: Equatable, Hashable, Codable, Sendable, FetchableRecord
         id: Int64 = SINGLETON_TABLE_ROW_ID,
         theme: String = NightMode.system.rawValue,
         areAnimationsDisabled: Bool = false,
-        isSeasonalThemingDisabled: Bool = false,
         canPlaySounds: Bool = true,
         areTinyTransfersHidden: Bool = true,
         areTokensWithNoCostHidden: Bool = true,
@@ -59,7 +57,6 @@ public struct MSettings: Equatable, Hashable, Codable, Sendable, FetchableRecord
         self.id = id
         self.theme = theme
         self.areAnimationsDisabled = areAnimationsDisabled
-        self.isSeasonalThemingDisabled = isSeasonalThemingDisabled
         self.canPlaySounds = canPlaySounds
         self.areTinyTransfersHidden = areTinyTransfersHidden
         self.areTokensWithNoCostHidden = areTokensWithNoCostHidden
@@ -81,7 +78,6 @@ public struct MSettings: Equatable, Hashable, Codable, Sendable, FetchableRecord
         self.init(
             theme: global.getString(key: "settings.theme") ?? NightMode.system.rawValue,
             areAnimationsDisabled: (global.getInt(key: "settings.animationLevel") ?? 2) <= 0,
-            isSeasonalThemingDisabled: global.getBool(key: "settings.isSeasonalThemingDisabled") ?? false,
             canPlaySounds: global.getBool(key: "settings.canPlaySounds") ?? true,
             areTinyTransfersHidden: global.getBool(key: "settings.areTinyTransfersHidden") ?? true,
             areTokensWithNoCostHidden: global.getBool(key: "settings.areTokensWithNoCostHidden") ?? true,

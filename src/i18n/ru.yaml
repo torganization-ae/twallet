@@ -154,18 +154,14 @@ Unexpected response from endpoint: Неожиданный ответ от endpoi
 Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.: Свои endpoints без поддержки indexer API могут отключить NFT и историю для этой сети.
 Password required to save API key: Для сохранения API-ключа нужен пароль
 At least one network must stay enabled.: Хотя бы одна сеть должна оставаться включённой.
+This address is also valid on %chains%. Make sure you are sending on %chain%.: Этот адрес также валиден в сетях %chains%. Убедитесь, что отправляете в сети %chain%.
 Network Menu: Меню сети
 Show Wallet QR: Показать QR кошелька
 Enter URL: Введите URL
 Saved: Сохранено
 Enable Animations: Включить анимацию
-Enable Seasonal Theming: Включить сезонное оформление
 Enable Landscape Mode: Включить горизонтальный режим
-Disable Seasonal Theming: Отключить сезонное оформление
-You can always enable seasonal theming again in the appearance settings.: Вы всегда можете снова включить сезонное оформление в настройках внешнего вида.
 Base Currency: Базовая валюта
-Investor View: Режим инвестора
-Toggle Investor View: Переключить в режим инвестора
 Hide Tiny Transfers: Скрывать мелкие переводы
 Toggle Hide Tiny Transfers: Переключить отображение мелких переводов
 Network: Сеть
@@ -199,6 +195,7 @@ Copy wallet address: Скопировать адрес
 View address on %explorer_name%: Посмотреть адрес в %explorer_name%
 You have just created a new wallet: Поздравляем! Вы только что создали новый кошелёк
 Assets: Активы
+Tokens: Токены
 Activity: Лента
 NFT: NFT
 No NFTs yet: Пока у вас нет NFT
@@ -262,7 +259,6 @@ Remove from Saved: Удалить из сохранённых
 View on Explorer: Открыть в эксплорере
 No suggestions, you're on your own!: Ничего не найдено :(
 Play Sounds: Включить звуки
-Focus on asset value rather than current balance: Фокус на стоимости активов вместо текущего баланса
 $tiny_transfers_help: Скрыть переводы стоимостью менее $%value%. Имейте в виду — такие суммы часто отправляют спамеры и мошенники.
 Today: Сегодня
 Total: Итого
@@ -366,6 +362,9 @@ Price Copied: Цена скопирована
 Not staked: Не в стейкинге
 Portfolio: Портфель
 Performance, insights and P&L: Динамика, аналитика и P&L
+Custom Date Range: Произвольный период
+From: С
+To: По
 Overview: Обзор
 Total Balance: Общий баланс
 Net Change: Изменение стоимости портфеля
@@ -377,6 +376,7 @@ Daily P&L: P&L за сутки
 Portfolio Share: Структура портфеля
 Current allocation across tracked assets.: Текущее распределение отслеживаемых активов.
 Deep history analysis will be available in upcoming updates.: Глубокий анализ истории появится в следующих обновлениях.
+PortfolioHistoryPending: Строим историю портфеля по балансам и рыночным ценам…
 By Chain: По сетям
 No chain balances: Нет балансов по сетям
 Native: Нативные

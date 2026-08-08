@@ -9,6 +9,7 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Region
 import android.os.Build
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import app.twallet.air.uicomponents.extensions.dp
@@ -100,9 +101,15 @@ class PillShadowView(context: Context) : View(context), WThemedView {
 
     init {
         id = generateViewId()
+        // Decorative only — never steal taps from sibling controls (e.g. portfolio calendar).
+        isClickable = false
+        isFocusable = false
+        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
         setLayerType(LAYER_TYPE_SOFTWARE, null)
         refreshShadowLayer()
     }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean = false
 
     /**
      * Manual rect control in this view's coordinate space. Use when the pill

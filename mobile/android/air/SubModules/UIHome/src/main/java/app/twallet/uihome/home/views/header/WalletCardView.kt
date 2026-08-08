@@ -18,7 +18,6 @@ import androidx.core.text.buildSpannedString
 import androidx.core.text.inSpans
 import androidx.core.view.isGone
 import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
 import com.facebook.drawee.generic.RoundingParams
 import com.facebook.fresco.ui.common.OnFadeListener
 import app.twallet.air.icons.R
@@ -30,8 +29,6 @@ import app.twallet.air.uicomponents.drawable.WRippleDrawable
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.extensions.exactly
 import app.twallet.air.uicomponents.extensions.getLocationInWindow
-import app.twallet.air.uicomponents.extensions.getLocationOnScreen
-import app.twallet.air.uicomponents.extensions.setOnLongHoldListener
 import app.twallet.air.uicomponents.extensions.styleDots
 import app.twallet.air.uicomponents.helpers.ClipboardHelpers
 import app.twallet.air.uicomponents.helpers.HapticType
@@ -45,9 +42,7 @@ import app.twallet.air.uicomponents.image.Content
 import app.twallet.air.uicomponents.image.WCustomImageView
 import app.twallet.air.uicomponents.widgets.AutoScaleContainerView
 import app.twallet.air.uicomponents.widgets.IPopup
-import app.twallet.air.uicomponents.widgets.WBlurryBackgroundView
 import app.twallet.air.uicomponents.widgets.WGradientMaskView
-import app.twallet.air.uicomponents.widgets.WLabel
 import app.twallet.air.uicomponents.widgets.WLinearLayout
 import app.twallet.air.uicomponents.widgets.WMultichainAddressLabel
 import app.twallet.air.uicomponents.widgets.WShiningView
@@ -63,42 +58,28 @@ import app.twallet.air.uicomponents.widgets.sensitiveDataContainer.SensitiveData
 import app.twallet.air.uicomponents.widgets.sensitiveDataContainer.WSensitiveDataContainer
 import app.twallet.air.uicomponents.widgets.setBackgroundColor
 import app.twallet.air.uiportfolio.viewControllers.portfolio.PortfolioVC
-import app.twallet.air.uiwidgets.configurations.WidgetsConfigurations
 import app.twallet.air.walletbasecontext.localization.LocaleController
-import app.twallet.air.walletbasecontext.models.MBaseCurrency
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.cardGradientColors
 import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.getDrawableCompat
-import app.twallet.air.walletbasecontext.utils.requireDrawableCompat
-import app.twallet.air.walletbasecontext.utils.signSpace
-import app.twallet.air.walletbasecontext.utils.toString
 import app.twallet.air.walletbasecontext.utils.trimAddress
 import app.twallet.air.walletbasecontext.utils.trimDomain
 import app.twallet.air.walletbasecontext.utils.x
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
-import app.twallet.air.walletcontext.helpers.DevicePerformanceClassifier
-import app.twallet.air.walletcontext.models.MBlockchainNetwork
-import app.twallet.air.walletcontext.utils.AnimUtils.Companion.lerp
 import app.twallet.air.walletcontext.utils.VerticalImageSpan
 import app.twallet.air.walletcontext.utils.colorWithAlpha
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
-import app.twallet.air.walletcore.api.setBaseCurrency
 import app.twallet.air.walletcore.helpers.ExplorerHelpers
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.MAccount.AccountChain
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
-import app.twallet.air.walletcore.stores.BalanceStore
-import app.twallet.air.walletcore.stores.ConfigStore
 import app.twallet.air.uisettings.viewControllers.networks.NetworksVC
 import app.twallet.uihome.home.views.UpdateStatusView
-import app.twallet.uihome.home.views.header.seasonal.SeasonalOverlayView
 import java.math.BigInteger
-import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.roundToInt
-import app.twallet.air.walletbasecontext.R as BaseR
 
 @SuppressLint("ViewConstructor")
 class WalletCardView(
@@ -188,11 +169,12 @@ class WalletCardView(
     }
     private lateinit var balanceViewMaskWrapper: WGradientMaskView
     private val arrowDownDrawable = context.getDrawableCompat(
-        R.drawable.ic_arrows_14
+        R.drawable.ic_portfolio_bars
     )
     private var arrowImageView = AppCompatImageView(context).apply {
         setImageDrawable(arrowDownDrawable)
         alpha = 0.5f
+        scaleType = ImageView.ScaleType.CENTER_INSIDE
     }
     private val balanceViewContainer: WSensitiveDataContainer<AutoScaleContainerView> by lazy {
         val linearLayout = LinearLayout(context).apply {
@@ -204,9 +186,9 @@ class WalletCardView(
         }
         balanceViewMaskWrapper = WGradientMaskView(balanceView)
         linearLayout.addView(balanceViewMaskWrapper, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-        linearLayout.addView(arrowImageView, LayoutParams(18.dp, 24.dp).apply {
-            leftMargin = 2.dp
-            topMargin = 3.dp
+        linearLayout.addView(arrowImageView, LayoutParams(16.dp, 16.dp).apply {
+            leftMargin = 4.dp
+            topMargin = 2.dp
             rightMargin = 2.dp
         })
         linearLayout.setOnClickListener {
@@ -234,51 +216,7 @@ class WalletCardView(
         }
     }
 
-    private val balanceChangeChevron = context.getDrawableCompat(
-        R.drawable.ic_arrow_right_16_24
-    )?.apply {
-        mutate()
-        setBounds(0, 0, intrinsicWidth, intrinsicHeight)
-    }
-
-    private val balanceChangeLabel: WSensitiveDataContainer<WLabel> by lazy {
-        val lbl = WLabel(context)
-        lbl.setPadding(8.dp, 3.dp, 8.dp, 3.dp)
-        lbl.setStyle(adaptiveFontSize(), WFont.Medium)
-        lbl.compoundDrawablePadding = 0
-        lbl.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, balanceChangeChevron, null)
-        lbl.foreground = WRippleDrawable.create(14f.dp).apply {
-            rippleColor = Color.WHITE.colorWithAlpha(25)
-        }
-        lbl.setOnClickListener {
-            if (mode == HomeHeaderView.Mode.Collapsed) return@setOnClickListener
-            val tabNav =
-                (window.topNavigationController?.viewControllers?.firstOrNull() as? ITabsVC)?.mainNavigationController
-            if (tabNav != null) {
-                tabNav.push(PortfolioVC(context))
-            } else {
-                window.navigationControllers.last().push(PortfolioVC(context))
-            }
-        }
-        WSensitiveDataContainer(
-            lbl,
-            WSensitiveDataContainer.MaskConfig(
-                16,
-                3,
-                Gravity.CENTER,
-                16.dp,
-                cellSize = 10.dp,
-                skin = SensitiveDataMaskView.Skin.DARK_THEME,
-                protectContentLayoutSize = false,
-                adaptiveGrid = true
-            )
-        )
-    }
-
     private val balanceSkeletonView = WView(context).apply {
-        visibility = GONE
-    }
-    private val balanceChangeSkeletonView = WView(context).apply {
         visibility = GONE
     }
 
@@ -316,22 +254,6 @@ class WalletCardView(
         visibility = GONE
     }
 
-    private val balanceChangeBlurView: WBlurryBackgroundView? =
-        if (DevicePerformanceClassifier.isHighClass)
-            WBlurryBackgroundView(
-                context,
-                fadeSide = null
-            ).apply {
-                setOverlayColor(WColor.Transparent)
-                setBackgroundColor(Color.TRANSPARENT, 14f.dp, clipToBounds = true)
-            }
-        else
-            null
-
-    private val seasonalOverlayView = SeasonalOverlayView(context).apply {
-        id = generateViewId()
-    }
-
     private val clippedContainer = WView(context).apply {
         id = generateViewId()
         clipChildren = true
@@ -347,41 +269,23 @@ class WalletCardView(
 
         clippedContainer.addView(img, LayoutParams(MATCH_PARENT, MATCH_PARENT))
         clippedContainer.addView(shiningView, LayoutParams(MATCH_PARENT, MATCH_PARENT))
-        clippedContainer.addView(
-            seasonalOverlayView,
-            LayoutParams(MATCH_CONSTRAINT, MATCH_CONSTRAINT)
-        )
         clippedContainer.addView(miniPlaceholders)
         clippedContainer.addView(balanceViewContainer, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-        balanceChangeBlurView?.let { balanceChangeBlurView ->
-            clippedContainer.addView(balanceChangeBlurView, LayoutParams(MATCH_CONSTRAINT, 28.dp))
-            balanceChangeBlurView.setupWith(clippedContainer)
-        }
-        clippedContainer.addView(balanceChangeLabel, LayoutParams(WRAP_CONTENT, 28.dp))
         clippedContainer.addView(balanceSkeletonView, LayoutParams(134.dp, 56.dp))
-        clippedContainer.addView(balanceChangeSkeletonView, LayoutParams(134.dp, 28.dp))
         clippedContainer.addView(
             bottomViewContainer,
             LayoutParams(maxBottomContainerWidth, WRAP_CONTENT)
         )
         clippedContainer.setConstraints {
             allEdges(img)
-            allEdges(seasonalOverlayView)
             toCenterX(miniPlaceholders)
             toTop(miniPlaceholders)
             toTop(balanceViewContainer)
             toCenterX(balanceViewContainer)
-            balanceChangeBlurView?.let {
-                topToTop(balanceChangeBlurView, balanceChangeLabel)
-                centerXToCenterX(balanceChangeBlurView, balanceChangeLabel)
-            }
-            toTop(balanceChangeLabel)
-            toCenterX(balanceChangeLabel)
             toCenterX(bottomViewContainer)
-            toBottom(bottomViewContainer, 10f)
+            toBottom(bottomViewContainer, 5f)
             topToTop(balanceSkeletonView, balanceViewContainer)
             centerXToCenterX(balanceSkeletonView, balanceViewContainer)
-            edgeToEdge(balanceChangeSkeletonView, balanceChangeLabel)
         }
 
         v.addView(clippedContainer, LayoutParams(MATCH_CONSTRAINT, MATCH_CONSTRAINT))
@@ -442,8 +346,6 @@ class WalletCardView(
             rect.inset(-5.dp, -4.dp)
             bottomViewContainer.touchDelegate = TouchDelegate(rect, addressLabel)
         }
-
-        updateSeasonalTheme()
     }
 
     override fun onAttachedToWindow() {
@@ -455,11 +357,6 @@ class WalletCardView(
         shiningView.background = null
         setLabelColors(Color.WHITE, Color.WHITE.colorWithAlpha(191), drawGradient = false)
 
-        if (balanceChangeBlurView == null)
-            balanceChangeLabel.contentView.setBackgroundColor(
-                Color.WHITE.colorWithAlpha(25),
-                14f.dp
-            )
         if (isShowingSkeletons) {
             updateSkeletonViewColors()
         }
@@ -488,26 +385,6 @@ class WalletCardView(
 
         balanceViewContainer.y = balanceY
         balanceSkeletonView.y = balanceY
-        balanceChangeLabel.y = balanceY + 64.dp
-        val cardHeight = layoutParams?.height ?: 0
-        if (cardHeight > 0 && expandProgress > 0.9f && balanceChangeLabel.isVisible) {
-            val changeHeight = balanceChangeLabel.height.takeIf { it > 0 } ?: 28.dp
-            val bottomRowTop = cardHeight - 10.dp - bottomViewContainer.height
-            val overlap = balanceChangeLabel.y + changeHeight + 4.dp - bottomRowTop
-            if (overlap > 0) {
-                val pillLift = overlap.coerceAtMost(20f.dp)
-                balanceChangeLabel.y -= pillLift
-                val overlapProgress = 10 * (expandProgress - 0.9f)
-                val rest = lerp(0f, overlap - pillLift, overlapProgress)
-                if (rest > 0) {
-                    balanceViewContainer.y -= rest + lerp(0f, 8f.dp, overlapProgress)
-                    balanceSkeletonView.y = balanceViewContainer.y
-                    balanceChangeLabel.y -= rest
-                }
-            }
-        }
-        balanceChangeBlurView?.y = balanceChangeLabel.y
-        balanceChangeSkeletonView.y = balanceChangeLabel.y
 
         val scale2 = (30f + 8f * expandProgress) / 38f
         balanceView.setScale(
@@ -520,48 +397,11 @@ class WalletCardView(
     }
 
     fun updateBalanceChange(balance: Double?, balance24h: Double?, animated: Boolean) {
-        isBalanceChangePositive =
-            balance != null && balance24h != null &&
-                balance > 0 && balance24h > 0 && balance > balance24h
-        var balanceChangeString: String? = null
-        balance?.let {
-            balance24h?.let {
-                if (balance > 0) {
-                    val changeValue = balance - balance24h
-                    if (changeValue.isFinite()) {
-                        val balanceChangeValueString = (changeValue.absoluteValue).toString(
-                            WalletCore.baseCurrency.decimalsCount,
-                            WalletCore.baseCurrency.sign,
-                            WalletCore.baseCurrency.decimalsCount,
-                            true
-                        )
-                        val balanceChangePercentString =
-                            if (balance24h == 0.0) "" else "${if (balance - balance24h >= 0) "+$signSpace" else "-$signSpace"}${
-                                kotlin.math.abs(
-                                    ((balance - balance24h) / balance24h * 10000).roundToInt() / 100f
-                                )
-                            }% · "
-                        balanceChangeString =
-                            "$balanceChangePercentString$balanceChangeValueString"
-                    }
-                }
-            }
-        }
-        updateBalanceChange(balanceChangeString, animated)
+        // Balance change pill was removed from the home card.
     }
 
     fun updateBalanceChange(balanceChangeString: String?, animated: Boolean) {
-        if (balanceChangeLabel.contentView.text.isEmpty() && animated) {
-            balanceChangeBlurView?.alpha = 0f
-            balanceChangeBlurView?.fadeIn()
-            balanceChangeLabel.alpha = 0f
-            balanceChangeLabel.fadeIn()
-        }
-        balanceChangeLabel.contentView.text = balanceChangeString
-        balanceChangeLabel.visibility =
-            if (balanceChangeLabel.contentView.text.isNullOrEmpty()) INVISIBLE else VISIBLE
-        balanceChangeBlurView?.visibility = balanceChangeLabel.visibility
-        applyBalanceChangeColors()
+        // Balance change pill was removed from the home card.
     }
 
     fun animateBalance(animateConfig: WBalanceView.AnimateConfig) {
@@ -584,9 +424,6 @@ class WalletCardView(
         balanceViewContainer.visibility = INVISIBLE
         balanceSkeletonView.visibility = VISIBLE
         balanceSkeletonView.alpha = 1f
-        val showBalanceChangePlace = account?.isNew != true && balanceAmount != BigInteger.ZERO
-        balanceChangeSkeletonView.isGone = !showBalanceChangePlace
-        balanceChangeSkeletonView.alpha = 1f
         arrowImageView.visibility = INVISIBLE
         updateSkeletonViewColors()
     }
@@ -599,17 +436,13 @@ class WalletCardView(
         balanceSkeletonView.fadeOut(onCompletion = {
             if (!isShowingSkeletons) {
                 balanceSkeletonView.visibility = GONE
-                balanceChangeSkeletonView.visibility = GONE
             }
         })
-        if (balanceChangeSkeletonView.isVisible)
-            balanceChangeSkeletonView.fadeOut()
     }
 
     fun getSkeletonViews(): List<View> {
         return listOf(
             balanceSkeletonView,
-            balanceChangeSkeletonView
         )
     }
 
@@ -669,10 +502,6 @@ class WalletCardView(
         addressLabel.displayAddresses(account, WMultichainAddressLabel.walletExpandStyle)
     }
 
-    fun updateSeasonalTheme() {
-        seasonalOverlayView.updateSeasonalTheme()
-    }
-
     var headerMode = HomeHeaderView.DEFAULT_MODE
         set(value) {
             field = value
@@ -686,11 +515,9 @@ class WalletCardView(
         if (animated) {
             miniPlaceholders.fadeOut(AnimationConstants.INSTANT_ANIMATION)
             shiningView.fadeIn(AnimationConstants.VERY_QUICK_ANIMATION)
-            seasonalOverlayView.fadeIn(AnimationConstants.VERY_QUICK_ANIMATION)
         } else {
             miniPlaceholders.alpha = 0f
             shiningView.alpha = 1f
-            seasonalOverlayView.alpha = 1f
         }
     }
 
@@ -703,11 +530,9 @@ class WalletCardView(
             miniPlaceholders.alpha = 0f
             miniPlaceholders.fadeIn(AnimationConstants.VERY_QUICK_ANIMATION)
             shiningView.fadeOut(AnimationConstants.VERY_QUICK_ANIMATION)
-            seasonalOverlayView.fadeOut(AnimationConstants.VERY_QUICK_ANIMATION)
         } else {
             miniPlaceholders.alpha = 1f
             shiningView.alpha = 0f
-            seasonalOverlayView.alpha = 0f
         }
     }
 
@@ -734,11 +559,8 @@ class WalletCardView(
     private fun updateActionsAlpha(actionsAlpha: Float) {
         addressLabel.alpha = actionsAlpha
         walletTypeView.alpha = actionsAlpha
-        balanceChangeLabel.alpha = actionsAlpha
-        balanceChangeBlurView?.alpha = actionsAlpha
     }
 
-    private var isBalanceChangePositive = false
     private var _primaryColor: Int? = null
     private var _secondaryColor: Int? = null
     private var _drawGradient: Boolean? = null
@@ -769,32 +591,12 @@ class WalletCardView(
             secondaryColor.colorWithAlpha(41),
             secondaryColor.colorWithAlpha(191)
         )
-        applyBalanceChangeColors()
-    }
-
-    private fun applyBalanceChangeColors() {
-        val secondaryColor = _secondaryColor ?: Color.WHITE.colorWithAlpha(191)
-        balanceChangeLabel.contentView.setTextColor(secondaryColor.colorWithAlpha(191))
-        balanceChangeChevron?.setTint(secondaryColor.colorWithAlpha(191))
-        balanceChangeLabel.contentView.setBackgroundColor(
-            if (balanceChangeBlurView == null) secondaryColor.colorWithAlpha(41) else Color.TRANSPARENT,
-            13f.dp
-        )
-        if (isBalanceChangePositive) {
-            val positiveColor = WColor.PositiveBalance.color
-            balanceChangeLabel.contentView.setTextColor(positiveColor)
-            balanceChangeChevron?.setTint(positiveColor)
-        }
     }
 
     private fun updateSkeletonViewColors() {
         balanceSkeletonView.setBackgroundColor(
             Color.WHITE.colorWithAlpha(25),
             8f.dp
-        )
-        balanceChangeSkeletonView.setBackgroundColor(
-            Color.WHITE.colorWithAlpha(25),
-            14f.dp
         )
     }
 
@@ -851,50 +653,17 @@ class WalletCardView(
     }
 
     private fun balanceViewContainerTapped() {
-        WMenuPopup.present(
-            balanceViewContainer.contentView,
-            listOf(
-                MBaseCurrency.USD,
-                MBaseCurrency.EUR,
-                MBaseCurrency.RUB,
-                MBaseCurrency.CNY,
-                MBaseCurrency.BTC,
-                MBaseCurrency.TON
-            ).map {
-                val totalBalance =
-                    BalanceStore.calcTotalBalanceInBaseCurrency(account!!.accountId, it)?.total
-                WMenuPopup.Item(
-                    WMenuPopup.Item.Config.SelectableItem(
-                        title = it.currencyName,
-                        subtitle = totalBalance?.toString(
-                            decimals = 9,
-                            currency = it.sign,
-                            currencyDecimals = 9,
-                            smartDecimals = true,
-                            roundUp = false
-                        ),
-                        isSelected = WalletCore.baseCurrency.currencySymbol == it.currencySymbol
-                    ),
-                    false,
-                ) {
-                    WalletCore.setBaseCurrency(newBaseCurrency = it.currencyCode) { _, _ -> }
-                    WidgetsConfigurations.reloadWidgets(context)
-                }
-            },
-            centerHorizontally = true,
-            yOffset = (-6).dp,
-            popupWidth = 225.dp,
-            positioning = WMenuPopup.Positioning.BELOW,
-            windowBackgroundStyle = BackgroundStyle.Cutout.fromView(
-                this@WalletCardView,
-                roundRadius = EXPANDED_RADIUS.dp.toFloat(),
-                verticalOffset = (-0.5f).dp.roundToInt()
-            )
-        )
+        val tabNav =
+            (window.topNavigationController?.viewControllers?.firstOrNull() as? ITabsVC)?.mainNavigationController
+        if (tabNav != null) {
+            tabNav.push(PortfolioVC(context))
+        } else {
+            window.navigationControllers.last().push(PortfolioVC(context))
+        }
     }
 
     fun copyFirstAddress() {
-        account?.sortedChains()?.firstOrNull()?.let {
+        account?.visibleSortedChains()?.firstOrNull()?.let {
             val chain = MBlockchain.valueOfOrNull(it.key) ?: return
             copyAccountToClipboard(it.value, chain)
         }
@@ -929,7 +698,7 @@ class WalletCardView(
             setBounds(0, 0, width, height)
         }
         val items =
-            account?.sortedChains()?.mapNotNull { accountChain ->
+            account?.visibleSortedChains()?.mapNotNull { accountChain ->
                 val chain = MBlockchain.valueOfOrNull(accountChain.key) ?: return@mapNotNull null
                 val accountChainValue = accountChain.value
                 val fullAddress = accountChainValue.address
@@ -1069,7 +838,6 @@ class WalletCardView(
         if (!shouldRenderBlurs) {
             return
         }
-        balanceChangeBlurView?.resumeBlurring()
         walletTypeView.resumeBlurring()
     }
 
@@ -1077,7 +845,6 @@ class WalletCardView(
         if (shouldRenderBlurs) {
             return
         }
-        balanceChangeBlurView?.pauseBlurring()
         walletTypeView.pauseBlurring()
     }
 }

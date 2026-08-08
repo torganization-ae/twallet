@@ -39,7 +39,6 @@ class HomeVM(
         fun configureAccountViews(shouldLoadNewWallets: Boolean, skipSkeletonOnCache: Boolean)
         fun reloadTabs()
         fun accountRenamed(accountId: String, accountName: String)
-        fun seasonalThemeChanged()
         fun accountWillChange(fromHome: Boolean)
         fun wideLayoutChanged()
         fun removeScreenFromStack()
@@ -211,7 +210,9 @@ class HomeVM(
 
     override fun onWalletEvent(walletEvent: WalletEvent) {
         when (walletEvent) {
-            WalletEvent.BalanceChanged, WalletEvent.TokensChanged -> {
+            WalletEvent.BalanceChanged,
+            WalletEvent.TokensChanged,
+            WalletEvent.ChainVisibilityChanged -> {
                 dataUpdated()
             }
 
@@ -277,10 +278,6 @@ class HomeVM(
                 if (!mode.isScreenActive)
                     return
                 delegate.get()?.reloadTabs()
-            }
-
-            WalletEvent.SeasonalThemeChanged -> {
-                delegate.get()?.seasonalThemeChanged()
             }
 
             is WalletEvent.AccountRemoved -> {

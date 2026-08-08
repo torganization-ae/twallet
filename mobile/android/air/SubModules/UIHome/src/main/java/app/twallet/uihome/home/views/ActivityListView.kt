@@ -50,9 +50,8 @@ import app.twallet.air.walletcore.stores.BalanceStore
 import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
 import app.twallet.uihome.home.cells.HomeAssetsVCPool
+import app.twallet.air.uiassets.viewControllers.assetsTab.AssetsTabVC
 import app.twallet.uihome.home.cells.HomePhoneAssetsCell
-import app.twallet.uihome.home.cells.HomeTabletAssetsCell
-import app.twallet.uihome.home.cells.HomeTabletAssetsSkeletonCell
 import app.twallet.uihome.home.cells.IHomeAssetsCell
 import app.twallet.uihome.home.views.header.HomeHeaderView
 import java.lang.ref.WeakReference
@@ -90,7 +89,6 @@ class ActivityListView<T>(
 
         val SKELETON_HEADER_CELL = WCell.Type(9)
         val SKELETON_CELL = WCell.Type(10)
-        val TABLET_ASSETS_SKELETON_CELL = WCell.Type(11)
         val MULTISIG_WARNING_CELL = WCell.Type(12)
 
         const val HEADER_SECTION = 0
@@ -152,6 +150,7 @@ class ActivityListView<T>(
         if (showingAccountId == accountId)
             return
         assetsShown = false
+        homeContentTab = AssetsTabVC.TAB_COINS
         isMainnetAccount =
             accountId != null && MBlockchainNetwork.ofAccountId(accountId).isMainnet
         this.showingAccountId = if (shouldLoadNewWallets) accountId else null
@@ -277,6 +276,11 @@ class ActivityListView<T>(
 
     // PRIVATE VARIABLES ///////////////////////////////////////////////////////////////////////////
     private var assetsShown = false
+    /** Peer content tab from the assets segmented control (`app:coins` / `app:activity` / …). */
+    private var homeContentTab: String = AssetsTabVC.TAB_COINS
+
+    private val isActivityContentTab: Boolean
+        get() = homeContentTab == AssetsTabVC.TAB_ACTIVITY
     private var isMainnetAccount = false
     private var skeletonAlphaFromLoadValue = 0f
     private var childrenAlpha = 1f
@@ -367,8 +371,7 @@ class ActivityListView<T>(
             arrayOf(
                 HEADER_CELL,
                 SKELETON_HEADER_CELL,
-                SKELETON_CELL,
-                TABLET_ASSETS_SKELETON_CELL
+                SKELETON_CELL
             )
         ).apply {
             setHasStableIds(true)
@@ -622,8 +625,7 @@ class ActivityListView<T>(
     // (prev/current/next each have their own account, hence their own pool).
     private var assetsVCPool: HomeAssetsVCPool? = null
 
-    // On wide layout the assets are shown as side-by-side columns (HomeTabletAssetsCell); on phone
-    // as a paged segmented control (HomePhoneAssetsCell). Both share the IHomeAssetsCell surface.
+    // Unified peer tabs (Tokens | Activity | Collectibles) on all widths — same as phone.
     private fun createAssetsCell(dataSource: T): IHomeAssetsCell {
         val window = dataSource.window!!
         val navigationController = dataSource.navigationController!!
@@ -639,6 +641,15 @@ class ActivityListView<T>(
                 return@onAssetsShown
             assetsShown = true
             updateSkeletonState(animated = true)
+        }
+        val onContentTabChanged = { identifier: String? ->
+            val next = identifier ?: AssetsTabVC.TAB_COINS
+            if (homeContentTab != next) {
+                homeContentTab = next
+                reloadData()
+                updateSkeletonState(animated = true)
+            }
+            Unit
         }
         val onReorderingRequested = { reordering: Boolean ->
             if (reordering) delegate?.startSorting() else delegate?.endSorting()
@@ -665,36 +676,21 @@ class ActivityListView<T>(
             Unit
         }
         val onDetailsOpened = { delegate?.endSelectionMode(); Unit }
-        val cell: IHomeAssetsCell = if (isWideLayout) {
-            HomeTabletAssetsCell(
-                context,
-                pool = pool,
-                navigationController = navigationController,
-                showingAccountId = showingAccountId ?: "",
-                heightChanged = heightChanged,
-                onAssetsShown = onAssetsShown,
-                onReorderingRequested = onReorderingRequested,
-                onSelectionRequested = onSelectionRequested,
-                onSelectionChanged = onSelectionChanged,
-                onDetailsOpened = onDetailsOpened,
-                onHorizontalScroll = { delegate?.onTopItemHorizontalScroll() }
-            )
-        } else {
-            HomePhoneAssetsCell(
-                context,
-                pool = pool,
-                window = window,
-                navigationController = navigationController,
-                showingAccountId = showingAccountId ?: "",
-                heightChanged = heightChanged,
-                onAssetsShown = onAssetsShown,
-                onReorderingRequested = onReorderingRequested,
-                onForceEndReorderingRequested = onForceEndReorderingRequested,
-                onSelectionRequested = onSelectionRequested,
-                onSelectionChanged = onSelectionChanged,
-                onDetailsOpened = onDetailsOpened
-            )
-        }
+        val cell: IHomeAssetsCell = HomePhoneAssetsCell(
+            context,
+            pool = pool,
+            window = window,
+            navigationController = navigationController,
+            showingAccountId = showingAccountId ?: "",
+            heightChanged = heightChanged,
+            onAssetsShown = onAssetsShown,
+            onContentTabChanged = onContentTabChanged,
+            onReorderingRequested = onReorderingRequested,
+            onForceEndReorderingRequested = onForceEndReorderingRequested,
+            onSelectionRequested = onSelectionRequested,
+            onSelectionChanged = onSelectionChanged,
+            onDetailsOpened = onDetailsOpened
+        )
         cell.onScrollToVisibleRequested = { scrollAssetsCellToVisible() }
         return cell
     }
@@ -786,8 +782,9 @@ class ActivityListView<T>(
         if (isShowingRecyclerView)
             return // Already shown, no skeleton processes necessary.
 
-        val areActivitiesAvailable =
-            !showingTransactions.isNullOrEmpty() || activityLoader?.loadedAll == true
+        val areActivitiesAvailable = !isActivityContentTab
+            || !showingTransactions.isNullOrEmpty()
+            || activityLoader?.loadedAll == true
         val assetsReady = assetsShown || dataSource?.activityListReserveAssetsCell() == false
         val shouldShowRecyclerView = isGeneralDataAvailable && areActivitiesAvailable && assetsReady
         val shouldFadeInRecyclerView =
@@ -1061,19 +1058,19 @@ class ActivityListView<T>(
 
                     ASSETS_SECTION -> if (dataSource?.activityListReserveAssetsCell() == false) 0 else 2
 
-                    TRANSACTION_SECTION -> if ((showingTransactions?.size ?: 0) > 0)
+                    TRANSACTION_SECTION -> if (isActivityContentTab && (showingTransactions?.size ?: 0) > 0)
                         showingTransactions!!.size
                     else
                         0
 
                     EMPTY_VIEW_SECTION -> {
                         if (
-                            showingTransactions?.isEmpty() == true
+                            isActivityContentTab && showingTransactions?.isEmpty() == true
                         ) 1 else 0
                     }
 
                     LOADING_SECTION -> {
-                        1
+                        if (isActivityContentTab) 1 else 0
                     }
 
                     else -> throw Error()
@@ -1144,15 +1141,7 @@ class ActivityListView<T>(
                     }
 
                     else -> {
-                        if (isWideLayout) {
-                            when (indexPath.row) {
-                                0 -> TABLET_ASSETS_SKELETON_CELL
-                                1 -> SKELETON_HEADER_CELL
-                                else -> SKELETON_CELL
-                            }
-                        } else {
-                            if (indexPath.row == 0) SKELETON_HEADER_CELL else SKELETON_CELL
-                        }
+                        if (indexPath.row == 0) SKELETON_HEADER_CELL else SKELETON_CELL
                     }
                 }
             }
@@ -1255,10 +1244,6 @@ class ActivityListView<T>(
 
                     SKELETON_HEADER_CELL -> {
                         SkeletonHeaderCell(context)
-                    }
-
-                    TABLET_ASSETS_SKELETON_CELL -> {
-                        HomeTabletAssetsSkeletonCell(context)
                     }
 
                     else -> {
@@ -1399,10 +1384,6 @@ class ActivityListView<T>(
                 when (cellHolder.cell) {
                     is SkeletonHeaderCell -> {
                         (cellHolder.cell as SkeletonHeaderCell).updateTheme()
-                    }
-
-                    is HomeTabletAssetsSkeletonCell -> {
-                        (cellHolder.cell as HomeTabletAssetsSkeletonCell).updateTheme()
                     }
 
                     is SkeletonCell -> {

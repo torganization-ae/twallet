@@ -52,6 +52,7 @@ class HomePhoneAssetsCell(
     private var showingAccountId: String,
     private val heightChanged: () -> Unit,
     private val onAssetsShown: () -> Unit,
+    private val onContentTabChanged: (identifier: String?) -> Unit,
     // Allows home screen to know we are in editing mode, and get the end decision
     private val onReorderingRequested: (reordering: Boolean) -> Unit,
     private val onForceEndReorderingRequested: () -> Unit,
@@ -71,6 +72,10 @@ class HomePhoneAssetsCell(
 
     private val tokensVC: TokensVC get() = pool.tokensVC
     private val collectiblesVC: AssetsVC get() = pool.collectiblesVC
+    private val activityTabVC = HomeActivityTabVC(context)
+
+    override val selectedContentTabIdentifier: String?
+        get() = segmentedController.items.getOrNull(segmentedController.currentIndex)?.identifier
 
     // IHomeAssetsHost ///////////////////////////////////////////////////////////////////////////////
     override fun onVcHeightChanged() = updateHeight()
@@ -94,10 +99,20 @@ class HomePhoneAssetsCell(
 
     /** NFT HTTP scanning lives in the shared JS SDK; only run it while Collectibles is selected. */
     private fun syncCollectiblesPollingActive() {
-        val index = segmentedController.currentOffset.roundToInt()
-        val identifier = segmentedController.items.getOrNull(index)?.identifier
-        val isCollectibles = identifier != null && identifier != AssetsTabVC.TAB_COINS
+        val identifier = selectedContentTabIdentifier
+        val isCollectibles = identifier != null
+            && identifier != AssetsTabVC.TAB_COINS
+            && identifier != AssetsTabVC.TAB_ACTIVITY
         WalletCore.call(ApiMethod.Nft.SetCollectiblesActive(isCollectibles)) { _, _ -> }
+    }
+
+    private var lastNotifiedContentTab: String? = null
+
+    private fun notifyContentTabChanged() {
+        val identifier = selectedContentTabIdentifier
+        if (identifier == lastNotifiedContentTab) return
+        lastNotifiedContentTab = identifier
+        onContentTabChanged(identifier)
     }
 
     override fun requestReordering(reordering: Boolean) = onReorderingRequested.invoke(reordering)
@@ -127,10 +142,12 @@ class HomePhoneAssetsCell(
             applySideGutters = false,
             navHeight = 56.dp,
             onOffsetChange = { _, _ ->
+                // Height interpolates during the swipe; content tab switches only when settled.
                 updateHeight()
             },
             onSelectedIndexChanged = {
                 syncCollectiblesPollingActive()
+                notifyContentTabChanged()
             },
             onItemsReordered = null,
             onReorderingStarted = {
@@ -219,6 +236,7 @@ class HomePhoneAssetsCell(
         }
         areAssetsShown = false
         showingAccountId = accountId
+        lastNotifiedContentTab = null
         pool.onAccountChanged(accountId)
         segmentedController.updateProtectedView()
         val itemsChanged = reloadTabs(true)
@@ -261,6 +279,7 @@ class HomePhoneAssetsCell(
         }
         if (resetSelection)
             segmentedController.setActiveIndex(0)
+        notifyContentTabChanged()
         return itemsChanged
     }
 
@@ -351,6 +370,8 @@ class HomePhoneAssetsCell(
                             } else null)
                     }
 
+                    AssetsTabVC.TAB_ACTIVITY -> null
+
                     else -> {
                         val collectionMode =
                             if (homeNftCollection.address == NftCollection.TELEGRAM_GIFTS_SUPER_COLLECTION) {
@@ -426,6 +447,20 @@ class HomePhoneAssetsCell(
                 }
             })
         }
+
+        // Peer tabs: Tokens | Activity | Collectibles (+ pinned). Activity is never persisted.
+        val activityItem = WSegmentedControllerItem(
+            activityTabVC,
+            identifier = AssetsTabVC.TAB_ACTIVITY,
+        )
+        val tokensIndex = items.indexOfFirst {
+            it.identifier == AssetsTabVC.TAB_COINS || it.viewController is TokensVC
+        }
+        if (tokensIndex >= 0) {
+            items.add(tokensIndex + 1, activityItem)
+        } else {
+            items.add(0, activityItem)
+        }
         return items
     }
 
@@ -482,21 +517,21 @@ class HomePhoneAssetsCell(
         val items = segmentedController.items
         val offset = segmentedController.currentOffset
         val currentIndex = offset.toInt()
+        val tabBarHeight = 53.dp
 
         if (currentIndex > items.size - 1) {
             newHeight = 0
         } else {
             val firstHeight = getViewHeight(items[currentIndex].viewController)
             val secondHeight =
-                if (offset > currentIndex) getViewHeight(items[currentIndex + 1].viewController) else 0
-            val secondEffective = if (secondHeight > 0) secondHeight else firstHeight
-
-            newHeight = if (firstHeight > 0) {
-                val interpolatedHeight =
-                    firstHeight + (offset - currentIndex) * (secondEffective - firstHeight)
-                (53.dp + interpolatedHeight).roundToInt()
-            } else
-                0
+                if (offset > currentIndex && currentIndex + 1 < items.size) {
+                    getViewHeight(items[currentIndex + 1].viewController)
+                } else {
+                    firstHeight
+                }
+            val interpolatedHeight =
+                firstHeight + (offset - currentIndex) * (secondHeight - firstHeight)
+            newHeight = (tabBarHeight + interpolatedHeight).roundToInt()
         }
 
         if (newHeight != prevHeight) {

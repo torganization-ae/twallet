@@ -21,7 +21,6 @@ import {
 } from '../../../util/deeplink';
 import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
 import { vibrate, vibrateOnSuccess } from '../../../util/haptics';
-import { omit } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
 import { logDebugError } from '../../../util/logs';
 import { openUrl } from '../../../util/openUrl';
@@ -420,16 +419,6 @@ addActionHandler('closeBackupWalletModal', (global) => {
   return { ...global, isBackupWalletModalOpen: undefined };
 });
 
-addActionHandler('toggleInvestorView', (global, actions, { isEnabled } = {}) => {
-  return {
-    ...global,
-    settings: {
-      ...global.settings,
-      isInvestorViewEnabled: isEnabled,
-    },
-  };
-});
-
 addActionHandler('changeLanguage', (global, actions, { langCode }) => {
   return {
     ...global,
@@ -462,37 +451,6 @@ addActionHandler('toggleCanPlaySounds', (global, actions, { isEnabled } = {}) =>
       canPlaySounds: isEnabled,
     },
   };
-});
-
-addActionHandler('toggleSeasonalTheming', (global, actions, { isEnabled }) => {
-  return {
-    ...global,
-    settings: {
-      ...global.settings,
-      isSeasonalThemingDisabled: !isEnabled || undefined,
-    },
-  };
-});
-
-addActionHandler('setDeveloperSettingsOverride', (global, actions, { key, value }) => {
-  if (value === undefined) {
-    if (global.settings.developerSettingsOverrides?.[key] === undefined) {
-      return global;
-    }
-
-    const rest = omit(global.settings.developerSettingsOverrides, [key]);
-
-    return updateSettings(global, {
-      developerSettingsOverrides: Object.keys(rest).length ? rest : undefined,
-    });
-  }
-
-  return updateSettings(global, {
-    developerSettingsOverrides: {
-      ...global.settings.developerSettingsOverrides,
-      [key]: value,
-    },
-  });
 });
 
 addActionHandler('closeSecurityWarning', (global) => {
@@ -701,7 +659,7 @@ addActionHandler('closePortfolio', (global, actions) => {
   // `switchToPortfolio` parks the landscape content tab on `Portfolio`; restore a real tab on close
   // so the content area isn't left frozen, and the persisted value doesn't get stuck
   if (selectCurrentAccountState(nextGlobal)?.activeContentTab === ContentTab.Portfolio) {
-    return updateCurrentAccountState(nextGlobal, { activeContentTab: ContentTab.Overview });
+    return updateCurrentAccountState(nextGlobal, { activeContentTab: ContentTab.Assets });
   }
 
   return nextGlobal;

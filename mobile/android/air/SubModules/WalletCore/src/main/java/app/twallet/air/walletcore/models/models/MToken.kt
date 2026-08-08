@@ -16,6 +16,7 @@ import app.twallet.air.walletcore.moshi.IApiToken
 import app.twallet.air.walletcore.stakingSlugToTokenSlug
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.BalanceStore
+import app.twallet.air.walletcore.stores.ChainVisibilityStore
 import app.twallet.air.walletcore.stores.TokenStore
 import app.twallet.air.walletcore.tokenSlugToStakingSlug
 import java.math.BigDecimal
@@ -122,6 +123,9 @@ class MToken(json: JSONObject) : IApiToken, WEquatable<MToken> {
         assetsAndActivityData: MAssetsAndActivityData? = null
     ): Boolean {
         val account = account ?: AccountStore.activeAccount ?: return true
+        if (ChainVisibilityStore.isHidden(chain, account.network.value)) {
+            return true
+        }
         val assetsAndActivityData = assetsAndActivityData ?: AccountStore.assetsAndActivityData
         val shouldHide = assetsAndActivityData.hiddenTokens.contains(slug)
         if (shouldHide) {

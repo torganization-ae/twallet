@@ -157,6 +157,7 @@ Custom endpoints that do not support indexer APIs may disable NFT and activity f
 Password required to save API key: Для збереження API-ключа потрібен пароль
 Show in wallet: Показувати в гаманці
 At least one network must stay enabled.: Принаймні одна мережа має залишатися увімкненою.
+This address is also valid on %chains%. Make sure you are sending on %chain%.: This address is also valid on %chains%. Make sure you are sending on %chain%.
 Network Menu: Меню мережі
 Show Wallet QR: Показати QR гаманця
 Enter URL: Введіть URL
@@ -165,13 +166,8 @@ Enable: Увімкнути
 Disable: Вимкнути
 Saved: Збережено
 Enable Animations: Увімкнути анімацію
-Enable Seasonal Theming: Увімкнути сезонне оформлення
 Enable Landscape Mode: Увімкнути горизонтальний режим
-Disable Seasonal Theming: Вимкнути сезонне оформлення
-You can always enable seasonal theming again in the appearance settings.: Ви завжди можете знову увімкнути сезонне оформлення в налаштуваннях зовнішнього вигляду.
 Base Currency: Базова валюта
-Investor View: Режим інвестора
-Toggle Investor View: Переключити в режим інвестора
 Hide Tiny Transfers: Приховувати дрібні перекази
 Toggle Hide Tiny Transfers: Переключити відображення дрібних переказів
 Network: Мережа
@@ -205,6 +201,7 @@ Copy wallet address: Скопіювати адресу
 View address on %explorer_name%: Подивитися адресу в %explorer_name%
 You have just created a new wallet: Вітаємо! Ви щойно створили новий гаманець
 Assets: Активи
+Tokens: Токени
 Activity: Стрічка
 NFT: NFT
 No NFTs yet: Поки у вас немає NFT
@@ -263,7 +260,6 @@ Remove from Saved: Видалити зі збережених
 View on Explorer: Переглянути в Explorer
 No suggestions, you're on your own!: Нічого не знайдено :(
 Play Sounds: Включити звуки
-Focus on asset value rather than current balance: Фокус на вартості активів замість поточного балансу
 $tiny_transfers_help: Вимкніть цю опцію, щоб показувати перекази вартістю менше $%value%. Майте на увазі, що такі перекази часто використовуються для спаму та шахрайства.
 Today: Сьогодні
 Total: Усього
@@ -367,6 +363,9 @@ Price Copied: Ціну скопійовано
 Not staked: Не в стейкінгу
 Portfolio: Портфель
 Performance, insights and P&L: Динаміка, аналітика і P&L
+Custom Date Range: Довільний період
+From: Від
+To: До
 Overview: Огляд
 Total Balance: Загальний баланс
 Net Change: Зміна вартості портфеля
@@ -376,6 +375,7 @@ Tracked asset value over time.: Вартість відстежуваних ак
 Portfolio Share: Структура портфеля
 Current allocation across tracked assets.: Поточний розподіл відстежуваних активів.
 Deep history analysis will be available in upcoming updates.: Глибокий аналіз історії з’явиться в наступних оновленнях.
+PortfolioHistoryPending: Будуємо історію портфеля за балансами та ринковими цінами…
 By Chain: За мережами
 No chain balances: Немає балансів за мережами
 Native: Нативні

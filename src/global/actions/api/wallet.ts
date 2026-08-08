@@ -257,11 +257,14 @@ async function connectLedger(chain: ApiChain, noRetry?: boolean) {
 }
 
 addActionHandler('setActiveContentTab', (global, actions, { tab }) => {
+  // Legacy landscape home; Overview is no longer a visible content tab
+  const resolvedTab = tab === ContentTab.Overview ? ContentTab.Assets : tab;
+
   // NFT providers are scanned only while Collectibles is open — not on a background timer.
-  void callApi('setCollectiblesActive', tab === ContentTab.Nft);
+  void callApi('setCollectiblesActive', resolvedTab === ContentTab.Nft);
 
   return updateCurrentAccountState(global, {
-    activeContentTab: tab,
+    activeContentTab: resolvedTab,
   });
 });
 

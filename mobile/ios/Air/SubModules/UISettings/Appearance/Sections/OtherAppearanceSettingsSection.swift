@@ -16,7 +16,6 @@ import Flow
 struct OtherAppearanceSettingsSection: View {
     
     @State private var animationEnabled: Bool = AppStorageHelper.animations
-    @State private var seasonalThemingEnabled: Bool = !AppStorageHelper.isSeasonalThemingDisabled
     @State private var landscapeModeEnabled: Bool = AppStorageHelper.isLandscapeModeEnabled
     
     var body: some View {
@@ -27,17 +26,6 @@ struct OtherAppearanceSettingsSection: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     HStack {
                         Toggle(lang("Enable Animations"), isOn: $animationEnabled)
-                            .labelsHidden()
-                    }
-                }
-                .frame(minHeight: 44)
-            }
-            InsetCell(verticalPadding: 0) {
-                HStack {
-                    Text(lang("Enable Seasonal Theming"))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    HStack {
-                        Toggle(lang("Enable Seasonal Theming"), isOn: $seasonalThemingEnabled)
                             .labelsHidden()
                     }
                 }
@@ -64,15 +52,6 @@ struct OtherAppearanceSettingsSection: View {
                 try await Task.sleep(for: .seconds(0.2)) // delay so button animation doesn't get disabled inflight
                 if animationEnabled != AppStorageHelper.animations {
                     AppStorageHelper.animations = animationEnabled
-                }
-            } catch {}
-        }
-        .task(id: seasonalThemingEnabled) {
-            do {
-                try await Task.sleep(for: .seconds(0.2))
-                let isDisabled = !seasonalThemingEnabled
-                if isDisabled != AppStorageHelper.isSeasonalThemingDisabled {
-                    AppStorageHelper.isSeasonalThemingDisabled = isDisabled
                 }
             } catch {}
         }

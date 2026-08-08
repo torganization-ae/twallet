@@ -263,7 +263,6 @@ ALLOWED_CONNECT_SRC=(
   "https://*.walletconnect.com"
   "https://*.walletconnect.org"
   "https://analytics.ton.org"
-  "https://api-portfolio.mywallet.io/api/"
   "https://api.mywallet.io"
   "https://api.mywallet.io/proxy/"
   "https://api.pay.walletconnect.com/"

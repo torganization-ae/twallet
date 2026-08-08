@@ -19,8 +19,8 @@ import {
   signTransactionMessageWithSigners,
 } from '@solana/kit';
 
-import type { ExplainedTransferFee } from '../../../util/fee/transferFee';
 import type { PaymasterStatus } from '../../../global/types';
+import type { ExplainedTransferFee } from '../../../util/fee/transferFee';
 import type {
   ApiAnyDisplayError,
   ApiFetchEstimateDieselResult,

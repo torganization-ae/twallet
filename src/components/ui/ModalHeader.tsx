@@ -16,6 +16,7 @@ import modalStyles from './Modal.module.scss';
 
 type OwnProps<T extends string> = {
   title?: string | TeactNode;
+  leftContent?: TeactNode;
   className?: string;
   withNotch?: boolean;
   titleClassName?: string;
@@ -29,6 +30,7 @@ type OwnProps<T extends string> = {
 
 function ModalHeader<T extends string>({
   title,
+  leftContent,
   className,
   withNotch,
   titleClassName,
@@ -63,13 +65,16 @@ function ModalHeader<T extends string>({
     }
   });
 
+  const hasLeftContent = Boolean(leftContent) && !onBackButtonClick;
+
   return (
     <div
       className={buildClassName(
         modalStyles.header,
         'with-notch-on-scroll',
         withNotch && 'is-scrolled',
-        !onBackButtonClick && modalStyles.header_wideContent,
+        !onBackButtonClick && !hasLeftContent && modalStyles.header_wideContent,
+        hasLeftContent && modalStyles.header_withLeftContent,
         className,
         isMenuOpen && 'is-menu-open',
       )}
@@ -80,7 +85,7 @@ function ModalHeader<T extends string>({
           <span>{lang('Back')}</span>
         </Button>
       )}
-      {onShareClick && !onBackButtonClick && (
+      {onShareClick && !onBackButtonClick && !leftContent && (
         <Button
           isSimple
           isText
@@ -91,11 +96,16 @@ function ModalHeader<T extends string>({
           <i className="icon-link" aria-hidden />
         </Button>
       )}
+      {leftContent && !onBackButtonClick && (
+        <div className={modalStyles.header_left}>
+          {leftContent}
+        </div>
+      )}
       {title !== undefined && (
         <div className={buildClassName(
           modalStyles.title,
           typeof title === 'string' && modalStyles.singleTitle,
-          !onBackButtonClick && modalStyles.titleFullWidth,
+          !onBackButtonClick && !hasLeftContent && modalStyles.titleFullWidth,
           titleClassName,
         )}
         >

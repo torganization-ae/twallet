@@ -395,6 +395,5 @@ export type ApiBackendConfig = {
   isNegVerdictCacheEnabled?: boolean;
   isTonConnectAnalyticsEnabled?: boolean;
   swapVersion?: ApiSwapVersion;
-  seasonalTheme?: 'newYear' | 'valentine';
   knowledgeBaseVersion?: string;
 };

@@ -13,10 +13,8 @@ import styles from './Content.module.scss';
 interface OwnProps {
   isActive: boolean;
   isPortrait: boolean;
-  activeTabIndex: number;
   activeTabId?: ContentTab | number;
   currentCollection?: ApiNftCollection;
-  shouldShowSeparateAssetsPanel: boolean;
   totalTokensAmount: number;
   activeNftKey: number;
   onClickAsset: (slug: string) => void;
@@ -27,10 +25,8 @@ interface OwnProps {
 function ContentSlide({
   isActive,
   isPortrait,
-  activeTabIndex,
   activeTabId,
   currentCollection,
-  shouldShowSeparateAssetsPanel,
   totalTokensAmount,
   activeNftKey,
   onClickAsset,
@@ -54,13 +50,7 @@ function ContentSlide({
     );
   }
 
-  // When assets are shown separately (in portrait mode), tab slot 0 is empty - fall back to Activity
-  // to keep parent's component logic intact
-  const effectiveTabId = activeTabIndex === 0 && shouldShowSeparateAssetsPanel && !currentCollection
-    ? ContentTab.Activity
-    : activeTabId;
-
-  switch (effectiveTabId) {
+  switch (activeTabId) {
     case ContentTab.Assets:
       return (
         <Assets

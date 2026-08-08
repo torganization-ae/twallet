@@ -1,8 +1,13 @@
+import { buildPortfolioBootstrapHoldings } from '../../../util/calculateFullBalance';
 import { logDebugError } from '../../../util/logs';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import { updateTokenNetWorthHistory, updateTokenPriceHistory } from '../../reducers/tokens';
-import { selectCurrentAccount, selectCurrentAccountId } from '../../selectors';
+import {
+  selectAccountStakingStates,
+  selectAccountTokens,
+  selectCurrentAccountId,
+} from '../../selectors';
 
 addActionHandler('loadPriceHistory', async (global, actions, payload) => {
   const { slug, period, currency = global.settings.baseCurrency } = payload ?? {};
@@ -25,23 +30,41 @@ addActionHandler('loadTokenNetWorthHistory', async (global, actions, payload) =>
     currency = global.settings.baseCurrency,
   } = payload;
 
-  const token = global.tokenInfo.bySlug[slug];
-  const currentAccount = selectCurrentAccount(global);
   const currentAccountId = selectCurrentAccountId(global);
-  const accountAddress = currentAccount?.byChain?.[token?.chain]?.address;
-  if (!accountAddress || !currentAccountId || !token) {
+  const token = global.tokenInfo.bySlug[slug];
+  if (!currentAccountId || !token) {
     return;
   }
 
-  const assetId = token.tokenAddress ?? token.slug;
+  const tokens = selectAccountTokens(global, currentAccountId);
+  const stakingStates = selectAccountStakingStates(global, currentAccountId);
+  const holdings = buildPortfolioBootstrapHoldings(tokens, stakingStates);
+  const holding = holdings.find((item) => item.slug === slug);
+  const currencyRate = Number(global.currencyRates[currency] || 1);
+  const bootstrapPeriod = period === 'ALL' ? 'ALL' : '1Y';
 
-  let history = await callApi('fetchTokenNetWorthHistory', accountAddress, assetId, period, currency);
-  if (!history || 'error' in history) {
-    if (history && 'error' in history) {
-      logDebugError('loadTokenNetWorthHistory', history.error);
-    }
-    history = [];
+  try {
+    await callApi(
+      'ensurePortfolioSnapshotsSeeded',
+      currentAccountId,
+      holdings,
+      bootstrapPeriod,
+    );
+  } catch (err: any) {
+    logDebugError('loadTokenNetWorthHistory.seed', err);
   }
+
+  const history = await callApi(
+    'fetchTokenNetWorthHistory',
+    currentAccountId,
+    slug,
+    period,
+    currency,
+    {
+      currencyRate,
+      amount: holding?.amount,
+    },
+  ) ?? [];
 
   global = getGlobal();
   setGlobal(updateTokenNetWorthHistory(global, currentAccountId, slug, { [period]: history }));

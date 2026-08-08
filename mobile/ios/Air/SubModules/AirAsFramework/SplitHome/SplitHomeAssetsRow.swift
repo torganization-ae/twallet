@@ -187,6 +187,9 @@ final class SplitHomeAssetsRowView: UIView, UICollectionViewDelegate, UICollecti
                 tokensVC = vc
                 viewController = vc
             }
+        case .activity:
+            assertionFailure("Activity tab is Home pager only")
+            return nil
         case .nfts:
             if let nftsVC {
                 viewController = nftsVC
@@ -467,7 +470,9 @@ private final class SplitHomeAssetSectionCollectionCell: UICollectionViewCell {
     private func makeTitle(for tab: DisplayAssetTab) -> String {
         switch tab {
         case .tokens:
-            return lang("Assets")
+            return lang("Tokens")
+        case .activity:
+            return lang("Activity")
         case .nfts:
             return lang("Collectibles")
         case .nftCollectionFilter(let filter):

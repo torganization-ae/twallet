@@ -4,18 +4,13 @@ import Perception
 import WalletCore
 import WalletContext
 
-private let portfolioHistoryDiskCacheMaxAge: TimeInterval = 6 * 60 * 60
+// Local diary updates frequently; keep disk cache only as a very short warm cache
+private let portfolioHistoryDiskCacheMaxAge: TimeInterval = 30
 
 struct PortfolioHistoryResponses: Codable, Equatable, Sendable {
     let netWorth: ApiPortfolioHistoryResponse
     let pnlCumulative: ApiPortfolioHistoryResponse
     let pnl: ApiPortfolioHistoryResponse
-
-    var hasHistoryScanCursor: Bool {
-        netWorth.historyScanCursor != nil
-            || pnlCumulative.historyScanCursor != nil
-            || pnl.historyScanCursor != nil
-    }
 
     func normalizedForPortfolioDisplay() -> PortfolioHistoryResponses {
         PortfolioHistoryResponses(
@@ -24,6 +19,26 @@ struct PortfolioHistoryResponses: Codable, Equatable, Sendable {
             pnl: pnl
         )
     }
+
+    var hasChartableData: Bool {
+        hasChartableSeries(netWorth) || hasChartableSeries(pnlCumulative) || hasChartableSeries(pnl)
+    }
+}
+
+private func hasChartableSeries(_ response: ApiPortfolioHistoryResponse) -> Bool {
+    if let datasets = response.datasets {
+        return datasets.contains { dataset in
+            dataset.points.contains { point in
+                point.count >= 2 && point[1] != nil
+            }
+        }
+    }
+    if let points = response.points {
+        return points.contains { point in
+            point.count >= 2 && point[1] != nil
+        }
+    }
+    return false
 }
 
 struct PortfolioOverviewModel: Equatable {
@@ -80,9 +95,41 @@ enum PortfolioTimeRange: String, CaseIterable, Equatable, Hashable, Sendable {
         }
     }
 
-    var historyRequest: ApiPortfolioHistoryRequest {
+    func historyRequest(accountId: String, currencyRate: Double) -> ApiPortfolioHistoryRequest {
         let now = Date()
-        return ApiPortfolioHistoryRequest(from: startDate(relativeTo: now), to: Self.endOfUtcDay(now), density: density)
+        return ApiPortfolioHistoryRequest(
+            from: startDate(relativeTo: now),
+            to: Self.endOfUtcDay(now),
+            density: density,
+            accountId: accountId,
+            currencyRate: currencyRate
+        )
+    }
+
+    static func historyRequest(
+        from: Date,
+        to: Date,
+        accountId: String,
+        currencyRate: Double
+    ) -> ApiPortfolioHistoryRequest {
+        let start = startOfUtcDay(from)
+        let end = endOfUtcDay(to)
+        let orderedStart = min(start, end)
+        let orderedEnd = max(start, end)
+        return ApiPortfolioHistoryRequest(
+            from: orderedStart,
+            to: orderedEnd,
+            density: density(forSpan: orderedEnd.timeIntervalSince(orderedStart)),
+            accountId: accountId,
+            currencyRate: currencyRate
+        )
+    }
+
+    private static func density(forSpan span: TimeInterval) -> String {
+        if span <= secondsInDay { return "5m" }
+        if span <= 7 * secondsInDay { return "1h" }
+        if span <= 30 * secondsInDay { return "4h" }
+        return "1d"
     }
 
     private func startDate(relativeTo now: Date = Date()) -> Date {
@@ -105,13 +152,13 @@ enum PortfolioTimeRange: String, CaseIterable, Equatable, Hashable, Sendable {
     private static let secondsInDay: TimeInterval = 24 * 60 * 60
 
     // Start of the UTC day containing `date` (the epoch is UTC-midnight aligned).
-    private static func startOfUtcDay(_ date: Date) -> Date {
+    static func startOfUtcDay(_ date: Date) -> Date {
         let day = (date.timeIntervalSince1970 / secondsInDay).rounded(.down) * secondsInDay
         return Date(timeIntervalSince1970: day)
     }
 
     // End of the UTC day containing `date` (23:59:59).
-    private static func endOfUtcDay(_ date: Date) -> Date {
+    static func endOfUtcDay(_ date: Date) -> Date {
         return startOfUtcDay(date).addingTimeInterval(secondsInDay - 1)
     }
 
@@ -194,6 +241,28 @@ private actor PortfolioHistoryDiskCache {
         } catch {
         }
     }
+
+    func removeAccount(_ accountId: String) {
+        // Filenames are `v1_<accountId>_…`; match the account segment after the version prefix
+        let needle = "_" + Self.sanitizedFileNamePart(accountId) + "_"
+        guard let files = try? FileManager.default.contentsOfDirectory(
+            at: directoryURL,
+            includingPropertiesForKeys: nil
+        ) else {
+            return
+        }
+        for fileURL in files where fileURL.lastPathComponent.contains(needle) {
+            try? FileManager.default.removeItem(at: fileURL)
+        }
+    }
+
+    private static func sanitizedFileNamePart(_ value: String) -> String {
+        let allowedCharacters = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+        let sanitizedValue = value.unicodeScalars
+            .map { allowedCharacters.contains($0) ? String($0) : "_" }
+            .joined()
+        return sanitizedValue.isEmpty ? "_" : sanitizedValue
+    }
 }
 
 @MainActor
@@ -206,22 +275,23 @@ final class PortfolioVM: Sendable {
 
     private(set) var responses: PortfolioHistoryResponses?
     private(set) var selectedRange: PortfolioTimeRange = .threeMonths
+    private(set) var customDateRange: (from: Date, to: Date)?
     private(set) var isLoading = false
     private(set) var isRefreshing = false
     private(set) var isShowingStaleRangeData = false
     private(set) var errorText: String?
     private(set) var chartDataToken = 0
 
+    var hasCustomDateRange: Bool { customDateRange != nil }
+
     @PerceptionIgnored
     private var loadTask: Task<Void, Never>?
     @PerceptionIgnored
-    private var historyRefreshTask: Task<Void, Never>?
-    @PerceptionIgnored
     private var hasLoaded = false
     @PerceptionIgnored
-    private var historyRefreshAttempts = 0
-    @PerceptionIgnored
     private var cachedResponses: [PortfolioTimeRange: PortfolioHistoryResponses] = [:]
+    @PerceptionIgnored
+    private var customCachedResponses: PortfolioHistoryResponses?
 
     init(accountContext: AccountContext) {
         self.accountContext = accountContext
@@ -232,7 +302,6 @@ final class PortfolioVM: Sendable {
 
     isolated deinit {
         loadTask?.cancel()
-        historyRefreshTask?.cancel()
         WalletCoreData.remove(observer: self)
     }
 
@@ -250,14 +319,20 @@ final class PortfolioVM: Sendable {
     }
 
     var overview: PortfolioOverviewModel {
-        makeOverviewFromHistory()
-            ?? makeOverviewFromBalanceChange()
-            ?? PortfolioOverviewModel(
-                dateRangeText: nil,
-                netChangeText: nil,
-                netChangePercentText: nil,
-                isNetChangePositive: true
-            )
+        // Prefer history-window P&L (same as web/Android). The 24h balance fallback only
+        // matches the selected window for `.day` — elsewhere it looks like a wrong P&L.
+        if let fromHistory = makeOverviewFromHistory() {
+            return fromHistory
+        }
+        if selectedRange == .day, customDateRange == nil, let fromBalance = makeOverviewFromBalanceChange() {
+            return fromBalance
+        }
+        return PortfolioOverviewModel(
+            dateRangeText: nil,
+            netChangeText: nil,
+            netChangePercentText: nil,
+            isNetChangePositive: true
+        )
     }
 
     func loadIfNeeded() {
@@ -265,21 +340,21 @@ final class PortfolioVM: Sendable {
         hasLoaded = true
         load(
             range: selectedRange,
-            resetHistoryRefreshAttempts: true,
             useCache: true,
             readsDiskCache: true
         )
     }
 
     func selectRange(_ range: PortfolioTimeRange) {
-        guard selectedRange != range else { return }
+        guard selectedRange != range || customDateRange != nil else { return }
         let previousRange = selectedRange
         let shouldDimCurrentData = responses != nil && cachedResponses[range] == nil
         selectedRange = range
+        customDateRange = nil
+        customCachedResponses = nil
         persistRange(range)
         load(
             range: range,
-            resetHistoryRefreshAttempts: true,
             useCache: true,
             readsDiskCache: true,
             fadesCurrentResponsesWhileLoading: shouldDimCurrentData,
@@ -287,40 +362,66 @@ final class PortfolioVM: Sendable {
         )
     }
 
-    func reload(resetHistoryRefreshAttempts: Bool) {
-        load(range: selectedRange, resetHistoryRefreshAttempts: resetHistoryRefreshAttempts, useCache: false)
+    func selectCustomRange(from: Date, to: Date) {
+        let start = PortfolioTimeRange.startOfUtcDay(from)
+        let end = PortfolioTimeRange.endOfUtcDay(to)
+        let ordered = start <= end ? (from: start, to: end) : (from: PortfolioTimeRange.startOfUtcDay(to), to: PortfolioTimeRange.endOfUtcDay(from))
+        if let current = customDateRange,
+           abs(current.from.timeIntervalSince(ordered.from)) < 1,
+           abs(current.to.timeIntervalSince(ordered.to)) < 1 {
+            return
+        }
+        customDateRange = ordered
+        customCachedResponses = nil
+        load(
+            range: selectedRange,
+            useCache: false,
+            readsDiskCache: false,
+            fadesCurrentResponsesWhileLoading: responses != nil
+        )
+    }
+
+    func reload() {
+        load(range: selectedRange, useCache: false)
     }
 
     private func reloadAfterDataChange() {
         cachedResponses.removeAll()
         hasLoaded = true
         selectedRange = savedRange()
-        reload(resetHistoryRefreshAttempts: true)
+        let accountId = account.id
+        Task {
+            await PortfolioHistoryDiskCache.shared.removeAccount(accountId)
+        }
+        reload()
     }
 
     private func load(
         range: PortfolioTimeRange,
-        resetHistoryRefreshAttempts: Bool,
         useCache: Bool,
         readsDiskCache: Bool = false,
         fadesCurrentResponsesWhileLoading: Bool = false,
         fallbackRangeOnError: PortfolioTimeRange? = nil
     ) {
         loadTask?.cancel()
-        historyRefreshTask?.cancel()
 
-        if resetHistoryRefreshAttempts {
-            historyRefreshAttempts = 0
-        }
-
-        if useCache, let responses = cachedResponses[range] {
+        if customDateRange == nil, useCache, let responses = cachedResponses[range] {
             apply(
                 responses: responses,
                 for: range,
-                resetHistoryRefreshAttempts: resetHistoryRefreshAttempts,
-                scheduleRefresh: false,
                 savesToDiskCache: false,
                 diskCacheKey: nil
+            )
+            return
+        }
+
+        if customDateRange != nil, useCache, let responses = customCachedResponses {
+            apply(
+                responses: responses,
+                for: range,
+                savesToDiskCache: false,
+                diskCacheKey: nil,
+                isCustom: true
             )
             return
         }
@@ -337,15 +438,32 @@ final class PortfolioVM: Sendable {
         }
 
         beginLoading(fadesCurrentResponsesWhileLoading: fadesCurrentResponsesWhileLoading)
-        let historyRequest = range.historyRequest
         let baseCurrency = TokenStore.baseCurrency
-        let diskCacheKey = makeDiskCacheKey(range: range, baseCurrency: baseCurrency)
+        let currencyRate = TokenStore.currencyRates[baseCurrency.rawValue]?.value ?? 1
+        let historyRequest: ApiPortfolioHistoryRequest
+        if let customDateRange {
+            historyRequest = PortfolioTimeRange.historyRequest(
+                from: customDateRange.from,
+                to: customDateRange.to,
+                accountId: account.id,
+                currencyRate: currencyRate
+            )
+        } else {
+            historyRequest = range.historyRequest(accountId: account.id, currencyRate: currencyRate)
+        }
+        let diskCacheKey = customDateRange == nil
+            ? makeDiskCacheKey(range: range, baseCurrency: baseCurrency)
+            : nil
+        let accountId = account.id
+        let isCustom = customDateRange != nil
 
         loadTask = Task { [weak self] in
             guard let self else { return }
 
-            if readsDiskCache,
+            if !isCustom,
+               readsDiskCache,
                cachedResponses[range] == nil,
+               let diskCacheKey,
                let cachedResponses = await PortfolioHistoryDiskCache.shared.load(
                 key: diskCacheKey,
                 maxAge: portfolioHistoryDiskCacheMaxAge
@@ -354,8 +472,6 @@ final class PortfolioVM: Sendable {
                 apply(
                     responses: cachedResponses,
                     for: range,
-                    resetHistoryRefreshAttempts: resetHistoryRefreshAttempts,
-                    scheduleRefresh: false,
                     savesToDiskCache: false,
                     diskCacheKey: nil
                 )
@@ -363,6 +479,15 @@ final class PortfolioVM: Sendable {
             }
 
             do {
+                try? await BalanceDataStore.recordPortfolioSnapshot(accountId: accountId)
+                let bootstrapPeriod: ApiPriceHistoryPeriod = range == .all ? .all : .year
+                try? await Api.ensurePortfolioSnapshotsSeeded(
+                    accountId: accountId,
+                    holdings: await BalanceDataStore.bootstrapHoldings(accountId: accountId),
+                    period: bootstrapPeriod
+                )
+                await PortfolioHistoryDiskCache.shared.removeAccount(accountId)
+
                 async let netWorthResponse = Api.fetchPortfolioNetWorthHistory(
                     wallets: wallets,
                     baseCurrency: baseCurrency,
@@ -392,15 +517,18 @@ final class PortfolioVM: Sendable {
                         pnl: pnl
                     ),
                     for: range,
-                    resetHistoryRefreshAttempts: resetHistoryRefreshAttempts,
-                    diskCacheKey: diskCacheKey
+                    savesToDiskCache: !isCustom,
+                    diskCacheKey: isCustom ? nil : diskCacheKey,
+                    isCustom: isCustom
                 )
             } catch {
                 guard !Task.isCancelled else { return }
                 handleLoadError(
                     error,
                     failedRange: range,
-                    fallbackRangeOnError: cachedResponses[range] == nil ? fallbackRangeOnError : nil
+                    fallbackRangeOnError: (!isCustom && cachedResponses[range] == nil)
+                        ? fallbackRangeOnError
+                        : nil
                 )
             }
         }
@@ -666,6 +794,7 @@ final class PortfolioVM: Sendable {
     }
 
     private func makeTotalHistoryPoints(_ response: ApiPortfolioHistoryResponse) -> [(timestamp: TimeInterval, value: Double)] {
+        // Prefer diary totals (`points`) so overview P&L matches web `buildPnlChangeResponse`.
         if let points = response.points?.compactMap(Self.historyPoint(from:)), !points.isEmpty {
             return points.sorted { $0.timestamp < $1.timestamp }
         }
@@ -710,13 +839,16 @@ final class PortfolioVM: Sendable {
     private func apply(
         responses: PortfolioHistoryResponses,
         for range: PortfolioTimeRange,
-        resetHistoryRefreshAttempts: Bool,
-        scheduleRefresh: Bool = true,
         savesToDiskCache: Bool = true,
-        diskCacheKey: PortfolioHistoryDiskCacheKey? = nil
+        diskCacheKey: PortfolioHistoryDiskCacheKey? = nil,
+        isCustom: Bool = false
     ) {
         let normalizedResponses = responses.normalizedForPortfolioDisplay()
-        cachedResponses[range] = normalizedResponses
+        if isCustom {
+            customCachedResponses = normalizedResponses
+        } else {
+            cachedResponses[range] = normalizedResponses
+        }
 
         if savesToDiskCache, let diskCacheKey {
             Task.detached(priority: .background) {
@@ -727,21 +859,18 @@ final class PortfolioVM: Sendable {
         guard selectedRange == range else {
             return
         }
+        if isCustom != (customDateRange != nil) {
+            return
+        }
 
         self.responses = normalizedResponses
         isLoading = false
         isRefreshing = false
         isShowingStaleRangeData = false
-        errorText = nil
+        errorText = normalizedResponses.hasChartableData
+            ? nil
+            : lang("PortfolioHistoryPending")
         chartDataToken &+= 1
-
-        if resetHistoryRefreshAttempts {
-            historyRefreshAttempts = 0
-        }
-
-        if scheduleRefresh {
-            scheduleHistoryRefreshIfNeeded(for: range)
-        }
     }
 
     private func handleLoadError(
@@ -776,24 +905,6 @@ final class PortfolioVM: Sendable {
         accountContext.settings.setPortfolioTimeRange(range.rawValue)
     }
 
-    private func scheduleHistoryRefreshIfNeeded(for range: PortfolioTimeRange) {
-        historyRefreshTask?.cancel()
-
-        guard responses?.hasHistoryScanCursor == true,
-              historyRefreshAttempts < 6
-        else {
-            return
-        }
-
-        historyRefreshAttempts += 1
-
-        historyRefreshTask = Task { [weak self] in
-            guard let self else { return }
-            try? await Task.sleep(for: .seconds(8))
-            guard !Task.isCancelled else { return }
-            load(range: range, resetHistoryRefreshAttempts: false, useCache: false)
-        }
-    }
 }
 
 extension PortfolioVM: WalletCoreData.EventsObserver {

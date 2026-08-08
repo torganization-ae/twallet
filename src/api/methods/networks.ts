@@ -19,10 +19,10 @@ import {
   resolveEvmJsonRpcUrl,
 } from '../chains/defaultEndpoints';
 import {
+  applyApiKeyToUrl,
   clearRpcOverride,
   decryptApiKeyFromStorage,
   encryptApiKeyForStorage,
-  applyApiKeyToUrl,
   getCachedDecryptedApiKey,
   getEffectiveApiApiKey,
   getEffectiveApiUrl,

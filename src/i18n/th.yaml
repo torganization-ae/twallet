@@ -153,6 +153,7 @@ Custom endpoints that do not support indexer APIs may disable NFT and activity f
 Password required to save API key: ต้องใช้รหัสผ่านเพื่อบันทึกคีย์ API
 Show in wallet: แสดงในวอลเล็ต
 At least one network must stay enabled.: ต้องเปิดใช้งานอย่างน้อยหนึ่งเครือข่าย
+This address is also valid on %chains%. Make sure you are sending on %chain%.: This address is also valid on %chains%. Make sure you are sending on %chain%.
 Network Menu: เมนูเครือข่าย
 Show Wallet QR: แสดง QR ของวอลเล็ต
 Enter URL: ป้อน URL
@@ -161,13 +162,8 @@ Enable: เปิดใช้
 Disable: ปิดใช้
 Saved: บันทึกแล้ว
 Enable Animations: เปิดการเล่นอนิเมชั่น
-Enable Seasonal Theming: เปิดธีมตามฤดูกาล
 Enable Landscape Mode: เปิดใช้งานโหมดแนวนอน
-Disable Seasonal Theming: ปิดธีมตามฤดูกาล
-You can always enable seasonal theming again in the appearance settings.: คุณสามารถเปิดธีมตามฤดูกาลได้อีกครั้งในการตั้งค่าการแสดงผล
 Base Currency: สกุลเงินหลัก
-Investor View: มุมมองนักลงทุน
-Toggle Investor View: เปิด/ปิด มุมมองนักลงทุนงทุน
 Hide Tiny Transfers: ซ่อนรายการโอนขนาดเล็ก
 Toggle Hide Tiny Transfers: เปิด/ปิด ซ่อนรายการโอนขนาดเล็ก
 Network: เครือข่าย
@@ -201,6 +197,7 @@ Copy wallet address: คัดลอกที่อยู่บัญชีว�
 View address on %explorer_name%: ดูที่อยู่บัญชีที่ %explorer_name%
 You have just created a new wallet: คุณได้สร้างวอลเล็ตใหม่
 Assets: สินทรัพย์
+Tokens: โทเค็น
 Activity: กิจกรรม
 NFT: NFT
 No NFTs yet: ยังไม่มี NFT
@@ -258,7 +255,6 @@ Remove from Saved: ลบออกจากที่บันทึกไว้
 View on Explorer: ดูใน Explorer
 No suggestions, you're on your own!: ไม่มีคำแนะนำ, คุณเองเป็นเจ้าของ!
 Play Sounds: เล่นเสียง
-Focus on asset value rather than current balance: มุ่งเน้นไปที่มูลค่าสินทรัพย์มากกว่ายอดคงเหลือปัจจุบัน
 $logout_confirm: ลบวอลเล็ต *ทั้งหมด**
 $tiny_transfers_help: ปิดการแสดงรายการที่มีมูลค่าไม่เกิน $%value%. โปรดทราบว่าธุรกรรมดังกล่าวมักมีวัตถุประสงค์ในการสแปมและการหลอกลวง.
 Today: วันนี้
@@ -359,6 +355,9 @@ Price Copied: คัดลอกราคาแล้ว
 Not staked: ยังไม่ได้สเตก
 Portfolio: พอร์ตโฟลิโอ
 Performance, insights and P&L: ประสิทธิภาพ ข้อมูลเชิงลึก และ P&L
+Custom Date Range: ช่วงวันที่กำหนดเอง
+From: จาก
+To: ถึง
 Overview: ภาพรวม
 Total Balance: ยอดคงเหลือรวม
 Net Change: การเปลี่ยนแปลงมูลค่าพอร์ต
@@ -370,6 +369,7 @@ Daily P&L: กำไร/ขาดทุนรายวัน
 Portfolio Share: สัดส่วนพอร์ต
 Current allocation across tracked assets.: การกระจายปัจจุบันของสินทรัพย์ที่ติดตาม
 Deep history analysis will be available in upcoming updates.: การวิเคราะห์ประวัติเชิงลึกจะพร้อมใช้งานในการอัปเดตถัดไป
+PortfolioHistoryPending: กำลังสร้างประวัติพอร์ตจากยอดคงเหลือและราคาตลาด…
 By Chain: ตามเชน
 No chain balances: ไม่มียอดคงเหลือตามเชน
 Native: เนทีฟ

@@ -510,7 +510,7 @@ final class PortfolioChartTileCell: PortfolioTileCell {
                     strings: chartStrings,
                     animated: false
                 )
-                chartView.setup(controller: controller, noInitialZoom: true)
+                chartView.setup(controller: controller, noInitialZoom: true, showsRangeSlider: false)
             }
             chartController = controller
             chartSignature = signature

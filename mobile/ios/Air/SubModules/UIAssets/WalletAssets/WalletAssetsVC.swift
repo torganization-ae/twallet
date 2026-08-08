@@ -10,6 +10,11 @@ private let log = Log("Home-WalletAssets")
 
 @MainActor public protocol WalletAssetsDelegate: AnyObject {
     func walletAssetDidChangeHeight(animated: Bool)
+    func walletAssetsDidSelectTab(_ tab: DisplayAssetTab)
+}
+
+public extension WalletAssetsDelegate {
+    func walletAssetsDidSelectTab(_ tab: DisplayAssetTab) {}
 }
 
 @MainActor public final class WalletAssetsVC: WViewController, WalletCoreData.EventsObserver, Sendable {
@@ -42,7 +47,9 @@ private let log = Log("Home-WalletAssets")
             self?.onSegmentsReorder()
         },
         onSelectTab: { [weak self] tab in
-            guard let self,let index = tabsViewModel.displayTabs.firstIndex(of: tab) else { return }
+            guard let self else { return }
+            let tabs = homeDisplayTabs(from: tabsViewModel.displayTabs)
+            guard let index = tabs.firstIndex(of: tab) else { return }
             walletAssetsView.tabsContainer.handleSegmentChange(to: index, animated: true)
         }
     )
@@ -51,13 +58,43 @@ private let log = Log("Home-WalletAssets")
         tab: DisplayAssetTab,
         viewController: any WSegmentedControllerContent
     ) -> WSegmentedPagerItem {
-        WSegmentedPagerItem(
+        let hidesMenu = tab == .activity
+        return WSegmentedPagerItem(
             id: tab.segmentedControlItemId,
             title: tab.segmentedControlTitle,
-            contextMenuProvider: tabContextMenuProviders.provider(for: tab),
+            contextMenuProvider: hidesMenu ? nil : tabContextMenuProviders.provider(for: tab),
+            hidesMenuIcon: hidesMenu,
             isDeletable: tab.isDeletableSegment,
             viewController: viewController
         )
+    }
+
+    /// Home peer tabs: Tokens | Activity | Collectibles (+ pinned). Activity is never persisted.
+    private func homeDisplayTabs(from tabs: [DisplayAssetTab]) -> [DisplayAssetTab] {
+        var result = tabs.filter { $0 != .activity }
+        if let tokensIdx = result.firstIndex(of: .tokens) {
+            result.insert(.activity, at: tokensIdx + 1)
+        } else {
+            result.insert(.activity, at: min(1, result.count))
+        }
+        return result
+    }
+
+    private var lastNotifiedSelectedTab: DisplayAssetTab?
+
+    private var selectedDisplayTab: DisplayAssetTab? {
+        // Use the settled pager index — not mid-swipe scrollProgress — so Home content
+        // (activity feed vs tokens/NFTs) only swaps after the gesture finishes.
+        let tabs = homeDisplayTabs(from: tabsViewModel.displayTabs)
+        let index = walletAssetsView.selectedIndex
+        guard tabs.indices.contains(index) else { return nil }
+        return tabs[index]
+    }
+
+    private func notifySelectedTab() {
+        guard let tab = selectedDisplayTab, tab != lastNotifiedSelectedTab else { return }
+        lastNotifiedSelectedTab = tab
+        delegate?.walletAssetsDidSelectTab(tab)
     }
     
     public init(accountSource: AccountSource) {
@@ -72,7 +109,9 @@ private let log = Log("Home-WalletAssets")
     }
 
     private func switchIncomingFirstTabAccountTo(_ accountId: String, animated: Bool) {
-        guard let first = tabsViewModel.displayTabs.first, let vc = tabViewControllers[first] else { return }
+        let first = homeDisplayTabs(from: tabsViewModel.displayTabs).first { $0 != .activity }
+            ?? tabsViewModel.displayTabs.first
+        guard let first, let vc = tabViewControllers[first] else { return }
 
         switch vc {
         case let tokensVC as WalletTokensVC:
@@ -90,7 +129,9 @@ private let log = Log("Home-WalletAssets")
         tabsViewModel.changeAccountTo(accountId: accountId)
         switchIncomingFirstTabAccountTo(accountId, animated: true)
         
+        lastNotifiedSelectedTab = nil
         walletAssetsView.tabsContainer.handleSegmentChange(to: 0, animated: true)
+        notifySelectedTab()
     }
         
     func _displayTabsChanged(force: Bool, animated: Bool) {
@@ -99,7 +140,7 @@ private let log = Log("Home-WalletAssets")
             nftsVCManager.endUpdate()
         }
 
-        let displayTabs = tabsViewModel.displayTabs
+        let displayTabs = homeDisplayTabs(from: tabsViewModel.displayTabs)
         var tabViewControllersToRemove = tabViewControllers
         var newTabsViewControllers: [DisplayAssetTab: any WSegmentedControllerContent] = [:]
         
@@ -135,12 +176,15 @@ private let log = Log("Home-WalletAssets")
             activateEmptyStateAnimationForSelectedPage()
             activateNftAnimationForSelectedPage()
         }
+        notifySelectedTab()
     }
     
     private func makeViewControllerForTab(_ tab: DisplayAssetTab) -> any WSegmentedControllerContent & UIViewController {
         switch tab {
         case .tokens:
             fatalError("created once")
+        case .activity:
+            return HomeActivityTabPlaceholderVC()
         case .nfts:
             return nftsVC!
         case .nftCollectionFilter(let filter):
@@ -190,6 +234,7 @@ private let log = Log("Home-WalletAssets")
         
         walletAssetsView.onScrollingOffsetChanged = { [weak self] _, animated in
             guard let self else { return }
+            // Height interpolates during the swipe; content tab notifies only on settle.
             self.headerHeightChanged(animated: animated)
             
             if self.editingNavigator.state.editingState == .selection {
@@ -211,6 +256,7 @@ private let log = Log("Home-WalletAssets")
         walletAssetsView.tabsContainer.onDidEndScrolling = { [weak self] in
             self?.activateEmptyStateAnimationForSelectedPage()
             self?.activateNftAnimationForSelectedPage()
+            self?.notifySelectedTab()
         }
         
         updateTheme()
@@ -227,7 +273,7 @@ private let log = Log("Home-WalletAssets")
             guard let self else { return }            
             let displayTabs: [DisplayAssetTab] = items.compactMap { item in
                 DisplayAssetTab.fromSegmentedControlItemId(item.id, accountId: self.accountIdProvider.accountId)
-            }
+            }.filter { $0 != .activity }
             try? await self.tabsViewModel.setOrder(displayTabs: displayTabs)
         }
     }
@@ -253,7 +299,9 @@ private let log = Log("Home-WalletAssets")
             switch event {
             case .accountChanged:
                 if accountSource == .current {
+                    lastNotifiedSelectedTab = nil
                     walletAssetsView.selectedIndex = 0
+                    notifySelectedTab()
                 }
             case .applicationWillEnterForeground:
                 view.setNeedsLayout()

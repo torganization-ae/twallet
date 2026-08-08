@@ -9,7 +9,7 @@ import { SwapState, SwapType, type UserSwapToken } from '../../global/types';
 
 import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../config';
 import buildClassName from '../../util/buildClassName';
-import { readClipboardContent } from '../../util/clipboard';
+import { readClipboardContent, shouldHidePasteButtonAfterClipboardError } from '../../util/clipboard';
 import { vibrate } from '../../util/haptics';
 import { shortenAddress } from '../../util/shortenAddress';
 import getChainNetworkName from '../../util/swap/getChainNetworkName';
@@ -147,14 +147,17 @@ function SwapBlockchain({
       const { type, text } = await readClipboardContent();
 
       if (type === 'text/plain') {
-        setSwapCexAddress({ toAddress: text.trim() });
-        await validateToAddress(text.trim());
+        const pasted = (text ?? '').trim();
+        setSwapCexAddress({ toAddress: pasted });
+        await validateToAddress(pasted);
       }
     } catch (error) {
       showToast({
         message: lang('Error reading clipboard'),
       });
-      setShouldRenderPasteButton(false);
+      if (shouldHidePasteButtonAfterClipboardError(error)) {
+        setShouldRenderPasteButton(false);
+      }
     }
   });
 

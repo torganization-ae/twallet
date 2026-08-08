@@ -205,7 +205,6 @@ async function updateMfaConfig() {
       supportAccountsCount: config.supportAccountsCount,
       isAppUpdateRequired: config.isUpdateRequired,
       swapVersion: config.swapVersion ?? SWAP_API_VERSION,
-      seasonalTheme: config.seasonalTheme,
       knowledgeBaseVersion: config.knowledgeBaseVersion,
     });
   } catch (err) {

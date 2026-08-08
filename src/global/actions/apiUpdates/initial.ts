@@ -52,6 +52,7 @@ addActionHandler('apiUpdate', (global, actions, update) => {
     case 'updateBalances': {
       global = updateBalances(global, update.accountId, update.chain, update.balances);
       setGlobal(global);
+      actions.recordPortfolioSnapshot({ accountId: update.accountId });
       break;
     }
 
@@ -312,7 +313,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         supportAccountsCount,
         isAppUpdateRequired,
         swapVersion,
-        seasonalTheme,
       } = update;
 
       const shouldRestrictSwapsAndNftBuying = IS_FEATURE_LIMITED;
@@ -327,7 +327,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         ...global,
         isAppUpdateRequired: IS_CORE_WALLET ? undefined : isAppUpdateRequired,
         swapVersion: swapVersion ?? SWAP_API_VERSION,
-        seasonalTheme,
       };
       setGlobal(global);
       break;

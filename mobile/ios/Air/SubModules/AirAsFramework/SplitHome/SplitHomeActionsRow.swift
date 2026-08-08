@@ -87,60 +87,36 @@ final class SplitHomeActionsSectionCell: UICollectionViewCell {
 
 @MainActor
 final class SplitHomeAssetsSectionCell: UICollectionViewCell {
-    private let assetsRowView = SplitHomeAssetsRowView()
+    private var hostedAssetsView: UIView?
+    private var heightConstraint: NSLayoutConstraint?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
         contentView.backgroundColor = .clear
-        assetsRowView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(assetsRowView)
-        NSLayoutConstraint.activate([
-            assetsRowView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            assetsRowView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            assetsRowView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            assetsRowView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            assetsRowView.heightAnchor.constraint(equalToConstant: SplitHomeAssetsRowView.rowHeight),
-        ])
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
 
-    override func didMoveToWindow() {
-        super.didMoveToWindow()
-        configureIfNeeded()
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        configureIfNeeded()
-    }
-
-    private var configuredAccountSource: AccountSource?
-    private weak var configuredParentViewController: SplitHomeVC?
-
-    private func configureIfNeeded() {
-        guard let splitHomeVC = splitHomeViewController else { return }
-        let accountSource = splitHomeVC.splitHomeAccountContext.source
-        assetsRowView.delegate = splitHomeVC
-        if configuredAccountSource != accountSource || configuredParentViewController !== splitHomeVC {
-            configuredAccountSource = accountSource
-            configuredParentViewController = splitHomeVC
-            assetsRowView.configure(accountSource: accountSource, parentViewController: splitHomeVC)
+    func configure(assetsView: UIView, height: CGFloat) {
+        if hostedAssetsView !== assetsView {
+            hostedAssetsView?.removeFromSuperview()
+            hostedAssetsView = assetsView
+            assetsView.translatesAutoresizingMaskIntoConstraints = false
+            contentView.addSubview(assetsView)
+            let heightConstraint = assetsView.heightAnchor.constraint(equalToConstant: height)
+            self.heightConstraint = heightConstraint
+            NSLayoutConstraint.activate([
+                assetsView.topAnchor.constraint(equalTo: contentView.topAnchor),
+                assetsView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                assetsView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+                assetsView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+                heightConstraint,
+            ])
+        } else {
+            heightConstraint?.constant = height
         }
-        assetsRowView.updateTheme()
-    }
-
-    private var splitHomeViewController: SplitHomeVC? {
-        var responder: UIResponder? = self
-        while let current = responder {
-            if let splitHomeVC = current as? SplitHomeVC {
-                return splitHomeVC
-            }
-            responder = current.next
-        }
-        return nil
     }
 }
 

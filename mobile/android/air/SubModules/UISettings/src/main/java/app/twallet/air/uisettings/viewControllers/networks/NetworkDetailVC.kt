@@ -66,22 +66,24 @@ class NetworkDetailVC(
             }
         }
 
-    private val visibilitySwitch =
+    private val visibilitySwitch: app.twallet.air.uicomponents.commonViews.cells.SwitchCell by lazy {
         app.twallet.air.uicomponents.commonViews.cells.SwitchCell(
             context,
             LocaleController.getString("Show in wallet"),
             isChecked = !initiallyHidden,
             isFirst = true,
             isLast = true,
-        ) { checked ->
-            if (!checked && !canDisable) {
-                visibilitySwitch.isChecked = true
-                return@SwitchCell
-            }
-            setVisibility(isHidden = !checked)
-        }.also {
+            onChange = { checked ->
+                if (!checked && !canDisable) {
+                    visibilitySwitch.isChecked = true
+                } else {
+                    setVisibility(isHidden = !checked)
+                }
+            },
+        ).also {
             it.isEnabled = initiallyHidden || canDisableInitially
         }
+    }
 
     private val saveButton =
         WButton(context, WButton.Type.PRIMARY).apply {

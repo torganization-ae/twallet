@@ -15,6 +15,7 @@ import app.twallet.air.uicomponents.base.WViewController
 import app.twallet.air.uicomponents.extensions.startActivityCatching
 import app.twallet.air.uiinappbrowser.InAppBrowserVC
 import app.twallet.air.uireceive.ReceiveBackgroundCache
+import app.twallet.air.uisettings.viewControllers.networks.NetworksVC
 import app.twallet.air.uisettings.viewControllers.settings.SettingsVC
 import app.twallet.air.uitransaction.viewControllers.transaction.TransactionVC
 import app.twallet.air.walletbasecontext.logger.Logger
@@ -40,9 +41,10 @@ import app.twallet.uihome.tabs.views.IBottomNavigationView
  * survives. Container-specific chrome (bottom bar, minimize, blur, search, mounting) is left to the
  * subclasses via the [ITabsVC] members they implement.
  */
-abstract class BaseTabsVC(context: Context) :
-    WViewController(context), ITabsVC {
-
+abstract class BaseTabsVC(
+    context: Context
+) : WViewController(context),
+    ITabsVC {
     override val shouldDisplayBottomBar: Boolean
         get() {
             return !WGlobalStorage.isGradientNavigationBarActive()
@@ -69,10 +71,11 @@ abstract class BaseTabsVC(context: Context) :
         nav.setRoot(
             when (id) {
                 IBottomNavigationView.ID_HOME -> HomeVC(context, MScreenMode.Default)
-                IBottomNavigationView.ID_EXPLORE -> ExploreVC(context).also {
-                    cachedExploreVC = it
-                    onExploreCreated(it)
-                }
+                IBottomNavigationView.ID_EXPLORE ->
+                    ExploreVC(context).also {
+                        cachedExploreVC = it
+                        onExploreCreated(it)
+                    }
 
                 IBottomNavigationView.ID_SETTINGS -> SettingsVC(context)
                 else -> throw Error()
@@ -159,8 +162,9 @@ abstract class BaseTabsVC(context: Context) :
 
     /** Re-host the pushed-over-main VCs once this container's views/main nav exist. */
     protected fun adoptPendingPushedOverMain() {
-        if (pendingPushedOverMain.isEmpty())
+        if (pendingPushedOverMain.isEmpty()) {
             return
+        }
         val pushed = pendingPushedOverMain
         pendingPushedOverMain = emptyList()
         adoptPushedOverMain(pushed)
@@ -176,17 +180,19 @@ abstract class BaseTabsVC(context: Context) :
 
     override fun onDestroy() {
         super.onDestroy()
-        if (ownsStacks)
+        if (ownsStacks) {
             destroyStacks()
+        }
         cachedExploreVC = null
     }
 
     // Shared receive-background precache //////////////////////////////////////////////////////////
     protected fun precacheReceiveBackground() {
         WalletCore.doOnBridgeReady {
-            val prioritized = AccountStore.activeAccount?.sortedChains()?.mapNotNull { entry ->
-                MBlockchain.supportedChains.find { it.name == entry.key }
-            } ?: emptyList()
+            val prioritized =
+                AccountStore.activeAccount?.sortedChains()?.mapNotNull { entry ->
+                    MBlockchain.supportedChains.find { it.name == entry.key }
+                } ?: emptyList()
             ReceiveBackgroundCache.precache(window?.systemBars?.top ?: 0, prioritized)
         }
     }
@@ -216,13 +222,17 @@ abstract class BaseTabsVC(context: Context) :
                 } else if (WalletContextManager.delegate?.get()?.handleDeeplink(
                         url,
                         DeeplinkOpenSource.INTERNAL_UI
-                    ) != true) {
+                    ) != true
+                ) {
                     if (canOpenExternally(url)) {
                         context.startActivityCatching(Intent(Intent.ACTION_VIEW, url.toUri()))
                     } else if (url.lowercase().startsWith("https://")) {
-                        val resolved = if (SubprojectHelpers.isSubproject(url))
-                            SubprojectHelpers.appendSubprojectContext(url)
-                        else url
+                        val resolved =
+                            if (SubprojectHelpers.isSubproject(url)) {
+                                SubprojectHelpers.appendSubprojectContext(url)
+                            } else {
+                                url
+                            }
                         openUrl(InAppBrowserConfig(resolved, injectDappConnect = true))
                     } else {
                         Logger.w(Logger.LogTag.AIR_APPLICATION, "OpenUrl: unsupported link = $url")
@@ -238,10 +248,11 @@ abstract class BaseTabsVC(context: Context) :
 
             is WalletEvent.OpenActivity -> {
                 walletEvent.activity.let { activity ->
-                    val nav = WNavigationController(
-                        window,
-                        PresentationConfig(style = WNavigationController.PresentationStyle.BottomSheet)
-                    )
+                    val nav =
+                        WNavigationController(
+                            window,
+                            PresentationConfig(style = WNavigationController.PresentationStyle.BottomSheet)
+                        )
                     nav.setRoot(TransactionVC(context, walletEvent.accountId, activity))
                     window.present(nav)
                 }
@@ -263,15 +274,26 @@ abstract class BaseTabsVC(context: Context) :
 
             is WalletEvent.OpenNftList -> {
                 if (walletEvent.nfts.isEmpty()) return true
-                val assetsVC = AssetsVC(
-                    context,
-                    walletEvent.accountId,
-                    AssetsVC.ViewMode.COMPLETE,
-                    collectionMode = CollectionMode.ReadOnly(walletEvent.name, walletEvent.nfts),
-                    isShowingSingleCollection = true
-                )
-                (window.navigationControllers.lastOrNull()
-                    ?: getNavigationStack(IBottomNavigationView.ID_HOME)).push(assetsVC)
+                val assetsVC =
+                    AssetsVC(
+                        context,
+                        walletEvent.accountId,
+                        AssetsVC.ViewMode.COMPLETE,
+                        collectionMode = CollectionMode.ReadOnly(walletEvent.name, walletEvent.nfts),
+                        isShowingSingleCollection = true
+                    )
+                (
+                    window.navigationControllers.lastOrNull()
+                        ?: getNavigationStack(IBottomNavigationView.ID_HOME)
+                ).push(assetsVC)
+                return true
+            }
+
+            is WalletEvent.OpenNetworksSettings -> {
+                (
+                    window.navigationControllers.lastOrNull()
+                        ?: getNavigationStack(IBottomNavigationView.ID_HOME)
+                ).push(NetworksVC(context))
                 return true
             }
 

@@ -350,6 +350,8 @@ class SendNftVC(
             )
         )
         setupNavBar(true)
+        navigationBar?.setTitleGravity(Gravity.CENTER)
+        setNavSubtitle(chain.displayName, animated = false)
 
         view.addView(scrollView, ViewGroup.LayoutParams(MATCH_PARENT, 0))
         view.addView(

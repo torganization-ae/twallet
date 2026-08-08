@@ -20,7 +20,7 @@ import {
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { getSupportedChains } from '../../util/chain';
-import { readClipboardContent } from '../../util/clipboard';
+import { readClipboardContent, shouldHidePasteButtonAfterClipboardError } from '../../util/clipboard';
 import { isTonChainDns } from '../../util/dns';
 import { getLocalAddressName } from '../../util/getLocalAddressName';
 import { isTonsiteAddress, isValidAddressOrDomain } from '../../util/isValidAddress';
@@ -154,14 +154,20 @@ function AddressInput({
     onInput('');
   });
 
-  const handleAliasInput = useLastCallback((raw: string, isValueReplaced?: boolean) => {
+  const handleAliasInput = useLastCallback((raw: string, isValueReplaced?: boolean): string => {
     if (!isTmailMode) {
       onInput(raw, isValueReplaced);
-      return;
+      return raw;
     }
     const trimmed = raw.trim().toLowerCase();
-    const composed = trimmed ? `${trimmed}${TMAIL_SUFFIX}` : '';
+    if (!trimmed) {
+      onInput('', isValueReplaced);
+      return '';
+    }
+    // Match Android/iOS: don't double-append when pasting a full @tmail.ton alias.
+    const composed = trimmed.endsWith(TMAIL_SUFFIX) ? trimmed : `${trimmed}${TMAIL_SUFFIX}`;
     onInput(composed, isValueReplaced);
+    return composed;
   });
 
   const addressBookTimeoutRef = useRef<number>();
@@ -216,8 +222,8 @@ function AddressInput({
 
   const handleAddressBookItemSelect = useLastCallback((address: string) => {
     isAddressBookSelectionRef.current = true;
-    handleAliasInput(address, true);
-    onPaste?.(address);
+    const composedValue = handleAliasInput(address, true);
+    onPaste?.(composedValue);
     closeAddressBook();
   });
 
@@ -285,16 +291,20 @@ function AddressInput({
       const { type, text } = await readClipboardContent();
 
       if (type === 'text/plain') {
-        const newValue = cleanTonsiteAddress(text.trim());
-        handleAliasInput(newValue, true);
-        onPaste?.(newValue);
+        const newValue = cleanTonsiteAddress((text ?? '').trim());
+        const composedValue = handleAliasInput(newValue, true);
+        onPaste?.(composedValue);
 
-        handleAddressValidate(newValue);
-        handleAddressErrorCheck(newValue);
+        handleAddressValidate(composedValue);
+        handleAddressErrorCheck(composedValue);
       }
     } catch (err: any) {
       showToast({ message: lang('Error reading clipboard') });
-      setShouldRenderPasteButton(false);
+      // Keep the field focused so the user can still paste with Ctrl/Cmd+V.
+      (ref?.current ?? document.getElementById(inputId))?.focus();
+      if (shouldHidePasteButtonAfterClipboardError(err)) {
+        setShouldRenderPasteButton(false);
+      }
     }
   });
 
@@ -394,9 +404,9 @@ function AddressInput({
     event.preventDefault();
     let value = event.clipboardData.getData('text').trim();
     value = cleanTonsiteAddress(value);
-    handleAliasInput(value, false);
-    onPaste?.(value);
-    handleAddressErrorCheck(value);
+    const composedValue = handleAliasInput(value, false);
+    onPaste?.(composedValue);
+    handleAddressErrorCheck(composedValue);
   });
 
   const handleAddressClear = useLastCallback(() => {

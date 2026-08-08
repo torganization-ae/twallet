@@ -7,8 +7,8 @@ import { buildTxId } from '../../../../util/activities';
 import { fetchJson } from '../../../../util/fetch';
 import { buildCollectionByKey, split } from '../../../../util/iteratees';
 import { toRawAddress } from '../util/tonCore';
-import { getApiHeadersForUrl } from '../../../environment';
 import { SEC } from '../../../constants';
+import { getApiHeadersForUrl } from '../../../environment';
 import { getEffectiveRpcApiKey } from '../../rpcOverrides';
 import { NETWORK_CONFIG } from '../constants';
 

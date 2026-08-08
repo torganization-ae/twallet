@@ -140,7 +140,6 @@ function handleMfaApiUpdate(update: ApiUpdate) {
       global = {
         ...global,
         isAppUpdateRequired: update.isAppUpdateRequired,
-        seasonalTheme: update.seasonalTheme,
         swapVersion: update.swapVersion ?? global.swapVersion,
       };
       break;

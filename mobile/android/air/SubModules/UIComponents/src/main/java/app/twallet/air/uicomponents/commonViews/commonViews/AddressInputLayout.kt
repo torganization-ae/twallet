@@ -46,6 +46,7 @@ import app.twallet.air.uicomponents.widgets.WImageButton
 import app.twallet.air.uicomponents.widgets.WLabel
 import app.twallet.air.uicomponents.widgets.WThemedView
 import app.twallet.air.uicomponents.widgets.autoComplete.WAutoCompleteView
+import app.twallet.air.uicomponents.commonViews.toast.ToastManager
 import app.twallet.air.uicomponents.widgets.fadeIn
 import app.twallet.air.uicomponents.widgets.fadeInAnimatorSet
 import app.twallet.air.uicomponents.widgets.fadeOut
@@ -354,14 +355,20 @@ class AddressInputLayout(
         }
 
         pasteTextView.setOnClickListener {
-            context.getTextFromClipboard()?.let {
-                val pasted = it.trim()
-                if (pasted.isNotEmpty() && pasteInterceptor?.invoke(pasted) == true) {
-                    return@setOnClickListener
-                }
-                textField.setTextIfDiffer(it, selectionToEnd = true)
-                onTextEntered(getKeyword())
+            val clipboardText = context.getTextFromClipboard()
+            if (clipboardText.isNullOrBlank()) {
+                // Match iOS RecipientAddressSection: surface empty/unavailable clipboard instead of a silent no-op.
+                ToastManager.show(
+                    ToastManager.Toast(text = LocaleController.getString("Clipboard empty"))
+                )
+                return@setOnClickListener
             }
+            val pasted = clipboardText.trim()
+            if (pasted.isNotEmpty() && pasteInterceptor?.invoke(pasted) == true) {
+                return@setOnClickListener
+            }
+            textField.setTextIfDiffer(clipboardText, selectionToEnd = true)
+            onTextEntered(getKeyword())
         }
 
         WalletContextManager.delegate?.get()?.bindQrCodeButton(

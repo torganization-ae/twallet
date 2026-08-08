@@ -335,6 +335,27 @@ public final class SendModel: Sendable {
         nfts.first?.chain ?? token.chain
     }
 
+    /// Other account chains where the typed address is also valid (same as web Send).
+    var ambiguousChains: [ApiChain] {
+        let address = (draftData.transactionDraft?.resolvedAddress ?? addressOrDomain)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !address.isEmpty, activeChain.addressRegex.matches(address) else { return [] }
+        let network = account.network
+        return account.orderedChains.map(\.0).filter { chain in
+            chain != activeChain
+                && !ChainVisibilityStore.shared.isHidden(chain, network: network)
+                && chain.addressRegex.matches(address)
+        }
+    }
+
+    var networkAmbiguityWarningText: String? {
+        let chains = ambiguousChains
+        guard !chains.isEmpty else { return nil }
+        return lang("This address is also valid on %chains%. Make sure you are sending on %chain%.")
+            .replacingOccurrences(of: "%chains%", with: chains.map(\.title).joined(separator: ", "))
+            .replacingOccurrences(of: "%chain%", with: activeChain.title)
+    }
+
     var isTransferPayloadAvailable: Bool {
         activeChain.isTransferPayloadSupported || isCommentRequired
     }
@@ -368,7 +389,7 @@ public final class SendModel: Sendable {
 
     var isAddressCompatibleWithToken: Bool {
         if addressOrDomain.isEmpty { return true } // do not validate before user inputs address
-        let chain = token.chain
+        let chain = activeChain
         let address = draftData.transactionDraft?.resolvedAddress ?? addressOrDomain
         return chain.isValidAddressOrDomain(address) &&
             (

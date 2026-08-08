@@ -30,6 +30,7 @@ import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcore.STAKING_SLUGS
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
+import app.twallet.air.walletcore.api.ensurePortfolioSnapshotsSeeded
 import app.twallet.air.walletcore.api.fetchPortfolioNetWorthHistory
 import app.twallet.air.walletcore.api.fetchPortfolioPnlCumulativeHistory
 import app.twallet.air.walletcore.api.fetchPortfolioPnlHistory
@@ -56,8 +57,6 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
     private var loadJob: Job? = null
     private val retryJobs = mutableMapOf<PortfolioChartKind, Job>()
     private var netWorthRetryJob: Job? = null
-    private var historyRefreshJob: Job? = null
-    private var historyRefreshAttempts = 0
 
     private val cachedResponses = mutableMapOf<PortfolioHistoryRequest, PortfolioChartResults>()
 
@@ -66,19 +65,42 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
     var selectedPeriod: MHistoryTimePeriod = readPersistedPeriod()
         private set
 
+    var customFromDay: String? = null
+        private set
+    var customToDay: String? = null
+        private set
+
+    val hasCustomRange: Boolean
+        get() = !customFromDay.isNullOrBlank() && !customToDay.isNullOrBlank()
+
     init {
         WalletCore.registerObserver(this)
         load()
     }
 
     fun selectPeriod(period: MHistoryTimePeriod) {
-        if (selectedPeriod == period) return
+        if (selectedPeriod == period && !hasCustomRange) return
         selectedPeriod = period
+        customFromDay = null
+        customToDay = null
         persistPeriod(period)
         reload(
             account = AccountStore.activeAccount,
             baseCurrency = WalletCore.baseCurrency,
-            resetHistoryRefreshAttempts = true,
+            showLoadingState = true,
+            loadingAnimated = true,
+        )
+    }
+
+    fun selectCustomRange(fromDay: String, toDay: String) {
+        val from = minOf(fromDay, toDay)
+        val to = maxOf(fromDay, toDay)
+        if (customFromDay == from && customToDay == to) return
+        customFromDay = from
+        customToDay = to
+        reload(
+            account = AccountStore.activeAccount,
+            baseCurrency = WalletCore.baseCurrency,
             showLoadingState = true,
             loadingAnimated = true,
         )
@@ -103,7 +125,6 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
         reload(
             account = account,
             baseCurrency = baseCurrency,
-            resetHistoryRefreshAttempts = true,
             showLoadingState = true,
         )
     }
@@ -115,7 +136,6 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
         reload(
             account = account,
             baseCurrency = baseCurrency,
-            resetHistoryRefreshAttempts = true,
             showLoadingState = false,
         )
     }
@@ -123,22 +143,18 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
     private fun reload(
         account: MAccount?,
         baseCurrency: MBaseCurrency,
-        resetHistoryRefreshAttempts: Boolean,
         showLoadingState: Boolean,
         loadingAnimated: Boolean = false,
     ) {
         val request = buildRequest(account, baseCurrency)
         if (request == null) {
             loadJob?.cancel()
-            historyRefreshJob?.cancel()
-            historyRefreshAttempts = 0
             _stateFlow.value = PortfolioUiState.Idle
             return
         }
 
         load(
             request = request,
-            resetHistoryRefreshAttempts = resetHistoryRefreshAttempts,
             showLoadingState = showLoadingState,
             loadingAnimated = loadingAnimated,
         )
@@ -146,16 +162,11 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
 
     private fun load(
         request: PortfolioHistoryRequest,
-        resetHistoryRefreshAttempts: Boolean,
         showLoadingState: Boolean,
         loadingAnimated: Boolean = false,
     ) {
         loadJob?.cancel()
-        historyRefreshJob?.cancel()
         cancelRetryJobs()
-        if (resetHistoryRefreshAttempts) {
-            historyRefreshAttempts = 0
-        }
 
         val isFirstLoad = !hasShownContent
         hasShownContent = true
@@ -176,7 +187,6 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
             try {
                 val results = fetchChartData(request, useCache = showLoadingState)
                 _stateFlow.value = deriveLoaded(request, results, silent = !showLoadingState)
-                results.netWorth?.let { scheduleHistoryRefreshIfNeeded(request, it) }
                 scheduleNetWorthAutoRetry(request, failed = results.netWorthFailed)
             } catch (e: CancellationException) {
                 throw e
@@ -346,7 +356,6 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
 
     fun onDestroy() {
         loadJob?.cancel()
-        historyRefreshJob?.cancel()
         cancelRetryJobs()
         WalletCore.unregisterObserver(this)
     }
@@ -379,6 +388,8 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
             wallets = wallets,
             baseCurrency = baseCurrency,
             period = selectedPeriod,
+            customFromDay = customFromDay,
+            customToDay = customToDay,
         )
     }
 
@@ -439,6 +450,18 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
         if (useCache) {
             cachedResponses[request]?.takeIf { it.isComplete }?.let { return it }
         }
+        BalanceStore.recordPortfolioSnapshotAwait(request.accountId, force = true)
+        runCatching {
+            val bootstrapPeriod = when (request.period) {
+                MHistoryTimePeriod.ALL -> MHistoryTimePeriod.ALL
+                else -> MHistoryTimePeriod.YEAR
+            }
+            WalletCore.ensurePortfolioSnapshotsSeeded(
+                request.accountId,
+                BalanceStore.buildBootstrapHoldings(request.accountId),
+                bootstrapPeriod,
+            )
+        }
         val results = supervisorScope {
             val netWorth =
                 async { runCatchingFetch { fetchSingle(request, PortfolioChartKind.NET_WORTH) } }
@@ -468,15 +491,33 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
         cacheOnly: Boolean = false,
     ): ApiPortfolioHistoryResponse? = when (kind) {
         PortfolioChartKind.NET_WORTH -> WalletCore.fetchPortfolioNetWorthHistory(
-            request.accountId, request.wallets, request.baseCurrency, request.period, cacheOnly,
+            request.accountId,
+            request.wallets,
+            request.baseCurrency,
+            request.period,
+            cacheOnly,
+            request.customFromDay,
+            request.customToDay,
         )
 
         PortfolioChartKind.TOTAL_PNL -> WalletCore.fetchPortfolioPnlCumulativeHistory(
-            request.accountId, request.wallets, request.baseCurrency, request.period, cacheOnly,
+            request.accountId,
+            request.wallets,
+            request.baseCurrency,
+            request.period,
+            cacheOnly,
+            request.customFromDay,
+            request.customToDay,
         )
 
         PortfolioChartKind.DAILY_PNL -> WalletCore.fetchPortfolioPnlHistory(
-            request.accountId, request.wallets, request.baseCurrency, request.period, cacheOnly,
+            request.accountId,
+            request.wallets,
+            request.baseCurrency,
+            request.period,
+            cacheOnly,
+            request.customFromDay,
+            request.customToDay,
         )
     }
 
@@ -501,25 +542,26 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
     }
 
     private fun ApiPortfolioHistoryResponse.toOverview(account: MAccount?): PortfolioOverview? {
-        val datasetTotals = datasets?.let { datasetsTotalsByTimestamp(it) }
+        // Prefer `points` (diary totalUsd) over summed token datasets — matches web P&L Change.
         val pointsList = points
+        val datasetTotals = datasets?.let { datasetsTotalsByTimestamp(it) }
         val totals: List<Pair<Long, Double>> = when {
-            !datasetTotals.isNullOrEmpty() -> datasetTotals
             !pointsList.isNullOrEmpty() -> pointsList.toHistoryPoints()
                 .sortedBy { it.timestamp }
                 .map { it.timestamp to it.value }
 
+            !datasetTotals.isNullOrEmpty() -> datasetTotals
             else -> return null
         }
         if (totals.isEmpty()) return null
 
-        val first = totals.first()
-        val last = totals.last()
-        val baseline = totals.firstOrNull { it.second > 0.0 } ?: first
+        // Match web `buildPnlChangeResponse`: same baseline for $ and % (first finite point).
+        val first = totals.firstOrNull { it.second.isFinite() } ?: return null
+        val last = totals.lastOrNull { it.second.isFinite() } ?: return null
+        if (last.first <= first.first) return null
+
         val netAbs = last.second - first.second
-        val netPct = if (baseline.second > 0.0) {
-            (last.second - baseline.second) / baseline.second
-        } else null
+        val netPct = if (first.second > 0.0) netAbs / first.second else null
 
         val liveTotal = account?.accountId
             ?.let { BalanceStore.totalBalanceInBaseCurrency(it) }
@@ -755,7 +797,7 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
                 ChartSeriesInput(
                     id = dataset.dataset.contractAddress.takeIf { it.isNotBlank() }
                         ?: "asset_${dataset.dataset.assetId}_$index",
-                    name = dataset.dataset.symbol,
+                    name = dataset.dataset.displayName(),
                     color = dataset.dataset.color?.toChartColor(index)
                         ?: fallbackChartColors[index % fallbackChartColors.size],
                     values = timestamps.map {
@@ -788,28 +830,6 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
             impact = impact ?: 0.0,
             hasPositiveValues = historyPoints.any { it.value > 0.0 },
         )
-    }
-
-    private fun scheduleHistoryRefreshIfNeeded(
-        request: PortfolioHistoryRequest,
-        response: ApiPortfolioHistoryResponse,
-    ) {
-        historyRefreshJob?.cancel()
-
-        if (response.historyScanCursor == null || historyRefreshAttempts >= MAX_HISTORY_REFRESH_ATTEMPTS) {
-            return
-        }
-
-        historyRefreshAttempts += 1
-        historyRefreshJob = viewModelScope.launch {
-            delay(HISTORY_REFRESH_DELAY_MS)
-            historyRefreshJob = null
-            load(
-                request = request,
-                resetHistoryRefreshAttempts = false,
-                showLoadingState = false,
-            )
-        }
     }
 
     private fun buildStackLinearChartData(
@@ -896,9 +916,7 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
             ChartSeriesInput(
                 id = dataset.dataset.contractAddress.takeIf { it.isNotBlank() }
                     ?: "asset_${dataset.dataset.assetId}_$index",
-                name = dataset.dataset.symbol.takeIf { it.isNotBlank() }
-                    ?: dataset.dataset.contractAddress.takeIf { it.isNotBlank() }
-                    ?: LocaleController.getString("Asset"),
+                name = dataset.dataset.displayName(),
                 color = dataset.dataset.color?.toChartColor(index)
                     ?: fallbackChartColors[index % fallbackChartColors.size],
                 values = timestamps.map {
@@ -967,6 +985,19 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
         }
     }
 
+    private fun ApiPortfolioHistoryDataset.displayName(): String {
+        val slug = contractAddress.takeIf { it.isNotBlank() }
+        val tokenSymbol = slug?.let { TokenStore.getToken(it)?.symbol }?.takeIf { it.isNotBlank() }
+        if (tokenSymbol != null) return tokenSymbol
+
+        val symbol = this.symbol.takeIf { it.isNotBlank() && !it.contains('-') }
+        if (symbol != null) return symbol
+
+        return slug
+            ?: this.symbol.takeIf { it.isNotBlank() }
+            ?: LocaleController.getString("Asset")
+    }
+
     private data class PortfolioHistoryPoint(
         val timestamp: Long,
         val value: Double,
@@ -989,8 +1020,6 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
 
     companion object {
         private const val UNIX_TIMESTAMP_MS_THRESHOLD = 10_000_000_000L
-        private const val MAX_HISTORY_REFRESH_ATTEMPTS = 6
-        private const val HISTORY_REFRESH_DELAY_MS = 8_000L
         private const val NET_WORTH_AUTO_RETRY_DELAY_MS = 5_000L
         private const val BREAKDOWN_MAX_SLICES = 8
         private const val MAX_PNL_SERIES = 8

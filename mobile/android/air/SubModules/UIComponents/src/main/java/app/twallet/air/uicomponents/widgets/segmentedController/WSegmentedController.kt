@@ -659,6 +659,29 @@ class WSegmentedController(
         syncCloseButtonVisibility()
     }
 
+    fun setTabsVisible(visible: Boolean) {
+        clearSegmentedControl.isVisible = visible && items.size > 1 && !actionBar.isVisible
+    }
+
+    fun addLeadingView(view: View, width: Int = WRAP_CONTENT, height: Int = 40.dp) {
+        if (view.parent != null) return
+        contentView.addView(view, LayoutParams(width, height).apply {
+            matchConstraintMaxWidth = 180.dp
+        })
+        contentView.setConstraints {
+            toTopPx(
+                view,
+                (navHeight - height) / 2 +
+                    (navigationController.getSystemBars().top + navTopPadding)
+            )
+            toStartPx(view, 8.dp + systemBarStartInset)
+        }
+    }
+
+    fun disableSwipeNavigation() {
+        viewPager.isUserInputEnabled = false
+    }
+
     fun addBackButton(
         onBack: () -> Unit = {
             navigationController.pop()

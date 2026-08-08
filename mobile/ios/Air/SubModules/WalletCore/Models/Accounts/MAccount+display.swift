@@ -265,7 +265,10 @@ public extension MAccount {
 
 public extension AccountContext {
     var orderedChains: [(ApiChain, AccountChain)] {
-        let defaultOrderedChains = account.orderedChains
+        let network = account.network
+        let defaultOrderedChains = account.orderedChains.filter {
+            !ChainVisibilityStore.shared.isHidden($0.0, network: network)
+        }
         guard defaultOrderedChains.count > 1 else {
             return defaultOrderedChains
         }

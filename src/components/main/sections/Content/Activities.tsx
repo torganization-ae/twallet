@@ -18,10 +18,7 @@ import type {
 import type { Account, SavedAddress, Theme } from '../../../../global/types';
 import { ContentTab } from '../../../../global/types';
 
-import {
-  ANIMATED_STICKER_BIG_SIZE_PX,
-  PORTRAIT_MIN_ASSETS_TAB_VIEW,
-} from '../../../../config';
+import { ANIMATED_STICKER_BIG_SIZE_PX } from '../../../../config';
 import { forceMeasure } from '../../../../lib/fasterdom/stricterdom';
 import { getIsTinyOrScamTransaction } from '../../../../global/helpers';
 import {
@@ -49,7 +46,7 @@ import {
 } from '../../helpers/scrollableContainer';
 
 import useAppTheme from '../../../../hooks/useAppTheme';
-import { getIsPortrait, useDeviceScreen } from '../../../../hooks/useDeviceScreen';
+import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useInfiniteScroll from '../../../../hooks/useInfiniteScroll';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
@@ -462,15 +459,12 @@ export default memo(
         accounts,
       };
     },
-    (global, { totalTokensAmount, isWidget }, stickToFirst) => {
+    (global, { isWidget }, stickToFirst) => {
       const accountState = selectCurrentAccountState(global);
-      const shouldShowSeparateAssetsPanel = getIsPortrait()
-        && totalTokensAmount <= PORTRAIT_MIN_ASSETS_TAB_VIEW;
 
       return stickToFirst((
         isWidget
         || accountState?.activeContentTab === ContentTab.Activity
-        || (accountState?.activeContentTab === ContentTab.Assets && shouldShowSeparateAssetsPanel)
       ) && selectCurrentAccountId(global));
     },
   )(Activities),

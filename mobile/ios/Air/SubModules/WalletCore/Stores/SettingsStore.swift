@@ -52,16 +52,6 @@ public final class SettingsStore: Sendable {
         }
     }
 
-    public var isSeasonalThemingDisabled: Bool {
-        _row.withLock { $0.isSeasonalThemingDisabled }
-    }
-
-    public func setIsSeasonalThemingDisabled(_ isDisabled: Bool) {
-        update {
-            $0.isSeasonalThemingDisabled = isDisabled
-        }
-    }
-
     public var canPlaySounds: Bool {
         _row.withLock { $0.canPlaySounds }
     }

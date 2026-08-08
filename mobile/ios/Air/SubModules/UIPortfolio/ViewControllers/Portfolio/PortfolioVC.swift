@@ -10,6 +10,8 @@ private let portfolioSectionTopSpacing = CGFloat(24)
 private let portfolioHorizontalInset = CGFloat(16)
 private let portfolioRangeControlHorizontalInset = CGFloat(21)
 private let portfolioRangeControlHeight = CGFloat(44)
+private let portfolioCalendarButtonSize = CGFloat(44)
+private let portfolioRangeControlSpacing = CGFloat(8)
 private let portfolioRangeControlOverlayHeight = CGFloat(77)
 
 private final class PortfolioCollectionView: UICollectionView {
@@ -311,6 +313,7 @@ public final class PortfolioVC: WViewController, UICollectionViewDelegate, WBack
     private var languageObserver: NSObjectProtocol?
     private lazy var collectionView = makeCollectionView()
     private lazy var bottomControlBackgroundView = PortfolioBottomControlBackgroundView()
+    private lazy var calendarButton = makeCalendarButton()
     private lazy var rangeSegmentedControl = makeRangeSegmentedControl()
     private lazy var dataSource = makeDataSource()
 
@@ -471,6 +474,20 @@ public final class PortfolioVC: WViewController, UICollectionViewDelegate, WBack
         return collectionView
     }
 
+    private func makeCalendarButton() -> UIButton {
+        var config = UIButton.Configuration.plain()
+        config.image = UIImage(systemName: "calendar")
+        config.baseForegroundColor = .label
+        config.background.backgroundColor = .air.groupedItem
+        config.background.cornerRadius = portfolioCalendarButtonSize / 2
+        config.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+        let button = UIButton(configuration: config)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityLabel = lang("Custom Date Range")
+        button.addTarget(self, action: #selector(calendarButtonPressed), for: .touchUpInside)
+        return button
+    }
+
     private func makeRangeSegmentedControl() -> UISegmentedControl {
         let control = PortfolioRangeSegmentedControl(
             titles: PortfolioTimeRange.displayOrder.map(\.title)
@@ -482,6 +499,7 @@ public final class PortfolioVC: WViewController, UICollectionViewDelegate, WBack
 
     private func setupRangeSegmentedControl() {
         view.addSubview(bottomControlBackgroundView)
+        view.addSubview(calendarButton)
         view.addSubview(rangeSegmentedControl)
 
         NSLayoutConstraint.activate([
@@ -490,19 +508,116 @@ public final class PortfolioVC: WViewController, UICollectionViewDelegate, WBack
             bottomControlBackgroundView.topAnchor.constraint(equalTo: rangeSegmentedControl.topAnchor),
             bottomControlBackgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            rangeSegmentedControl.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: portfolioRangeControlHorizontalInset),
-            rangeSegmentedControl.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -portfolioRangeControlHorizontalInset),
+            calendarButton.leadingAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.leadingAnchor,
+                constant: portfolioRangeControlHorizontalInset
+            ),
+            calendarButton.widthAnchor.constraint(equalToConstant: portfolioCalendarButtonSize),
+            calendarButton.heightAnchor.constraint(equalToConstant: portfolioCalendarButtonSize),
+            calendarButton.centerYAnchor.constraint(equalTo: rangeSegmentedControl.centerYAnchor),
+
+            rangeSegmentedControl.leadingAnchor.constraint(
+                equalTo: calendarButton.trailingAnchor,
+                constant: portfolioRangeControlSpacing
+            ),
+            rangeSegmentedControl.trailingAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.trailingAnchor,
+                constant: -portfolioRangeControlHorizontalInset
+            ),
             rangeSegmentedControl.heightAnchor.constraint(equalToConstant: portfolioRangeControlHeight),
             rangeSegmentedControl.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
         ])
+
+        // Keep controls above the full-bleed collection view so charts can't steal taps.
+        view.bringSubviewToFront(bottomControlBackgroundView)
+        view.bringSubviewToFront(rangeSegmentedControl)
+        view.bringSubviewToFront(calendarButton)
+        calendarButton.isUserInteractionEnabled = true
     }
 
     private func updateRangeSegmentedControlSelection(_ range: PortfolioTimeRange) {
-        let index = PortfolioTimeRange.displayOrder.firstIndex(of: range) ?? 0
-        guard rangeSegmentedControl.selectedSegmentIndex != index else {
+        if viewModel.hasCustomDateRange {
+            rangeSegmentedControl.selectedSegmentIndex = UISegmentedControl.noSegment
+            updateCalendarButtonAppearance()
             return
         }
-        rangeSegmentedControl.selectedSegmentIndex = index
+        let index = PortfolioTimeRange.displayOrder.firstIndex(of: range) ?? 0
+        if rangeSegmentedControl.selectedSegmentIndex != index {
+            rangeSegmentedControl.selectedSegmentIndex = index
+        }
+        updateCalendarButtonAppearance()
+    }
+
+    private func updateCalendarButtonAppearance() {
+        var config = calendarButton.configuration ?? .plain()
+        config.baseForegroundColor = viewModel.hasCustomDateRange ? .tintColor : .label
+        calendarButton.configuration = config
+    }
+
+    @objc
+    private func calendarButtonPressed() {
+        let initialFrom = viewModel.customDateRange?.from
+            ?? Calendar.current.date(byAdding: .day, value: -90, to: Date())
+            ?? Date()
+        let initialTo = viewModel.customDateRange?.to ?? Date()
+
+        let alert = UIAlertController(
+            title: lang("Custom Date Range"),
+            message: "\n\n\n\n\n\n\n\n\n",
+            preferredStyle: .actionSheet
+        )
+
+        let fromPicker = UIDatePicker()
+        fromPicker.datePickerMode = .date
+        fromPicker.preferredDatePickerStyle = .compact
+        fromPicker.maximumDate = Date()
+        fromPicker.date = initialFrom
+        fromPicker.translatesAutoresizingMaskIntoConstraints = false
+
+        let toPicker = UIDatePicker()
+        toPicker.datePickerMode = .date
+        toPicker.preferredDatePickerStyle = .compact
+        toPicker.maximumDate = Date()
+        toPicker.date = initialTo
+        toPicker.translatesAutoresizingMaskIntoConstraints = false
+
+        let fromLabel = UILabel()
+        fromLabel.text = lang("From")
+        fromLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        fromLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let toLabel = UILabel()
+        toLabel.text = lang("To")
+        toLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        toLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let stack = UIStackView(arrangedSubviews: [fromLabel, fromPicker, toLabel, toPicker])
+        stack.axis = .vertical
+        stack.alignment = .fill
+        stack.spacing = 10
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        alert.view.addSubview(stack)
+
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: alert.view.leadingAnchor, constant: 20),
+            stack.trailingAnchor.constraint(equalTo: alert.view.trailingAnchor, constant: -20),
+            stack.topAnchor.constraint(equalTo: alert.view.topAnchor, constant: 56),
+        ])
+
+        alert.addAction(UIAlertAction(title: lang("Cancel"), style: .cancel))
+        alert.addAction(UIAlertAction(title: lang("Done"), style: .default) { [weak self] _ in
+            guard let self else { return }
+            self.resetVisibleChartInteractions()
+            self.resetVisibleChartRanges()
+            self.viewModel.selectCustomRange(from: fromPicker.date, to: toPicker.date)
+            self.updateRangeSegmentedControlSelection(self.viewModel.selectedRange)
+        })
+
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = calendarButton
+            popover.sourceRect = calendarButton.bounds
+        }
+        present(alert, animated: true)
     }
 
     private func updateRangeSegmentedControlTitles() {
@@ -753,7 +868,7 @@ public final class PortfolioVC: WViewController, UICollectionViewDelegate, WBack
             didUpdatePreferredHeight = cell.configure(
                 configuration: makeTotalValueChartConfiguration(),
                 onRetry: { [weak self] in
-                    self?.viewModel.reload(resetHistoryRefreshAttempts: true)
+                    self?.viewModel.reload()
                 },
                 onPreferredHeightChanged: { [weak self] in
                     self?.scheduleChartLayoutInvalidation()
@@ -763,7 +878,7 @@ public final class PortfolioVC: WViewController, UICollectionViewDelegate, WBack
             didUpdatePreferredHeight = cell.configure(
                 configuration: makeTotalPnlChartConfiguration(),
                 onRetry: { [weak self] in
-                    self?.viewModel.reload(resetHistoryRefreshAttempts: true)
+                    self?.viewModel.reload()
                 },
                 onPreferredHeightChanged: { [weak self] in
                     self?.scheduleChartLayoutInvalidation()
@@ -773,7 +888,7 @@ public final class PortfolioVC: WViewController, UICollectionViewDelegate, WBack
             didUpdatePreferredHeight = cell.configure(
                 configuration: makeDailyPnlChartConfiguration(),
                 onRetry: { [weak self] in
-                    self?.viewModel.reload(resetHistoryRefreshAttempts: true)
+                    self?.viewModel.reload()
                 },
                 onPreferredHeightChanged: { [weak self] in
                     self?.scheduleChartLayoutInvalidation()
@@ -783,7 +898,7 @@ public final class PortfolioVC: WViewController, UICollectionViewDelegate, WBack
             didUpdatePreferredHeight = cell.configure(
                 configuration: makePortfolioShareChartConfiguration(),
                 onRetry: { [weak self] in
-                    self?.viewModel.reload(resetHistoryRefreshAttempts: true)
+                    self?.viewModel.reload()
                 },
                 onPreferredHeightChanged: { [weak self] in
                     self?.scheduleChartLayoutInvalidation()
@@ -973,7 +1088,7 @@ public final class PortfolioVC: WViewController, UICollectionViewDelegate, WBack
     }
 
     private func showLimitedHistoryToast() {
-        AppActions.showToast(message: lang("Deep history analysis will be available in upcoming updates."))
+        AppActions.showToast(message: lang("PortfolioHistoryPending"))
     }
 
     private func observeLanguageChanges() {

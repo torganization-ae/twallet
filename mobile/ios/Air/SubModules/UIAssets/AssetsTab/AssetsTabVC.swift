@@ -199,6 +199,9 @@ public class AssetsTabVC: WViewController, WalletCoreData.EventsObserver {
         switch tab {
         case .tokens:
             viewController = WalletTokensVC(accountSource: accountSource, mode: .expanded)
+        case .activity:
+            assertionFailure("Activity tab is Home-only")
+            viewController = WalletTokensVC(accountSource: accountSource, mode: .expanded)
         case .nfts:
             viewController = NftsVC(accountSource: accountSource, manager: nftsVCManager, layoutMode: .regular, filter: .none)
         case let .nftCollectionFilter(filter):

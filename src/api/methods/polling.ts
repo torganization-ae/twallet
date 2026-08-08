@@ -223,7 +223,6 @@ export async function tryUpdateConfig() {
       supportAccountsCount = 1,
       now: serverUtc,
       swapVersion,
-      seasonalTheme,
       isUpdateRequired: isAppUpdateRequired,
       knowledgeBaseVersion,
     } = config;
@@ -235,7 +234,6 @@ export async function tryUpdateConfig() {
       supportAccountsCount,
       isAppUpdateRequired,
       swapVersion,
-      seasonalTheme,
       knowledgeBaseVersion,
     });
 

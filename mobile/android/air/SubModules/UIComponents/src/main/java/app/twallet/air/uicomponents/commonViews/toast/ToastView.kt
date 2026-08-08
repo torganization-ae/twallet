@@ -7,6 +7,7 @@ import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.core.view.isVisible
+import app.twallet.air.uicomponents.R
 import app.twallet.air.uicomponents.drawable.WRippleDrawable
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.extensions.setPaddingDp
@@ -28,6 +29,7 @@ class ToastView(context: Context) : WView(context), WThemedView {
         const val HEIGHT_DP = 56
         private const val CORNER_RADIUS_DP = HEIGHT_DP / 2f
         private const val ICON_SIZE_DP = 24
+        private const val CLOSE_SIZE_DP = 28
     }
 
     private val iconView = ImageView(context).apply {
@@ -54,10 +56,23 @@ class ToastView(context: Context) : WView(context), WThemedView {
         background = actionRipple
     }
 
+    private val closeRipple = WRippleDrawable.create(14f.dp)
+
+    private val closeButton = ImageView(context).apply {
+        id = generateViewId()
+        scaleType = ImageView.ScaleType.CENTER_INSIDE
+        setPaddingDp(4)
+        background = closeRipple
+        contentDescription = "Close"
+        isClickable = true
+        isFocusable = true
+    }
+
     private var blurView: WBlurryBackgroundView? = null
     private var blurRootView: ViewGroup? = null
     private var pillShadowView: PillShadowView? = null
     private var actionListener: (() -> Unit)? = null
+    private var dismissListener: (() -> Unit)? = null
     private var isBlurPlaying = false
 
     init {
@@ -70,6 +85,7 @@ class ToastView(context: Context) : WView(context), WThemedView {
             actionLabel,
             LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
         )
+        addView(closeButton, LayoutParams(CLOSE_SIZE_DP.dp, CLOSE_SIZE_DP.dp))
         addView(
             textLabel,
             LayoutParams(LayoutParams.MATCH_CONSTRAINT, LayoutParams.MATCH_CONSTRAINT)
@@ -79,8 +95,11 @@ class ToastView(context: Context) : WView(context), WThemedView {
             toCenterY(iconView)
             toStart(iconView, 16f)
 
+            toCenterY(closeButton)
+            toEnd(closeButton, 10f)
+
             toCenterY(actionLabel)
-            toEnd(actionLabel, 10f)
+            endToStart(actionLabel, closeButton, 2f)
 
             toCenterY(textLabel)
             startToEnd(textLabel, iconView, 16f)
@@ -90,11 +109,18 @@ class ToastView(context: Context) : WView(context), WThemedView {
         actionLabel.setOnClickListener {
             actionListener?.invoke()
         }
+        closeButton.setOnClickListener {
+            dismissListener?.invoke()
+        }
 
         updateTheme()
     }
 
-    fun configure(toast: ToastManager.Toast, onAction: (() -> Unit)?) {
+    fun configure(
+        toast: ToastManager.Toast,
+        onAction: (() -> Unit)?,
+        onDismiss: (() -> Unit)?,
+    ) {
         with(iconView) {
             isVisible = toast.iconResId != null
             setImageDrawable(
@@ -107,6 +133,7 @@ class ToastView(context: Context) : WView(context), WThemedView {
             text = toast.actionTitle
         }
         actionListener = onAction
+        dismissListener = onDismiss
         updateTheme()
     }
 
@@ -146,6 +173,12 @@ class ToastView(context: Context) : WView(context), WThemedView {
         textLabel.updateTheme()
         actionLabel.updateTheme()
         actionRipple.rippleColor = WColor.TintRipple.color
+        closeRipple.rippleColor = WColor.SecondaryText.color
+        closeButton.setImageDrawable(
+            context.getDrawableCompat(R.drawable.ic_close)?.mutate()?.also {
+                it.setTint(WColor.SecondaryText.color)
+            }
+        )
 
         setBackgroundColor(
             if (isBlurEnabled) Color.TRANSPARENT else WColor.SearchFieldBackground.color,

@@ -36,7 +36,6 @@ import {
   IS_TON_BRAND,
   IS_TWALLETGRAM_WALLET,
   MFA_API_BASE_URL,
-  PORTFOLIO_API_URL,
   PROXY_API_BASE_URL,
   SSE_BRIDGE_URL,
   SUBPROJECT_URL_MASK,
@@ -71,7 +70,6 @@ const cspConnectSrcHosts = Array.from(new Set([
   ensureTrailingSlash(IPFS_GATEWAY_BASE_URL),
   ensureTrailingSlash(SSE_BRIDGE_URL),
   ...(MFA_API_BASE_URL ? [MFA_API_BASE_URL] : []),
-  ensureTrailingSlash(PORTFOLIO_API_URL),
   TON_CONNECT_ANALYTICS_URL,
   'https://chainlist.org',
   // User-configured custom EVM RPC hosts are arbitrary and cannot be known at build time.
@@ -383,7 +381,6 @@ export default function createConfig(
         WALLET_CONNECT_PROJECT_ID: '',
         WALLET_CONNECT_PAY_APP_ID: '',
         MULTISEND_DAPP_URL: '',
-        PORTFOLIO_DAPP_URL: '',
         MFA_BOT_URL: '',
         MFA_API_BASE_URL: '',
         MFA_MASTER_ADDRESS: '',

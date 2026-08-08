@@ -30,6 +30,9 @@ const electronApi: ElectronApi = {
 
   restoreStorage: () => ipcRenderer.invoke(ElectronAction.RESTORE_STORAGE),
 
+  readTextFromClipboard: () => ipcRenderer.invoke(ElectronAction.READ_TEXT_FROM_CLIPBOARD),
+  writeTextToClipboard: (text: string) => ipcRenderer.invoke(ElectronAction.WRITE_TEXT_TO_CLIPBOARD, text),
+
   openWalletConnectPayCollect: (url, confirmStrings) => ipcRenderer.invoke(
     ElectronAction.OPEN_WALLET_CONNECT_PAY_COLLECT,
     url,

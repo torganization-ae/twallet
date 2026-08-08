@@ -10,17 +10,11 @@ import Foundation
 extension ApiUpdate {
     
     public struct UpdateConfig: Equatable, Hashable, Codable, Sendable {
-        public enum SeasonalTheme: String, Equatable, Hashable, Codable, Sendable, CaseIterable {
-            case newYear = "newYear"
-            case valentine = "valentine"
-        }
-
         public var type = "updateConfig"
         public var isLimited: Bool?
         public var isCopyStorageEnabled: Bool?
         public var supportAccountsCount: Int?
         public var isAppUpdateRequired: Bool?
-        public var seasonalTheme: SeasonalTheme?
         public var knowledgeBaseVersion: String?
 
         private enum CodingKeys: String, CodingKey {
@@ -29,7 +23,6 @@ extension ApiUpdate {
             case isCopyStorageEnabled
             case supportAccountsCount
             case isAppUpdateRequired
-            case seasonalTheme
             case knowledgeBaseVersion
         }
 
@@ -40,7 +33,6 @@ extension ApiUpdate {
             isCopyStorageEnabled = try container.decodeIfPresent(Bool.self, forKey: .isCopyStorageEnabled)
             supportAccountsCount = try container.decodeIfPresent(Int.self, forKey: .supportAccountsCount)
             isAppUpdateRequired = try container.decodeIfPresent(Bool.self, forKey: .isAppUpdateRequired)
-            seasonalTheme = try? container.decodeIfPresent(SeasonalTheme.self, forKey: .seasonalTheme)
             knowledgeBaseVersion = try? container.decodeIfPresent(String.self, forKey: .knowledgeBaseVersion)
         }
     }

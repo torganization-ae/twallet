@@ -89,7 +89,7 @@ open class HomeHeaderView(
         val DEFAULT_MODE = Mode.Expanded
         private val NAV_SIZE_OFFSET = 8.dp
         val navDefaultHeight = WNavigationBar.DEFAULT_HEIGHT.dp - NAV_SIZE_OFFSET
-        const val CARD_RATIO = 208 / 358f
+        const val CARD_RATIO = 176 / 358f
         private const val COLLAPSE_PROGRESS_THRESHOLD = 0.66f
 
         fun expandedContentHeight(width: Int): Float {
@@ -617,12 +617,6 @@ open class HomeHeaderView(
         }
     }
 
-    fun updateSeasonalTheme() {
-        cardViews.forEach {
-            it.updateSeasonalTheme()
-        }
-    }
-
     fun updateAddressLabel(accountId: String) {
         cardViews.forEach {
             if (it.account?.accountId == accountId)
@@ -948,7 +942,7 @@ open class HomeHeaderView(
     }
 
     private fun layoutBalance() {
-        val expandedBalanceY = (width - 32.dp) * CARD_RATIO * 0.41f - 28.dp
+        val expandedBalanceY = (width - 32.dp) * CARD_RATIO * 0.22f
         val expandProgress = this.expandProgress
         balanceExpandProgress = if (scrollY > 0) (1 - scrollY / 92f.dp).coerceIn(0f, 1f) else 1f
         balanceLabel.y =

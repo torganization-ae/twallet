@@ -63,7 +63,6 @@ interface StateProps {
   tokens?: UserToken[];
   swapTokens?: UserSwapToken[];
   vesting?: ApiVestingInfo[];
-  isInvestorViewEnabled?: boolean;
   currentTokenSlug?: string;
   baseCurrency: ApiBaseCurrency;
   theme: Theme;
@@ -86,7 +85,6 @@ function Assets({
   tokens,
   swapTokens,
   vesting,
-  isInvestorViewEnabled,
   isSeparatePanel,
   isWidget,
   currentTokenSlug,
@@ -285,7 +283,6 @@ function Assets({
           vestingStatus={vestingStatus}
           unfreezeEndDate={unfreezeEndDate}
           amount={vestingAmount}
-          isInvestorView={isInvestorViewEnabled}
           baseCurrency={baseCurrency}
           appTheme={appTheme}
           isSensitiveDataHidden={isSensitiveDataHidden}
@@ -330,7 +327,6 @@ function Assets({
           annualYield={annualYield}
           yieldType={yieldType}
           amount={amountDecimal}
-          isInvestorView={isInvestorViewEnabled}
           isActive={token.slug === currentTokenSlug}
           baseCurrency={baseCurrency}
           withChainIcon={isMultichainAccount}
@@ -426,7 +422,6 @@ export default memo(
       const swapTokens = selectSwapTokens(global);
       const accountState = selectCurrentAccountState(global);
       const accountSettings = selectCurrentAccountSettings(global);
-      const { isInvestorViewEnabled } = global.settings;
 
       const states = selectAccountStakingStates(global, currentAccountId);
       const isViewMode = selectIsCurrentAccountViewMode(global);
@@ -435,7 +430,6 @@ export default memo(
         tokens,
         swapTokens,
         vesting: accountState?.vesting?.info,
-        isInvestorViewEnabled,
         currentTokenSlug: accountState?.currentTokenSlug,
         baseCurrency: global.settings.baseCurrency,
         mycoin: selectMycoin(global),

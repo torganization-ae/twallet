@@ -12,7 +12,6 @@ import type { UnifiedSignDataPayload } from '../dappProtocols/types';
 import type { ApiActivity } from './activities';
 import type {
   ApiAccountConfig,
-  ApiBackendConfig,
   ApiSwapAsset,
   ApiSwapVersion,
   ApiVestingInfo,
@@ -370,7 +369,6 @@ export type ApiUpdateConfig = {
   supportAccountsCount?: number;
   isAppUpdateRequired: boolean;
   swapVersion?: ApiSwapVersion;
-  seasonalTheme: ApiBackendConfig['seasonalTheme'];
   knowledgeBaseVersion?: string;
 };
 

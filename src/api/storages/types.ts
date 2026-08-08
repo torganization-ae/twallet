@@ -53,4 +53,6 @@ export type StorageKey = 'accounts'
   // For TonConnect SSE
   | 'sseLastEventId'
   // For Headless
-  | 'headlessBalanceSnapshots';
+  | 'headlessBalanceSnapshots'
+  // Local portfolio net-worth diary (per accountId)
+  | 'portfolioSnapshots';

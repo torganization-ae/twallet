@@ -1,5 +1,4 @@
 import React, { memo, useMemo, useRef } from '../../../lib/teact/teact';
-import { getActions } from '../../../global';
 
 import type { PortfolioHistoryBundle } from '../../../global/types';
 
@@ -12,7 +11,6 @@ import {
 } from '../helpers/graphKitAdapter';
 
 import useLang from '../../../hooks/useLang';
-import useLastCallback from '../../../hooks/useLastCallback';
 
 import Chart from './Chart';
 
@@ -32,7 +30,6 @@ interface OwnProps {
 function Charts({
   bundle, baseCurrencySymbol, dateRange, error, dataKey, noAnimation,
 }: OwnProps) {
-  const { showToast } = getActions();
   const lang = useLang();
 
   const hasData = Boolean(bundle?.netWorth || bundle?.pnlCumulative || bundle?.pnl);
@@ -53,13 +50,9 @@ function Charts({
   const isStale = !hasData && Boolean(displayBundle);
   const { netWorth, pnlCumulative, pnl } = displayBundle ?? {};
 
-  const handleLimitedRangeClick = useLastCallback(() => {
-    showToast({ message: lang('Deep history analysis will be available in upcoming updates.') });
-  });
-
   const netWorthData = useMemo(() => (
-    netWorth ? buildNetWorthChartParams(lang, netWorth, baseCurrencySymbol, handleLimitedRangeClick) : undefined
-  ), [netWorth, baseCurrencySymbol, lang, handleLimitedRangeClick]);
+    netWorth ? buildNetWorthChartParams(lang, netWorth, baseCurrencySymbol) : undefined
+  ), [netWorth, baseCurrencySymbol, lang]);
 
   const totalPnlData = useMemo(() => (
     pnlCumulative ? buildTotalPnlChartParams(lang, pnlCumulative, baseCurrencySymbol) : undefined
@@ -75,7 +68,11 @@ function Charts({
 
   // A range switch that genuinely failed replaces the kept-on-screen charts with the placeholder
   if (error) {
-    return <div className={styles.placeholder}>{lang('Unavailable')}</div>;
+    return (
+      <div className={styles.placeholder}>
+        {lang(error === 'PortfolioHistoryPending' ? 'PortfolioHistoryPending' : 'Unavailable')}
+      </div>
+    );
   }
 
   // No bundle yet: render every slot so each card shows its skeleton

@@ -8,7 +8,6 @@ import { type Account, ContentTab, SettingsState } from '../../../../../global/t
 
 import {
   DEFAULT_CHAIN,
-  PORTRAIT_MIN_ASSETS_TAB_VIEW,
   STAKING_SLUG_PREFIX,
   TELEGRAM_GIFTS_SUPER_COLLECTION,
 } from '../../../../../config';
@@ -41,8 +40,6 @@ interface OwnProps {
   hasVesting: boolean;
   alwaysHiddenSlugs?: string[];
   tokensCount: number;
-  isPortrait: boolean;
-  isLandscape: boolean;
 }
 
 export default function useContentTabs({
@@ -59,8 +56,6 @@ export default function useContentTabs({
   hasVesting,
   alwaysHiddenSlugs,
   tokensCount,
-  isPortrait,
-  isLandscape,
 }: OwnProps) {
   const {
     selectToken,
@@ -129,14 +124,13 @@ export default function useContentTabs({
   }, [currentCollection, nftCollectionNameByKey, closeNftCollection]);
 
   const totalTokensAmount = tokensCount + (hasVesting ? 1 : 0) + numberOfStaking;
-  const shouldShowSeparateAssetsPanel = isPortrait && totalTokensAmount <= PORTRAIT_MIN_ASSETS_TAB_VIEW;
 
   const [mainContentTabsCount, tabs] = useMemo(() => {
     const nftChains = getChainsSupportingNft();
     const doesSupportNft = byChain && getOrderedAccountChains(byChain).some((chain) => nftChains.has(chain));
 
     const mainContentTabs = compact([
-      !shouldShowSeparateAssetsPanel && { id: ContentTab.Assets, title: lang('Assets'), className: styles.tab },
+      { id: ContentTab.Assets, title: lang('Tokens'), className: styles.tab },
       { id: ContentTab.Activity, title: lang('Activity'), className: styles.tab },
       doesSupportNft && {
         id: ContentTab.Nft,
@@ -174,15 +168,15 @@ export default function useContentTabs({
     ] as const;
   }, [
     visibleCollectionTabs, byChain, lang, nftCollections, nftCollectionNameByKey,
-    shouldRenderHiddenNftsSection, shouldShowSeparateAssetsPanel,
+    shouldRenderHiddenNftsSection,
   ]);
 
   const activeTabIndex = useMemo(
     () => {
       const tabIndex = tabs.findIndex((tab) => tab.id === activeContentTab);
 
-      // `activeContentTab` can hold a value that is not a visible tab (an overlay section,
-      // or `Assets` while it is shown as a separate panel), so fall back to the first tab by index
+      // `activeContentTab` can hold a value that is not a visible tab (an overlay section),
+      // so fall back to the first tab by index
       return tabIndex === -1 ? 0 : tabIndex;
     },
     [tabs, activeContentTab],
@@ -197,12 +191,18 @@ export default function useContentTabs({
   }, [activeTabIndex, visibleCollectionTabs, currentCollection, mainContentTabsCount, tabs]);
 
   useEffectOnce(() => {
-    if (activeContentTab !== undefined) return;
+    if (activeContentTab !== undefined) {
+      // Legacy landscape home; Overview is no longer a visible content tab
+      if (activeContentTab === ContentTab.Overview) {
+        setActiveContentTab({ tab: ContentTab.Assets });
+      }
+      return;
+    }
 
     if (currentTokenSlug !== undefined) {
       setActiveContentTab({ tab: ContentTab.Activity });
     } else {
-      setActiveContentTab({ tab: isLandscape ? ContentTab.Overview : ContentTab.Assets });
+      setActiveContentTab({ tab: ContentTab.Assets });
     }
   });
 
@@ -214,7 +214,7 @@ export default function useContentTabs({
   const handleHeaderBackClick = useLastCallback(() => {
     const returnTab = activeContentTab === ContentTab.Activity && activityReturnContentTab !== undefined
       ? activityReturnContentTab
-      : ContentTab.Overview;
+      : ContentTab.Assets;
     selectToken({ slug: undefined }, { forceOnHeavyAnimation: true });
     setActiveContentTab({ tab: returnTab });
   });
@@ -228,10 +228,7 @@ export default function useContentTabs({
     }
 
     selectToken({ slug: undefined }, { forceOnHeavyAnimation: true });
-
-    // On desktop the default screen is Overview, not Assets
-    const targetTab = tab === ContentTab.Assets && isLandscape ? ContentTab.Overview : tab;
-    setActiveContentTab({ tab: targetTab });
+    setActiveContentTab({ tab });
   });
 
   const handleClickAsset = useLastCallback((slug: string) => {
@@ -245,7 +242,6 @@ export default function useContentTabs({
     contentTransitionKey,
     visibleCollectionTabs,
     totalTokensAmount,
-    shouldShowSeparateAssetsPanel,
     activeNftKey: activeNftKeyRef.current,
     handleSwitchTab,
     handleHeaderBackClick,

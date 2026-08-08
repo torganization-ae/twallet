@@ -153,6 +153,7 @@ Custom endpoints that do not support indexer APIs may disable NFT and activity f
 Password required to save API key: "Passwort erforderlich, um den API-Schlüssel zu speichern"
 Show in wallet: In der Wallet anzeigen
 At least one network must stay enabled.: Mindestens ein Netzwerk muss aktiviert bleiben.
+This address is also valid on %chains%. Make sure you are sending on %chain%.: This address is also valid on %chains%. Make sure you are sending on %chain%.
 Network Menu: Netzwerkmenü
 Show Wallet QR: Wallet-QR anzeigen
 Enter URL: URL eingeben
@@ -161,13 +162,8 @@ Enable: Aktivieren
 Disable: Deaktivieren
 Saved: Gespeichert
 Enable Animations: Animationen aktivieren
-Enable Seasonal Theming: Saisonales Design aktivieren
 Enable Landscape Mode: Querformat aktivieren
-Disable Seasonal Theming: Saisonales Design deaktivieren
-You can always enable seasonal theming again in the appearance settings.: Sie können das saisonale Design jederzeit in den Darstellungseinstellungen wieder aktivieren.
 Base Currency: Basiswährung
-Investor View: Investorenansicht
-Toggle Investor View: Investorenansicht umschalten
 Hide Tiny Transfers: Kleine Überweisungen ausblenden
 Toggle Hide Tiny Transfers: Kleine Überweisungen ausblenden umschalten
 Network: Netzwerk
@@ -201,6 +197,7 @@ Copy wallet address: Wallet adresse kopieren
 View address on %explorer_name%: Adresse im %explorer_name% anzeigen
 You have just created a new wallet: Sie haben gerade eine neue Wallet erstellt.
 Assets: Vermögenswerte
+Tokens: Token
 Activity: Aktivität
 NFT: NFT
 No NFTs yet: Noch keine NFTs vorhanden
@@ -258,7 +255,6 @@ Remove from Saved: Aus Gespeichert entfernen
 View on Explorer: Im Explorer anzeigen
 No suggestions, you're on your own!: Keine Vorschläge, Sie sind auf sich allein gestellt!
 Play Sounds: Sounds abspielen
-Focus on asset value rather than current balance: Fokus auf den Vermögenswert anstatt auf den aktuellen Kontostand legen
 $logout_confirm: Alle Wallets entfernen
 $tiny_transfers_help: Schalten Sie dies aus, um Transaktionen von weniger als $%value% anzuzeigen. Bitte beachten Sie, dass solche Transaktionen oft für Spam- und Betrugszwecke verwendet werden.
 Today: Heute
@@ -362,6 +358,9 @@ Price Copied: Preis kopiert
 Not staked: Nicht gestakt
 Portfolio: Portfolio
 Performance, insights and P&L: Dynamik, Einblicke und GuV
+Custom Date Range: Benutzerdefinierter Zeitraum
+From: Von
+To: Bis
 Overview: Übersicht
 Total Balance: Gesamtguthaben
 Net Change: Portfolioänderung
@@ -373,6 +372,7 @@ Daily P&L: Tägliche GuV
 Portfolio Share: Portfolio-Aufteilung
 Current allocation across tracked assets.: Aktuelle Verteilung der verfolgten Vermögenswerte.
 Deep history analysis will be available in upcoming updates.: Die Analyse der vollständigen Historie wird in kommenden Updates verfügbar sein.
+PortfolioHistoryPending: Portfolioverlauf wird aus Guthaben und Marktpreisen erstellt…
 By Chain: Nach Netzwerk
 No chain balances: Keine Netzwerkguthaben
 Native: Nativ

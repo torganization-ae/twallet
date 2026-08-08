@@ -38,7 +38,6 @@ interface OwnProps {
 }
 
 interface StateProps {
-  isInvestorViewEnabled?: boolean;
   areTinyTransfersHidden?: boolean;
   areTokensWithNoCostHidden?: boolean;
   isSensitiveDataHidden?: true;
@@ -56,7 +55,6 @@ interface StateProps {
 
 function SettingsAssets({
   isActive,
-  isInvestorViewEnabled,
   isSensitiveDataHidden,
   areTinyTransfersHidden,
   areTokensWithNoCostHidden,
@@ -74,7 +72,6 @@ function SettingsAssets({
 }: OwnProps & StateProps) {
   const {
     toggleTinyTransfersHidden,
-    toggleInvestorView,
     toggleTokensWithNoCost,
     changeBaseCurrency,
     setSettingsState,
@@ -107,10 +104,6 @@ function SettingsAssets({
 
   const handleTinyTransfersHiddenToggle = useLastCallback(() => {
     toggleTinyTransfersHidden({ isEnabled: !areTinyTransfersHidden });
-  });
-
-  const handleInvestorViewToggle = useLastCallback(() => {
-    toggleInvestorView({ isEnabled: !isInvestorViewEnabled });
   });
 
   const handleOpenHiddenNfts = useLastCallback(() => {
@@ -170,22 +163,6 @@ function SettingsAssets({
             onChange={handleBaseCurrencyChange}
             isLoading={localBaseCurrency !== baseCurrency}
           />
-          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleInvestorViewToggle}>
-            <div>
-              <span className={styles.itemTitle}>{lang('Investor View')}</span>
-              {' '}
-              <IconWithTooltip
-                message={lang('Focus on asset value rather than current balance')}
-                iconClassName={styles.iconQuestion}
-              />
-            </div>
-
-            <Switcher
-              className={styles.menuSwitcher}
-              label={lang('Investor View')}
-              checked={isInvestorViewEnabled}
-            />
-          </div>
           <div className={buildClassName(styles.item, styles.item_small)} onClick={handleTinyTransfersHiddenToggle}>
             <div>
               <span className={styles.itemTitle}>{lang('Hide Tiny Transfers')}</span>
@@ -271,7 +248,6 @@ function SettingsAssets({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const {
-    isInvestorViewEnabled,
     areTinyTransfersHidden,
     areTokensWithNoCostHidden,
     baseCurrency,
@@ -290,7 +266,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
   } = selectCurrentAccountState(global) || {};
 
   return {
-    isInvestorViewEnabled,
     areTinyTransfersHidden,
     areTokensWithNoCostHidden,
     baseCurrency,

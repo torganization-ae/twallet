@@ -22,14 +22,13 @@ import {
   selectIsMultisigWallet,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { getChainConfig } from '../../util/chain';
+import { getChainConfig, getChainTitle } from '../../util/chain';
 import { SECOND } from '../../util/dateFormat';
 import { stopEvent } from '../../util/domEvents';
 import { getMaxTransferAmount, isBalanceSufficientForTransfer } from '../../util/fee/transferFee';
 import { vibrate } from '../../util/haptics';
 import { getAmbiguousChainsForAddress, isValidAddressOrDomain } from '../../util/isValidAddress';
 import { debounce } from '../../util/schedulers';
-import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
 import { trimStringByMaxBytes } from '../../util/text';
 import { getChainBySlug, getIsNativeToken, getIsServiceToken, getNativeToken } from '../../util/tokens';
 
@@ -160,7 +159,6 @@ function TransferInitial({
     if (!chain || !toAddress || !isAddressValid || !accountChains?.length) return [];
     return getAmbiguousChainsForAddress(toAddress, chain, accountChains);
   }, [accountChains, chain, isAddressValid, toAddress]);
-  const nativeFeeToken = chain ? getChainConfig(chain).nativeToken : undefined;
   const doesSupportComment = chain && getChainConfig(chain).isTransferPayloadSupported;
   const doesSupportCommentEncryption = !!chain
     && getChainConfig(chain).isEncryptedCommentSupported
@@ -490,7 +488,12 @@ function TransferInitial({
           </Button>
 
           <div className={styles.transferTitle}>
-            {lang(isNftTransfer ? (nfts.length > 1 ? 'Send Collectibles' : 'Send Collectible') : 'Send')}
+            <div className={styles.transferTitleText}>
+              {lang(isNftTransfer ? (nfts.length > 1 ? 'Send Collectibles' : 'Send Collectible') : 'Send')}
+            </div>
+            {chain && (
+              <div className={styles.transferNetwork}>{getChainTitle(chain)}</div>
+            )}
           </div>
 
           {nfts?.length === 1 && <NftInfo nft={nfts[0]} withMediaViewer />}
@@ -545,26 +548,6 @@ function TransferInitial({
           )}
 
           <div className={styles.footer}>
-            {chain && nativeFeeToken && (
-              <div className={styles.networkSafetyBanner}>
-                <img
-                  src={getChainNetworkIcon(chain)}
-                  alt=""
-                  className={styles.networkSafetyIcon}
-                  draggable={false}
-                />
-                <div>
-                  <div className={styles.networkSafetyTitle}>
-                    {lang('Attention! Transaction will run on %chain%.', {
-                      chain: getChainConfig(chain).title,
-                    })}
-                  </div>
-                  <div className={styles.networkSafetySubtitle}>
-                    {lang('Fee will be charged in %symbol%.', { symbol: nativeFeeToken.symbol })}
-                  </div>
-                </div>
-              </div>
-            )}
             {ambiguousChains.length > 0 && (
               <div className={styles.networkAmbiguityWarning}>
                 {lang(

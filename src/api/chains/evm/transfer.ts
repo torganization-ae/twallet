@@ -1,6 +1,7 @@
 import type { TransactionRequest } from 'ethers';
 import { Interface } from 'ethers';
 
+import type { PaymasterStatus } from '../../../global/types';
 import type {
   ApiCheckTransactionDraftOptions,
   ApiCheckTransactionDraftResult,
@@ -11,7 +12,6 @@ import type {
   ApiTransferPayload,
   EVMChain,
 } from '../../types';
-import type { PaymasterStatus } from '../../../global/types';
 import { ApiCommonError, ApiTransactionDraftError, ApiTransactionError } from '../../types';
 
 import { parseAccountId } from '../../../util/account';

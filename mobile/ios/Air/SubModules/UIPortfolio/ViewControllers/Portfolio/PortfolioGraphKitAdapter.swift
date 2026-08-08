@@ -413,13 +413,18 @@ enum PortfolioGraphKitAdapter {
     }
 
     private static func displayName(for dataset: ApiPortfolioHistoryDataset) -> String {
-        if !dataset.symbol.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return dataset.symbol
+        let slug = dataset.contractAddress.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !slug.isEmpty, let token = TokenStore.getToken(slug: slug), !token.symbol.isEmpty {
+            return token.symbol
         }
 
-        let contractAddress = dataset.contractAddress.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !contractAddress.isEmpty {
-            return contractAddress
+        let symbol = dataset.symbol.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !symbol.isEmpty, !symbol.contains("-") {
+            return symbol
+        }
+
+        if !slug.isEmpty {
+            return slug
         }
 
         return lang("Asset %1$@", arg1: "\(dataset.assetId)")

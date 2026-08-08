@@ -108,7 +108,6 @@ object WGlobalStorage {
     private const val PUSH_NOTIFICATIONS_TOKEN = "pushNotifications.userToken"
     private const val PUSH_NOTIFICATIONS_ENABLED_ACCOUNTS = "pushNotifications.enabledAccounts"
     private const val ORDERED_ACCOUNT_IDS = "settings.orderedAccountIds"
-    private const val IS_SEASONAL_THEMING_DISABLED = "settings.isSeasonalThemingDisabled"
     private const val EXPLORER = "settings.selectedExplorerIds"
     private const val IS_SCREEN_RECORD_WARNING_DISABLED = "settings.isScreenRecordWarningDisabled"
     private const val IS_SHAKE_TO_DEBUG_ENABLED = "settings.isShakeToDebugEnabled"
@@ -1027,18 +1026,6 @@ object WGlobalStorage {
             "$EXPLORER.$chain",
             explorerIdentifier,
             IGlobalStorageProvider.PERSIST_NORMAL
-        )
-    }
-
-    fun getIsSeasonalThemingDisabled(): Boolean {
-        return globalStorageProvider.getBool(IS_SEASONAL_THEMING_DISABLED) == true
-    }
-
-    fun setIsSeasonalThemingDisabled(disabled: Boolean) {
-        globalStorageProvider.set(
-            IS_SEASONAL_THEMING_DISABLED,
-            disabled,
-            IGlobalStorageProvider.PERSIST_INSTANT
         )
     }
 

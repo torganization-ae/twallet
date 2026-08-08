@@ -210,8 +210,6 @@ export const MY_WALLET_BLOG: Partial<Record<LangCode, string>> = {
 };
 
 export const MULTISEND_DAPP_URL = process.env.MULTISEND_DAPP_URL || 'https://multisend.mywallet.io/';
-export const PORTFOLIO_DAPP_URL = process.env.PORTFOLIO_DAPP_URL || 'https://portfolio.mywallet.io/';
-export const PORTFOLIO_API_URL = process.env.PORTFOLIO_API_URL || 'https://api-portfolio.mywallet.io/api';
 
 export const NFT_MARKETPLACE_URL = 'https://opensea.io/';
 export const NFT_MARKETPLACE_TITLE = NFT_MARKETPLACE_TITLES.opensea;
@@ -743,7 +741,6 @@ export const WINDOW_PROVIDER_CHANNEL = 'windowProvider';
 export const WINDOW_PROVIDER_PORT = `${IS_CORE_WALLET ? 'TonWallet' : 'Twallet'}_popup_reversed`;
 
 export const SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY = IS_FEATURE_LIMITED;
-export const PORTRAIT_MIN_ASSETS_TAB_VIEW = 6;
 
 export const DEFAULT_PRICE_CURRENCY = 'USD';
 export const CURRENCIES: Record<

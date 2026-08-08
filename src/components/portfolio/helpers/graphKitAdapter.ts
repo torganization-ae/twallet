@@ -5,6 +5,8 @@ import type {
 } from '../../../api/types';
 import type { LangFn } from '../../../hooks/useLang';
 
+import { getTokenBySlug } from '../../../api/common/tokens';
+
 // Dust threshold for stacked area; matches iOS `normalizedForPortfolioDisplay`
 const MIN_VISIBLE_VALUE = 0.01;
 
@@ -121,9 +123,8 @@ function buildSeriesChartParams(
     valuePrefix: baseCurrencySymbol,
     isCurrencyPrefix: true,
     isStacked: type !== 'line' && datasets.length > 1,
-    // Show the minimap opened on the full range (the library default would be the last 20%)
-    withMinimap: true,
-    minimapRange: 'full',
+    // Global period control replaces the per-chart date minimap
+    withMinimap: false,
     limitDate,
     onLimitedRangeClick: limitDate !== undefined ? onLimitedRangeClick : undefined,
   };
@@ -178,10 +179,16 @@ function dropEmptyColumns(datasets: LovelyChartDatasetParams[], labels: LovelyCh
 }
 
 function getDisplayName(lang: LangFn, dataset: ApiPortfolioHistoryDataset) {
+  const contract = dataset.contractAddress.trim();
+  if (contract) {
+    const token = getTokenBySlug(contract);
+    if (token?.symbol) return token.symbol;
+  }
+
   const symbol = dataset.symbol.trim();
+  if (symbol && !symbol.includes('-')) return symbol;
   if (symbol) return symbol;
 
-  const contract = dataset.contractAddress.trim();
   if (contract) return contract;
 
   return lang('Asset %1$@').replace('%1$@', String(dataset.assetId));

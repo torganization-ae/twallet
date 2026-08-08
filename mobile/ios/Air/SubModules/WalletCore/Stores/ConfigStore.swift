@@ -23,15 +23,11 @@ public class ConfigStore: @unchecked Sendable { // todo: use UnfairLock intead o
     
     private var _config: ApiUpdate.UpdateConfig? = nil
     private var _isLimitedOverride: Bool?
-    private var _seasonalThemeOverride: ApiUpdate.UpdateConfig.SeasonalTheme?
 
     private func applyOverrides(on config: ApiUpdate.UpdateConfig?) -> ApiUpdate.UpdateConfig? {
         guard var config else { return nil }
         if let isLimitedOverride = _isLimitedOverride {
             config.isLimited = isLimitedOverride
-        }
-        if let seasonalThemeOverride = _seasonalThemeOverride {
-            config.seasonalTheme = seasonalThemeOverride
         }
         return config
     }
@@ -50,18 +46,6 @@ public class ConfigStore: @unchecked Sendable { // todo: use UnfairLock intead o
                     Self.removeCachedConfig()
                     WalletCoreData.notify(event: .configChanged)
                 }
-            }
-        }
-    }
-
-    public var seasonalThemeOverride: ApiUpdate.UpdateConfig.SeasonalTheme? {
-        get {
-            queue.sync { _seasonalThemeOverride }
-        }
-        set {
-            queue.async(flags: .barrier) {
-                self._seasonalThemeOverride = newValue
-                WalletCoreData.notify(event: .configChanged)
             }
         }
     }
@@ -91,7 +75,6 @@ public class ConfigStore: @unchecked Sendable { // todo: use UnfairLock intead o
         queue.async(flags: .barrier) {
             self._config = nil
             self._isLimitedOverride = nil
-            self._seasonalThemeOverride = nil
             Self.removeCachedConfig()
         }
     }

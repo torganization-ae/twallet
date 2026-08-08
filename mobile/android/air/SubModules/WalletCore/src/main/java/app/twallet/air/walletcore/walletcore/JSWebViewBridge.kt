@@ -356,6 +356,7 @@ class JSWebViewBridge(context: Context) : WebView(context) {
             when (updateType) {
                 "updateBalances" -> {
                     val accountId = objectJSONObject.optString("accountId")
+                    val chain = objectJSONObject.optString("chain").ifEmpty { null }
                     Handler(Looper.getMainLooper()).post {
                         val balances = HashMap<String, BigInteger>()
                         scope.launch {
@@ -372,7 +373,12 @@ class JSWebViewBridge(context: Context) : WebView(context) {
                                 balances[token] = value
                             }
                             withContext(Dispatchers.Main) {
-                                BalanceStore.setBalances(accountId, balances, false) {
+                                BalanceStore.setBalances(
+                                    accountId,
+                                    balances,
+                                    removeOtherTokens = false,
+                                    chain = chain,
+                                ) {
                                     if (AccountStore.activeAccount?.accountId != accountId) {
                                         WalletCore.notifyEvent(WalletEvent.NotActiveAccountBalanceChanged)
                                     } else {

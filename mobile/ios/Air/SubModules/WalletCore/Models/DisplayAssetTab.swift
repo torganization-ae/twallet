@@ -2,6 +2,7 @@ import Foundation
 
 public enum DisplayAssetTab: Hashable, Sendable {
     case tokens
+    case activity
     case nfts
     case nftCollectionFilter(NftCollectionFilter)
 
@@ -9,6 +10,8 @@ public enum DisplayAssetTab: Hashable, Sendable {
         switch self {
         case .tokens:
             "tokens"
+        case .activity:
+            "activity"
         case .nfts:
             "nfts"
         case .nftCollectionFilter(let filter):

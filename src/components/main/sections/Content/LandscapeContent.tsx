@@ -20,23 +20,19 @@ import { calcVestingAmountByStatus } from '../../helpers/calcVestingAmountByStat
 import { getScrollableContainer } from '../../helpers/scrollableContainer';
 
 import useHistoryBack from '../../../../hooks/useHistoryBack';
-import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import useScrolledState from '../../../../hooks/useScrolledState';
 import useContentSwipe from './hooks/useContentSwipe';
 import useContentTabs from './hooks/useContentTabs';
 
-import BackHeader from '../../../common/BackHeader';
+import TabList from '../../../ui/TabList';
 import Transition from '../../../ui/Transition';
 import HideNftModal from '../../modals/HideNftModal';
 import ContentSlide from './ContentSlide';
-import LandscapeWalletOverview from './LandscapeWalletOverview';
 import NftCollectionHeader from './NftCollectionHeader';
 import NftSelectionHeader from './NftSelectionHeader';
 
 import styles from './Content.module.scss';
-
-const LANDSCAPE_OVERVIEW_KEY = 0;
 
 interface OwnProps {
   onStakedTokenClick: NoneToVoidFunction;
@@ -83,8 +79,8 @@ function LandscapeContent({
   currentTokenSlug,
   onStakedTokenClick,
 }: OwnProps & StateProps) {
-  const lang = useLang();
   const transitionRef = useRef<HTMLDivElement>();
+  const tabsRef = useRef<HTMLDivElement>();
 
   const hasNftSelection = Boolean(selectedNfts?.length);
 
@@ -97,7 +93,6 @@ function LandscapeContent({
     totalTokensAmount,
     activeNftKey,
     handleSwitchTab,
-    handleHeaderBackClick,
     handleClickAsset,
   } = useContentTabs({
     byChain,
@@ -113,11 +108,9 @@ function LandscapeContent({
     hasVesting,
     alwaysHiddenSlugs,
     tokensCount,
-    isPortrait: false,
-    isLandscape: true,
   });
 
-  const { handleScroll: handleContentScroll, update: updateScrolledState } = useScrolledState();
+  const { isScrolled, handleScroll: handleContentScroll, update: updateScrolledState } = useScrolledState();
 
   useContentSwipe({
     transitionRef,
@@ -129,40 +122,29 @@ function LandscapeContent({
   });
 
   useHistoryBack({
-    isActive: activeContentTab !== undefined && activeContentTab !== ContentTab.Overview,
+    isActive: activeTabIndex !== 0,
     onBack: () => {
       const returnTab = activeContentTab === ContentTab.Activity && activityReturnContentTab !== undefined
         ? activityReturnContentTab
-        : ContentTab.Overview;
+        : ContentTab.Assets;
       handleSwitchTab(returnTab);
     },
   });
 
-  // Settings/Explore render on top of the landscape main area as full-screen overlay slides
+  // Settings/Explore/Portfolio render on top of the landscape main area as full-screen overlay slides
   // in `LandscapeLayout`'s outer `Transition`. While such an overlay is active we keep the inner
-  // `Transition`'s key frozen (see `landscapeActiveKey` below) so the slide underneath does not
-  // change during the open/close animation; once the overlay is gone the inner key updates normally.
+  // `Transition`'s key frozen so the slide underneath does not change during the open/close animation.
   const isCoveredByLandscapeOverlay = activeContentTab === ContentTab.Settings
     || activeContentTab === ContentTab.Explore
     || activeContentTab === ContentTab.Portfolio;
 
-  const shouldShowLandscapeOverview = !currentCollection
-    && !hasNftSelection
-    && (
-      activeContentTab === ContentTab.Overview
-      || activeContentTab === undefined // newly created wallets
-    );
-
-  const naturalLandscapeKey = shouldShowLandscapeOverview ? LANDSCAPE_OVERVIEW_KEY : contentTransitionKey + 1;
-  const frozenLandscapeKeyRef = useRef(LANDSCAPE_OVERVIEW_KEY);
+  const frozenLandscapeKeyRef = useRef(contentTransitionKey);
   if (!isCoveredByLandscapeOverlay) {
-    frozenLandscapeKeyRef.current = naturalLandscapeKey;
+    frozenLandscapeKeyRef.current = contentTransitionKey;
   }
   const landscapeActiveKey = isCoveredByLandscapeOverlay
     ? frozenLandscapeKeyRef.current
-    : naturalLandscapeKey;
-
-  const landscapeRenderCount = mainContentTabsCount + visibleCollectionTabs.length + 1;
+    : contentTransitionKey;
 
   const handleContentTransitionStop = useLastCallback(() => {
     requestMeasure(() => {
@@ -171,6 +153,11 @@ function LandscapeContent({
         updateScrolledState(scrollContainer as HTMLElement);
       }
     });
+  });
+
+  const handleScrollToTop = useLastCallback(() => {
+    const scrollContainer = getScrollableContainer(transitionRef.current, false);
+    scrollContainer?.scrollTo(0, 0);
   });
 
   const containerClassName = buildClassName(
@@ -184,49 +171,65 @@ function LandscapeContent({
   function renderHeader() {
     const isNftSelectionVisible = hasNftSelection
       && (activeContentTab === ContentTab.Nft || Boolean(currentCollection));
-    if (isNftSelectionVisible) return <NftSelectionHeader />;
-    if (currentCollection) {
-      return <NftCollectionHeader collection={currentCollection} key={currentCollection.address} />;
-    }
+    const headerTransitionKey = isNftSelectionVisible ? 2 : (currentCollection ? 1 : 0);
 
-    return (
-      <BackHeader
-        title={lang(getOverviewBackHeaderTitle(activeContentTab))}
-        onBackClick={handleHeaderBackClick}
-      />
-    );
-  }
-
-  function renderSlide(isSlideActive: boolean, _isFrom: boolean, currentKey: number) {
-    if (currentKey === LANDSCAPE_OVERVIEW_KEY) {
-      return (
-        <LandscapeWalletOverview
-          totalTokensAmount={totalTokensAmount}
-          onStakedTokenClick={onStakedTokenClick}
+    let header;
+    if (isNftSelectionVisible) {
+      header = <NftSelectionHeader />;
+    } else if (currentCollection) {
+      header = <NftCollectionHeader collection={currentCollection} key={currentCollection.address} />;
+    } else {
+      header = (
+        <TabList
+          isActive
+          tabs={tabs}
+          activeTab={activeTabIndex}
+          onSwitchTab={handleSwitchTab}
+          onActiveTabClick={handleScrollToTop}
+          className={buildClassName(styles.tabs, 'content-tabslist')}
+          overlayClassName={styles.tabsOverlay}
         />
       );
     }
 
     return (
-      <div className={styles.landscapeContentPanel}>
-        {renderHeader()}
-        <div className={styles.slides}>
-          <div className={buildClassName(styles.landscapeSlide, 'custom-scroll', 'landscape-content-scroll')}>
-            <ContentSlide
-              isActive={isSlideActive}
-              isPortrait={false}
-              activeTabIndex={activeTabIndex}
-              activeTabId={activeTabId}
-              currentCollection={currentCollection}
-              shouldShowSeparateAssetsPanel={false}
-              totalTokensAmount={totalTokensAmount}
-              activeNftKey={activeNftKey}
-              onClickAsset={handleClickAsset}
-              onStakedTokenClick={onStakedTokenClick}
-              onScroll={handleContentScroll}
-            />
-          </div>
-        </div>
+      <div
+        ref={tabsRef}
+        className={buildClassName(
+          styles.tabsContainer,
+          currentCollection && styles.tabsContainerForNftCollection,
+          'with-notch-on-scroll',
+          isScrolled && 'is-scrolled',
+        )}
+      >
+        <Transition
+          name="slideFade"
+          className={styles.tabsContent}
+          activeKey={headerTransitionKey}
+          slideClassName={styles.tabsSlide}
+          shouldCleanup
+          cleanupExceptionKey={0}
+        >
+          {header}
+        </Transition>
+      </div>
+    );
+  }
+
+  function renderSlide(isSlideActive: boolean) {
+    return (
+      <div className={buildClassName(styles.landscapeSlide, 'custom-scroll', 'landscape-content-scroll')}>
+        <ContentSlide
+          isActive={isSlideActive}
+          isPortrait={false}
+          activeTabId={activeTabId}
+          currentCollection={currentCollection}
+          totalTokensAmount={totalTokensAmount}
+          activeNftKey={activeNftKey}
+          onClickAsset={handleClickAsset}
+          onStakedTokenClick={onStakedTokenClick}
+          onScroll={handleContentScroll}
+        />
       </div>
     );
   }
@@ -234,17 +237,20 @@ function LandscapeContent({
   return (
     <>
       <div className={containerClassName}>
-        <Transition
-          ref={transitionRef}
-          name="slideFade"
-          activeKey={landscapeActiveKey}
-          renderCount={landscapeRenderCount}
-          className={styles.landscapeRoot}
-          onStop={handleContentTransitionStop}
-          onScroll={handleContentScroll}
-        >
-          {renderSlide}
-        </Transition>
+        <div className={styles.landscapeContentPanel}>
+          {renderHeader()}
+          <Transition
+            ref={transitionRef}
+            name="slide"
+            activeKey={landscapeActiveKey}
+            renderCount={mainContentTabsCount + visibleCollectionTabs.length}
+            className={buildClassName(styles.slides, 'content-transition')}
+            slideClassName={styles.slide}
+            onStop={handleContentTransitionStop}
+          >
+            {renderSlide}
+          </Transition>
+        </div>
       </div>
       <HideNftModal
         isOpen={Boolean(selectedNftsToHide?.addresses.length)}
@@ -252,17 +258,6 @@ function LandscapeContent({
       />
     </>
   );
-}
-
-function getOverviewBackHeaderTitle(tab?: ContentTab) {
-  switch (tab) {
-    case ContentTab.Activity:
-      return 'Activity';
-    case ContentTab.Nft:
-      return 'Collectibles';
-    default:
-      return 'Assets';
-  }
 }
 
 export default memo(

@@ -13,6 +13,8 @@ extension DisplayAssetTab {
         switch self {
         case .tokens:
             "tokens"
+        case .activity:
+            "activity"
         case .nfts:
             "nfts"
         case .nftCollectionFilter(let filter):
@@ -23,7 +25,9 @@ extension DisplayAssetTab {
     var segmentedControlTitle: String {
         switch self {
         case .tokens:
-            lang("Assets")
+            lang("Tokens")
+        case .activity:
+            lang("Activity")
         case .nfts:
             lang("Collectibles")
         case .nftCollectionFilter(let filter):
@@ -33,7 +37,7 @@ extension DisplayAssetTab {
 
     var isDeletableSegment: Bool {
         switch self {
-        case .tokens:
+        case .tokens, .activity:
             false
         case .nftCollectionFilter, .nfts:
             true
@@ -44,6 +48,8 @@ extension DisplayAssetTab {
         switch itemId {
         case DisplayAssetTab.tokens.segmentedControlItemId:
             return .tokens
+        case DisplayAssetTab.activity.segmentedControlItemId:
+            return .activity
         case DisplayAssetTab.nfts.segmentedControlItemId:
             return .nfts
         default:
@@ -102,6 +108,20 @@ public final class WalletAssetsTabContextMenuProviders {
                 onReorder: onReorder,
                 onSelectTab: onSelectTab,
                 includesTokenLimitActions: includesTokenLimitActions
+            )
+        case .activity:
+            return SegmentedControlContextMenuProvider(
+                sourcePortal: ContextMenuSourcePortal(
+                    sourceViewProvider: sourceViewProvider,
+                    mask: .roundedAttachmentRect(cornerRadius: 12.0, cornerCurve: .circular),
+                    showsBackdropCutout: true
+                ),
+                configuration: {
+                    ContextMenuConfiguration(
+                        rootPage: ContextMenuPage(items: []),
+                        style: walletAssetsMenuStyle
+                    )
+                }
             )
         case .nfts:
             configuration = makeCollectiblesMenuConfig(

@@ -19,6 +19,7 @@ import app.twallet.air.uicomponents.base.WViewController
 import app.twallet.air.uicomponents.base.WWindow
 import app.twallet.air.uicomponents.base.showAlert
 import app.twallet.air.uicomponents.extensions.dp
+import app.twallet.air.uicomponents.commonViews.toast.ToastManager
 import app.twallet.air.uicomponents.extensions.getTextFromClipboard
 import app.twallet.air.uicomponents.extensions.setPaddingDp
 import app.twallet.air.uicomponents.helpers.ToastHelper
@@ -542,6 +543,9 @@ class ImportWalletVC(
     private fun pasteFromClipboard() {
         val clipText = context.getTextFromClipboard()
         if (clipText.isNullOrEmpty()) {
+            ToastManager.show(
+                ToastManager.Toast(text = LocaleController.getString("Clipboard empty"))
+            )
             return
         }
 

@@ -5,9 +5,9 @@ $landscapeAuthContentMaxWidth: 31.4375rem;
 $landscapeMainContentMaxWidth: 53.5rem;
 $portraitContentMaxWidth: 27rem;
 $portraitHeaderHeight: 3rem;
-// Card (portrait: 378×220, landscape: 328×200)
-$cardAspectRatioPortrait: 58.201%;
-$cardAspectRatioLandscape: 60.976%;
+// Card — compact height + ~5% inset; 176/358 keeps native CARD_RATIO in sync
+$cardAspectRatioPortrait: 49.162%; // 176/358
+$cardAspectRatioLandscape: 50.838%; // 182/358
 $cardPortraitBaseBalanceSize: 3.25rem;
 $cardLandscapeBaseBalanceSize: 3rem;
 

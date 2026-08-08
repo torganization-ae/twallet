@@ -1,7 +1,7 @@
 import type { ApiChain, ApiNetwork } from '../types';
 
-import { getSharedBuiltinChains, isSharedChainDefaultEnabled } from './networksConfig';
 import { storage } from '../storages';
+import { getSharedBuiltinChains, isSharedChainDefaultEnabled } from './networksConfig';
 
 type HiddenChainsByNetwork = Partial<Record<ApiNetwork, ApiChain[]>>;
 type AccountHiddenChains = Partial<Record<string, HiddenChainsByNetwork>>;
@@ -221,7 +221,7 @@ export async function isVaultAccount(accountId: string): Promise<boolean> {
  * Mark/unmark an account as Vault. Vault accounts auto-hide every non-TON chain
  * and get a seeded per-account hidden map so global unhides do not re-enable them.
  */
-async function seedVaultAccountHidden(accountId: string) {
+function seedVaultAccountHidden(accountId: string) {
   const byNetwork: HiddenChainsByNetwork = { ...(accountHiddenChainsCache[accountId] ?? {}) };
   const nonTon = allNonTonChains();
   for (const network of ['mainnet', 'testnet'] as ApiNetwork[]) {
@@ -239,7 +239,7 @@ export async function setVaultAccount(accountId: string, isVault: boolean): Prom
 
   if (isVault) {
     vaultAccountIds.add(accountId);
-    await seedVaultAccountHidden(accountId);
+    seedVaultAccountHidden(accountId);
     await persistAccountHidden();
   } else {
     vaultAccountIds.delete(accountId);
@@ -256,7 +256,7 @@ export async function syncVaultAccounts(accountIds: string[]): Promise<void> {
   vaultAccountIds = new Set(accountIds);
 
   for (const accountId of accountIds) {
-    await seedVaultAccountHidden(accountId);
+    seedVaultAccountHidden(accountId);
   }
 
   await persistAccountHidden();

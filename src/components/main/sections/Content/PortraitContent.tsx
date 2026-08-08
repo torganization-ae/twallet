@@ -31,7 +31,6 @@ import useContentTabs from './hooks/useContentTabs';
 import TabList from '../../../ui/TabList';
 import Transition from '../../../ui/Transition';
 import HideNftModal from '../../modals/HideNftModal';
-import Assets from './Assets';
 import ContentSlide from './ContentSlide';
 import NftCollectionHeader from './NftCollectionHeader';
 import NftSelectionHeader from './NftSelectionHeader';
@@ -102,7 +101,6 @@ function PortraitContent({
     contentTransitionKey,
     visibleCollectionTabs,
     totalTokensAmount,
-    shouldShowSeparateAssetsPanel,
     activeNftKey,
     handleSwitchTab,
     handleClickAsset,
@@ -120,8 +118,6 @@ function PortraitContent({
     hasVesting,
     alwaysHiddenSlugs,
     tokensCount,
-    isPortrait: true,
-    isLandscape: false,
   });
 
   const { isScrolled } = useScrolledState();
@@ -236,10 +232,8 @@ function PortraitContent({
       <ContentSlide
         isActive={isSlideActive}
         isPortrait
-        activeTabIndex={activeTabIndex}
         activeTabId={activeTabId}
         currentCollection={currentCollection}
-        shouldShowSeparateAssetsPanel={shouldShowSeparateAssetsPanel}
         totalTokensAmount={totalTokensAmount}
         activeNftKey={activeNftKey}
         onClickAsset={handleClickAsset}
@@ -251,16 +245,6 @@ function PortraitContent({
   return (
     <>
       <div ref={containerRef} className={containerClassName}>
-        {shouldShowSeparateAssetsPanel && (
-          <div className={styles.assetsPanel}>
-            <Assets
-              isActive
-              isSeparatePanel
-              onStakedTokenClick={onStakedTokenClick}
-              onTokenClick={handleClickAsset}
-            />
-          </div>
-        )}
         <div className={styles.contentPanel}>
           {renderHeader()}
           <Transition

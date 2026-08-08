@@ -1,17 +1,67 @@
 @use "../../../styles/mixins";
 
+.row {
+  // bottomBarFade disables pointer events on the bar (scroll-under gradient);
+  // re-enable for the interactive row (capsule already does this via glass-capsule).
+  pointer-events: auto;
+
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: max(0.75rem, var(--safe-area-bottom));
+
+  @include mixins.respond-above(xs) {
+    justify-content: center;
+    margin-bottom: 0;
+  }
+}
+
+.calendarButton {
+  cursor: var(--custom-cursor, pointer);
+
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+
+  width: 2.75rem;
+  height: 2.75rem;
+  border: none;
+  border-radius: 50%;
+
+  color: var(--color-black);
+
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(1rem);
+  box-shadow: 0 0.125rem 0.75rem rgba(0, 0, 0, 0.08);
+
+  :global(html.theme-dark) & {
+    background: rgba(40, 40, 40, 0.72);
+  }
+}
+
+.calendarIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 .root {
   --drag-offset-px: 0px;
 
-  margin-bottom: max(0.75rem, var(--safe-area-bottom));
+  flex: 1;
+  min-width: 0;
 
   @include mixins.glass-capsule();
 
   @include mixins.respond-above(xs) {
     grid-auto-columns: minmax(4rem, max-content);
+    flex: 0 1 auto;
     width: fit-content;
-    margin-bottom: 0;
   }
+}
+
+.customActive {
+  opacity: 0.85;
 }
 
 .option {
@@ -39,6 +89,7 @@
   @include mixins.active-transition-optimization();
 }
 
+.calendarButtonActive,
 .optionActive {
   color: var(--color-accent);
 }

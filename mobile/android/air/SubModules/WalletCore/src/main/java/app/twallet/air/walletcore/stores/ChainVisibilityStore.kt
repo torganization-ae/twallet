@@ -63,4 +63,12 @@ object ChainVisibilityStore : IStore {
         }
         return MBlockchain.entries.firstOrNull { it.nativeSlug == slug }?.name
     }
+
+    override fun wipeData() {
+        hiddenByNetwork = emptyMap()
+    }
+
+    override fun clearCache() {
+        // Visibility is persisted settings, not ephemeral cache
+    }
 }

@@ -39,16 +39,6 @@ public enum AppStorageHelper {
         }
     }
 
-    public static var isSeasonalThemingDisabled: Bool {
-        get {
-            settingsStore.isSeasonalThemingDisabled
-        }
-        set {
-            settingsStore.setIsSeasonalThemingDisabled(newValue)
-            WalletCoreData.notify(event: .configChanged)
-        }
-    }
-
     // Sounds activated or not
     public static var sounds: Bool {
         get {

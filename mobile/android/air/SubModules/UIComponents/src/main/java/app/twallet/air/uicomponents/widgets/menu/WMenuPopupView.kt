@@ -88,7 +88,7 @@ class WMenuPopupView(
                     alpha = 0f
                     visibility = INVISIBLE
                 }
-                itemHeight = (56 + if (item.hasSeparator) 7 else 0).dp
+                itemHeight = (56 + if (item.hasSeparator) 8 else 0).dp
             } else {
                 val itemContentHeight =
                     if (item.config == Config.Back)
@@ -98,7 +98,8 @@ class WMenuPopupView(
                             48.dp
                         else
                             56.dp
-                itemHeight = itemContentHeight + if (item.hasSeparator) 7.dp else 0
+                // Reserve a slim band for the 1dp hairline + padding (was a solid 7dp bar).
+                itemHeight = itemContentHeight + if (item.hasSeparator) 8.dp else 0
 
                 itemView = WMenuPopupViewItem(context, item).apply {
                     alpha = 0f

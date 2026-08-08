@@ -5,6 +5,7 @@
 //  Created by Sina on 4/22/23.
 //
 
+import ContextMenuKit
 import SwiftUI
 import UIKit
 import UIComponents
@@ -16,17 +17,18 @@ let headerHeight: CGFloat = 360
 
 public class ReceiveVC: WViewController {
     
-    private let selectedChain: ApiChain?
+    private let preferredChain: ApiChain?
     
     private var segmentedController: WSegmentedController!
     private var hostingController: UIHostingController<ReceiveHeaderView>!
+    private var chainSelectorModel: ReceiveChainSelectorModel!
     private var previousNavigationBarStyle: UIUserInterfaceStyle = .unspecified
     
     @AccountContext private var account: MAccount
 
     public init(accountContext: AccountContext, chain: ApiChain? = nil) {
         self._account = accountContext
-        self.selectedChain = chain
+        self.preferredChain = chain
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -39,12 +41,17 @@ public class ReceiveVC: WViewController {
         setupViews()
     }
     
+    private var visibleChains: [ApiChain] {
+        _account.orderedChains.map(\.0)
+    }
+    
     private func setupViews() {
-        let isMultichain = account.isMultichain
+        let defaultChain = resolveReceiveChain(visibleChains: visibleChains, preferred: preferredChain)
+        let defaultItemId = defaultChain?.rawValue
         
         segmentedController = WSegmentedController(
             items: makeChainItems(),
-            defaultItemId: selectedChain?.rawValue,
+            defaultItemId: defaultItemId,
             barHeight: 0,
             goUnderNavBar: true,
             animationSpeed: .slow,
@@ -65,8 +72,9 @@ public class ReceiveVC: WViewController {
         segmentedController.backgroundColor = .clear
         segmentedController.blurView.isHidden = true
         segmentedController.separator.isHidden = true
-        segmentedController.segmentedControl.isHidden = !isMultichain
-        segmentedController.scrollView.isScrollEnabled = isMultichain
+        segmentedController.segmentedControl.isHidden = true
+        segmentedController.segmentedControl.removeFromSuperview()
+        segmentedController.scrollView.isScrollEnabled = false
 
         self.hostingController = addHostingController(makeHeader()) { hv in
             NSLayoutConstraint.activate([
@@ -94,19 +102,59 @@ public class ReceiveVC: WViewController {
             item.tintColor = .white.withAlphaComponent(0.75)
             navigationItem.rightBarButtonItem = item
         }
-        if isMultichain {
-            segmentedController.segmentedControl?.embed(in: navigationItem)
-        } else {
-            segmentedController.segmentedControl.removeFromSuperview()
-            navigationItem.titleView = HostingView {
-                NavigationHeader {
-                    Text(lang("Add Crypto"))
-                        .foregroundStyle(.white)
-                }
-            }
-        }
+
+        let initialChain = defaultChain
+            ?? ApiChain(rawValue: segmentedController.model.selectedItem?.id ?? "")
+            ?? .ton
+        chainSelectorModel = ReceiveChainSelectorModel(chain: initialChain)
+        configureNavigationChrome()
 
         updateTheme()
+    }
+
+    private func configureNavigationChrome() {
+        let selectorView = HostingView {
+            ReceiveChainSelectorTrigger(model: self.chainSelectorModel)
+                .contextMenuSource(
+                    triggers: [.tap],
+                    configuration: makeReceiveChainMenuConfig(
+                        accountContext: self._account,
+                        selectedChain: { [weak self] in
+                            self?.chainSelectorModel.chain ?? .ton
+                        },
+                        onSelect: { [weak self] chain in
+                            self?.selectChain(chain)
+                        }
+                    )
+                )
+        }
+        selectorView.backgroundColor = .clear
+        selectorView.setContentHuggingPriority(.required, for: .horizontal)
+        selectorView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        let size = selectorView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+        selectorView.frame = CGRect(origin: .zero, size: size)
+        let leftItem = UIBarButtonItem(customView: selectorView)
+        leftItem.tintColor = .white
+        navigationItem.leftBarButtonItem = leftItem
+        // Keep room for logo + chain title; default nav items can compress the leading view.
+        navigationItem.leftBarButtonItem?.width = max(size.width, 1)
+        navigationItem.titleView = nil
+        navigationItem.title = nil
+    }
+
+    private func selectChain(_ chain: ApiChain) {
+        guard let index = segmentedController.model.getItemIndexById(itemId: chain.rawValue) else { return }
+        chainSelectorModel.chain = chain
+        segmentedController.model.selection = .init(item1: chain.rawValue)
+        segmentedController.handleSegmentChange(to: index, animated: true)
+        // Resize leading custom view after title text changes (TON ↔ Hyperliquid, etc.).
+        if let selectorView = navigationItem.leftBarButtonItem?.customView {
+            selectorView.invalidateIntrinsicContentSize()
+            let size = selectorView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+            selectorView.frame.size = size
+            navigationItem.leftBarButtonItem?.width = max(size.width, 1)
+            navigationItem.leftBarButtonItem = navigationItem.leftBarButtonItem
+        }
     }
     
     public override func viewWillAppear(_ animated: Bool) {
@@ -126,7 +174,7 @@ public class ReceiveVC: WViewController {
         keepUserInterfaceStyleForChildPages()
     }
     
-    /// Overrides user interface style to dark to turn off whitish tint for navigation controls (segmented tabs + close button)
+    /// Overrides user interface style to dark to turn off whitish tint for navigation controls
     private func setNavigationControlsAppearance() {
         segmentedController.overrideUserInterfaceStyle = .dark
         keepUserInterfaceStyleForChildPages()

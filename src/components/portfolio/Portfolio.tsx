@@ -1,8 +1,13 @@
-import React, { memo, useEffect, useMemo, useRef } from '../../lib/teact/teact';
+import React, { memo, useEffect, useMemo, useRef, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiBaseCurrency, ApiPriceHistoryPeriod, ApiStakingState } from '../../api/types';
-import type { PortfolioHistoryBundle, PortfolioPnlChange, UserToken } from '../../global/types';
+import type {
+  PortfolioCustomDateRange,
+  PortfolioHistoryBundle,
+  PortfolioPnlChange,
+  UserToken,
+} from '../../global/types';
 
 import { ANIMATION_LEVEL_MIN } from '../../config';
 import {
@@ -34,6 +39,7 @@ import BackHeader from '../common/BackHeader';
 import EdgeScrollButton from '../common/EdgeScrollButton';
 import Balance from './sections/Balance';
 import Charts from './sections/Charts';
+import CustomDateRangeModal from './sections/CustomDateRangeModal';
 import InsightCard from './sections/InsightCard';
 import SectionHeader from './sections/SectionHeader';
 import TimeRangeSelector from './sections/TimeRangeSelector';
@@ -56,6 +62,7 @@ interface StateProps {
   baseCurrency: ApiBaseCurrency;
   currencyRate: string;
   timeRange: ApiPriceHistoryPeriod;
+  customDateRange?: PortfolioCustomDateRange;
   noAnimation: boolean;
 }
 
@@ -71,6 +78,7 @@ function Portfolio({
   baseCurrency,
   currencyRate,
   timeRange,
+  customDateRange,
   noAnimation,
 }: OwnProps & StateProps) {
   const { closePortfolio, openPortfolio, loadPortfolioHistory } = getActions();
@@ -80,6 +88,7 @@ function Portfolio({
   const rootRef = useRef<HTMLDivElement>();
   const railRef = useRef<HTMLDivElement>();
   const railContainerRef = useRef<HTMLDivElement>();
+  const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false);
 
   const { disableSwipeToClose, enableSwipeToClose } = useTelegramMiniAppSwipeToClose(isActive);
 
@@ -124,6 +133,14 @@ function Portfolio({
     loadPortfolioHistory({ range });
   });
 
+  const handleCustomRangeApply = useLastCallback((range: PortfolioCustomDateRange) => {
+    loadPortfolioHistory({ customRange: range });
+  });
+
+  const handleCalendarClick = useLastCallback(() => {
+    setIsCustomRangeOpen(true);
+  });
+
   const balanceValues = useMemo(() => {
     return tokens ? calculateFullBalance(tokens, stakingStates, currencyRate) : undefined;
   }, [tokens, stakingStates, currencyRate]);
@@ -158,10 +175,18 @@ function Portfolio({
       return formatDateRange(lang.code!, pnlChange.startTs, pnlChange.endTs);
     }
 
+    if (customDateRange) {
+      const fromTs = Date.parse(`${customDateRange.from}T00:00:00.000Z`);
+      const toTs = Date.parse(`${customDateRange.to}T23:59:59.000Z`);
+      if (Number.isFinite(fromTs) && Number.isFinite(toTs)) {
+        return formatDateRange(lang.code!, fromTs, toTs);
+      }
+    }
+
     // Fall back to the nominal selected period
     const startTs = getTimeRangeStartTs(timeRange);
     return startTs !== undefined ? formatDateRange(lang.code!, startTs, Date.now()) : undefined;
-  }, [pnlChange, isPnlChangeUpdating, lang.code, timeRange]);
+  }, [pnlChange, isPnlChangeUpdating, lang.code, timeRange, customDateRange]);
 
   const segmentsByTokenKind = useMemo(
     () => (tokens ? buildSegmentsByTokenKind(lang, tokens, baseCurrency) : []),
@@ -236,9 +261,21 @@ function Portfolio({
         </div>
 
         <div className={styles.bottomBar}>
-          <TimeRangeSelector value={timeRange} onChange={handleTimeRangeChange} />
+          <TimeRangeSelector
+            value={timeRange}
+            isCustomActive={Boolean(customDateRange)}
+            onChange={handleTimeRangeChange}
+            onCalendarClick={handleCalendarClick}
+          />
         </div>
       </div>
+
+      <CustomDateRangeModal
+        isOpen={isCustomRangeOpen}
+        initialRange={customDateRange}
+        onClose={() => setIsCustomRangeOpen(false)}
+        onApply={handleCustomRangeApply}
+      />
     </div>
   );
 }
@@ -248,6 +285,7 @@ export default memo(
     const { portfolio, settings: { baseCurrency } } = global;
     const currentAccountId = selectCurrentAccountId(global);
     const timeRange = portfolio?.activeRange ?? DEFAULT_PORTFOLIO_TIME_RANGE;
+    const customDateRange = portfolio?.customDateRange;
     const bundle = currentAccountId
       ? selectPortfolioHistoryBundle(global, currentAccountId, baseCurrency, timeRange)
       : undefined;
@@ -269,6 +307,7 @@ export default memo(
       baseCurrency,
       currencyRate: global.currencyRates[baseCurrency],
       timeRange,
+      customDateRange,
       noAnimation: global.settings.animationLevel === ANIMATION_LEVEL_MIN,
     };
   })(Portfolio),

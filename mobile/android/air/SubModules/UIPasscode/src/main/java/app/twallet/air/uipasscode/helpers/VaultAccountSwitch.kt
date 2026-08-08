@@ -84,6 +84,12 @@ object VaultAccountSwitch {
             }
             return
         }
-        activate(context, window, account, onActivated, onFailed)
+        activate(
+            context = context,
+            window = window,
+            account = account,
+            onActivated = onActivated,
+            onFailed = onFailed,
+        )
     }
 }

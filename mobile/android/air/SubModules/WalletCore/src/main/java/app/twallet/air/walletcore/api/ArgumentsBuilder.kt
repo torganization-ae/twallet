@@ -2,6 +2,7 @@ package app.twallet.air.walletcore.api
 
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Types
+import org.json.JSONArray
 import org.json.JSONObject
 import app.twallet.air.walletcore.WalletCore
 import java.lang.reflect.Type
@@ -70,6 +71,11 @@ class ArgumentsBuilder {
     }
 
     fun jsonObject(value: JSONObject): ArgumentsBuilder {
+        args.add(value.toString())
+        return this
+    }
+
+    fun jsonArray(value: JSONArray): ArgumentsBuilder {
         args.add(value.toString())
         return this
     }

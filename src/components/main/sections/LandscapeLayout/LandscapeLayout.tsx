@@ -57,7 +57,7 @@ function LandscapeLayout({
     if (isExploreOpen) return ContentTab.Explore;
     if (isPortfolioOpen) return ContentTab.Portfolio;
 
-    return ContentTab.Overview;
+    return ContentTab.Assets;
   }
 
   const activeKey = getActiveKey();

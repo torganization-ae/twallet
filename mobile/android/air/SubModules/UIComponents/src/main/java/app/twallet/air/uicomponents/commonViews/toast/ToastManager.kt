@@ -24,7 +24,7 @@ object ToastManager {
     ) {
 
         companion object {
-            val DURATION_DEFAULT: Duration = 5.seconds
+            val DURATION_DEFAULT: Duration = 2.5.seconds
         }
     }
 

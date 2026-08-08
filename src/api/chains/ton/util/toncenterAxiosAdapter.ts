@@ -1,4 +1,4 @@
-import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import type { AxiosAdapter, AxiosResponse } from 'axios';
 
 import { fetchWithRetry } from '../../../../util/fetch';
 import { getProviderFetchRetryPolicy } from '../../../../util/ThrottledFetcher';
@@ -17,10 +17,12 @@ export function createToncenterAxiosAdapter(): AxiosAdapter {
     const rawHeaders = config.headers;
     if (rawHeaders && typeof rawHeaders === 'object') {
       for (const [key, value] of Object.entries(rawHeaders as Record<string, unknown>)) {
-        if (value === undefined || value === null || typeof value === 'object') {
+        if (value == undefined || typeof value === 'object') {
           continue;
         }
-        headers[key] = String(value);
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+          headers[key] = String(value);
+        }
       }
     }
 
@@ -44,7 +46,7 @@ export function createToncenterAxiosAdapter(): AxiosAdapter {
       status: response.status,
       statusText: response.statusText,
       headers: Object.fromEntries(response.headers.entries()),
-      config: config as InternalAxiosRequestConfig,
+      config,
       request: {},
     };
     return axiosResponse;

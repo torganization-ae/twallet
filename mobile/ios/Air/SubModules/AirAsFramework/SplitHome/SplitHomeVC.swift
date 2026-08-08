@@ -7,7 +7,7 @@ import WalletCore
 import WalletContext
 
 @MainActor
-final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, ActivityListViewModelDelegate, WalletCoreData.EventsObserver, SplitHomeAssetsRowViewDelegate {
+final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, ActivityListViewModelDelegate, WalletCoreData.EventsObserver, WalletAssetsDelegate {
     @AccountContext private var account: MAccount
 
     var splitHomeAccountContext: AccountContext { $account }
@@ -18,7 +18,13 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
     private var removesTemporaryAccountOnDeinit = true
     private let actionsCustomSectionID = "actions"
     private let assetsCustomSectionID = "assets"
+    private var walletAssetsVC: WalletAssetsVC!
+    private var selectedAssetsTab: DisplayAssetTab = .tokens
     private weak var splitHomeAssetsSectionCell: SplitHomeAssetsSectionCell?
+
+    override var isActivityContentVisible: Bool {
+        selectedAssetsTab == .activity
+    }
     private var actionsCustomSectionCellRegistration: UICollectionView.CellRegistration<SplitHomeActionsSectionCell, Row>!
     private var actionsCustomSectionDescriptor: CustomSectionDescriptor!
     private var assetsCustomSectionCellRegistration: UICollectionView.CellRegistration<SplitHomeAssetsSectionCell, Row>!
@@ -100,8 +106,13 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
         editingNavigator?.cancelEditing()
     }
 
+    private var assetsCustomSectionHeight: CGFloat {
+        max(0, walletAssetsVC?.computedHeight() ?? 0)
+    }
+
     private func configureAssetsCustomSection(cell: SplitHomeAssetsSectionCell) {
         splitHomeAssetsSectionCell = cell
+        cell.configure(assetsView: walletAssetsVC.view, height: assetsCustomSectionHeight)
         updateNavigationItem()
     }
 
@@ -121,6 +132,23 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
         }
     }
 
+    func walletAssetDidChangeHeight(animated: Bool) {
+        splitHomeAssetsSectionCell?.configure(assetsView: walletAssetsVC.view, height: assetsCustomSectionHeight)
+        invalidateCustomSectionLayout(id: assetsCustomSectionID)
+        view.setNeedsLayout()
+    }
+
+    func walletAssetsDidSelectTab(_ tab: DisplayAssetTab) {
+        guard selectedAssetsTab != tab else { return }
+        selectedAssetsTab = tab
+        applySnapshot(makeSnapshot(), animatingDifferences: true)
+        updateSkeletonState()
+        if selectedAssetsTab != .activity {
+            collectionView.isScrollEnabled = true
+        }
+        walletAssetDidChangeHeight(animated: true)
+    }
+
     private func updateTheme() {
         view.backgroundColor = .air.groupedBackground
     }
@@ -132,7 +160,21 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
             StartupTrace.endInterval("startup.toHomeReady", details: "layout=split")
             WalletContextManager.delegate?.walletIsReady(isReady: true)
         }
-        super.applySnapshot(snapshot, animatingDifferences: animatingDifferences)
+        var filtered = snapshot
+        if selectedAssetsTab != .activity {
+            for section in filtered.sectionIdentifiers {
+                switch section {
+                case .placeholderTransactionsSection, .transactions, .emptyPlaceholder:
+                    filtered.deleteSections([section])
+                case .headerPlaceholder, .custom:
+                    break
+                }
+            }
+        }
+        super.applySnapshot(filtered, animatingDifferences: animatingDifferences)
+        if selectedAssetsTab != .activity {
+            collectionView.isScrollEnabled = true
+        }
     }
 
     func activityViewModelChanged() {
@@ -184,6 +226,20 @@ final class SplitHomeVC: ActivityListViewController, WSensitiveDataProtocol, Act
 
         if !IOS_26_MODE_ENABLED {
             configureNavigationItemWithTransparentBackground()
+        }
+
+        walletAssetsVC = WalletAssetsVC(accountSource: $account.source)
+        addChild(walletAssetsVC)
+        walletAssetsVC.loadViewIfNeeded()
+        walletAssetsVC.didMove(toParent: self)
+        walletAssetsVC.delegate = self
+        editingNavigator = walletAssetsVC.editingNavigator
+        walletAssetsVC.editingNavigator.onStateChange = { [weak self] _, newState in
+            guard let self else { return }
+            if newState.editingState == .selection {
+                walletAssetsVC.editingNavigator.installToolbar(into: view)
+            }
+            updateNavigationItem()
         }
 
         super.setupCollectionView(collectionViewBottomConstraint: 0)

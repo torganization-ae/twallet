@@ -8,19 +8,13 @@ import app.twallet.air.uicomponents.base.WViewController
 import app.twallet.air.uicomponents.base.WWindow
 
 /**
- * The home assets ViewControllers can be displayed by either [HomePhoneAssetsCell] (segmented
- * control) or [HomeTabletAssetsCell] (side-by-side columns). When the layout switches between
- * phone and tablet the active cell is swapped, but the heavy ViewControllers (token list,
- * collectibles grid, pinned collections — each with its own RecyclerView, ViewModel, coroutine
- * scope and WalletCore observers) must NOT be torn down and rebuilt: that triggers a full reload.
+ * Owns home assets ViewControllers ([TokensVC], collectibles [AssetsVC], pinned collections) so
+ * they outlive [HomePhoneAssetsCell] rebuilds (e.g. account swipe prev/current/next). A cell pulls
+ * VCs from the pool, mounts their views, and re-points per-host callbacks via [IHomeAssetsHost].
+ * The pool is the single place that ever calls [WViewController.onDestroy] on them (see [destroy]).
  *
- * This pool owns those ViewControllers so they outlive the cell. A cell pulls VCs from the pool,
- * mounts their views, and re-points the per-host callbacks via [IHomeAssetsHost]. The pool is the
- * single place that ever calls [WViewController.onDestroy] on them (see [destroy]).
- *
- * The Category-A constructor callbacks of [TokensVC]/[AssetsVC] are immutable (`private val`), so
- * they are wired here once to forward to the current [host]; host-specific behaviour lives behind
- * the [IHomeAssetsHost] surface.
+ * Constructor callbacks of [TokensVC]/[AssetsVC] are immutable (`private val`), so they are wired
+ * here once to forward to the current [host].
  */
 class HomeAssetsVCPool(
     private val context: Context,

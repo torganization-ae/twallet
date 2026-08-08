@@ -174,6 +174,8 @@ public final class WalletAssetsViewModel: WalletCoreData.EventsObserver {
         switch tab {
         case .tokens:
             return .tokens
+        case .activity:
+            return nil
         case .nfts:
             return .nfts
         case .nftCollectionFilter(let filter):

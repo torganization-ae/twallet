@@ -151,6 +151,7 @@ Custom endpoints that do not support indexer APIs may disable NFT and activity f
 Password required to save API key: 儲存 API 金鑰需要密碼
 Show in wallet: 在錢包中顯示
 At least one network must stay enabled.: 至少需要保持一個網路啟用。
+This address is also valid on %chains%. Make sure you are sending on %chain%.: This address is also valid on %chains%. Make sure you are sending on %chain%.
 Network Menu: 網路選單
 Show Wallet QR: 顯示錢包 QR
 Enter URL: 輸入 URL
@@ -159,13 +160,8 @@ Enable: 啟用
 Disable: 停用
 Saved: 已儲存
 Enable Animations: 啟用動畫
-Enable Seasonal Theming: 啟用季節性主題
 Enable Landscape Mode: 啟用橫向模式
-Disable Seasonal Theming: 停用季節性主題
-You can always enable seasonal theming again in the appearance settings.: 您隨時可以在外觀設定中重新啟用季節性主題。
 Base Currency: 基本貨幣
-Investor View: 投資者觀點
-Toggle Investor View: 切換投資者觀點
 Hide Tiny Transfers: 隱藏小額轉帳
 Toggle Hide Tiny Transfers: 切換隱藏小額轉帳
 Network: 網路
@@ -200,6 +196,7 @@ Copy wallet address: 複製錢包地址
 View address on %explorer_name%: 在 %explorer_name% 上查看此地址
 You have just created a new wallet: 您剛剛創建了一個新錢包
 Assets: 資產
+Tokens: 代幣
 Activity: 活動紀錄
 NFT: NFT
 No NFTs yet: 尚未有 NFT
@@ -256,7 +253,6 @@ Remove from Saved: 從已保存中移除
 View on Explorer: 在瀏覽器中查看
 No suggestions, you're on your own!: 沒有建議，請靠自己！
 Play Sounds: 播放聲音
-Focus on asset value rather than current balance: 關注資產價值而非當前餘額
 $logout_confirm: 登出**所有**錢包
 $tiny_transfers_help: 開啟此功能，隱藏少於 $%value% 的交易。 請注意，此類交易通常用於垃圾郵件和詐騙目的。
 Today: 今天
@@ -357,6 +353,9 @@ Price Copied: 價格已複製
 Not staked: 未質押
 Portfolio: 投資組合
 Performance, insights and P&L: 動態、洞察與盈虧
+Custom Date Range: 自訂日期範圍
+From: 從
+To: 到
 Overview: 概覽
 Total Balance: 總餘額
 Net Change: 組合淨變動
@@ -368,6 +367,7 @@ Daily P&L: 每日盈虧
 Portfolio Share: 投資組合佔比
 Current allocation across tracked assets.: 目前追蹤資產的配置情況。
 Deep history analysis will be available in upcoming updates.: 深度歷史分析將在後續更新中提供。
+PortfolioHistoryPending: 正在依餘額與市場價格建立投資組合歷史…
 By Chain: 按鏈
 No chain balances: 暫無鏈餘額
 Native: 原生

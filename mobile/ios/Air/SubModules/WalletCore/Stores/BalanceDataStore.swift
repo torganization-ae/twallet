@@ -60,6 +60,9 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
     @MainActor private var byAccountId: MainActorByAccountIdStore<AccountBalanceData> = .init(initialValue: AccountBalanceData.init(accountId:))
     private var updateDataTask: Task<Void, Never>?
     private var lastUpdateData: Date = .distantPast
+    private var lastPortfolioSnapshotByAccount: [String: (totalUsd: Double, at: Date)] = [:]
+    private let portfolioSnapshotMinInterval: TimeInterval = 60
+    private let portfolioSnapshotEpsilonUsd: Double = 0.01
 
     private init() {
         @Dependency(\.balancesStore) var balancesStore
@@ -83,6 +86,7 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
         updateDataTask?.cancel()
         updateDataTask = nil
         lastUpdateData = .distantPast
+        lastPortfolioSnapshotByAccount.removeAll()
         await MainActor.run {
             byAccountId.removeAll()
         }
@@ -145,7 +149,7 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
             await recomputeAccount(accountId: accountId)
         case .stakingAccountData(let stakingData):
             await recomputeAccount(accountId: stakingData.accountId)
-        case .baseCurrencyChanged, .tokensChanged, .hideNoCostTokensChanged, .assetsAndActivityDataUpdated:
+        case .baseCurrencyChanged, .tokensChanged, .hideNoCostTokensChanged, .assetsAndActivityDataUpdated, .chainVisibilityChanged:
             scheduleRecomputeAllKnownAccounts()
         case .accountDeleted(let accountId):
             await removeAccountData(accountId: accountId)
@@ -196,6 +200,68 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
         let changed = await applyAccountData(accountId: accountId, nextData: nextData)
         if changed {
             WalletCoreData.notify(event: .balanceChanged(accountId: accountId))
+            await recordPortfolioSnapshot(accountId: accountId, from: nextData, force: false)
+        }
+    }
+
+    public func recordPortfolioSnapshot(accountId: String) async {
+        let nextData = computeAccountData(accountId: accountId)
+        await recordPortfolioSnapshot(accountId: accountId, from: nextData, force: true)
+    }
+
+    public func bootstrapHoldings(accountId: String) -> [ApiPortfolioBootstrapHolding] {
+        let data = computeAccountData(accountId: accountId)
+        var amountBySlug: [String: Double] = [:]
+        var priceBySlug: [String: Double] = [:]
+
+        for balance in data.walletTokensData.orderedTokenBalances {
+            guard let token = balance.token ?? TokenStore.getToken(slug: balance.tokenSlug),
+                  let priceUsd = token.priceUsd,
+                  priceUsd > 0
+            else {
+                continue
+            }
+            let amount = balance.balance.doubleAbsRepresentation(decimals: token.decimals)
+            guard amount > 0 else { continue }
+            amountBySlug[balance.tokenSlug, default: 0] += amount
+            priceBySlug[balance.tokenSlug] = priceUsd
+        }
+
+        return amountBySlug.compactMap { slug, amount in
+            guard let priceUsd = priceBySlug[slug] else { return nil }
+            return ApiPortfolioBootstrapHolding(slug: slug, amount: amount, priceUsd: priceUsd)
+        }
+    }
+
+    private func recordPortfolioSnapshot(
+        accountId: String,
+        from data: ComputedAccountData,
+        force: Bool
+    ) async {
+        let totalUsd = data.balanceTotals.totalBalanceUsd
+        if !force, let previous = lastPortfolioSnapshotByAccount[accountId] {
+            let withinInterval = Date().timeIntervalSince(previous.at) < portfolioSnapshotMinInterval
+            let withinEpsilon = abs(previous.totalUsd - totalUsd) < portfolioSnapshotEpsilonUsd
+            if withinInterval && withinEpsilon {
+                return
+            }
+        }
+
+        var bySlug: [String: Double] = [:]
+        for balance in data.walletTokensData.orderedTokenBalances {
+            let usd = balance.toUsd ?? 0
+            guard usd > 0 else { continue }
+            bySlug[balance.tokenSlug, default: 0] += usd
+        }
+        do {
+            try await Api.recordPortfolioSnapshot(
+                accountId: accountId,
+                totalUsd: totalUsd,
+                bySlug: bySlug
+            )
+            lastPortfolioSnapshotByAccount[accountId] = (totalUsd, Date())
+        } catch {
+            log.error("recordPortfolioSnapshot failed \(accountId, .public): \(error, .public)")
         }
     }
 
@@ -210,14 +276,26 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
             context.replace(walletTokensData: nil, balanceTotals: nil)
         }
         byAccountId.remove(accountId: accountId)
+        Task {
+            await clearPortfolioSnapshotThrottle(accountId: accountId)
+        }
+    }
+
+    private func clearPortfolioSnapshotThrottle(accountId: String) {
+        lastPortfolioSnapshotByAccount.removeValue(forKey: accountId)
     }
 
     private nonisolated func computeAccountData(accountId: String) -> ComputedAccountData {
         let balances = balancesStore.getAccountBalances(accountId: accountId)
         let stakingData = stakingStore.stakingData(accountId: accountId)
         let account = accountStore.get(accountId: accountId)
-        var walletTokens: [MTokenBalance] = balances.map { slug, amount in
-            MTokenBalance(tokenSlug: slug, balance: amount, isStaking: false)
+        let network = account.network
+        var walletTokens: [MTokenBalance] = balances.compactMap { slug, amount in
+            if let chain = getChainBySlug(slug) ?? tokenStore.tokens[slug]?.chain,
+               ChainVisibilityStore.shared.isHidden(chain, network: network) {
+                return nil
+            }
+            return MTokenBalance(tokenSlug: slug, balance: amount, isStaking: false)
         }
 
         var allTokensFound = true
@@ -265,8 +343,10 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
         let prefs = assetsAndActivityDataStore.data(accountId: accountId) ?? MAssetsAndActivityData.empty
 
         for slug in prefs.importedSlugs {
+            let chain = tokenStore.tokens[slug]?.chain
             if !walletTokens.contains(where: { $0.tokenSlug == slug }),
-               account.supports(chain: tokenStore.tokens[slug]?.chain) {
+               account.supports(chain: chain),
+               !(chain.map { ChainVisibilityStore.shared.isHidden($0, network: network) } ?? false) {
                 walletTokens.append(MTokenBalance(tokenSlug: slug, balance: 0, isStaking: false))
             }
         }
@@ -275,7 +355,9 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
             let slugsInWallet = Set(walletTokens.map { $0.tokenSlug })
             let defaultSlugs = ApiToken.defaultSlugs(forNetwork: account.network, account: account)
             for slug in defaultSlugs.subtracting(slugsInWallet) {
-                if account.supports(chain: tokenStore.tokens[slug]?.chain) {
+                let chain = tokenStore.tokens[slug]?.chain
+                if account.supports(chain: chain),
+                   !(chain.map { ChainVisibilityStore.shared.isHidden($0, network: network) } ?? false) {
                     walletTokens.append(MTokenBalance(tokenSlug: slug, balance: 0, isStaking: false))
                 }
             }

@@ -1,10 +1,31 @@
+import type { ApiPriceHistoryPeriod } from './backend';
+
 export type ApiPortfolioHistoryList = Array<[number, number | null]>;
+
+export type ApiPortfolioBootstrapHolding = {
+  slug: string;
+  /** Human-unit balance (wallet + staking). */
+  amount: number;
+  /** Current USD mark used when a price chart gap appears. */
+  priceUsd: number;
+};
 
 export type ApiPortfolioHistoryParams = {
   // `from`/`to` accept ISO strings or unix-second numbers
   from?: number | string;
   to?: number | string;
   density?: string;
+  // Local snapshot store key; falls back to `currentAccountId` in storage when omitted
+  accountId?: string;
+  // Multiply USD snapshot values into the requested base currency (default 1)
+  currencyRate?: number;
+  /**
+   * When the local diary has fewer than two days, these holdings are combined with
+   * network price charts to seed approximate historical snapshots once.
+   */
+  bootstrapHoldings?: ApiPortfolioBootstrapHolding[];
+  /** Price-chart period used for the one-shot seed (default `1Y`). */
+  bootstrapPeriod?: ApiPriceHistoryPeriod;
 };
 
 export type ApiPortfolioHistoryDataset = {

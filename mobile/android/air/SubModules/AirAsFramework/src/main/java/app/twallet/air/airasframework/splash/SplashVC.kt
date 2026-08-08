@@ -930,7 +930,7 @@ class SplashVC(context: Context) : WViewController(context),
                 val receiveVC =
                     ReceiveVC.createIfAvailable(
                         context,
-                        AccountStore.activeAccount?.firstChain
+                        defaultChain = null,
                     ) ?: return
                 val navVC = WNavigationController(window!!, PresentationConfig.PreferredFullScreen)
                 navVC.setRoot(receiveVC)

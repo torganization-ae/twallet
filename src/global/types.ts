@@ -14,7 +14,6 @@ import type {
   ApiAccountConfig,
   ApiActivity,
   ApiAnyDisplayError,
-  ApiBackendConfig,
   ApiBalanceBySlug,
   ApiBaseCurrency,
   ApiChain,
@@ -95,10 +94,18 @@ export type PortfolioPnlChange = {
   endTs?: number;
 };
 
+export type PortfolioCustomDateRange = {
+  from: string; // yyyy-mm-dd UTC
+  to: string;
+};
+
 export type PortfolioState = {
   historyByAccountId?: PortfolioHistoryByAccountId;
   pnlChangeByAccountId?: Record<string, PortfolioPnlChange>;
   activeRange?: ApiPriceHistoryPeriod;
+  /** When set, charts use this window instead of `activeRange` presets. */
+  customDateRange?: PortfolioCustomDateRange;
+  customHistoryByAccountId?: Record<string, Partial<Record<ApiBaseCurrency, PortfolioHistoryBundle>>>;
   isLoading?: boolean;
   isRefreshing?: boolean;
   error?: string;
@@ -110,21 +117,6 @@ export type AppTheme = 'dark' | 'light';
 export type AppLayout = 'portrait' | 'landscape';
 export type DialogAction = 'signOutAll' | 'openReturnUrl';
 export type ToastAction = 'openRenameWallet';
-
-export type DeveloperSettingsUndefinedOverride = '__undefined';
-export type DeveloperSettingsOverrideValue<Value> = Exclude<Value, undefined> | DeveloperSettingsUndefinedOverride;
-
-export interface DeveloperSettingsOverrides {
-  seasonalTheme?: DeveloperSettingsOverrideValue<ApiBackendConfig['seasonalTheme']>;
-}
-
-export type DeveloperSettingsOverrideKey = keyof DeveloperSettingsOverrides;
-export type DeveloperSettingsOverridePayload = {
-  [Key in DeveloperSettingsOverrideKey]: {
-    key: Key;
-    value?: DeveloperSettingsOverrides[Key];
-  };
-}[DeveloperSettingsOverrideKey];
 
 export type ToastType = {
   id: number;
@@ -987,14 +979,11 @@ export type GlobalState = {
     state: SettingsState;
     theme: Theme;
     animationLevel: AnimationLevel;
-    isSeasonalThemingDisabled?: boolean;
-    developerSettingsOverrides?: DeveloperSettingsOverrides;
     langCode: LangCode;
     langSource?: LanguageSource;
     byAccountId: Record<string, AccountSettings>;
     areTinyTransfersHidden?: boolean;
     canPlaySounds?: boolean;
-    isInvestorViewEnabled?: boolean;
     isTonProxyEnabled?: boolean;
     isDeeplinkHookEnabled?: boolean;
     isPasswordNumeric?: boolean; // Backwards compatibility for non-numeric passwords from older versions
@@ -1050,7 +1039,6 @@ export type GlobalState = {
   isAppUpdateAvailable?: boolean;
   // Force show the "Update My Wallet" pop-up on all platforms
   isAppUpdateRequired?: boolean;
-  seasonalTheme?: ApiBackendConfig['seasonalTheme'];
   confettiRequestedAt?: number;
   isPinAccepted?: boolean;
   isInvoiceModalOpen?: boolean;
@@ -1293,8 +1281,12 @@ export interface ActionPayloads {
   closeExplore: undefined;
   openPortfolio: { returnTo?: 'settings' } | undefined;
   closePortfolio: undefined;
-  loadPortfolioHistory: { range?: ApiPriceHistoryPeriod } | undefined;
+  loadPortfolioHistory: {
+    range?: ApiPriceHistoryPeriod;
+    customRange?: PortfolioCustomDateRange;
+  } | undefined;
   loadPortfolioPnlChange: undefined;
+  recordPortfolioSnapshot: { accountId?: string } | undefined;
 
   closeAnyModal: undefined;
   submitSignature: { password: string };
@@ -1363,10 +1355,7 @@ export interface ActionPayloads {
   closeSettings: undefined;
   setTheme: { theme: Theme };
   setAnimationLevel: { level: AnimationLevel };
-  toggleSeasonalTheming: { isEnabled?: boolean };
-  setDeveloperSettingsOverride: DeveloperSettingsOverridePayload;
   toggleTinyTransfersHidden: { isEnabled?: boolean } | undefined;
-  toggleInvestorView: { isEnabled?: boolean } | undefined;
   toggleCanPlaySounds: { isEnabled?: boolean } | undefined;
   toggleTonProxy: { isEnabled: boolean };
   toggleDeeplinkHook: { isEnabled: boolean };

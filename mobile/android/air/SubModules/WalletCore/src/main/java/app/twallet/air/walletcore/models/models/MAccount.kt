@@ -11,6 +11,7 @@ import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.moshi.ApiDerivation
 import app.twallet.air.walletcore.moshi.inject.ApiDappSessionChain
 import app.twallet.air.walletcore.stores.BalanceStore
+import app.twallet.air.walletcore.stores.ChainVisibilityStore
 import app.twallet.air.walletcore.utils.sortedByBalance
 
 @JsonClass(generateAdapter = true)
@@ -204,11 +205,6 @@ class MAccount(
             return accountType == AccountType.MNEMONIC && isMultichain
         }
 
-    val supportsBuyWithCrypto: Boolean
-        get() {
-            return supportsSwap
-        }
-
     val supportsCommentEncryption: Boolean
         get() {
             return accountType == AccountType.MNEMONIC
@@ -282,5 +278,11 @@ class MAccount(
     fun sortedChains(): List<Map.Entry<String, AccountChain>> {
         val perChainBalance = BalanceStore.totalBalanceInBaseCurrencyPerChain(accountId)
         return byChain.sortedByBalance(perChainBalance)
+    }
+
+    /** Like web `getVisibleChains` — excludes networks disabled in Settings → Networks. */
+    fun visibleSortedChains(): List<Map.Entry<String, AccountChain>> {
+        val network = network.value
+        return sortedChains().filter { !ChainVisibilityStore.isHidden(it.key, network) }
     }
 }

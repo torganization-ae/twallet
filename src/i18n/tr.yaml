@@ -153,6 +153,7 @@ Custom endpoints that do not support indexer APIs may disable NFT and activity f
 Password required to save API key: API anahtarını kaydetmek için şifre gerekli
 Show in wallet: Cüzdanda göster
 At least one network must stay enabled.: En az bir ağ etkin kalmalıdır.
+This address is also valid on %chains%. Make sure you are sending on %chain%.: This address is also valid on %chains%. Make sure you are sending on %chain%.
 Network Menu: Ağ menüsü
 Show Wallet QR: Cüzdan QR'sini göster
 Enter URL: URL girin
@@ -161,13 +162,8 @@ Enable: Etkinleştir
 Disable: Devre dışı bırak
 Saved: Kaydedildi
 Enable Animations: Animasyonları Etkinleştir
-Enable Seasonal Theming: Mevsimsel Temayı Etkinleştir
 Enable Landscape Mode: Yatay Modu Etkinleştir
-Disable Seasonal Theming: Mevsimsel Temayı Devre Dışı Bırak
-You can always enable seasonal theming again in the appearance settings.: Görünüm ayarlarından mevsimsel temayı istediğiniz zaman tekrar etkinleştirebilirsiniz.
 Base Currency: Ana Para Birimi
-Investor View: Yatırımcı Görünümü
-Toggle Investor View: Yatırımcı Görünümüne Geçiş Yap
 Hide Tiny Transfers: Küçük Transferleri Gizle
 Toggle Hide Tiny Transfers: Küçük Transferleri Gizlemeyi Aç/Kapat
 Network: Ağ
@@ -201,6 +197,7 @@ Copy wallet address: Cüzdan adresini kopyala
 View address on %explorer_name%: "%explorer_name%'da adresi görüntüleyin"
 You have just created a new wallet: Az önce yeni bir cüzdan oluşturdunuz
 Assets: Varlıklar
+Tokens: Tokenlar
 Activity: Etkinlik
 NFT: NFT
 No NFTs yet: Henüz NFT'niz yok
@@ -258,7 +255,6 @@ Remove from Saved: Kaydedilenlerden Kaldır
 View on Explorer: Explorer'da Görüntüle
 No suggestions, you're on your own!: Önerimiz bulunmuyor, tek başınasınız!
 Play Sounds: Sesleri çal
-Focus on asset value rather than current balance: Mevcut bakiyeden ziyade varlık değerine odaklanır
 $logout_confirm: "**Tüm** cüzdanları kaldırın"
 $tiny_transfers_help: Tutarı $%value%'den az olan işlemleri görüntülemek için bu düğmeyi kapalı konuma getirin. Lütfen bu tür işlemlerin genellikle spam ve dolandırıcılık amacıyla kullanıldığını unutmayın.
 Today: Bugün
@@ -359,6 +355,9 @@ Price Copied: Fiyat kopyalandı
 Not staked: Stake edilmemiş
 Portfolio: Portföy
 Performance, insights and P&L: Performans, içgörüler ve K/Z
+Custom Date Range: Özel tarih aralığı
+From: Başlangıç
+To: Bitiş
 Overview: Genel bakış
 Total Balance: Toplam bakiye
 Net Change: Portföy değişimi
@@ -370,6 +369,7 @@ Daily P&L: Günlük Kâr/Zarar
 Portfolio Share: Portföy dağılımı
 Current allocation across tracked assets.: İzlenen varlıklar arasındaki mevcut dağılım.
 Deep history analysis will be available in upcoming updates.: Derin geçmiş analizi gelecek güncellemelerde kullanıma sunulacak.
+PortfolioHistoryPending: Portföy geçmişi bakiyeleriniz ve piyasa fiyatlarından oluşturuluyor…
 By Chain: Ağa göre
 No chain balances: Ağ bakiyesi yok
 Native: Yerel

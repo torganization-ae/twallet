@@ -153,9 +153,9 @@ $card-overlay-secondary: rgba(255, 255, 255, 0.15);
 
   width: 100%;
   min-width: 16rem;
-  height: 0;
+  aspect-ratio: 358 / 176;
+  height: auto;
   margin: 0 auto;
-  padding-top: v.$cardAspectRatioPortrait;
   border-radius: var(--border-radius-card);
 
   background-clip: border-box, padding-box, padding-box;
@@ -175,11 +175,7 @@ $card-overlay-secondary: rgba(255, 255, 255, 0.15);
 
   width: 100%;
   height: 100%;
-  padding: max(3.75rem, 17.4927%) 1rem 0.25rem;
-
-  @media (max-width: 360px) {
-    padding: max(2rem, 14%) 1rem 0.25rem;
-  }
+  padding: 5%;
 }
 
 .cardBalance {

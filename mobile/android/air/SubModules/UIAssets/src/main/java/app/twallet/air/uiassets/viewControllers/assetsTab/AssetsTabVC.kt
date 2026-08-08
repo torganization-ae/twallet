@@ -49,6 +49,7 @@ class AssetsTabVC(
 
     companion object {
         const val TAB_COINS = "app:coins"
+        const val TAB_ACTIVITY = "app:activity"
         const val TAB_COLLECTIBLES = "app:collectibles"
         private const val BANNER_ALPHA_VISIBLE_RANGE = 0.5f
         private const val BANNER_COLLAPSE_TRANSLATION_DP = 18

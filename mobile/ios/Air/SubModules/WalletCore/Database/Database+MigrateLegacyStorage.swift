@@ -135,9 +135,6 @@ private func mergeLegacySettings(into row: inout MSettings, legacyRow: MSettings
     if row.areAnimationsDisabled == defaultRow.areAnimationsDisabled {
         row.areAnimationsDisabled = legacyRow.areAnimationsDisabled
     }
-    if row.isSeasonalThemingDisabled == defaultRow.isSeasonalThemingDisabled {
-        row.isSeasonalThemingDisabled = legacyRow.isSeasonalThemingDisabled
-    }
     if row.canPlaySounds == defaultRow.canPlaySounds {
         row.canPlaySounds = legacyRow.canPlaySounds
     }

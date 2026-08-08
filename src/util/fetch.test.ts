@@ -3,13 +3,13 @@ import type { ApiBackendConfig } from '../api/types';
 import { DEFAULT_RETRIES } from '../config';
 import { setBackendConfigCache } from '../api/common/cache';
 import {
+  __registerEvmApiOriginForTests,
+  __resetEvmApiOriginsForTests,
   classifyFetchFailure,
   computeRetryBackoffMs,
   fetchWithRetry,
   isNegativeCacheableStatus,
   resetFetchStateForTests,
-  __registerEvmApiOriginForTests,
-  __resetEvmApiOriginsForTests,
 } from './fetch';
 
 // Pauses between retries are irrelevant to what we assert (call counts, classification, caching)

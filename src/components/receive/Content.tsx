@@ -1,11 +1,9 @@
-import React, { memo } from '../../lib/teact/teact';
+import React, { memo, useEffect } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiChain, ApiNetwork } from '../../api/types';
 import type { Account } from '../../global/types';
-import type { TabWithProperties } from '../ui/TabList';
 
-import { DEFAULT_CHAIN } from '../../config';
 import {
   selectCurrentAccount,
   selectCurrentAccountId,
@@ -13,14 +11,11 @@ import {
   selectIsCurrentAccountViewMode,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { getChainTitle, getDisplayOrderedChains, getVisibleChains } from '../../util/chain';
-import { swapKeysAndValues } from '../../util/iteratees';
+import { getOrderedAccountChains, resolveReceiveChain } from '../../util/chain';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useLang from '../../hooks/useLang';
-import useLastCallback from '../../hooks/useLastCallback';
 
-import TabList from '../ui/TabList';
 import Transition from '../ui/Transition';
 import Address from './content/Address';
 
@@ -30,8 +25,8 @@ interface StateProps {
   accountChains?: Account['byChain'];
   isLedger?: boolean;
   isViewMode: boolean;
-  chain: ApiChain;
-  network: ApiNetwork;
+  chain?: ApiChain;
+  visibleChains: ApiChain[];
 }
 
 type OwnProps = {
@@ -40,7 +35,7 @@ type OwnProps = {
 };
 
 function Content({
-  isOpen, accountChains, chain, isLedger, isViewMode, network, onClose,
+  isOpen, accountChains, chain, isLedger, isViewMode, visibleChains, onClose,
 }: StateProps & OwnProps) {
   const { setReceiveActiveTab } = getActions();
 
@@ -49,61 +44,47 @@ function Content({
   const lang = useLang();
   const { isPortrait } = useDeviceScreen();
 
-  const orderedChains = getVisibleChains(getDisplayOrderedChains(network), network);
-  const tabIdByChain = Object.fromEntries(
-    orderedChains.map((orderedChain, index) => [orderedChain, index]),
-  ) as Record<ApiChain, number>;
-  const chainByTabId = swapKeysAndValues(tabIdByChain);
-  const tabs = getChainTabs(accountChains ?? {}, orderedChains, tabIdByChain);
-  const activeTab = tabIdByChain[chain] ?? 0;
+  const activeChain = resolveReceiveChain(visibleChains, chain);
+  const activeTab = activeChain ? visibleChains.indexOf(activeChain) : 0;
 
-  const handleSwitchTab = useLastCallback((tabId: number) => {
-    const newChain = chainByTabId[tabId];
-    if (newChain) {
-      setReceiveActiveTab({ chain: newChain });
+  useEffect(() => {
+    if (activeChain && activeChain !== chain) {
+      setReceiveActiveTab({ chain: activeChain });
     }
-  });
+  }, [activeChain, chain]);
 
   function renderAddress(isActive: boolean, isFrom: boolean, currentKey: number) {
-    const chain = chainByTabId[currentKey];
+    const renderChain = visibleChains[currentKey];
+    if (!renderChain) {
+      return undefined;
+    }
 
     return (
       <Address
-        chain={chain}
+        chain={renderChain}
         isActive={isOpen && isActive}
         isLedger={isLedger}
         isViewMode={isViewMode}
-        address={accountChains?.[chain]?.address ?? ''}
+        address={accountChains?.[renderChain]?.address ?? ''}
         onClose={onClose}
       />
     );
   }
 
-  if (!tabs.length) {
+  if (!visibleChains.length || !activeChain) {
     return undefined;
   }
 
   return (
-    <>
-      {tabs.length > 1 && (
-        <TabList
-          tabs={tabs}
-          activeTab={activeTab}
-          className={styles.tabs}
-          overlayClassName={buildClassName(styles.tabsOverlay, chain && styles[chain])}
-          onSwitchTab={handleSwitchTab}
-        />
-      )}
-      <Transition
-        key={`content_${lang.code}`}
-        activeKey={activeTab}
-        name={isPortrait ? 'slide' : 'semiFade'}
-        className={styles.contentWrapper}
-        slideClassName={buildClassName(styles.content, 'custom-scroll')}
-      >
-        {renderAddress}
-      </Transition>
-    </>
+    <Transition
+      key={`content_${lang.code}`}
+      activeKey={activeTab}
+      name={isPortrait ? 'slide' : 'semiFade'}
+      className={styles.contentWrapper}
+      slideClassName={buildClassName(styles.content, 'custom-scroll')}
+    >
+      {renderAddress}
+    </Transition>
   );
 }
 
@@ -111,36 +92,16 @@ export default memo(
   withGlobal<OwnProps>((global): StateProps => {
     const account = selectCurrentAccount(global);
     const { receiveModalChain } = selectCurrentAccountState(global) || {};
+    const network: ApiNetwork = global.settings.isTestnet ? 'testnet' : 'mainnet';
+    const visibleChains = getOrderedAccountChains(account?.byChain ?? {}, network);
 
     return {
       accountChains: account?.byChain,
       isLedger: account?.type === 'hardware',
       isViewMode: selectIsCurrentAccountViewMode(global),
-      chain: receiveModalChain ?? DEFAULT_CHAIN,
-      network: global.settings.isTestnet ? 'testnet' : 'mainnet',
+      chain: receiveModalChain,
+      visibleChains,
     };
   },
   (global, _, stickToFirst) => stickToFirst(selectCurrentAccountId(global)))(Content),
 );
-
-function getChainTabs(
-  accountChains: Partial<Record<ApiChain, unknown>>,
-  orderedChains: ApiChain[],
-  tabIdByChain: Record<ApiChain, number>,
-) {
-  const result: TabWithProperties[] = [];
-
-  for (const chain of orderedChains) {
-    if (!(chain in accountChains)) {
-      continue;
-    }
-
-    result.push({
-      id: tabIdByChain[chain],
-      title: getChainTitle(chain),
-      className: buildClassName(styles.tab, styles[chain]),
-    });
-  }
-
-  return result;
-}

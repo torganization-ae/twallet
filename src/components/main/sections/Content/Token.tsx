@@ -8,7 +8,6 @@ import type { StakingStateStatus } from '../../../../util/staking';
 import { ANIMATED_STICKER_TINY_ICON_PX, IS_FEATURE_LIMITED } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
 import buildClassName from '../../../../util/buildClassName';
-import { calcChangeValue } from '../../../../util/calcChangeValue';
 import { DAY, formatFullDay } from '../../../../util/dateFormat';
 import { toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
@@ -42,7 +41,6 @@ interface OwnProps {
   vestingStatus?: 'frozen' | 'readyToUnfreeze';
   unfreezeEndDate?: number;
   amount?: string;
-  isInvestorView?: boolean;
   classNames?: string;
   tokenClassName?: string;
   style?: string;
@@ -76,7 +74,6 @@ function Token({
   vestingStatus,
   unfreezeEndDate,
   annualYield,
-  isInvestorView,
   classNames,
   tokenClassName,
   style,
@@ -112,9 +109,7 @@ function Token({
   const menuRef = useRef<HTMLDivElement>();
   const isVesting = Boolean(vestingStatus?.length);
   const renderedAmount = amount ?? toDecimal(tokenAmount, decimals, true);
-  const value = Big(renderedAmount).mul(price).toString();
   const changeClassName = change > 0 ? styles.change_up : change < 0 ? styles.change_down : undefined;
-  const changeValue = Math.abs(round(calcChangeValue(Number(value), change), 4));
   const changePercent = Math.abs(round(change * 100, 2));
   const withYield = !IS_FEATURE_LIMITED && annualYield !== undefined && annualYield > 0;
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
@@ -123,12 +118,13 @@ function Token({
   const stakingId = stakingState?.id;
   const name = getTokenName(lang, token);
   const withChainIconRendered = withChainIcon && !stakingId;
+  const totalAmount = Big(renderedAmount).mul(price);
+  const canRenderYield = annualYield !== undefined;
   if (ref) {
     buttonRef = ref;
   }
 
   const {
-    shouldRender: shouldRenderYield,
     ref: yieldRef,
   } = useShowTransition<HTMLSpanElement>({
     isOpen: withYield,
@@ -246,109 +242,13 @@ function Token({
     isContextMenuOpen && OPEN_CONTEXT_MENU_CLASS_NAME,
   );
 
-  function renderInvestorView() {
-    return (
-      <Button
-        ref={buttonRef}
-        isSimple
-        className={fullClassName}
-        onMouseDown={handleBeforeContextMenu}
-        onContextMenu={handleContextMenu}
-        onClick={handleClick}
-      >
-        <TokenIcon
-          size="large"
-          token={token}
-          withChainIcon={withChainIconRendered}
-          withChainColorRing={withChainColorRing}
-          className={styles.tokenIcon}
-        >
-          <>
-            {stakingStatus && renderStakingIcon()}
-            {vestingStatus && (
-              <i
-                className={buildClassName(vestingStatus === 'frozen' ? 'icon-snow' : 'icon-fire', styles.vestingIcon)}
-                aria-hidden
-              />
-            )}
-          </>
-        </TokenIcon>
-        <div className={styles.primaryCell}>
-          <div className={styles.name}>
-            <span className={styles.nameText}>{name}</span>
-            {shouldRenderYield && renderYield()}
-            {withLabel && <TokenLabel label={label!} isRwaStock={isRwaStock} />}
-          </div>
-          <div className={styles.subtitle}>
-            <SensitiveData
-              isActive={isSensitiveDataHidden}
-              min={5}
-              max={10}
-              seed={name}
-              rows={2}
-              cellSize={8}
-            >
-              <AnimatedCounter text={formatCurrency(renderedAmount, symbol)} />
-            </SensitiveData>
-            <i className={styles.dot} aria-hidden />
-            <AnimatedCounter text={formatCurrency(price, shortBaseSymbol, undefined, true)} />
-          </div>
-        </div>
-        <div className={styles.secondaryCell}>
-          <SensitiveData
-            isActive={isSensitiveDataHidden}
-            min={4}
-            max={12}
-            seed={name}
-            rows={2}
-            cellSize={8}
-            align="right"
-            className={buildClassName(
-              styles.secondaryValue,
-              stakingStatus && styles.secondaryValue_staked,
-              isVesting && styles.secondaryValue_vesting,
-              isVesting && vestingStatus === 'readyToUnfreeze' && styles.secondaryValue_vestingUnfreeze,
-            )}
-          >
-            <AnimatedCounter text={formatCurrency(value, shortBaseSymbol)} />
-          </SensitiveData>
-          {unfreezeEndDate ? (
-            <div
-              className={buildClassName(
-                styles.change,
-                (unfreezeEndDate - Date.now() < UNFREEZE_DANGER_DURATION) && styles.change_down,
-              )}
-            >
-              {lang('Unfreeze')}
-              {' '}
-              {lang('until %date%', { date: `${formatFullDay(lang.code!, unfreezeEndDate)}` })}
-            </div>
-          ) : (
-            <SensitiveData
-              isActive={isSensitiveDataHidden}
-              min={5}
-              max={10}
-              seed={name}
-              rows={2}
-              cellSize={8}
-              align="right"
-              className={buildClassName(styles.change, changeClassName)}
-            >
-              {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
-              <i className={styles.dot} aria-hidden />
-              <AnimatedCounter text={formatCurrency(changeValue, shortBaseSymbol, undefined, true)} />
-            </SensitiveData>
-          )}
-        </div>
-      </Button>
-    );
-  }
-
-  function renderDefaultView() {
-    const totalAmount = Big(renderedAmount).mul(price);
-    const canRenderYield = annualYield !== undefined;
-
-    return (
+  return (
+    <div className={buildClassName(styles.container, classNames)} style={style}>
+      <MenuBackdrop
+        isMenuOpen={isBackdropRendered}
+        contentRef={buttonRef}
+        contentClassName={styles.wrapperVisible}
+      />
       <Button
         ref={buttonRef}
         isSimple
@@ -444,17 +344,6 @@ function Token({
           </SensitiveData>
         </div>
       </Button>
-    );
-  }
-
-  return (
-    <div className={buildClassName(styles.container, classNames)} style={style}>
-      <MenuBackdrop
-        isMenuOpen={isBackdropRendered}
-        contentRef={buttonRef}
-        contentClassName={styles.wrapperVisible}
-      />
-      {isInvestorView ? renderInvestorView() : renderDefaultView()}
       {withContextMenu && isContextMenuShown && (
         <DropdownMenu
           ref={menuRef}

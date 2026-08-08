@@ -256,8 +256,14 @@
     grid-template-columns: 0.25fr 1.5fr 0.25fr;
   }
 
+  &_withLeftContent {
+    // Left selector needs content-sized width so logo + chain name stay visible.
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
   &_back,
-  &_share {
+  &_share,
+  &_left {
     cursor: var(--custom-cursor, pointer);
 
     z-index: 1;
@@ -265,6 +271,12 @@
     display: flex;
     grid-area: back;
     align-items: center;
+  }
+
+  &_left {
+    cursor: default;
+    justify-content: flex-start;
+    max-width: 100%;
   }
 
   &_back {

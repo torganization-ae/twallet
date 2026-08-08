@@ -8,4 +8,10 @@ data class PortfolioHistoryRequest(
     val wallets: List<String>,
     val baseCurrency: MBaseCurrency,
     val period: MHistoryTimePeriod,
-)
+    /** Inclusive UTC calendar days (`yyyy-MM-dd`); when set, overrides `period` window. */
+    val customFromDay: String? = null,
+    val customToDay: String? = null,
+) {
+    val hasCustomRange: Boolean
+        get() = !customFromDay.isNullOrBlank() && !customToDay.isNullOrBlank()
+}

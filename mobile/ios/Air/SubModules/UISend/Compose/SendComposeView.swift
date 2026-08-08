@@ -37,6 +37,13 @@ public struct SendComposeView: View {
                         if !model.mode.isNftRelated {
                             AmountSection(model: self.model, focused: $amountFocused)
                         }
+                        if let ambiguity = model.networkAmbiguityWarningText {
+                            WarningView(
+                                text: ambiguity,
+                                kind: .warning
+                            )
+                            .padding(.horizontal, 16)
+                        }
                         if model.shouldShowGasWarning {
                             WarningView(
                                 text: lang("$seed_phrase_scam_warning", arg1: "[\(lang("$help_center_prepositional"))](\(model.seedPhraseScamHelpUrl.absoluteString))"),
@@ -85,26 +92,56 @@ public struct SendComposeView: View {
 // MARK: -
 
 struct SendComposeTitleView: View {
-    var onMultisendTapped: () -> Void
+    let model: SendModel
+    var showsMultisendMenu: Bool
+    var onMultisendTapped: (() -> Void)?
 
     private let titleFont = Font.system(size: 14, weight: .medium)
 
     var body: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 4) {
-                Text(lang("Send"))
-                Image.airBundle("ArrowUpDownSmall").opacity(0.5)
+        WithPerceptionTracking {
+            // `token` is @PerceptionIgnored on SendModel — track TokenProvider.slug explicitly
+            // so the network subtitle updates when the user switches tokens.
+            let chainTitle = (model.nfts.first?.chain ?? model.$token.token.chain).title
+            let titleText: String = {
+                if model.mode.isNftRelated {
+                    return model.nfts.count > 1
+                        ? lang("Send Collectibles")
+                        : lang("Send Collectible")
+                }
+                return lang("Send")
+            }()
+
+            VStack(spacing: 2) {
+                if showsMultisendMenu {
+                    HStack(spacing: 4) {
+                        Text(titleText)
+                        Image.airBundle("ArrowUpDownSmall").opacity(0.5)
+                    }
+                    .fixedSize(horizontal: true, vertical: false)
+                    .font(titleFont)
+                    .foregroundColor(.air.primaryLabel)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Color.air.secondaryLabel.opacity(0.12))
+                    .clipShape(Capsule())
+                    .contextMenuSource {
+                        makeTitleMenuConfiguration()
+                    }
+                } else {
+                    Text(titleText)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.air.primaryLabel)
+                }
+
+                Text(chainTitle)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(.secondary)
+                    .allowsTightening(true)
+                    .lineLimit(1)
+                    .offset(y: 1)
             }
-            .fixedSize(horizontal: true, vertical: false)
-            .font(titleFont)
-            .foregroundColor(.air.primaryLabel)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(Color.air.secondaryLabel.opacity(0.12))
-            .clipShape(Capsule())
-            .contextMenuSource {
-                makeTitleMenuConfiguration()
-            }
+            .frame(minWidth: 240, idealWidth: 240)
         }
     }
     
@@ -116,7 +153,7 @@ struct SendComposeTitleView: View {
                         title: lang("Multisend"),
                         icon: .airBundle("MenuMultisend26"),
                         handler: {
-                            onMultisendTapped()
+                            onMultisendTapped?()
                         }
                     )
                 )

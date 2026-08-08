@@ -1,14 +1,21 @@
 package app.twallet.air.walletcore.stores
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import app.twallet.air.walletbasecontext.models.MBaseCurrency
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
+import app.twallet.air.walletcore.MYCOIN_SLUG
 import app.twallet.air.walletcore.STAKE_SLUG
 import app.twallet.air.walletcore.STAKING_SLUGS
 import app.twallet.air.walletcore.TONCOIN_SLUG
+import app.twallet.air.walletcore.USDE_SLUG
 import app.twallet.air.walletcore.WalletCore
+import app.twallet.air.walletcore.api.PortfolioBootstrapHolding
+import app.twallet.air.walletcore.api.recordPortfolioSnapshot
 import app.twallet.air.walletcore.models.MTokenBalance
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import java.math.BigInteger
@@ -19,6 +26,10 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
 object BalanceStore : IStore {
+
+    private const val PORTFOLIO_SNAPSHOT_MIN_INTERVAL_MS = 60_000L
+    private const val PORTFOLIO_SNAPSHOT_EPSILON_USD = 0.01
+    private val lastPortfolioSnapshotByAccount = ConcurrentHashMap<String, PortfolioSnapshotThrottle>()
 
     // Observable Flow
     private val _balancesFlow = MutableStateFlow<Map<String, Map<String, BigInteger>>>(emptyMap())
@@ -52,6 +63,7 @@ object BalanceStore : IStore {
         totalBalanceInBaseCurrency.remove(accountId)
         totalBalanceInBaseCurrencyPerChain.remove(accountId)
         totalBalance24hInBaseCurrency.remove(accountId)
+        lastPortfolioSnapshotByAccount.remove(accountId)
     }
 
     override fun wipeData() {
@@ -64,6 +76,7 @@ object BalanceStore : IStore {
         totalBalanceInBaseCurrency.clear()
         totalBalanceInBaseCurrencyPerChain.clear()
         totalBalance24hInBaseCurrency.clear()
+        lastPortfolioSnapshotByAccount.clear()
     }
 
     private val processorQueue = Executors.newSingleThreadExecutor()
@@ -105,11 +118,34 @@ object BalanceStore : IStore {
         removeOtherTokens: Boolean,
         onCompletion: (() -> Unit)? = null
     ) {
+        setBalances(accountId, accountBalances, removeOtherTokens, chain = null, onCompletion)
+    }
+
+    /**
+     * When [chain] is set, existing balances for that chain are replaced (like iOS / web),
+     * so an empty update clears tokens of a disabled network.
+     */
+    fun setBalances(
+        accountId: String,
+        accountBalances: HashMap<String, BigInteger>,
+        removeOtherTokens: Boolean,
+        chain: String?,
+        onCompletion: (() -> Unit)? = null
+    ) {
         processorQueue.execute {
             val existingBalances = balances[accountId]
             val newBalances: ConcurrentHashMap<String, BigInteger> =
                 if (removeOtherTokens || existingBalances.isNullOrEmpty()) {
                     ConcurrentHashMap()
+                } else if (chain != null) {
+                    ConcurrentHashMap<String, BigInteger>().apply {
+                        existingBalances.forEach { (slug, balance) ->
+                            val tokenChain = TokenStore.getToken(slug)?.chain
+                            if (tokenChain != chain) {
+                                put(slug, balance)
+                            }
+                        }
+                    }
                 } else {
                     ConcurrentHashMap(existingBalances)
                 }
@@ -132,8 +168,144 @@ object BalanceStore : IStore {
                 jsonObject.put(key, "bigint:${newBalances[key]}")
             }
             WGlobalStorage.setBalancesDict(accountId, jsonObject)
+            schedulePortfolioSnapshot(accountId, force = false)
             onCompletion?.invoke()
         }
+    }
+
+    fun recordPortfolioSnapshotNow(accountId: String) {
+        schedulePortfolioSnapshot(accountId, force = true)
+    }
+
+    suspend fun recordPortfolioSnapshotAwait(accountId: String, force: Boolean = true) {
+        val snapshot = buildPortfolioSnapshotUsd(accountId) ?: return
+        if (!force && !shouldRecordPortfolioSnapshot(accountId, snapshot.totalUsd)) return
+        runCatching {
+            WalletCore.recordPortfolioSnapshot(accountId, snapshot.totalUsd, snapshot.bySlug)
+            markPortfolioSnapshotRecorded(accountId, snapshot.totalUsd)
+        }
+    }
+
+    fun buildBootstrapHoldings(accountId: String): List<PortfolioBootstrapHolding> {
+        val accountBalances = balances[accountId] ?: return emptyList()
+        val network = MBlockchainNetwork.ofAccountId(accountId).value
+        val amountBySlug = linkedMapOf<String, Double>()
+        val priceBySlug = linkedMapOf<String, Double>()
+
+        for ((tokenSlug, balance) in accountBalances) {
+            if (STAKING_SLUGS.contains(tokenSlug)) continue
+            val token = TokenStore.getToken(
+                if (tokenSlug == STAKE_SLUG) TONCOIN_SLUG else tokenSlug
+            ) ?: continue
+            if (ChainVisibilityStore.isHidden(token.chain, network)) continue
+            val priceUsd = token.priceUsd
+            if (priceUsd <= 0.0) continue
+            val amount = balance.doubleAbsRepresentation(token.decimals)
+            if (amount <= 0.0) continue
+            amountBySlug[tokenSlug] = (amountBySlug[tokenSlug] ?: 0.0) + amount
+            priceBySlug[tokenSlug] = priceUsd
+        }
+
+        val staking = StakingStore.getStakingState(accountId)
+        if (staking != null) {
+            val parts = listOf(
+                TONCOIN_SLUG to staking.totalTonBalance,
+                MYCOIN_SLUG to staking.totalMycoinBalance,
+                USDE_SLUG to staking.totalUSDeBalance,
+            )
+            for ((slug, balance) in parts) {
+                val nonNullBalance = balance ?: continue
+                val token = TokenStore.getToken(slug) ?: continue
+                val priceUsd = token.priceUsd
+                if (priceUsd <= 0.0) continue
+                val amount = nonNullBalance.doubleAbsRepresentation(token.decimals)
+                if (amount <= 0.0) continue
+                amountBySlug[slug] = (amountBySlug[slug] ?: 0.0) + amount
+                priceBySlug[slug] = priceUsd
+            }
+        }
+
+        return amountBySlug.mapNotNull { (slug, amount) ->
+            val priceUsd = priceBySlug[slug] ?: return@mapNotNull null
+            PortfolioBootstrapHolding(slug = slug, amount = amount, priceUsd = priceUsd)
+        }
+    }
+
+    private fun schedulePortfolioSnapshot(accountId: String, force: Boolean = false) {
+        CoroutineScope(Dispatchers.Main).launch {
+            recordPortfolioSnapshotAwait(accountId, force = force)
+        }
+    }
+
+    private fun shouldRecordPortfolioSnapshot(accountId: String, totalUsd: Double): Boolean {
+        val previous = lastPortfolioSnapshotByAccount[accountId]
+        val now = System.currentTimeMillis()
+        if (previous != null
+            && now - previous.atMs < PORTFOLIO_SNAPSHOT_MIN_INTERVAL_MS
+            && kotlin.math.abs(previous.totalUsd - totalUsd) < PORTFOLIO_SNAPSHOT_EPSILON_USD
+        ) {
+            return false
+        }
+        return true
+    }
+
+    private fun markPortfolioSnapshotRecorded(accountId: String, totalUsd: Double) {
+        lastPortfolioSnapshotByAccount[accountId] = PortfolioSnapshotThrottle(totalUsd, System.currentTimeMillis())
+    }
+
+    private data class PortfolioSnapshotThrottle(
+        val totalUsd: Double,
+        val atMs: Long,
+    )
+
+    private data class PortfolioSnapshotUsd(
+        val totalUsd: Double,
+        val bySlug: Map<String, Double>,
+    )
+
+    private fun buildPortfolioSnapshotUsd(accountId: String): PortfolioSnapshotUsd? {
+        val accountBalances = balances[accountId] ?: return null
+        val network = MBlockchainNetwork.ofAccountId(accountId).value
+        val bySlug = linkedMapOf<String, Double>()
+
+        var walletUsd = 0.0
+        for ((tokenSlug, balance) in accountBalances) {
+            if (STAKING_SLUGS.contains(tokenSlug)) continue
+            val token = TokenStore.getToken(
+                if (tokenSlug == STAKE_SLUG) TONCOIN_SLUG else tokenSlug
+            ) ?: continue
+            if (ChainVisibilityStore.isHidden(token.chain, network)) continue
+            val usd = MTokenBalance.fromParameters(token, balance)?.toUsdBaseCurrency ?: continue
+            if (usd <= 0.0) continue
+            bySlug[tokenSlug] = (bySlug[tokenSlug] ?: 0.0) + usd
+            walletUsd += usd
+        }
+
+        val stakingUsd = addStakingUsdByTokenSlug(accountId, bySlug)
+        return PortfolioSnapshotUsd(totalUsd = walletUsd + stakingUsd, bySlug = bySlug)
+    }
+
+    /** Attribute staking USD to the underlying token slug (parity with web `buildPortfolioSnapshotValues`). */
+    private fun addStakingUsdByTokenSlug(
+        accountId: String,
+        bySlug: MutableMap<String, Double>,
+    ): Double {
+        val staking = StakingStore.getStakingState(accountId) ?: return 0.0
+        var total = 0.0
+        val parts = listOf(
+            TONCOIN_SLUG to staking.totalTonBalance,
+            MYCOIN_SLUG to staking.totalMycoinBalance,
+            USDE_SLUG to staking.totalUSDeBalance,
+        )
+        for ((slug, balance) in parts) {
+            val usd = MTokenBalance.fromParameters(TokenStore.getToken(slug), balance)
+                ?.toUsdBaseCurrency
+                ?: continue
+            if (usd <= 0.0) continue
+            bySlug[slug] = (bySlug[slug] ?: 0.0) + usd
+            total += usd
+        }
+        return total
     }
 
     fun resetBalanceInBaseCurrency() {
@@ -190,6 +362,7 @@ object BalanceStore : IStore {
 
         val perChain = mutableMapOf<MBlockchain, Double>()
 
+        val network = MBlockchainNetwork.ofAccountId(accountId).value
         val walletUsd = accountBalances
             .filter { !STAKING_SLUGS.contains(it.key) }
             .entries
@@ -197,6 +370,9 @@ object BalanceStore : IStore {
                 val token =
                     TokenStore.getToken(if (tokenSlug == STAKE_SLUG) TONCOIN_SLUG else tokenSlug)
                         ?: return@sumOf 0.0
+                if (ChainVisibilityStore.isHidden(token.chain, network)) {
+                    return@sumOf 0.0
+                }
                 val usd = MTokenBalance.fromParameters(token, balance)?.toUsdBaseCurrency
                     ?: return@sumOf 0.0
                 val blockchain = MBlockchain.supportedChains.find { it.name == token.chain }

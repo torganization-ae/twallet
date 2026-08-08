@@ -118,7 +118,7 @@ class TokensVC(
 
     override var title: String?
         get() {
-            return LocaleController.getString("Assets")
+            return LocaleController.getString("Tokens")
         }
         set(_) {
         }
@@ -490,6 +490,7 @@ class TokensVC(
         when (walletEvent) {
             WalletEvent.BalanceChanged,
             WalletEvent.AssetsAndActivityDataUpdated,
+            WalletEvent.ChainVisibilityChanged,
             is WalletEvent.AccountChanged,
             WalletEvent.StakingDataUpdated -> {
                 dataUpdated(forceUpdate = false)

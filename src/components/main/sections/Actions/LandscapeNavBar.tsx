@@ -50,7 +50,7 @@ function LandscapeNavBar({
     switchToWallet();
     closeNftCollection();
     selectToken({ slug: undefined });
-    setActiveContentTab({ tab: ContentTab.Overview });
+    setActiveContentTab({ tab: ContentTab.Assets });
   });
 
   return (

@@ -149,7 +149,17 @@ private struct Cell: View {
     
     func onPaste() {
         if let pastedAddress = UIPasteboard.general.string?.trimmingCharacters(in: .whitespacesAndNewlines), !pastedAddress.isEmpty {
-            model.textFieldInput = pastedAddress
+            // In tmail mode the field shows the local part; strip a pasted full alias to avoid
+            // "name@tmail.ton@tmail.ton" once AddressInputModel composes the suffix.
+            if model.aliasMode == .tmail {
+                let lower = pastedAddress.lowercased()
+                let suffix = "@tmail.ton"
+                model.textFieldInput = lower.hasSuffix(suffix)
+                    ? String(lower.dropLast(suffix.count))
+                    : lower
+            } else {
+                model.textFieldInput = pastedAddress
+            }
             if onPasteAction?() != true {
                 endEditing()
             }

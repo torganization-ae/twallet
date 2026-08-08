@@ -19,6 +19,7 @@ import {
   BNB,
   BSC_USDT_MAINNET,
   DEBUG,
+  DEFAULT_CHAIN,
   ETH,
   ETH_USDC_MAINNET,
   ETH_USDT_MAINNET,
@@ -45,8 +46,8 @@ import { getHiddenChainsSnapshot } from '../api/chains/chainVisibility';
 import { EVM_DERIVATION_PATHS } from '../api/chains/evm/constants';
 import {
   getSharedChainConfig,
-  getSharedDisplayOrder,
   getSharedChainOrder,
+  getSharedDisplayOrder,
   isSharedChainDefaultEnabled,
 } from '../api/chains/networksConfig';
 import { SOLANA_DERIVATION_PATHS } from '../api/chains/solana/constants';
@@ -129,7 +130,7 @@ export interface ChainConfig {
   doesSupportPushNotifications: boolean;
   /** A random but valid address for checking transfer fees */
   feeCheckAddress: string;
-  /** A swap configuration used to buy the native token in this chain. If absent, the "Buy with Crypto" UI is hidden. */
+  /** A swap configuration used as the default for the buy-with-crypto deeplink. */
   buySwap?: {
     tokenInSlug: string;
     /** Amount as perceived by the user */
@@ -989,6 +990,14 @@ export function getVisibleChains(chains: ApiChain[], network?: ApiNetwork): ApiC
 /** Returns the chains supported by the given account in the proper order for showing in the UI */
 export function getOrderedAccountChains(byChain: Partial<Record<ApiChain, unknown>>, network?: ApiNetwork) {
   return getVisibleChains(getDisplayOrderedChains(), network).filter((chain) => chain in byChain);
+}
+
+/** Preferred receive chain: explicit choice if still visible, else TON, else first visible. */
+export function resolveReceiveChain(visibleChains: ApiChain[], preferred?: ApiChain): ApiChain | undefined {
+  if (!visibleChains.length) return undefined;
+  if (preferred && visibleChains.includes(preferred)) return preferred;
+  if (visibleChains.includes(DEFAULT_CHAIN)) return DEFAULT_CHAIN;
+  return visibleChains[0];
 }
 
 /**

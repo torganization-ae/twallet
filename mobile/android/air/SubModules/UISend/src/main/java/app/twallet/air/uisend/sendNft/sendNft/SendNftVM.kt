@@ -110,6 +110,11 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
             return
         }
         inputAddress = destination
+        // Clear prior draft resolution so self-send checks cannot use a stale address.
+        resolvedAddress = null
+        addressName = null
+        isScam = false
+        feeValue = null
         scheduleFeeRequest()
     }
 
@@ -131,6 +136,9 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
         val destination = address.trim()
         if (destination.isEmpty()) {
             addressInfo = null
+            resolvedAddress = null
+            addressName = null
+            isScam = false
             addressInfoJob?.cancel()
             delegate.get()?.addressInfoUpdated(null)
             return
@@ -175,6 +183,11 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
             return null
         }
 
+        val ownAddress = AccountStore.activeAccount?.byChain?.get(chain.name)?.address
+        if (!chain.isSendToSelfAllowed && ownAddress != null && destination == ownAddress) {
+            return null
+        }
+
         val network = AccountStore.activeAccount?.network ?: return AddressInfo(
             chain = chain,
             input = destination
@@ -190,10 +203,18 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
                     )
                 )
             }
+            val resolved = result?.resolvedAddress
+            val ownAddressAfterResolve = AccountStore.activeAccount?.byChain?.get(chain.name)?.address
+            if (!chain.isSendToSelfAllowed &&
+                ownAddressAfterResolve != null &&
+                resolved == ownAddressAfterResolve
+            ) {
+                return null
+            }
             AddressInfo(
                 chain = chain,
                 input = destination,
-                resolvedAddress = result?.resolvedAddress,
+                resolvedAddress = resolved,
                 addressName = result?.addressName,
                 isScam = result?.isScam,
                 error = result?.error,
@@ -216,6 +237,25 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
 
     private fun requestFee() {
         delegate.get()?.feeUpdated(null, null)
+        val destination = inputAddress.trim()
+        if (destination.isEmpty()) {
+            return
+        }
+        val isFormatValid =
+            chain.isValidAddress(destination) ||
+                (chain == MBlockchain.ton &&
+                    (DNSHelpers.isDnsDomain(destination) || TmailHelpers.isTmailAlias(destination)))
+        val ownAddress = AccountStore.activeAccount?.byChain?.get(chain.name)?.address
+        val isSelfSend = !chain.isSendToSelfAllowed &&
+            ownAddress != null &&
+            (destination == ownAddress || resolvedAddress == ownAddress)
+        if (!isFormatValid || isSelfSend) {
+            delegate.get()?.feeUpdated(
+                null,
+                MBridgeError.INVALID_ADDRESS
+            )
+            return
+        }
         WalletCore.call(
             ApiMethod.Nft.CheckNftTransferDraft(
                 chain,

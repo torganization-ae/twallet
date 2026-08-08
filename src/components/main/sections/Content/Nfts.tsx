@@ -94,7 +94,7 @@ function Nfts({
   const nftMarketplaceTitle = isMultichainAccount ? NFT_MARKETPLACE_TITLE : TON_NFT_MARKETPLACE_TITLE;
   const nftMarketplaceUrl = isMultichainAccount ? NFT_MARKETPLACE_URL : TON_NFT_MARKETPLACE_URL;
 
-  // In compact mode (`LandscapeWalletOverview`) NFTs are already in global state - no need to fetch
+  // In widget/compact mode NFTs are already in global state - no need to fetch
   useEffect(() => {
     if (!isWidget && collection && collection.address !== TELEGRAM_GIFTS_SUPER_COLLECTION) {
       fetchNftsFromCollection({ collection });

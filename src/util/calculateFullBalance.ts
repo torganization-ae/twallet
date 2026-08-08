@@ -54,3 +54,68 @@ export function calculateFullBalance(
     changeValue,
   };
 }
+
+/** USD total + per-slug breakdown for the local portfolio diary */
+export function buildPortfolioSnapshotValues(
+  tokens?: UserToken[],
+  stakingStates?: ApiStakingState[],
+) {
+  const stakingStateBySlug = buildArrayCollectionByKey(stakingStates ?? [], 'tokenSlug');
+  const bySlug: Record<string, number> = {};
+  let totalUsd = Big(0);
+
+  for (const token of tokens ?? []) {
+    if (STAKED_TOKEN_SLUGS.has(token.slug)) continue;
+
+    let slugUsd = toBig(token.amount, token.decimals).mul(token.priceUsd);
+    const tokenStakingStates = stakingStateBySlug[token.slug] ?? [];
+
+    for (const stakingState of tokenStakingStates) {
+      slugUsd = slugUsd.plus(
+        toBig(getFullStakingBalance(stakingState), token.decimals).mul(token.priceUsd),
+      );
+    }
+
+    const value = slugUsd.toNumber();
+    if (value <= 0) continue;
+
+    bySlug[token.slug] = value;
+    totalUsd = totalUsd.plus(slugUsd);
+  }
+
+  return {
+    totalUsd: totalUsd.toNumber(),
+    bySlug,
+  };
+}
+
+/** Human-unit holdings for seeding approximate portfolio history from network prices. */
+export function buildPortfolioBootstrapHoldings(
+  tokens?: UserToken[],
+  stakingStates?: ApiStakingState[],
+) {
+  const stakingStateBySlug = buildArrayCollectionByKey(stakingStates ?? [], 'tokenSlug');
+  const holdings: Array<{ slug: string; amount: number; priceUsd: number }> = [];
+
+  for (const token of tokens ?? []) {
+    if (STAKED_TOKEN_SLUGS.has(token.slug)) continue;
+
+    let amount = toBig(token.amount, token.decimals);
+    const tokenStakingStates = stakingStateBySlug[token.slug] ?? [];
+
+    for (const stakingState of tokenStakingStates) {
+      amount = amount.plus(toBig(getFullStakingBalance(stakingState), token.decimals));
+    }
+
+    const amountNumber = amount.toNumber();
+    if (!(amountNumber > 0) || !(token.priceUsd > 0)) continue;
+
+    holdings.push({
+      slug: token.slug,
+      amount: amountNumber,
+      priceUsd: token.priceUsd,
+    });
+  }
+
+  return holdings;
+}

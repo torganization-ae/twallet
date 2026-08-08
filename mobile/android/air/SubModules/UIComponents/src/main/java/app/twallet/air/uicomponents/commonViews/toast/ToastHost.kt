@@ -97,10 +97,16 @@ class ToastHost(context: Context) : WFrameLayout(context) {
     private fun configureActiveToast() {
         val presentation = activeToast ?: return
         val toastView = getOrCreateToastView()
-        toastView.configure(presentation) {
-            presentation.onAction?.invoke()
-            dismissCurrentToast()
-        }
+        toastView.configure(
+            presentation,
+            onAction = {
+                presentation.onAction?.invoke()
+                dismissCurrentToast()
+            },
+            onDismiss = {
+                dismissCurrentToast()
+            },
+        )
     }
 
     private fun animateToastIn() {

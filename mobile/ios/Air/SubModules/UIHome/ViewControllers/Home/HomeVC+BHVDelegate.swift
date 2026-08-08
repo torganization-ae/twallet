@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import UIComponents
 import WalletContext
+import WalletCore
 import UIAssets
 import SwiftUI
 
@@ -29,6 +30,17 @@ extension HomeVC: BalanceHeaderViewDelegate, WalletAssetsDelegate {
     public func walletAssetDidChangeHeight(animated: Bool) {
         updateTableViewHeaderFrame(animated: animated)
         view.setNeedsLayout()
+    }
+
+    public func walletAssetsDidSelectTab(_ tab: DisplayAssetTab) {
+        guard selectedAssetsTab != tab else { return }
+        selectedAssetsTab = tab
+        applySnapshot(makeSnapshot(), animatingDifferences: true)
+        updateSkeletonState()
+        if selectedAssetsTab != .activity {
+            collectionView.isScrollEnabled = true
+        }
+        walletAssetDidChangeHeight(animated: true)
     }
     
     public func expandHeader() {

@@ -10,7 +10,7 @@ import { requestMeasure } from '../../lib/fasterdom/fasterdom';
 import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import captureKeyboardListeners from '../../util/captureKeyboardListeners';
-import { readClipboardContent } from '../../util/clipboard';
+import { readClipboardContent, shouldHidePasteButtonAfterClipboardError } from '../../util/clipboard';
 import isMnemonicPrivateKey from '../../util/isMnemonicPrivateKey';
 import { compact } from '../../util/iteratees';
 import { formatEnumeration } from '../../util/langProvider';
@@ -118,13 +118,15 @@ const AuthImportMnemonic = ({ isActive, isLoading, error }: OwnProps & StateProp
       const { type, text } = await readClipboardContent();
 
       if (type === 'text/plain') {
-        const newValue = text.trim();
+        const newValue = (text ?? '').trim();
 
         handlePasteMnemonic(newValue);
       }
     } catch (err: any) {
       showToast({ message: lang('Error reading clipboard') });
-      setShouldRenderPasteButton(false);
+      if (shouldHidePasteButtonAfterClipboardError(err)) {
+        setShouldRenderPasteButton(false);
+      }
     }
   });
   const isSubmitDisabled = useMemo(() => {

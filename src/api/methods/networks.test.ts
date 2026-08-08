@@ -174,9 +174,10 @@ describe('networks RPC API', () => {
 
     const activeTitles = active.map((item) => item.title);
     const inactiveTitles = inactive.map((item) => item.title);
-    expect(activeTitles).toEqual([...activeTitles].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })));
-    expect(inactiveTitles).toEqual(
-      [...inactiveTitles].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })),
+    const sortTitles = (titles: string[]) => (
+      [...titles].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
     );
+    expect(activeTitles).toEqual(sortTitles(activeTitles));
+    expect(inactiveTitles).toEqual(sortTitles(inactiveTitles));
   });
 });

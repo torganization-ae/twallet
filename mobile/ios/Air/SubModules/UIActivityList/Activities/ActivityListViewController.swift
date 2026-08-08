@@ -41,6 +41,9 @@ open class ActivityListViewController: WViewController, ActivityCell.Delegate, U
     open var activeCustomSectionIDs: [String] { customSections.map(\.id) }
     public var customSectionIDs: [String] { activeCustomSectionIDs }
 
+    /// When false (e.g. Home Tokens/NFT peer tabs), skip activity skeleton and keep scrolling enabled.
+    open var isActivityContentVisible: Bool { true }
+
     public var activityViewModel: ActivityListViewModel?
 
     private var reconfigureTokensWhenStopped: Bool = false
@@ -523,16 +526,30 @@ open class ActivityListViewController: WViewController, ActivityCell.Delegate, U
         } else {
             .loadingMore
         }
-        collectionView.isScrollEnabled = skeletonState != .loading
+        // Peer tabs (Tokens/NFT) must stay scrollable even while activity data is still loading.
+        collectionView.isScrollEnabled = !isActivityContentVisible || skeletonState != .loading
+        if !isActivityContentVisible, skeletonView.isAnimating {
+            skeletonView.stopAnimating()
+        }
     }
 
     open func updateSkeletonViewsIfNeeded(animateAlondside: ((_ isLoading: Bool) -> ())?) {
+        guard isActivityContentVisible else {
+            if skeletonView.isAnimating {
+                skeletonView.stopAnimating()
+                animateAlondside?(false)
+            }
+            collectionView.isScrollEnabled = true
+            return
+        }
+
         let dataAvailable = activityViewModel?.idsByDate != nil
 
         if !dataAvailable, !skeletonView.isAnimating, !isInitializingCache {
             view.bringSubviewToFront(skeletonView)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 guard let self else { return }
+                guard self.isActivityContentVisible else { return }
                 let dataAvailable = activityViewModel?.idsByDate != nil
                 if !dataAvailable, !skeletonView.isAnimating {
                     updateSkeletonViewMask()

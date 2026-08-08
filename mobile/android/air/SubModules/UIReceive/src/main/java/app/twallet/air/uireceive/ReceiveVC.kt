@@ -10,14 +10,14 @@ import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.ViewTreeObserver
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
 import androidx.constraintlayout.widget.ConstraintLayout.generateViewId
-import androidx.core.view.isGone
-import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
-import androidx.lifecycle.ViewModelProvider
-import app.twallet.air.uicomponents.base.WNavigationBar
+import app.twallet.air.icons.R
 import app.twallet.air.uicomponents.base.WViewControllerWithModelStore
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.ClipboardHelpers
@@ -32,28 +32,21 @@ import app.twallet.air.uicomponents.widgets.WScrollView
 import app.twallet.air.uicomponents.widgets.WView
 import app.twallet.air.uicomponents.widgets.fadeIn
 import app.twallet.air.uicomponents.widgets.menu.WMenuPopup
-import app.twallet.air.uicomponents.widgets.menu.WMenuPopup.BackgroundStyle
+import app.twallet.air.uicomponents.widgets.menu.WMenuPopup.Item.Config.Icon
 import app.twallet.air.uicomponents.widgets.segmentedController.WSegmentedController
 import app.twallet.air.uicomponents.widgets.segmentedController.WSegmentedControllerItem
 import app.twallet.air.uicomponents.widgets.setBackgroundColor
-import app.twallet.air.uiinappbrowser.CustomTabsBrowser
-import app.twallet.air.uiswap.screens.swap.SwapVC
 import app.twallet.air.walletbasecontext.localization.LocaleController
-import app.twallet.air.walletbasecontext.models.MBaseCurrency
 import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
+import app.twallet.air.walletbasecontext.utils.getDrawableCompat
 import app.twallet.air.walletbasecontext.utils.toProcessedSpannableStringBuilder
-import app.twallet.air.walletcore.TONCOIN_SLUG
-import app.twallet.air.walletcore.TRON_USDT_SLUG
 import app.twallet.air.walletcore.WalletCore
-import app.twallet.air.walletcore.models.MBridgeError
+import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
-import app.twallet.air.walletcore.moshi.MApiSwapAsset
 import app.twallet.air.walletcore.stores.AccountStore
-import app.twallet.air.walletcore.stores.ConfigStore
-import app.twallet.air.walletcore.stores.TokenStore
 import java.lang.ref.WeakReference
 
 @SuppressLint("ViewConstructor")
@@ -85,29 +78,36 @@ class ReceiveVC private constructor(
     }
 
     val availableChains: List<MBlockchain> =
-        AccountStore.activeAccount?.sortedChains()?.mapNotNull { entry ->
+        AccountStore.activeAccount?.visibleSortedChains()?.mapNotNull { entry ->
             MBlockchain.supportedChains.find { it.name == entry.key }
         } ?: emptyList()
 
     private val isViewOnlyAccount = AccountStore.activeAccount?.isViewOnly == true
 
-    private val defaultChainIndex = availableChains.indexOf(defaultChain).coerceAtLeast(0)
+    private val resolvedDefaultChain: MBlockchain? =
+        resolveReceiveChain(availableChains, defaultChain)
+
+    private val defaultChainIndex =
+        availableChains.indexOf(resolvedDefaultChain).coerceAtLeast(0)
 
     private val onQrLoaded = {
-        if (isViewOnlyAccount)
+        if (isViewOnlyAccount) {
             viewOnlyWarningView.fadeIn()
-        else
+        } else {
             optionsContainerView.fadeIn()
+        }
     }
 
     val qrCodeVCs: Map<MBlockchain, QRCodeVC> =
-        availableChains.mapIndexed { index, blockchain ->
-            blockchain to QRCodeVC(
-                context,
-                blockchain,
-                if (index == defaultChainIndex) onQrLoaded else null
-            )
-        }.toMap()
+        availableChains
+            .mapIndexed { index, blockchain ->
+                blockchain to
+                    QRCodeVC(
+                        context,
+                        blockchain,
+                        if (index == defaultChainIndex) onQrLoaded else null
+                    )
+            }.toMap()
 
     private val gradientColorViews: List<View> =
         availableChains.mapIndexed { i, _ ->
@@ -117,69 +117,128 @@ class ReceiveVC private constructor(
             }
         }
 
+    private val chainIconView: AppCompatImageView by lazy {
+        AppCompatImageView(context).apply {
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }
+    }
+
+    private val chainNameLabel: WLabel by lazy {
+        WLabel(context).apply {
+            setStyle(15f, WFont.Medium)
+            setTextColor(Color.WHITE)
+            maxLines = 1
+            includeFontPadding = false
+            ellipsize = android.text.TextUtils.TruncateAt.END
+        }
+    }
+
+    private val chainChevronView: AppCompatImageView by lazy {
+        AppCompatImageView(context).apply {
+            setImageDrawable(
+                context.getDrawableCompat(R.drawable.ic_arrow_bottom_8)?.apply {
+                    setTint(Color.WHITE)
+                    alpha = 191
+                }
+            )
+        }
+    }
+
+    private val chainSelectorView: LinearLayout by lazy {
+        LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(8.dp, 0, 8.dp, 0)
+            addView(
+                chainIconView,
+                LinearLayout.LayoutParams(22.dp, 22.dp).apply {
+                    gravity = Gravity.CENTER_VERTICAL
+                }
+            )
+            addView(
+                chainNameLabel,
+                LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+                    marginStart = 6.dp
+                    gravity = Gravity.CENTER_VERTICAL
+                    // Keep title visible next to the logo; do not let it collapse to 0.
+                    weight = 0f
+                }
+            )
+            addView(
+                chainChevronView,
+                LinearLayout.LayoutParams(10.dp, 10.dp).apply {
+                    marginStart = 4.dp
+                    gravity = Gravity.CENTER_VERTICAL
+                }
+            )
+            setOnClickListener { openChainMenu() }
+        }
+    }
+
     private val qrSegmentView: WSegmentedController by lazy {
-        val defaultIndex = availableChains.indexOf(defaultChain).coerceAtLeast(0)
-        val segmentedController = WSegmentedController(
-            navigationController!!,
-            availableChains.map { chain ->
-                WSegmentedControllerItem(qrCodeVCs[chain]!!, null)
-            } as ArrayList<WSegmentedControllerItem>,
-            isTransparent = true,
-            applySideGutters = false,
-            defaultSelectedIndex = defaultIndex,
-            onOffsetChange = { _, currentOffset ->
-                val chainCount = availableChains.size
-                for (i in gradientColorViews.indices) {
-                    gradientColorViews[i].alpha = when {
-                        chainCount == 1 -> 1f
-                        i == 0 -> (1f - currentOffset.coerceIn(0f, 1f))
-                        i == chainCount - 1 -> (currentOffset - (i - 1)).coerceIn(0f, 1f)
-                        else -> {
-                            val dist = (currentOffset - i).let { kotlin.math.abs(it) }
-                            (1f - dist).coerceIn(0f, 1f)
-                        }
+        val defaultIndex = defaultChainIndex
+        val segmentedController =
+            WSegmentedController(
+                navigationController!!,
+                availableChains.map { chain ->
+                    WSegmentedControllerItem(qrCodeVCs[chain]!!, null)
+                } as ArrayList<WSegmentedControllerItem>,
+                isTransparent = true,
+                applySideGutters = false,
+                defaultSelectedIndex = defaultIndex,
+                onOffsetChange = { _, currentOffset ->
+                    val chainCount = availableChains.size
+                    for (i in gradientColorViews.indices) {
+                        gradientColorViews[i].alpha =
+                            when {
+                                chainCount == 1 -> 1f
+                                i == 0 -> (1f - currentOffset.coerceIn(0f, 1f))
+                                i == chainCount - 1 -> (currentOffset - (i - 1)).coerceIn(0f, 1f)
+                                else -> {
+                                    val dist = (currentOffset - i).let { kotlin.math.abs(it) }
+                                    (1f - dist).coerceIn(0f, 1f)
+                                }
+                            }
                     }
-                }
 
-                for ((i, chain) in availableChains.withIndex()) {
-                    val vc = qrCodeVCs[chain] ?: continue
-                    val progress = (currentOffset - i).let { kotlin.math.abs(it) }.coerceIn(0f, 1f)
-                    val direction = if (currentOffset > i) -1 else 1
-                    animateQrView(vc.qrCodeView, vc.ornamentView, direction, progress)
-                }
+                    for ((i, chain) in availableChains.withIndex()) {
+                        val vc = qrCodeVCs[chain] ?: continue
+                        val progress = (currentOffset - i).let { kotlin.math.abs(it) }.coerceIn(0f, 1f)
+                        val direction = if (currentOffset > i) -1 else 1
+                        animateQrView(vc.qrCodeView, vc.ornamentView, direction, progress)
+                    }
 
-                if (chainCount > 1) {
-                    val floorIdx = currentOffset.toInt().coerceIn(0, chainCount - 2)
-                    val frac = currentOffset - floorIdx
-                    val vcA = qrCodeVCs[availableChains[floorIdx]]!!
-                    val vcB = qrCodeVCs[availableChains[floorIdx + 1]]!!
-                    val height = ((1 - frac) * qrCodeHeight(vcA)) + (frac * qrCodeHeight(vcB))
-                    val layoutParams = qrSegmentView.layoutParams
-                    layoutParams.height = height.toInt()
-                    qrSegmentView.layoutParams = layoutParams
-                }
+                    if (chainCount > 1) {
+                        val floorIdx = currentOffset.toInt().coerceIn(0, chainCount - 2)
+                        val frac = currentOffset - floorIdx
+                        val vcA = qrCodeVCs[availableChains[floorIdx]]!!
+                        val vcB = qrCodeVCs[availableChains[floorIdx + 1]]!!
+                        val height = ((1 - frac) * qrCodeHeight(vcA)) + (frac * qrCodeHeight(vcB))
+                        val layoutParams = qrSegmentView.layoutParams
+                        layoutParams.height = height.toInt()
+                        qrSegmentView.layoutParams = layoutParams
+                    }
 
-                updateOptionsForOffset(currentOffset)
-            },
-            forceCenterTabs = false,
-            pilledTabs = true
-        )
+                    updateOptionsForOffset(currentOffset)
+                },
+                onSelectedIndexChanged = { index ->
+                    updateChainSelector(index)
+                },
+                forceCenterTabs = false,
+                pilledTabs = true
+            )
         segmentedController.addCloseButton()
+        segmentedController.setTabsVisible(false)
+        segmentedController.disableSwipeNavigation()
+        segmentedController.addLeadingView(chainSelectorView)
+        updateChainSelector(defaultIndex)
         segmentedController
     }
 
-    val titleLabel: WLabel by lazy {
-        val lbl = WLabel(context)
-        lbl.setStyle(22F, WFont.Medium)
-        lbl.gravity = Gravity.CENTER
-        lbl.text =
-            LocaleController.getString("Add Crypto")
-        lbl
-    }
-
-    private val backgroundColorView = WView(context).apply {
-        setBackgroundColor(WColor.Background.color, 0f, ViewConstants.BLOCK_RADIUS.dp)
-    }
+    private val backgroundColorView =
+        WView(context).apply {
+            setBackgroundColor(WColor.Background.color, 0f, ViewConstants.BLOCK_RADIUS.dp)
+        }
 
     private val currentQRCode: QRCodeVC
         get() {
@@ -217,13 +276,14 @@ class ReceiveVC private constructor(
                 return@setOnClickListener
             }
             Haptics.play(v, HapticType.LIGHT_TAP)
-            Toast.makeText(
-                context,
-                LocaleController.getString("%chain% Address Copied")
-                    .replace("%chain%", currentQRCode.chain.displayName),
-                Toast.LENGTH_SHORT
-            )
-                .show()
+            Toast
+                .makeText(
+                    context,
+                    LocaleController
+                        .getString("%chain% Address Copied")
+                        .replace("%chain%", currentQRCode.chain.displayName),
+                    Toast.LENGTH_SHORT
+                ).show()
         }
         v
     }
@@ -238,48 +298,6 @@ class ReceiveVC private constructor(
 
     private val optionsSeparatorView: WBaseView by lazy {
         val v = WBaseView(context)
-        v
-    }
-
-    private val buyWithCryptoLabel: WLabel by lazy {
-        val lbl = WLabel(context)
-        lbl.setStyle(adaptiveFontSize())
-        lbl.text =
-            LocaleController.getString("Buy with Crypto")
-        lbl
-    }
-
-    private val buyWithCryptoView: WView by lazy {
-        val v = WView(context)
-        v.isGone = AccountStore.activeAccount?.supportsBuyWithCrypto != true
-        if (v.isVisible) {
-            v.addView(buyWithCryptoLabel)
-            v.setConstraints {
-                toStart(buyWithCryptoLabel, 20f)
-                toCenterY(buyWithCryptoLabel)
-            }
-            v.setOnClickListener {
-                TokenStore.getToken(currentQRCode.chain.nativeSlug)?.let {
-                    val sendingToken = when (currentQRCode.chain) {
-                        MBlockchain.ton -> {
-                            TokenStore.getToken(TRON_USDT_SLUG)
-                        }
-
-                        else -> {
-                            TokenStore.getToken(TONCOIN_SLUG)
-                        }
-                    }
-                    if (sendingToken != null) {
-                        val swapVC = SwapVC(
-                            context,
-                            defaultSendingToken = MApiSwapAsset.from(sendingToken),
-                            defaultReceivingToken = MApiSwapAsset.from(it)
-                        )
-                        navigationController?.push(swapVC)
-                    }
-                }
-            }
-        }
         v
     }
 
@@ -307,7 +325,8 @@ class ReceiveVC private constructor(
     private val viewOnlyWarningView: WAlertLabel by lazy {
         WAlertLabel(
             context,
-            LocaleController.getString("\$view_only_wallet_receive_warning")
+            LocaleController
+                .getString("\$view_only_wallet_receive_warning")
                 .trim()
                 .toProcessedSpannableStringBuilder(),
             WColor.Orange.color,
@@ -319,12 +338,9 @@ class ReceiveVC private constructor(
 
     private val optionsContainerView: WView by lazy {
         val v = WView(context)
-        v.addView(buyWithCryptoView, LayoutParams(MATCH_PARENT, OPTION_ROW_HEIGHT.dp))
         v.addView(invoiceView, LayoutParams(MATCH_PARENT, OPTION_ROW_HEIGHT.dp))
         v.setConstraints {
-            toTop(buyWithCryptoView)
-            toCenterX(buyWithCryptoView)
-            topToBottom(invoiceView, buyWithCryptoView)
+            toTop(invoiceView)
             toCenterX(invoiceView)
             toBottom(invoiceView)
         }
@@ -351,10 +367,6 @@ class ReceiveVC private constructor(
             qrSegmentView,
             LayoutParams(MATCH_PARENT, qrHeight)
         )
-        if (qrSegmentView.items.size == 1) v.addView(
-            titleLabel,
-            LayoutParams(WRAP_CONTENT, WNavigationBar.DEFAULT_HEIGHT.dp)
-        )
         v.addView(optionsSeparatorView, LayoutParams(MATCH_PARENT, 16.dp))
         if (isViewOnlyAccount) {
             v.addView(viewOnlyWarningView, LayoutParams(MATCH_PARENT, WRAP_CONTENT))
@@ -374,9 +386,10 @@ class ReceiveVC private constructor(
     override fun setupViews() {
         super.setupViews()
 
-        val layerPaint = Paint().apply {
-            isAntiAlias = true
-        }
+        val layerPaint =
+            Paint().apply {
+                isAntiAlias = true
+            }
         qrCodeVCs.values.forEach { vc ->
             vc.qrCodeView.setLayerType(View.LAYER_TYPE_HARDWARE, layerPaint)
         }
@@ -386,8 +399,6 @@ class ReceiveVC private constructor(
             allEdges(scrollView)
         }
         scrollingContentView.setConstraints {
-            toTopPx(titleLabel, navigationController?.getSystemBars()?.top ?: 0)
-            toCenterX(titleLabel)
             toTop(qrSegmentView)
             toCenterX(qrSegmentView)
             for (colorView in gradientColorViews) {
@@ -425,7 +436,6 @@ class ReceiveVC private constructor(
     override fun updateTheme() {
         super.updateTheme()
         view.setBackgroundColor(WColor.SecondaryBackground.color)
-        titleLabel.setTextColor(Color.WHITE)
         copyAddressView.setBackgroundColor(WColor.Background.color)
         copyAddressView.addRippleEffect(WColor.SecondaryBackground.color)
         copyAddressLabel.setTextColor(WColor.Tint.color)
@@ -439,9 +449,6 @@ class ReceiveVC private constructor(
                 WColor.Background.color,
                 ViewConstants.BLOCK_RADIUS.dp
             )
-            buyWithCryptoView.setBackgroundColor(WColor.Background.color)
-            buyWithCryptoView.addRippleEffect(WColor.SecondaryBackground.color)
-            buyWithCryptoLabel.setTextColor(WColor.Tint.color)
             invoiceView.setBackgroundColor(WColor.Background.color)
             invoiceView.addRippleEffect(WColor.SecondaryBackground.color)
             invoiceLabel.setTextColor(WColor.Tint.color)
@@ -490,8 +497,9 @@ class ReceiveVC private constructor(
     override fun viewWillAppear() {
         super.viewWillAppear()
         resubscribeQrHeightListener()
-        if (navigationController?.isSwipingBack == true)
+        if (navigationController?.isSwipingBack == true) {
             return
+        }
         window!!.forceStatusBarLight = true
     }
 
@@ -519,22 +527,84 @@ class ReceiveVC private constructor(
 
     private var lastAppliedQrHeight = 0
 
-    private val viewTreeObserver = object : ViewTreeObserver.OnPreDrawListener {
-        override fun onPreDraw(): Boolean {
-            val calculatedQRHeight = qrHeight
-            if (calculatedQRHeight == lastAppliedQrHeight) {
-                defaultVC.addressView.viewTreeObserver.removeOnPreDrawListener(this)
+    private val viewTreeObserver =
+        object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                val calculatedQRHeight = qrHeight
+                if (calculatedQRHeight == lastAppliedQrHeight) {
+                    defaultVC.addressView.viewTreeObserver.removeOnPreDrawListener(this)
+                    return true
+                }
+                lastAppliedQrHeight = calculatedQRHeight
+                qrSegmentView.updateLayoutParams {
+                    height = calculatedQRHeight
+                }
                 return true
             }
-            lastAppliedQrHeight = calculatedQRHeight
-            qrSegmentView.updateLayoutParams {
-                height = calculatedQRHeight
-            }
-            return true
         }
+
+    private val defaultVC get() = qrCodeVCs[resolvedDefaultChain] ?: qrCodeVCs.values.first()
+
+    private fun updateChainSelector(index: Int) {
+        val chain = availableChains.getOrNull(index) ?: return
+        chainIconView.setImageResource(chain.icon)
+        chainNameLabel.text = chain.displayName
     }
 
-    private val defaultVC get() = qrCodeVCs[defaultChain] ?: qrCodeVCs.values.first()
+    private fun openChainMenu() {
+        val currentIndex = qrSegmentView.currentIndex
+        val items =
+            availableChains
+                .mapIndexed { index, chain ->
+                    WMenuPopup.Item(
+                        WMenuPopup.Item.Config.Item(
+                            icon =
+                                Icon(
+                                    chain.icon,
+                                    tintColor = null,
+                                    iconSize = 28.dp,
+                                    iconMargin = 12.dp
+                                ),
+                            title = chain.displayName,
+                            textMargin = 52.dp
+                        ),
+                        hasSeparator = index == availableChains.lastIndex,
+                    ) {
+                        if (index != currentIndex) {
+                            qrSegmentView.setActiveIndex(index)
+                            updateChainSelector(index)
+                            updateOptionsForOffset(index.toFloat())
+                        }
+                    }
+                }.toMutableList()
+
+        items.add(
+            WMenuPopup.Item(
+                WMenuPopup.Item.Config.Item(
+                    icon =
+                        Icon(
+                            R.drawable.ic_networks_menu,
+                            tintColor = WColor.SecondaryText,
+                            iconSize = 28.dp,
+                            iconMargin = 12.dp
+                        ),
+                    title = LocaleController.getString("Networks"),
+                    textMargin = 52.dp
+                ),
+                false,
+            ) {
+                WalletCore.notifyEvent(WalletEvent.OpenNetworksSettings)
+            }
+        )
+
+        WMenuPopup.present(
+            chainSelectorView,
+            items,
+            popupWidth = 240.dp,
+            yOffset = 0,
+            positioning = WMenuPopup.Positioning.BELOW,
+        )
+    }
 
     private fun resubscribeQrHeightListener() {
         lastAppliedQrHeight = 0
@@ -544,14 +614,11 @@ class ReceiveVC private constructor(
         }
     }
 
-    private fun qrCodeHeight(vc: QRCodeVC): Int {
-        return vc.getHeight()
-    }
+    private fun qrCodeHeight(vc: QRCodeVC): Int = vc.getHeight()
 
-    private fun qrTransparentHeight(vc: QRCodeVC): Int {
-        return vc.getTransparentHeight() + qrSegmentView.navHeight +
+    private fun qrTransparentHeight(vc: QRCodeVC): Int =
+        vc.getTransparentHeight() + qrSegmentView.navHeight +
             (navigationController?.getSystemBars()?.top ?: 0)
-    }
 
     private fun animateQrView(
         qrCodeView: View,
@@ -582,7 +649,7 @@ class ReceiveVC private constructor(
         qrSegmentView.onDestroy()
         copyAddressView.setOnClickListener(null)
         if (!isViewOnlyAccount) {
-            buyWithCryptoView.setOnClickListener(null)
+            invoiceView.setOnClickListener(null)
         }
         defaultVC.addressView.viewTreeObserver.removeOnPreDrawListener(viewTreeObserver)
     }
@@ -591,12 +658,24 @@ class ReceiveVC private constructor(
         if (isViewOnlyAccount) return
 
         val tonIndex = availableChains.indexOf(MBlockchain.ton)
-        val tonFraction = if (tonIndex >= 0)
-            (1f - kotlin.math.abs(offset - tonIndex)).coerceIn(0f, 1f)
-        else 0f
+        val tonFraction =
+            if (tonIndex >= 0) {
+                (1f - kotlin.math.abs(offset - tonIndex)).coerceIn(0f, 1f)
+            } else {
+                0f
+            }
         invoiceView.layoutParams?.height = (OPTION_ROW_HEIGHT.dp * tonFraction).toInt()
         invoiceView.requestLayout()
         invoiceView.isClickable = tonFraction == 1f
     }
+}
 
+internal fun resolveReceiveChain(
+    visibleChains: List<MBlockchain>,
+    preferred: MBlockchain?,
+): MBlockchain? {
+    if (visibleChains.isEmpty()) return null
+    if (preferred != null && visibleChains.contains(preferred)) return preferred
+    if (visibleChains.contains(MBlockchain.ton)) return MBlockchain.ton
+    return visibleChains.first()
 }

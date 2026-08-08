@@ -4,14 +4,12 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
-import android.os.Build
 import android.view.View
 import android.view.View.generateViewId
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.widget.ScrollView
 import androidx.constraintlayout.widget.ConstraintLayout
 import app.twallet.air.uicomponents.AnimationConstants
 import app.twallet.air.uicomponents.base.WViewController
@@ -287,21 +285,10 @@ class AppearanceVC(context: Context) : WViewController(context), WalletCore.Even
         context,
         title = LocaleController.getString("Enable Animations"),
         isChecked = WGlobalStorage.getAreAnimationsActive(),
+        isLast = true,
         onChange = { isChecked ->
             Logger.d(Logger.LogTag.SETTINGS, "animationsRow: isChecked=$isChecked")
             WGlobalStorage.setAreAnimationsActive(isChecked)
-        }
-    )
-
-    private val seasonalThemingRow = SwitchCell(
-        context,
-        title = LocaleController.getString("Enable Seasonal Theming"),
-        isChecked = !WGlobalStorage.getIsSeasonalThemingDisabled(),
-        isLast = true,
-        onChange = { isChecked ->
-            Logger.d(Logger.LogTag.SETTINGS, "seasonalThemingRow: isChecked=$isChecked")
-            WGlobalStorage.setIsSeasonalThemingDisabled(!isChecked)
-            WalletCore.notifyEvent(WalletEvent.SeasonalThemeChanged)
         }
     )
 
@@ -315,7 +302,6 @@ class AppearanceVC(context: Context) : WViewController(context), WalletCore.Even
         v.addView(sideGuttersRow, ConstraintLayout.LayoutParams(0, 50.dp))
         v.addView(blurRow, ConstraintLayout.LayoutParams(0, 50.dp))
         v.addView(animationsRow, ConstraintLayout.LayoutParams(0, 50.dp))
-        v.addView(seasonalThemingRow, ConstraintLayout.LayoutParams(0, 50.dp))
         v.addView(appFontView, ConstraintLayout.LayoutParams(0, 50.dp))
         v.addView(roundedBalanceFontRow, ConstraintLayout.LayoutParams(0, 50.dp))
         // Set initial enabled state based on roundedCornersRow
@@ -342,10 +328,8 @@ class AppearanceVC(context: Context) : WViewController(context), WalletCore.Even
             toCenterX(blurRow)
             topToBottom(animationsRow, blurRow)
             toCenterX(animationsRow)
-            topToBottom(seasonalThemingRow, animationsRow)
-            toCenterX(seasonalThemingRow)
             // Group 3: App Font
-            topToBottom(appFontView, seasonalThemingRow, ViewConstants.GAP.toFloat())
+            topToBottom(appFontView, animationsRow, ViewConstants.GAP.toFloat())
             toCenterX(appFontView)
             topToBottom(roundedBalanceFontRow, appFontView)
             toCenterX(roundedBalanceFontRow)

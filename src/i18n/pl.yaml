@@ -155,6 +155,7 @@ Custom endpoints that do not support indexer APIs may disable NFT and activity f
 Password required to save API key: "Hasło jest wymagane, aby zapisać klucz API"
 Show in wallet: Pokaż w portfelu
 At least one network must stay enabled.: Co najmniej jedna sieć musi pozostać włączona.
+This address is also valid on %chains%. Make sure you are sending on %chain%.: This address is also valid on %chains%. Make sure you are sending on %chain%.
 Network Menu: Menu sieci
 Show Wallet QR: Pokaż QR portfela
 Enter URL: Wprowadź URL
@@ -163,13 +164,8 @@ Enable: Włącz
 Disable: Wyłącz
 Saved: Zapisano
 Enable Animations: Włącz animacje
-Enable Seasonal Theming: Włącz motyw sezonowy
 Enable Landscape Mode: Włącz tryb poziomy
-Disable Seasonal Theming: Wyłącz motyw sezonowy
-You can always enable seasonal theming again in the appearance settings.: Zawsze możesz ponownie włączyć motyw sezonowy w ustawieniach wyglądu.
 Base Currency: Waluta bazowa
-Investor View: Widok inwestora
-Toggle Investor View: Przełączanie widoku inwestora
 Hide Tiny Transfers: Ukryj małe transfery
 Toggle Hide Tiny Transfers: Przełącz Ukryj drobne transfery
 Network: Sieć
@@ -203,6 +199,7 @@ Copy wallet address: Kopiowanie adresu portfela
 View address on %explorer_name%: Wyświetl adres w %explorer_name%
 You have just created a new wallet: Właśnie utworzyłeś nowy portfel
 Assets: Aktywa
+Tokens: Tokeny
 Activity: Aktywność
 NFT: NFT
 No NFTs yet: Nie ma jeszcze NFT
@@ -260,7 +257,6 @@ Remove from Saved: Usuń z zapisanych
 View on Explorer: Zobacz w eksploratorze
 No suggestions, you're on your own!: Żadnych sugestii, jesteś zdany na siebie!
 Play Sounds: Odtwarzaj dźwięki
-Focus on asset value rather than current balance: Skup się na wartości aktywów zamiast bieżącego salda
 $logout_confirm: Usuń wszystkie portfele
 $tiny_transfers_help: Wyłącz to, aby wyświetlać transakcje o wartości mniejszej niż $%value%. Proszę pamiętaj, że tego typu transakcje często są wykorzystywane w celach spamowych i oszustw.
 Today: Dzisiaj
@@ -365,6 +361,9 @@ Price Copied: Cena skopiowana
 Not staked: Nie w stakingu
 Portfolio: Portfolio
 Performance, insights and P&L: Dynamika, spostrzeżenia i P&L
+Custom Date Range: Własny zakres dat
+From: Od
+To: Do
 Overview: Przegląd
 Total Balance: Łączne saldo
 Net Change: Zmiana wartości portfela
@@ -376,6 +375,7 @@ Daily P&L: Dzienny zysk/strata
 Portfolio Share: Udział w portfolio
 Current allocation across tracked assets.: Aktualny podział śledzonych aktywów.
 Deep history analysis will be available in upcoming updates.: Dogłębna analiza historii będzie dostępna w kolejnych aktualizacjach.
+PortfolioHistoryPending: Tworzenie historii portfela na podstawie sald i cen rynkowych…
 By Chain: Według sieci
 No chain balances: Brak sald według sieci
 Native: Natywne

@@ -406,12 +406,12 @@ public final class ChartContainerView: UIView {
         chartView.apply(theme: theme, strings: strings, animated: animated)
     }
 
-    public func setup(controller: BaseChartController, noInitialZoom: Bool) {
+    public func setup(controller: BaseChartController, noInitialZoom: Bool, showsRangeSlider: Bool = true) {
         self.controller = controller
 
-        var displayRange = true
+        var displayRange = showsRangeSlider
         var zoomToEnding = true
-        if let controller = controller as? StepBarsChartController {
+        if showsRangeSlider, let controller = controller as? StepBarsChartController {
             displayRange = !controller.hourly
         }
         if noInitialZoom {

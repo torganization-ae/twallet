@@ -151,6 +151,7 @@ Custom endpoints that do not support indexer APIs may disable NFT and activity f
 Password required to save API key: 保存 API 密钥需要密码
 Show in wallet: 在钱包中显示
 At least one network must stay enabled.: 至少需要保持一个网络启用。
+This address is also valid on %chains%. Make sure you are sending on %chain%.: This address is also valid on %chains%. Make sure you are sending on %chain%.
 Network Menu: 网络菜单
 Show Wallet QR: 显示钱包二维码
 Enter URL: 输入 URL
@@ -159,13 +160,8 @@ Enable: 启用
 Disable: 禁用
 Saved: 已保存
 Enable Animations: 启用动画
-Enable Seasonal Theming: 启用季节性主题
 Enable Landscape Mode: 启用横屏模式
-Disable Seasonal Theming: 禁用季节性主题
-You can always enable seasonal theming again in the appearance settings.: 您随时可以在外观设置中重新启用季节性主题。
 Base Currency: 基本货币
-Investor View: 投资者见解
-Toggle Investor View: 切换投资者见解
 Hide Tiny Transfers: 隐藏小额转账
 Toggle Hide Tiny Transfers: 切换隐藏小额转账
 Network: 网络
@@ -200,6 +196,7 @@ Copy wallet address: 复制钱包地址
 View address on %explorer_name%: 在 %explorer_name% 上查看此地址
 You have just created a new wallet: 您刚刚创建了一个新钱包
 Assets: 资产
+Tokens: 代币
 Activity: 活动记录
 NFT: NFT
 No NFTs yet: NFT 空空如也···
@@ -256,7 +253,6 @@ Remove from Saved: 从已保存中移除
 View on Explorer: 在浏览器中查看
 No suggestions, you're on your own!: 没有建议，请靠自己！
 Play Sounds: 播放声音
-Focus on asset value rather than current balance: 关注资产价值而非当前余额。
 $logout_confirm: 登出**所有**钱包
 $tiny_transfers_help: 关闭此功能以显示少于 $%value% 的交易。 请注意，此类交易通常用于垃圾信息和诈骗目的。
 Today: 今天
@@ -357,6 +353,9 @@ Price Copied: 价格已复制
 Not staked: 未质押
 Portfolio: 投资组合
 Performance, insights and P&L: 动态、洞察与盈亏
+Custom Date Range: 自定义日期范围
+From: 从
+To: 到
 Overview: 概览
 Total Balance: 总余额
 Net Change: 组合净变动
@@ -368,6 +367,7 @@ Daily P&L: 每日盈亏
 Portfolio Share: 投资组合占比
 Current allocation across tracked assets.: 当前跟踪资产的分配情况。
 Deep history analysis will be available in upcoming updates.: 深度历史分析将在后续更新中提供。
+PortfolioHistoryPending: 正在根据余额与市场价格构建投资组合历史…
 By Chain: 按链
 No chain balances: 暂无链余额
 Native: 原生

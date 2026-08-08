@@ -1,30 +1,39 @@
 import type {
   ApiBaseCurrency, ApiPortfolioHistoryResponse, ApiPortfolioPnlChangeResponse, ApiPriceHistoryPeriod,
 } from '../../../api/types';
-import type { GlobalState, PortfolioHistoryBundle, PortfolioPnlChange } from '../../types';
+import type {
+  GlobalState, PortfolioCustomDateRange, PortfolioHistoryBundle, PortfolioPnlChange,
+} from '../../types';
 
 import { areDeepEqual } from '../../../util/areDeepEqual';
 import {
+  buildPortfolioBootstrapHoldings,
+  buildPortfolioSnapshotValues,
+} from '../../../util/calculateFullBalance';
+import {
   DEFAULT_PORTFOLIO_TIME_RANGE,
+  getDensityForDateSpan,
   getPortfolioHistorySlot,
   getTimeRangeStartTs,
 } from '../../../util/portfolio/timeRange';
 import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import { updateHistoryBundle, updatePnlChangeByAccountId, updatePortfolio } from '../../reducers';
-import { selectCurrentAccountId, selectPortfolioMainnetWalletKeys } from '../../selectors';
+import {
+  selectAccountStakingStates,
+  selectAccountTokens,
+  selectCurrentAccountId,
+  selectPortfolioMainnetWalletKeys,
+} from '../../selectors';
 
-const HISTORY_REFRESH_DELAY_MS = 8000;
-const HISTORY_REFRESH_MAX_ATTEMPTS = 6;
-// Throttle window for the card's per-tick P&L-change refresh (see `runLoadPortfolioPnlChange`)
 const PNL_CHANGE_THROTTLE_MS = 30_000;
 const PORTFOLIO_UNAVAILABLE_ERROR = 'Unavailable';
+const PORTFOLIO_HISTORY_PENDING_ERROR = 'PortfolioHistoryPending';
 const ALL_TIME_START_ISO = '2020-01-01T00:00:00.000Z';
 const DAY_START_SUFFIX = 'T00:00:00.000Z';
 const DAY_END_SUFFIX = 'T23:59:59.000Z';
 const ISO_DATE_LENGTH = 10;
 
-// Point density per range
 const DENSITY_BY_RANGE: Record<ApiPriceHistoryPeriod, string> = {
   '1D': '5m',
   '7D': '1h',
@@ -34,67 +43,85 @@ const DENSITY_BY_RANGE: Record<ApiPriceHistoryPeriod, string> = {
   ALL: '1d',
 };
 
-let historyRefreshTimerId: number | undefined;
-let historyRefreshAttempts = 0;
-let historyRefreshAccountId: string | undefined;
 let activeRequestId = 0;
 let activePnlChangeRequestId = 0;
-// Single-slot throttle for the card's P&L-change refresh: only the current (account, currency, range)
-// is ever checked, so the latest key/time is all we keep - it self-evicts when the key changes
 let lastPnlChangeFetch: { key: string; at: number } | undefined;
+const SNAPSHOT_THROTTLE_MS = 60_000;
+const SNAPSHOT_EPSILON_USD = 0.01;
+const lastSnapshotByAccount: Record<string, { totalUsd: number; at: number }> = {};
 
 addActionHandler('loadPortfolioHistory', (global, actions, payload) => {
-  const { range } = payload || {};
+  const { range, customRange } = payload || {};
 
-  cancelScheduledHistoryRefresh();
-  historyRefreshAttempts = 0;
-
-  if (range && range !== global.portfolio?.activeRange) {
-    setGlobal(updatePortfolio(global, { activeRange: range }));
+  if (customRange) {
+    const normalized = normalizeCustomRange(customRange);
+    if (normalized) {
+      setGlobal(updatePortfolio(global, {
+        customDateRange: normalized,
+      }));
+    }
+  } else if (range) {
+    setGlobal(updatePortfolio(global, {
+      activeRange: range,
+      customDateRange: undefined,
+      customHistoryByAccountId: undefined,
+    }));
   }
 
   void runLoadPortfolioHistory();
 });
 
 addActionHandler('closePortfolio', () => {
-  cancelScheduledHistoryRefresh();
-  historyRefreshAttempts = 0;
-  // Invalidate any in-flight `runLoadPortfolioHistory` so its post-await `setGlobal` is dropped
   activeRequestId += 1;
 });
 
-// Lightweight counterpart of `loadPortfolioHistory` for the wallet card
 addActionHandler('loadPortfolioPnlChange', (global) => {
   void runLoadPortfolioPnlChange(global);
 });
 
-// `force=true` is used by the `historyScanCursor` poll - it must bypass the slot cache because
-// the cursor signals "backend is still backfilling history" regardless of the current slot
-async function runLoadPortfolioHistory(force = false) {
+addActionHandler('recordPortfolioSnapshot', (global, actions, payload) => {
+  const accountId = payload?.accountId ?? selectCurrentAccountId(global);
+  if (!accountId) return;
+
+  void persistPortfolioSnapshot(accountId);
+});
+
+async function runLoadPortfolioHistory() {
   const requestId = ++activeRequestId;
   let global = getGlobal();
 
   const accountId = selectCurrentAccountId(global);
   if (!accountId) return;
 
-  // Reset attempts when the account changes so each account gets a full retry budget
-  if (accountId !== historyRefreshAccountId) {
-    historyRefreshAttempts = 0;
-    historyRefreshAccountId = accountId;
-  }
+  await persistPortfolioSnapshot(accountId, true);
+  if (requestId !== activeRequestId) return;
 
+  global = getGlobal();
   const wallets = selectPortfolioMainnetWalletKeys(global);
   const { baseCurrency } = global.settings;
+  const customDateRange = global.portfolio?.customDateRange;
   const range = global.portfolio?.activeRange ?? DEFAULT_PORTFOLIO_TIME_RANGE;
-
   const baseSlice = global.portfolio?.historyByAccountId ?? {};
-  const currentSlot = getPortfolioHistorySlot(range);
+  const currentSlot = customDateRange
+    ? getCustomHistorySlot(customDateRange)
+    : getPortfolioHistorySlot(range);
 
   if (wallets.length === 0) {
     setGlobal(updatePortfolio(global, {
-      historyByAccountId: updateHistoryBundle(baseSlice, accountId, baseCurrency, range, {
-        fetchedAtSlot: currentSlot,
-      }),
+      ...(customDateRange
+        ? {
+          customHistoryByAccountId: updateCustomHistory(
+            global.portfolio?.customHistoryByAccountId,
+            accountId,
+            baseCurrency,
+            { fetchedAtSlot: currentSlot },
+          ),
+        }
+        : {
+          historyByAccountId: updateHistoryBundle(baseSlice, accountId, baseCurrency, range, {
+            fetchedAtSlot: currentSlot,
+          }),
+        }),
       pnlChangeByAccountId: updatePnlChangeByAccountId(global.portfolio?.pnlChangeByAccountId, accountId),
       activeRange: range,
       isLoading: false,
@@ -104,20 +131,15 @@ async function runLoadPortfolioHistory(force = false) {
     return;
   }
 
-  const existingBundle = baseSlice[accountId]?.[baseCurrency]?.[range];
+  const existingBundle = customDateRange
+    ? global.portfolio?.customHistoryByAccountId?.[accountId]?.[baseCurrency]
+    : baseSlice[accountId]?.[baseCurrency]?.[range];
   const hasSeries = Boolean(
     existingBundle?.netWorth || existingBundle?.pnlCumulative || existingBundle?.pnl,
   );
-
-  // Slot cache hit: skip the fetch only if the series are actually here. The card's pnl-change path
-  // stamps the same slot without them, and series aren't persisted - so a slot-only match would leave
-  // the charts empty after a reload.
-  if (!force && hasSeries && existingBundle?.fetchedAtSlot === currentSlot) {
-    return;
-  }
-
+  // Always rebuild after persist: diary may have a fresher same-day point even when the
+  // density slot is unchanged (slot-cache assumed immutable remote series)
   const isRefresh = hasSeries;
-
   setGlobal(updatePortfolio(global, {
     historyByAccountId: baseSlice,
     activeRange: range,
@@ -126,7 +148,25 @@ async function runLoadPortfolioHistory(force = false) {
     error: undefined,
   }));
 
-  const params = buildRangeParams(range);
+  const currencyRate = Number(global.currencyRates[baseCurrency] || 1);
+  const tokens = selectAccountTokens(global, accountId);
+  const stakingStates = selectAccountStakingStates(global, accountId);
+  const bootstrapHoldings = buildPortfolioBootstrapHoldings(tokens, stakingStates);
+  const bootstrapPeriod = resolveBootstrapPeriod(range, customDateRange);
+
+  await callApi(
+    'ensurePortfolioSnapshotsSeeded',
+    accountId,
+    bootstrapHoldings,
+    bootstrapPeriod,
+  );
+  if (requestId !== activeRequestId) return;
+
+  const params = {
+    ...(customDateRange ? buildCustomRangeParams(customDateRange) : buildRangeParams(range)),
+    accountId,
+    currencyRate,
+  };
 
   const [netWorth, pnlCumulative, pnl, pnlChangeResponse] = await Promise.all([
     callApi('fetchPortfolioNetWorthHistory', wallets, baseCurrency, params),
@@ -139,71 +179,89 @@ async function runLoadPortfolioHistory(force = false) {
 
   global = getGlobal();
   const updatedSlice = global.portfolio?.historyByAccountId ?? {};
+  const currentCustom = global.portfolio?.customDateRange;
   const currentRange = global.portfolio?.activeRange ?? range;
 
-  if (currentRange !== range) return;
+  // Drop the response if the user switched away from this query window
+  if (customDateRange) {
+    if (!currentCustom || currentCustom.from !== customDateRange.from || currentCustom.to !== customDateRange.to) {
+      return;
+    }
+  } else if (currentCustom || currentRange !== range) {
+    return;
+  }
 
   if (!netWorth && !pnlCumulative && !pnl) {
-    const existingAfter = updatedSlice[accountId]?.[baseCurrency]?.[range];
-    const hasExistingBundle = Boolean(
-      existingAfter?.netWorth || existingAfter?.pnlCumulative || existingAfter?.pnl,
-    );
-
-    // Stamp the slot even on full series failure so the slot-cache check doesn't re-fire every tick
-    const pnlChangeOnFailure = buildPnlChange(pnlChangeResponse, range, baseCurrency);
-    const bundleOnFailure: PortfolioHistoryBundle = {
-      ...(existingAfter ?? {}),
-      fetchedAtSlot: currentSlot,
-      ...(pnlChangeOnFailure ? { pnlChange: pnlChangeOnFailure } : {}),
-    };
     setGlobal(updatePortfolio(global, {
-      historyByAccountId: updateHistoryBundle(updatedSlice, accountId, baseCurrency, range, bundleOnFailure),
-      pnlChangeByAccountId: pnlChangeOnFailure
-        ? updatePnlChangeByAccountId(global.portfolio?.pnlChangeByAccountId, accountId, pnlChangeOnFailure)
-        : hasExistingBundle
-          ? global.portfolio?.pnlChangeByAccountId
-          : updatePnlChangeByAccountId(global.portfolio?.pnlChangeByAccountId, accountId),
+      ...(customDateRange
+        ? {
+          customHistoryByAccountId: updateCustomHistory(
+            global.portfolio?.customHistoryByAccountId,
+            accountId,
+            baseCurrency,
+            { fetchedAtSlot: currentSlot },
+          ),
+        }
+        : {
+          historyByAccountId: updateHistoryBundle(updatedSlice, accountId, baseCurrency, range, {
+            fetchedAtSlot: currentSlot,
+          }),
+        }),
       activeRange: range,
       isLoading: false,
       isRefreshing: false,
-      error: hasExistingBundle ? undefined : PORTFOLIO_UNAVAILABLE_ERROR,
+      error: PORTFOLIO_UNAVAILABLE_ERROR,
     }));
-
     return;
   }
 
   const pnlChange = buildPnlChange(pnlChangeResponse, range, baseCurrency);
-
-  const bundle: PortfolioHistoryBundle = {};
+  const bundle: PortfolioHistoryBundle = {
+    fetchedAtSlot: currentSlot,
+  };
   if (netWorth) bundle.netWorth = netWorth;
   if (pnlCumulative) bundle.pnlCumulative = pnlCumulative;
   if (pnl) bundle.pnl = pnl;
   if (pnlChange) bundle.pnlChange = pnlChange;
 
-  const prevBundle = updatedSlice[accountId]?.[baseCurrency]?.[range];
-  // Keep previously fetched series/value that failed this round (each `callApi` can fail independently)
+  const prevBundle = customDateRange
+    ? global.portfolio?.customHistoryByAccountId?.[accountId]?.[baseCurrency]
+    : updatedSlice[accountId]?.[baseCurrency]?.[range];
   const mergedBundle: PortfolioHistoryBundle = {
     ...prevBundle,
     ...bundle,
     fetchedAtSlot: currentSlot,
   };
   const isSameBundle = prevBundle !== undefined && areDeepEqual(prevBundle, mergedBundle);
+  const hasChartableData = hasChartableSeries(netWorth)
+    || hasChartableSeries(pnlCumulative)
+    || hasChartableSeries(pnl);
 
   setGlobal(updatePortfolio(global, {
-    historyByAccountId: isSameBundle
-      ? updatedSlice
-      : updateHistoryBundle(updatedSlice, accountId, baseCurrency, range, mergedBundle),
-    // Single-slot mirror for the wallet card (it never loads the full bundle)
+    ...(customDateRange
+      ? {
+        customHistoryByAccountId: isSameBundle
+          ? global.portfolio?.customHistoryByAccountId
+          : updateCustomHistory(
+            global.portfolio?.customHistoryByAccountId,
+            accountId,
+            baseCurrency,
+            mergedBundle,
+          ),
+      }
+      : {
+        historyByAccountId: isSameBundle
+          ? updatedSlice
+          : updateHistoryBundle(updatedSlice, accountId, baseCurrency, range, mergedBundle),
+      }),
     pnlChangeByAccountId: pnlChange
       ? updatePnlChangeByAccountId(global.portfolio?.pnlChangeByAccountId, accountId, pnlChange)
       : global.portfolio?.pnlChangeByAccountId,
     activeRange: range,
     isLoading: false,
     isRefreshing: false,
-    error: undefined,
+    error: hasChartableData ? undefined : PORTFOLIO_HISTORY_PENDING_ERROR,
   }));
-
-  scheduleHistoryRefreshIfNeeded(netWorth, pnlCumulative, pnl);
 }
 
 async function runLoadPortfolioPnlChange(global: GlobalState) {
@@ -211,63 +269,113 @@ async function runLoadPortfolioPnlChange(global: GlobalState) {
   if (!accountId) return;
 
   const wallets = selectPortfolioMainnetWalletKeys(global);
-  // Portfolio history is mainnet-only; leave the card on its 24h fallback otherwise
   if (wallets.length === 0) return;
 
   const { baseCurrency } = global.settings;
+  const customDateRange = global.portfolio?.customDateRange;
   const range = global.portfolio?.activeRange ?? DEFAULT_PORTFOLIO_TIME_RANGE;
 
-  // The card re-requests on every balance tick; skip if this (account, currency, range) was fetched
-  // within the throttle window. Stamped before the request so rapid ticks neither spam nor pile up
-  // parallel in-flight calls
-  const throttleKey = `${accountId}_${baseCurrency}_${range}`;
+  const throttleKey = customDateRange
+    ? `${accountId}_${baseCurrency}_custom_${customDateRange.from}_${customDateRange.to}`
+    : `${accountId}_${baseCurrency}_${range}`;
   if (lastPnlChangeFetch?.key === throttleKey && Date.now() - lastPnlChangeFetch.at < PNL_CHANGE_THROTTLE_MS) {
     return;
   }
   lastPnlChangeFetch = { key: throttleKey, at: Date.now() };
 
+  await persistPortfolioSnapshot(accountId, true);
+
   const requestId = ++activePnlChangeRequestId;
-  const params = buildRangeParams(range);
+  global = getGlobal();
+  const currencyRate = Number(global.currencyRates[baseCurrency] || 1);
+  const tokens = selectAccountTokens(global, accountId);
+  const stakingStates = selectAccountStakingStates(global, accountId);
+  await callApi(
+    'ensurePortfolioSnapshotsSeeded',
+    accountId,
+    buildPortfolioBootstrapHoldings(tokens, stakingStates),
+    resolveBootstrapPeriod(range, customDateRange),
+  );
+  if (requestId !== activePnlChangeRequestId) return;
+
+  const params = {
+    ...(customDateRange ? buildCustomRangeParams(customDateRange) : buildRangeParams(range)),
+    accountId,
+    currencyRate,
+  };
   const pnlChangeResponse = await callApi('fetchPortfolioPnlChange', wallets, baseCurrency, params);
 
   if (requestId !== activePnlChangeRequestId) return;
 
-  const pnlChange = buildPnlChange(pnlChangeResponse, range, baseCurrency);
-  if (!pnlChange) {
-    // Reset the throttle so the next balance tick can retry rather than waiting out the window
-    lastPnlChangeFetch = undefined;
-    return;
-  }
-
   global = getGlobal();
-  // Drop the result if the account, range or currency changed while awaiting
-  if (
-    selectCurrentAccountId(global) !== accountId
+  if (customDateRange) {
+    const currentCustom = global.portfolio?.customDateRange;
+    if (!currentCustom || currentCustom.from !== customDateRange.from || currentCustom.to !== customDateRange.to) {
+      return;
+    }
+  } else if (
+    global.portfolio?.customDateRange
     || (global.portfolio?.activeRange ?? DEFAULT_PORTFOLIO_TIME_RANGE) !== range
-    || global.settings.baseCurrency !== baseCurrency
   ) {
     return;
   }
 
-  // Store per-range in the bundle (so the card and portfolio show the right value across range switches),
-  // plus the single-slot mirror that the card reads on cold start before any bundle exists
-  const baseSlice = global.portfolio?.historyByAccountId ?? {};
-  const existingBundle = baseSlice[accountId]?.[baseCurrency]?.[range];
-  global = updatePortfolio(global, {
-    historyByAccountId: updateHistoryBundle(baseSlice, accountId, baseCurrency, range, {
-      ...existingBundle,
-      pnlChange,
-      // Stamp the slot so a subsequent `runLoadPortfolioHistory` doesn't fire immediately after this
-      fetchedAtSlot: existingBundle?.fetchedAtSlot ?? getPortfolioHistorySlot(range),
-    }),
-    pnlChangeByAccountId: updatePnlChangeByAccountId(global.portfolio?.pnlChangeByAccountId, accountId, pnlChange),
-  });
+  const pnlChange = buildPnlChange(pnlChangeResponse, range, baseCurrency);
+  if (!pnlChange) return;
 
-  setGlobal(global);
+  const baseSlice = global.portfolio?.historyByAccountId ?? {};
+  const existingBundle = customDateRange
+    ? global.portfolio?.customHistoryByAccountId?.[accountId]?.[baseCurrency]
+    : baseSlice[accountId]?.[baseCurrency]?.[range];
+
+  setGlobal(updatePortfolio(global, {
+    ...(customDateRange
+      ? {
+        customHistoryByAccountId: updateCustomHistory(
+          global.portfolio?.customHistoryByAccountId,
+          accountId,
+          baseCurrency,
+          {
+            ...existingBundle,
+            pnlChange,
+            fetchedAtSlot: existingBundle?.fetchedAtSlot ?? getCustomHistorySlot(customDateRange),
+          },
+        ),
+      }
+      : {
+        historyByAccountId: updateHistoryBundle(baseSlice, accountId, baseCurrency, range, {
+          ...existingBundle,
+          pnlChange,
+          fetchedAtSlot: existingBundle?.fetchedAtSlot ?? getPortfolioHistorySlot(range),
+        }),
+      }),
+    pnlChangeByAccountId: updatePnlChangeByAccountId(global.portfolio?.pnlChangeByAccountId, accountId, pnlChange),
+  }));
 }
 
-// Maps the backend's precomputed P&L-change response into the persisted shape. Returns undefined when
-// the response is missing (transport error) or carries no usable amount, so callers keep the prior value
+async function persistPortfolioSnapshot(accountId: string, force = false) {
+  const global = getGlobal();
+  const tokens = selectAccountTokens(global, accountId);
+  if (!tokens?.length) return;
+
+  const stakingStates = selectAccountStakingStates(global, accountId);
+  const { totalUsd, bySlug } = buildPortfolioSnapshotValues(tokens, stakingStates);
+
+  const previous = lastSnapshotByAccount[accountId];
+  const now = Date.now();
+  if (
+    !force
+    && previous
+    && now - previous.at < SNAPSHOT_THROTTLE_MS
+    && Math.abs(previous.totalUsd - totalUsd) < SNAPSHOT_EPSILON_USD
+  ) {
+    return;
+  }
+
+  await callApi('recordPortfolioSnapshot', accountId, totalUsd, bySlug);
+  lastSnapshotByAccount[accountId] = { totalUsd, at: now };
+}
+
 function buildPnlChange(
   response: ApiPortfolioPnlChangeResponse | undefined,
   range: ApiPriceHistoryPeriod,
@@ -300,30 +408,68 @@ function buildRangeParams(range: ApiPriceHistoryPeriod) {
   };
 }
 
-function scheduleHistoryRefreshIfNeeded(
-  netWorth: ApiPortfolioHistoryResponse | undefined,
-  pnlCumulative: ApiPortfolioHistoryResponse | undefined,
-  pnl: ApiPortfolioHistoryResponse | undefined,
-) {
-  const hasCursor = netWorth?.historyScanCursor !== undefined
-    || pnlCumulative?.historyScanCursor !== undefined
-    || pnl?.historyScanCursor !== undefined;
-
-  if (!hasCursor || historyRefreshAttempts >= HISTORY_REFRESH_MAX_ATTEMPTS) {
-    return;
-  }
-
-  historyRefreshAttempts += 1;
-  historyRefreshTimerId = window.setTimeout(() => {
-    historyRefreshTimerId = undefined;
-    // Bypass the slot cache - the cursor poll means "backend has more history to backfill"
-    void runLoadPortfolioHistory(true);
-  }, HISTORY_REFRESH_DELAY_MS);
+function buildCustomRangeParams(range: PortfolioCustomDateRange) {
+  const fromMs = Date.parse(`${range.from}${DAY_START_SUFFIX}`);
+  const toMs = Date.parse(`${range.to}${DAY_END_SUFFIX}`);
+  return {
+    from: `${range.from}${DAY_START_SUFFIX}`,
+    to: `${range.to}${DAY_END_SUFFIX}`,
+    density: getDensityForDateSpan(fromMs, toMs),
+  };
 }
 
-function cancelScheduledHistoryRefresh() {
-  if (historyRefreshTimerId !== undefined) {
-    window.clearTimeout(historyRefreshTimerId);
-    historyRefreshTimerId = undefined;
+function resolveBootstrapPeriod(
+  range: ApiPriceHistoryPeriod,
+  customDateRange?: PortfolioCustomDateRange,
+): ApiPriceHistoryPeriod {
+  if (customDateRange) {
+    const fromMs = Date.parse(`${customDateRange.from}${DAY_START_SUFFIX}`);
+    const toMs = Date.parse(`${customDateRange.to}${DAY_END_SUFFIX}`);
+    const spanMs = Math.max(0, toMs - fromMs);
+    if (spanMs > 365 * 24 * 60 * 60 * 1000) return 'ALL';
+    return '1Y';
   }
+  if (range === 'ALL') return 'ALL';
+  return '1Y';
+}
+
+function normalizeCustomRange(range: PortfolioCustomDateRange): PortfolioCustomDateRange | undefined {
+  const from = range.from?.slice(0, ISO_DATE_LENGTH);
+  const to = range.to?.slice(0, ISO_DATE_LENGTH);
+  if (!from || !to || from.length !== ISO_DATE_LENGTH || to.length !== ISO_DATE_LENGTH) {
+    return undefined;
+  }
+  if (from > to) {
+    return { from: to, to: from };
+  }
+  return { from, to };
+}
+
+function getCustomHistorySlot(range: PortfolioCustomDateRange) {
+  // Invalidate when the UTC day rolls so same-day diary updates refresh the custom view
+  return getPortfolioHistorySlot('1D');
+}
+
+function updateCustomHistory(
+  slice: Record<string, Partial<Record<ApiBaseCurrency, PortfolioHistoryBundle>>> | undefined,
+  accountId: string,
+  baseCurrency: ApiBaseCurrency,
+  bundle: PortfolioHistoryBundle,
+): Record<string, Partial<Record<ApiBaseCurrency, PortfolioHistoryBundle>>> {
+  const byAccount = slice?.[accountId] ?? {};
+  return {
+    ...(slice ?? {}),
+    [accountId]: {
+      ...byAccount,
+      [baseCurrency]: bundle,
+    },
+  };
+}
+
+function hasChartableSeries(response?: ApiPortfolioHistoryResponse) {
+  return Boolean(
+    response?.datasets?.some((dataset) => (
+      dataset.points.some(([, value]) => typeof value === 'number' && Number.isFinite(value))
+    )),
+  );
 }

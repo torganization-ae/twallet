@@ -36,7 +36,6 @@ interface OwnProps {
 
 interface StateProps {
   accentColorIndex?: number;
-  isSeasonalThemingDisabled?: boolean;
 }
 
 const SWITCH_THEME_DURATION_MS = 300;
@@ -60,14 +59,12 @@ function SettingsAppearance({
   animationLevel,
   accentColorIndex,
   isTrayIconEnabled,
-  isSeasonalThemingDisabled,
   onTrayIconEnabledToggle,
   onBackClick,
 }: OwnProps & StateProps) {
   const {
     setTheme,
     setAnimationLevel,
-    toggleSeasonalTheming,
   } = getActions();
 
   const lang = useLang();
@@ -95,10 +92,6 @@ function SettingsAppearance({
     const level = animationLevel === ANIMATION_LEVEL_MIN ? ANIMATION_LEVEL_MAX : ANIMATION_LEVEL_MIN;
     setAnimationLevel({ level });
     switchAnimationLevel(level);
-  });
-
-  const handleSeasonalThemingToggle = useLastCallback(() => {
-    toggleSeasonalTheming({ isEnabled: isSeasonalThemingDisabled });
   });
 
   function renderThemes() {
@@ -149,15 +142,6 @@ function SettingsAppearance({
               checked={animationLevel !== ANIMATION_LEVEL_MIN}
             />
           </div>
-          <div className={buildClassName(styles.item, styles.item_small)} onClick={handleSeasonalThemingToggle}>
-            <span className={styles.itemTitle}>{lang('Enable Seasonal Theming')}</span>
-
-            <Switcher
-              className={styles.menuSwitcher}
-              label={lang('Enable Seasonal Theming')}
-              checked={!isSeasonalThemingDisabled}
-            />
-          </div>
           {IS_ELECTRON && IS_WINDOWS && (
             <div className={buildClassName(styles.item, styles.item_small)} onClick={() => onTrayIconEnabledToggle()}>
               {lang('Display Tray Icon')}
@@ -180,6 +164,5 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
 
   return {
     accentColorIndex: accountSettings?.accentColorIndex,
-    isSeasonalThemingDisabled: global.settings.isSeasonalThemingDisabled,
   };
 })(SettingsAppearance));

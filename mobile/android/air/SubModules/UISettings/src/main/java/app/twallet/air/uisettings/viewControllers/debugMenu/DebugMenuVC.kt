@@ -2,11 +2,9 @@ package app.twallet.air.uisettings.viewControllers.debugMenu
 
 import android.content.Context
 import android.os.Build
-import android.view.View.generateViewId
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.widget.ScrollView
 import androidx.constraintlayout.widget.ConstraintLayout
 import app.twallet.air.uicomponents.base.WNavigationController
 import app.twallet.air.uicomponents.base.WViewController
@@ -16,38 +14,26 @@ import app.twallet.air.uicomponents.commonViews.cells.SwitchCell
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.ShakeDetector
 import app.twallet.air.uicomponents.widgets.WBaseView
-import app.twallet.air.uicomponents.widgets.WEditableItemView
 import app.twallet.air.uicomponents.widgets.WScrollView
 import app.twallet.air.uicomponents.widgets.WView
-import app.twallet.air.uicomponents.widgets.menu.WMenuPopup
-import app.twallet.air.uicomponents.widgets.menu.WMenuPopup.BackgroundStyle
 import app.twallet.air.uicomponents.widgets.setBackgroundColor
 import app.twallet.air.uisettings.viewControllers.logs.LogsVC
 import app.twallet.air.uisettings.viewControllers.permissions.PermissionsVC
-import app.twallet.air.walletbasecontext.DEBUG_MODE
-import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.logger.Logger
 import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
-import app.twallet.air.walletbasecontext.utils.getDrawableCompat
 import app.twallet.air.walletcontext.WalletContextManager
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.helpers.DevicePerformanceClassifier
 import app.twallet.air.walletcontext.helpers.LaunchConfig
 import app.twallet.air.walletcontext.models.MBlockchainNetwork
-import app.twallet.air.walletcore.WalletCore
-import app.twallet.air.walletcore.WalletEvent
-import app.twallet.air.walletcore.stores.ConfigStore
-import app.twallet.air.walletcore.stores.EnvironmentStore
 import java.lang.ref.WeakReference
 
 class DebugMenuVC(context: Context) : WViewController(context) {
     override val TAG = "DebugMenu"
 
     override val shouldDisplayBottomBar = true
-
-    private val isDebugSectionVisible = DEBUG_MODE || EnvironmentStore.isBeta
 
     // Section 1: Logs
     private val logsTitleLabel = HeaderCell(context).apply {
@@ -177,38 +163,6 @@ class DebugMenuVC(context: Context) : WViewController(context) {
         isLast = true,
     )
 
-    // Section 5: Debug (debug and beta builds only)
-    private val spacer4: WBaseView? = if (isDebugSectionVisible) WBaseView(context) else null
-
-    private val debugTitleLabel: HeaderCell? = if (isDebugSectionVisible) {
-        HeaderCell(context).apply {
-            configure("Debug", titleColor = WColor.Tint, HeaderCell.TopRounding.NORMAL)
-        }
-    } else null
-
-    private val seasonalThemeDropdown: WEditableItemView? = if (isDebugSectionVisible) {
-        WEditableItemView(context).apply {
-            id = generateViewId()
-            drawable = context.getDrawableCompat(
-                app.twallet.air.icons.R.drawable.ic_arrows_18
-            )
-            setText(ConfigStore.seasonalThemeOverride?.value ?: "None")
-        }
-    } else null
-
-    private val seasonalThemeRow: KeyValueRowView? = if (isDebugSectionVisible) {
-        KeyValueRowView(
-            context,
-            "Seasonal Theme",
-            "",
-            KeyValueRowView.Mode.PRIMARY,
-            isLast = true,
-        ).apply {
-            setValueView(seasonalThemeDropdown!!)
-            setOnClickListener { presentSeasonalThemeOverrideMenu() }
-        }
-    } else null
-
     private val scrollingContentView: WView by lazy {
         WView(context).apply {
             // Section 1: Logs
@@ -231,12 +185,6 @@ class DebugMenuVC(context: Context) : WViewController(context) {
             addView(deviceModelRow, ConstraintLayout.LayoutParams(MATCH_PARENT, 50.dp))
             addView(androidVersionRow, ConstraintLayout.LayoutParams(MATCH_PARENT, 50.dp))
             addView(performanceClassRow, ConstraintLayout.LayoutParams(MATCH_PARENT, 50.dp))
-            // Section 5: Debug (debug and beta builds only)
-            if (isDebugSectionVisible) {
-                addView(spacer4!!, ViewGroup.LayoutParams(MATCH_PARENT, ViewConstants.GAP.dp))
-                addView(debugTitleLabel!!, ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
-                addView(seasonalThemeRow!!, ConstraintLayout.LayoutParams(MATCH_PARENT, 50.dp))
-            }
             setConstraints {
                 // Logs
                 toTop(logsTitleLabel)
@@ -263,18 +211,7 @@ class DebugMenuVC(context: Context) : WViewController(context) {
                 topToBottom(deviceModelRow, appVersionRow)
                 topToBottom(androidVersionRow, deviceModelRow)
                 topToBottom(performanceClassRow, androidVersionRow)
-                // Debug or bottom
-                if (isDebugSectionVisible) {
-                    topToBottom(spacer4!!, performanceClassRow)
-                    topToBottom(debugTitleLabel!!, spacer4)
-                    topToBottom(seasonalThemeRow!!, debugTitleLabel)
-                    toBottomPx(seasonalThemeRow, navigationController?.bottomInset ?: 0)
-                } else {
-                    toBottomPx(
-                        performanceClassRow,
-                        navigationController?.bottomInset ?: 0
-                    )
-                }
+                toBottomPx(performanceClassRow, navigationController?.bottomInset ?: 0)
             }
         }
     }
@@ -343,14 +280,6 @@ class DebugMenuVC(context: Context) : WViewController(context) {
         deviceModelRow.setBackgroundColor(WColor.Background.color)
         androidVersionRow.setBackgroundColor(WColor.Background.color)
         performanceClassRow.setBackgroundColor(WColor.Background.color)
-        if (isDebugSectionVisible) {
-            debugTitleLabel?.setBackgroundColor(
-                WColor.Background.color,
-                ViewConstants.BLOCK_RADIUS.dp,
-                0f,
-            )
-            seasonalThemeRow?.setBackgroundColor(WColor.Background.color)
-        }
     }
 
     override fun insetsUpdated() {
@@ -360,48 +289,6 @@ class DebugMenuVC(context: Context) : WViewController(context) {
             0,
             ViewConstants.HORIZONTAL_PADDINGS.dp + systemBarEndInset,
             0
-        )
-    }
-
-    private fun presentSeasonalThemeOverrideMenu() {
-        val dropdown = seasonalThemeDropdown ?: return
-        WMenuPopup.present(
-            dropdown,
-            listOf(
-                WMenuPopup.Item(
-                    null,
-                    "None",
-                    false
-                ) {
-                    ConfigStore.seasonalThemeOverride = null
-                    WalletCore.notifyEvent(WalletEvent.SeasonalThemeChanged)
-                    dropdown.setText("None")
-                },
-                WMenuPopup.Item(
-                    null,
-                    "New Year",
-                    false
-                ) {
-                    ConfigStore.seasonalThemeOverride = ConfigStore.SeasonalTheme.NEW_YEAR
-                    WalletCore.notifyEvent(WalletEvent.SeasonalThemeChanged)
-                    dropdown.setText("New Year")
-                },
-                WMenuPopup.Item(
-                    null,
-                    "Valentine",
-                    false
-                ) {
-                    ConfigStore.seasonalThemeOverride = ConfigStore.SeasonalTheme.VALENTINE
-                    WalletCore.notifyEvent(WalletEvent.SeasonalThemeChanged)
-                    dropdown.setText("Valentine")
-                }
-            ),
-            popupWidth = WRAP_CONTENT,
-            positioning = WMenuPopup.Positioning.BELOW,
-            windowBackgroundStyle = BackgroundStyle.Cutout.fromView(
-                dropdown,
-                roundRadius = 40f.dp
-            )
         )
     }
 }

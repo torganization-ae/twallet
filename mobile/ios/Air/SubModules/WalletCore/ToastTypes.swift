@@ -29,7 +29,7 @@ public struct ToastConfig {
         self.style = style ?? .standard
         self.icon = icon
         self.message = message
-        self.duration = duration ?? 3.0
+        self.duration = duration ?? 1.5
         self.transition = transition ?? .fadeIn
         self.actionTitle = actionTitle
         self.action = action

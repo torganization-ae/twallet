@@ -411,6 +411,7 @@ export async function removeNetworkAccounts(network: ApiNetwork) {
   await Promise.all([
     deactivateAllAccounts(),
     removeNetworkAccountsValue(network, 'accounts'),
+    removeNetworkAccountsValue(network, 'portfolioSnapshots'),
     getEnvironment().isDappSupported && removeNetworkDapps(network),
   ]);
 }
@@ -421,6 +422,7 @@ export async function resetAccounts() {
   await Promise.all([
     deactivateAllAccounts(),
     storage.removeItem('accounts'),
+    storage.removeItem('portfolioSnapshots'),
     getEnvironment().isDappSupported && removeAllDapps(),
     tokenRepository.clear(),
   ]);
@@ -435,6 +437,7 @@ export async function removeAccount(
 
   await Promise.all([
     removeAccountValue(accountId, 'accounts'),
+    removeAccountValue(accountId, 'portfolioSnapshots'),
     getEnvironment().isDappSupported && removeAccountDapps(accountId),
   ]);
 

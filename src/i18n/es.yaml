@@ -153,6 +153,7 @@ Custom endpoints that do not support indexer APIs may disable NFT and activity f
 Password required to save API key: Se requiere contraseña para guardar la clave API
 Show in wallet: Mostrar en la billetera
 At least one network must stay enabled.: Al menos una red debe permanecer activada.
+This address is also valid on %chains%. Make sure you are sending on %chain%.: This address is also valid on %chains%. Make sure you are sending on %chain%.
 Network Menu: Menú de red
 Show Wallet QR: Mostrar QR de la billetera
 Enter URL: Introduce la URL
@@ -161,13 +162,8 @@ Enable: Activar
 Disable: Desactivar
 Saved: Guardado
 Enable Animations: Habilitar animaciones
-Enable Seasonal Theming: Activar tema estacional
 Enable Landscape Mode: Activar modo horizontal
-Disable Seasonal Theming: Desactivar tema estacional
-You can always enable seasonal theming again in the appearance settings.: Puedes volver a activar el tema estacional en la configuración de apariencia.
 Base Currency: Moneda base
-Investor View: Modo Inversor
-Toggle Investor View: Alternar Modo Inversor
 Hide Tiny Transfers: Ocultar transacciones pequeñas
 Toggle Hide Tiny Transfers: Alternar ocultar transacciones pequeñas
 Network: Red
@@ -200,6 +196,7 @@ Copy wallet address: Copiar la dirección del monedero
 View address on %explorer_name%: Ver dirección en %explorer_name%
 You have just created a new wallet: Acabas de crear un nuevo monedero
 Assets: Activos
+Tokens: Tokens
 Activity: Actividad
 NFT: NFT
 No NFTs yet: Aún no tienes NFT
@@ -257,7 +254,6 @@ Remove from Saved: Eliminar de guardados
 View on Explorer: Ver en el explorador
 No suggestions, you're on your own!: Sin sugerencias, ¡estás solo!
 Play Sounds: Reproducir sonidos
-Focus on asset value rather than current balance: Centrarse en el valor de los activos en lugar del saldo actual
 $logout_confirm: Cerrar sesión en **todos** los monederos
 $tiny_transfers_help: Desactive esta opción para mostrar transacciones de menos de $%value%. Tenga en cuenta que tales transacciones se utilizan a menudo con fines de spam y estafa.
 Today: Hoy
@@ -362,6 +358,9 @@ Price Copied: Precio copiado
 Not staked: No en staking
 Portfolio: Portafolio
 Performance, insights and P&L: Dinámica, perspectivas y P&L
+Custom Date Range: Rango de fechas personalizado
+From: Desde
+To: Hasta
 Overview: Resumen
 Total Balance: Saldo total
 Net Change: Variación de cartera
@@ -373,6 +372,7 @@ Daily P&L: Ganancias/pérdidas diarias
 Portfolio Share: Distribución del portafolio
 Current allocation across tracked assets.: Distribución actual entre los activos seguidos.
 Deep history analysis will be available in upcoming updates.: El análisis profundo del historial estará disponible en próximas actualizaciones.
+PortfolioHistoryPending: Creando el historial del portafolio a partir de tus saldos y precios de mercado…
 By Chain: Por red
 No chain balances: Sin balances por red
 Native: Nativo
