@@ -107,12 +107,27 @@ class HomePhoneAssetsCell(
     }
 
     private var lastNotifiedContentTab: String? = null
+    /** When set, height snaps to this page instead of interpolating (Activity peer swaps). */
+    private var heightSnapIndex: Int? = null
 
-    private fun notifyContentTabChanged() {
-        val identifier = selectedContentTabIdentifier
-        if (identifier == lastNotifiedContentTab) return
-        lastNotifiedContentTab = identifier
-        onContentTabChanged(identifier)
+    private fun notifyContentTabChanged(identifier: String? = selectedContentTabIdentifier) {
+        val next = identifier ?: return
+        if (next == lastNotifiedContentTab) return
+        lastNotifiedContentTab = next
+        onContentTabChanged(next)
+    }
+
+    private fun involvesActivity(fromId: String?, toId: String?): Boolean {
+        return fromId == AssetsTabVC.TAB_ACTIVITY || toId == AssetsTabVC.TAB_ACTIVITY
+    }
+
+    private fun notifyTargetTabEarly(index: Int) {
+        val toId = segmentedController.items.getOrNull(index)?.identifier ?: return
+        val fromId = lastNotifiedContentTab ?: selectedContentTabIdentifier
+        if (!involvesActivity(fromId, toId)) return
+        heightSnapIndex = index
+        notifyContentTabChanged(toId)
+        updateHeight()
     }
 
     override fun requestReordering(reordering: Boolean) = onReorderingRequested.invoke(reordering)
@@ -135,19 +150,26 @@ class HomePhoneAssetsCell(
     }
 
     private val segmentedController: WSegmentedController by lazy {
-        val segmentedController = WSegmentedController(
+        WSegmentedController(
             navigationController,
             generateSegmentItems(),
             isFullScreen = false,
             applySideGutters = false,
             navHeight = 56.dp,
             onOffsetChange = { _, _ ->
-                // Height interpolates during the swipe; content tab switches only when settled.
+                // Height interpolates during swipe. Feed swap waits for settle (or tap early).
                 updateHeight()
             },
             onSelectedIndexChanged = {
+                heightSnapIndex = null
                 syncCollectiblesPollingActive()
                 notifyContentTabChanged()
+                // Recompute after clearing snap so settle height matches the active page.
+                updateHeight()
+            },
+            onTargetIndexSelected = { index ->
+                // Tab tap only: swap Activity feed before the pager spring (no mid-swipe thrash).
+                notifyTargetTabEarly(index)
             },
             onItemsReordered = null,
             onReorderingStarted = {
@@ -160,7 +182,6 @@ class HomePhoneAssetsCell(
         ).apply {
             setDragAllowed(true)
         }
-        segmentedController
     }
 
     override fun setupViews() {
@@ -522,16 +543,21 @@ class HomePhoneAssetsCell(
         if (currentIndex > items.size - 1) {
             newHeight = 0
         } else {
-            val firstHeight = getViewHeight(items[currentIndex].viewController)
-            val secondHeight =
-                if (offset > currentIndex && currentIndex + 1 < items.size) {
-                    getViewHeight(items[currentIndex + 1].viewController)
+            val snapIndex = heightSnapIndex
+            val contentHeight =
+                if (snapIndex != null && snapIndex in items.indices) {
+                    getViewHeight(items[snapIndex].viewController).toFloat()
                 } else {
-                    firstHeight
+                    val firstHeight = getViewHeight(items[currentIndex].viewController)
+                    val secondHeight =
+                        if (offset > currentIndex && currentIndex + 1 < items.size) {
+                            getViewHeight(items[currentIndex + 1].viewController)
+                        } else {
+                            firstHeight
+                        }
+                    firstHeight + (offset - currentIndex) * (secondHeight - firstHeight)
                 }
-            val interpolatedHeight =
-                firstHeight + (offset - currentIndex) * (secondHeight - firstHeight)
-            newHeight = (tabBarHeight + interpolatedHeight).roundToInt()
+            newHeight = (tabBarHeight + contentHeight).roundToInt()
         }
 
         if (newHeight != prevHeight) {

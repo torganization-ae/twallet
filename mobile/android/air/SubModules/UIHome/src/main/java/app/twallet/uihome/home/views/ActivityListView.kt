@@ -639,9 +639,15 @@ class ActivityListView<T>(
         val onContentTabChanged = { identifier: String? ->
             val next = identifier ?: AssetsTabVC.TAB_COINS
             if (homeContentTab != next) {
+                val activityVisibilityChanged =
+                    (homeContentTab == AssetsTabVC.TAB_ACTIVITY) !=
+                        (next == AssetsTabVC.TAB_ACTIVITY)
                 homeContentTab = next
-                reloadData()
-                updateSkeletonState(animated = true)
+                // Tokens ↔ NFTs only changes the pager page — do not rebuild the home list.
+                if (activityVisibilityChanged) {
+                    reloadData()
+                    updateSkeletonState(animated = false)
+                }
             }
             Unit
         }

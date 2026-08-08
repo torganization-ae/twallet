@@ -46,9 +46,10 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
         let layout = UICollectionViewCompositionalLayout { [weak self] sectionIndex, layoutEnvironment in
             var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
             configuration.backgroundColor = .clear
-            configuration.headerMode = sectionIndex == 0 ? .supplementary : .none
+            // Description lives in the QR header (web parity); address/actions are the list body.
+            configuration.headerMode = .none
             configuration.footerMode = (sectionIndex == 0 && self?.isViewWalletMode == true) ? .supplementary : .none
-            configuration.headerTopPadding = sectionIndex == 0 ? 16 : 8
+            configuration.headerTopPadding = 8
             return NSCollectionLayoutSection.list(using: configuration, layoutEnvironment: layoutEnvironment)
         }
 
@@ -74,21 +75,6 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
     private func configureDataSource() {
         let address = account.getAddress(chain: chain) ?? ""
 
-        let headerRegistration = UICollectionView.SupplementaryRegistration<UICollectionViewCell>(
-            elementKind: UICollectionView.elementKindSectionHeader
-        ) { [weak self] cell, _, _ in
-            guard let self else { return }
-            let title: String
-            if isViewWalletMode {
-                title = lang("%blockchain% Address", arg1: chain.title)
-            } else {
-                title = lang("My %blockchain% Address", arg1: chain.title)
-            }
-            var content = UIListContentConfiguration.groupedHeader()
-            content.text = title
-            cell.contentConfiguration = content
-        }
-
         let addressRegistration = AddressCell.makeRegistration(address: address, chain: chain)
         let actionRegistration = ReceiveActionItemCell.makeRegistration()
         let warningFooterRegistration = ViewWalletWarningFooter.makeFooterRegistration()
@@ -104,8 +90,6 @@ final class ReceiveTableVC: WViewController, WSegmentedControllerContent, UIColl
 
         dataSource.supplementaryViewProvider = { collectionView, kind, indexPath in
             switch kind {
-            case UICollectionView.elementKindSectionHeader:
-                collectionView.dequeueConfiguredReusableSupplementary(using: headerRegistration, for: indexPath)
             case UICollectionView.elementKindSectionFooter:
                 collectionView.dequeueConfiguredReusableSupplementary(using: warningFooterRegistration, for: indexPath)
             default:

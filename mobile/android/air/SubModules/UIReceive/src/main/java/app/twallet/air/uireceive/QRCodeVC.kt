@@ -1,39 +1,42 @@
 package app.twallet.air.uireceive
 
 import android.annotation.SuppressLint
-import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import android.content.Context
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Shader
-import android.util.TypedValue
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.ImageView
-import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
 import app.twallet.air.uicomponents.base.WNavigationBar
 import app.twallet.air.uicomponents.base.WViewController
-import app.twallet.air.uicomponents.commonViews.cells.HeaderCell
 import app.twallet.air.uicomponents.extensions.dp
-import app.twallet.air.uicomponents.extensions.unspecified
+import app.twallet.air.uicomponents.helpers.ClipboardHelpers
+import app.twallet.air.uicomponents.helpers.HapticType
+import app.twallet.air.uicomponents.helpers.Haptics
 import app.twallet.air.uicomponents.helpers.WFont
-import app.twallet.air.uicomponents.helpers.typeface
-import app.twallet.air.uicomponents.widgets.CopyTextView
 import app.twallet.air.uicomponents.widgets.WLabel
 import app.twallet.air.uicomponents.widgets.WQRCodeView
 import app.twallet.air.uicomponents.widgets.WView
 import app.twallet.air.uicomponents.widgets.fadeIn
+import app.twallet.air.uicomponents.widgets.setBackgroundColor
 import app.twallet.air.walletbasecontext.localization.LocaleController
+import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.getDrawableCompat
 import app.twallet.air.walletcontext.helpers.AddressHelpers
+import app.twallet.air.walletcore.WalletCore
+import app.twallet.air.walletcore.WalletEvent
+import app.twallet.air.walletcore.helpers.ExplorerHelpers
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.stores.AccountStore
-import app.twallet.air.walletcore.stores.TokenStore
+import kotlin.math.max
 
 @SuppressLint("ViewConstructor")
 class QRCodeVC(
@@ -53,31 +56,38 @@ class QRCodeVC(
         get() = chain.displayName
         set(_) {}
 
-    private val isViewOnlyAccount = AccountStore.activeAccount?.isViewOnly == true
-
     val walletAddress: String
         get() = AccountStore.activeAccount?.addressByChain?.get(chain.name) ?: ""
 
     companion object {
-        const val HEIGHT = 307
+        /** Transparent gradient band under the nav chrome (content height is computed separately). */
+        const val HEIGHT = 360
+        private const val ADDRESS_ROW_MIN_HEIGHT = 48
+        private const val BOTTOM_PAD = 16
+        private const val DESCRIPTION_TOP_EXTRA = 8
     }
 
-    private val qrCodeSize = 252.dp
+    private val qrCodeSize = 200.dp
     internal val qrCodeView: WQRCodeView by lazy {
-        val qrContent = if (chain == MBlockchain.ton)
-            AddressHelpers.walletInvoiceUrl(walletAddress)
-        else
-            walletAddress
-        val v = WQRCodeView(
+        val qrContent =
+            if (chain == MBlockchain.ton) {
+                AddressHelpers.walletInvoiceUrl(walletAddress)
+            } else {
+                walletAddress
+            }
+        WQRCodeView(
             context,
             qrContent,
             qrCodeSize,
             qrCodeSize,
             chain.qrIcon,
-            56.dp,
+            44.dp,
             chain.qrGradientColors?.let {
                 LinearGradient(
-                    0f, 0f, qrCodeSize.toFloat(), qrCodeSize.toFloat(),
+                    0f,
+                    0f,
+                    qrCodeSize.toFloat(),
+                    qrCodeSize.toFloat(),
                     it,
                     null,
                     Shader.TileMode.CLAMP
@@ -90,82 +100,86 @@ class QRCodeVC(
                 onQrLoaded?.invoke()
             }
         }
-        v
     }
 
-    val ornamentView = AppCompatImageView(context).apply {
-        id = View.generateViewId()
-        alpha = 0.5f
-    }
+    val ornamentView =
+        AppCompatImageView(context).apply {
+            id = View.generateViewId()
+            alpha = 0.5f
+        }
 
     init {
         view.alpha = 0f
     }
 
-    private val addressLabel = CopyTextView(context).apply {
-        id = View.generateViewId()
-
-        setLineHeight(TypedValue.COMPLEX_UNIT_SP, 22f)
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, adaptiveFontSize())
-        gravity = Gravity.LEFT
-        typeface = WFont.Regular.typeface
-        layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-
-        includeFontPadding = false
-        clipLabel = "Address"
-        clipToast =
-            LocaleController.getString("%chain% Address Copied")
-                .replace("%chain%", chain.displayName)
-        setText(walletAddress, walletAddress)
-    }
-
-    private val titleLabel = HeaderCell(context, startMargin = 24f).apply {
-        configure(
-            title = LocaleController.getString(
-                if (isViewOnlyAccount) "%blockchain% Address" else "My %blockchain% Address"
-            )
-                .replace("%blockchain%", title.toString()),
-            titleColor = WColor.Tint,
-            topRounding = HeaderCell.TopRounding.NORMAL
-        )
-    }
-
-    private val warningLabel = WLabel(context).apply {
-        setStyle(14f, WFont.Regular)
-        setLineHeight(TypedValue.COMPLEX_UNIT_SP, 20f)
-        text = if (chain == MBlockchain.ton)
-            LocaleController.getString("\$send_only_ton")
-        else
-            LocaleController.getStringWithKeyValues(
-                "\$send_only_chain", listOf(
-                    Pair("%chain%", chain.name.replaceFirstChar { it.uppercaseChar() }),
-                    Pair(
-                        "%symbol%",
-                        TokenStore.getToken(chain.nativeSlug)?.symbol ?: ""
-                    ),
-                )
-            )
-    }
-
-    val addressView = WView(context).apply {
-        setPadding(20.dp, 6.dp, 20.dp, 14.dp)
-
-        addView(
-            addressLabel,
-            LayoutParams(LayoutParams.MATCH_CONSTRAINT, WRAP_CONTENT)
-        )
-        addView(
-            warningLabel,
-            LayoutParams(LayoutParams.MATCH_CONSTRAINT, WRAP_CONTENT)
-        )
-
-        setConstraints {
-            toTop(addressLabel)
-            toCenterX(addressLabel)
-            topToBottom(warningLabel, addressLabel, 11f)
-            toCenterX(warningLabel, 4f)
+    internal val descriptionLabel =
+        WLabel(context).apply {
+            setStyle(15f, WFont.Regular)
+            gravity = Gravity.CENTER
+            setTextColor(Color.WHITE)
+            alpha = 0.85f
+            maxLines = 3
+            text = LocaleController.getString("\$receive_description")
         }
-    }
+
+    private val chainIconView =
+        AppCompatImageView(context).apply {
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            setImageResource(chain.icon)
+        }
+
+    private val addressLabel =
+        WLabel(context).apply {
+            setStyle(14f, WFont.Medium)
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.MIDDLE
+            includeFontPadding = false
+            text = walletAddress
+        }
+
+    private val copyButton =
+        AppCompatImageView(context).apply {
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            contentDescription = LocaleController.getString("Copy Address")
+            setOnClickListener { copyAddress() }
+        }
+
+    private val infoButton =
+        AppCompatImageView(context).apply {
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            contentDescription = LocaleController.getString("View on Explorer")
+            setOnClickListener { openExplorer() }
+        }
+
+    val addressView =
+        WView(context).apply {
+            setPadding(12.dp, 12.dp, 10.dp, 12.dp)
+            minimumHeight = ADDRESS_ROW_MIN_HEIGHT.dp
+
+            addView(chainIconView, LayoutParams(22.dp, 22.dp))
+            addView(
+                addressLabel,
+                LayoutParams(LayoutParams.MATCH_CONSTRAINT, WRAP_CONTENT)
+            )
+            addView(copyButton, LayoutParams(28.dp, 28.dp))
+            addView(infoButton, LayoutParams(28.dp, 28.dp))
+
+            setConstraints {
+                toStart(chainIconView)
+                toTop(chainIconView)
+                toBottom(chainIconView)
+                startToEnd(addressLabel, chainIconView, 10f)
+                endToStart(addressLabel, copyButton, 8f)
+                toTop(addressLabel)
+                toBottom(addressLabel)
+                endToStart(copyButton, infoButton, 2f)
+                toCenterY(copyButton)
+                toEnd(infoButton)
+                toCenterY(infoButton)
+            }
+
+            setOnClickListener { copyAddress() }
+        }
 
     override fun setupViews() {
         super.setupViews()
@@ -175,29 +189,19 @@ class QRCodeVC(
             LayoutParams(LayoutParams.MATCH_CONSTRAINT, LayoutParams.MATCH_CONSTRAINT)
         )
         view.addView(
-            qrCodeView,
-            LayoutParams(qrCodeSize, qrCodeSize)
+            descriptionLabel,
+            LayoutParams(LayoutParams.MATCH_CONSTRAINT, WRAP_CONTENT)
         )
         view.addView(
-            titleLabel,
-            LayoutParams(LayoutParams.MATCH_CONSTRAINT, WRAP_CONTENT)
+            qrCodeView,
+            LayoutParams(qrCodeSize, qrCodeSize)
         )
         view.addView(
             addressView,
             LayoutParams(LayoutParams.MATCH_CONSTRAINT, WRAP_CONTENT)
         )
 
-        view.setConstraints {
-            toCenterX(qrCodeView)
-            centerYToCenterY(ornamentView, qrCodeView, 16f.dp)
-            toCenterX(ornamentView)
-            topToBottom(titleLabel, qrCodeView, 39f)
-            toCenterX(titleLabel)
-            topToBottom(addressView, titleLabel)
-            toCenterX(addressView)
-        }
-
-        addressView.measure(0.unspecified, 0.unspecified)
+        applyContentConstraints()
         updateTheme()
     }
 
@@ -205,10 +209,23 @@ class QRCodeVC(
         super.updateTheme()
 
         view.setBackgroundColor(Color.TRANSPARENT)
+        descriptionLabel.setTextColor(Color.WHITE)
         addressLabel.setTextColor(WColor.PrimaryText.color)
-        titleLabel.updateTheme()
-        warningLabel.setTextColor(WColor.SecondaryText.color)
-        addressView.setBackgroundColor(WColor.Background.color)
+        addressView.setBackgroundColor(
+            WColor.Background.color,
+            ViewConstants.BLOCK_RADIUS.dp
+        )
+
+        copyButton.setImageDrawable(
+            context.getDrawableCompat(app.twallet.air.icons.R.drawable.ic_copy_16)?.apply {
+                setTint(WColor.SecondaryText.color)
+            }
+        )
+        infoButton.setImageDrawable(
+            context.getDrawableCompat(app.twallet.air.icons.R.drawable.ic_info_24)?.apply {
+                setTint(WColor.SecondaryText.color)
+            }
+        )
 
         val ornamentRes = chain.receiveOrnamentImage
         if (ornamentRes != null) {
@@ -223,22 +240,74 @@ class QRCodeVC(
 
     override fun insetsUpdated() {
         super.insetsUpdated()
+        applyContentConstraints()
+    }
+
+    private fun contentTopInset(): Int =
+        (navigationController?.getSystemBars()?.top ?: 0) +
+            WNavigationBar.DEFAULT_HEIGHT.dp +
+            DESCRIPTION_TOP_EXTRA.dp
+
+    private fun applyContentConstraints() {
+        val horizontalPad = ViewConstants.HORIZONTAL_PADDINGS.dp
         view.setConstraints {
-            toTopPx(
-                qrCodeView, (navigationController?.getSystemBars()?.top ?: 0) +
-                    WNavigationBar.DEFAULT_HEIGHT.dp + 16.dp
-            )
-            toStartPx(addressView, systemBarStartInset)
-            toEndPx(addressView, systemBarEndInset)
+            toTopPx(descriptionLabel, contentTopInset())
+            toCenterX(descriptionLabel, 24f)
+            toCenterX(qrCodeView)
+            centerYToCenterY(ornamentView, qrCodeView, 16f.dp)
+            toCenterX(ornamentView)
+            topToBottom(qrCodeView, descriptionLabel, 16f)
+            topToBottom(addressView, qrCodeView, 20f)
+            toStartPx(addressView, horizontalPad + systemBarStartInset)
+            toEndPx(addressView, horizontalPad + systemBarEndInset)
         }
     }
 
+    /** Minimum height that fits description + QR + address (used before first layout). */
+    fun minExpectedHeight(): Int = estimatedContentHeight()
+
     fun getHeight(): Int {
-        return (addressView.y + addressView.height).toInt()
+        val laidOutBottom = (addressView.y + addressView.height).toInt()
+        // Segment uses pilledTabs → clipChildren; undersized height hides the address row.
+        return max(laidOutBottom + BOTTOM_PAD.dp, estimatedContentHeight())
     }
 
-    fun getTransparentHeight(): Int {
-        return HEIGHT.dp
+    fun getTransparentHeight(): Int = HEIGHT.dp
+
+    private fun estimatedContentHeight(): Int {
+        // description (~2 lines) + gaps + QR + address card + bottom pad
+        val descriptionEstimate = 44.dp
+        return contentTopInset() +
+            descriptionEstimate +
+            16.dp +
+            qrCodeSize +
+            20.dp +
+            ADDRESS_ROW_MIN_HEIGHT.dp +
+            BOTTOM_PAD.dp
     }
 
+    private fun copyAddress() {
+        if (walletAddress.isEmpty()) return
+        if (!ClipboardHelpers.copyToClipboard(context, "Wallet Address", walletAddress)) {
+            return
+        }
+        Haptics.play(addressView, HapticType.LIGHT_TAP)
+        Toast
+            .makeText(
+                context,
+                LocaleController
+                    .getString("%chain% Address Copied")
+                    .replace("%chain%", chain.displayName),
+                Toast.LENGTH_SHORT
+            ).show()
+    }
+
+    private fun openExplorer() {
+        if (walletAddress.isEmpty()) return
+        val network = AccountStore.activeAccount?.network ?: return
+        val config =
+            ExplorerHelpers.createAddressExplorerConfig(chain, network, walletAddress)
+                ?: return
+        WalletCore.notifyEvent(WalletEvent.OpenUrlWithConfig(config))
+    }
 }

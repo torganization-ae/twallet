@@ -34,13 +34,17 @@ extension HomeVC: BalanceHeaderViewDelegate, WalletAssetsDelegate {
 
     public func walletAssetsDidSelectTab(_ tab: DisplayAssetTab) {
         guard selectedAssetsTab != tab else { return }
+        let involvesActivity = selectedAssetsTab == .activity || tab == .activity
         selectedAssetsTab = tab
-        applySnapshot(makeSnapshot(), animatingDifferences: true)
-        updateSkeletonState()
+        // Tokens ↔ NFTs: pager/height already update — do not rebuild the home snapshot.
+        if involvesActivity {
+            applySnapshot(makeSnapshot(), animatingDifferences: false)
+            updateSkeletonState()
+            walletAssetDidChangeHeight(animated: false)
+        }
         if selectedAssetsTab != .activity {
             collectionView.isScrollEnabled = true
         }
-        walletAssetDidChangeHeight(animated: true)
     }
     
     public func expandHeader() {

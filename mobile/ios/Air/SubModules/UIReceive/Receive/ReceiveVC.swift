@@ -13,7 +13,8 @@ import WalletContext
 import WalletCore
 import Perception
 
-let headerHeight: CGFloat = 360
+/// Fits nav chrome + `$receive_description` + 200pt QR (web parity). Address lives in the table below.
+let headerHeight: CGFloat = 420
 
 public class ReceiveVC: WViewController {
     

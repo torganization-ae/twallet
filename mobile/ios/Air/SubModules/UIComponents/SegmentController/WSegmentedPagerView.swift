@@ -54,6 +54,8 @@ public final class WSegmentedPagerView: WTouchPassView, UIScrollViewDelegate {
 
     public var onScrollProgressChanged: ((_ progress: CGFloat, _ animated: Bool) -> Void)?
     public var onWillStartTransition: (() -> Void)?
+    /// Fires with the target page index as soon as a tab change is requested (before spring settles).
+    public var onWillChangeToIndex: ((Int) -> Void)?
     public var onDidStartDragging: (() -> Void)?
     public var onDidEndScrolling: (() -> Void)?
 
@@ -175,13 +177,16 @@ public final class WSegmentedPagerView: WTouchPassView, UIScrollViewDelegate {
 
     public func handleSegmentChange(to index: Int, animated: Bool) {
         guard items.indices.contains(index) else { return }
-        guard scrollView.bounds.width > 0 else {
-            selectIndex(index)
+        guard index != currentIndex else {
+            reportSettledProgress()
             onDidEndScrolling?()
             return
         }
-        guard index != currentIndex else {
-            reportSettledProgress()
+
+        onWillChangeToIndex?(index)
+
+        guard scrollView.bounds.width > 0 else {
+            selectIndex(index)
             onDidEndScrolling?()
             return
         }

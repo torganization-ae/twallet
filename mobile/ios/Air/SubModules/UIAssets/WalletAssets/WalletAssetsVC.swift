@@ -81,20 +81,34 @@ public extension WalletAssetsDelegate {
     }
 
     private var lastNotifiedSelectedTab: DisplayAssetTab?
+    /// When set, `computedHeight` snaps to this page (Activity peer swaps) instead of interpolating.
+    private var heightSnapIndex: Int?
 
     private var selectedDisplayTab: DisplayAssetTab? {
-        // Use the settled pager index — not mid-swipe scrollProgress — so Home content
-        // (activity feed vs tokens/NFTs) only swaps after the gesture finishes.
+        displayTab(at: walletAssetsView.selectedIndex)
+    }
+
+    private func displayTab(at index: Int) -> DisplayAssetTab? {
         let tabs = homeDisplayTabs(from: tabsViewModel.displayTabs)
-        let index = walletAssetsView.selectedIndex
         guard tabs.indices.contains(index) else { return nil }
         return tabs[index]
     }
 
-    private func notifySelectedTab() {
-        guard let tab = selectedDisplayTab, tab != lastNotifiedSelectedTab else { return }
+    private func notifySelectedTab(at index: Int? = nil) {
+        guard let tab = index.flatMap({ displayTab(at: $0) }) ?? selectedDisplayTab,
+              tab != lastNotifiedSelectedTab else { return }
         lastNotifiedSelectedTab = tab
         delegate?.walletAssetsDidSelectTab(tab)
+    }
+
+    /// Activity feed is outside the pager — swap it as soon as the target tab is known.
+    private func notifySelectedTabEarly(at index: Int) {
+        guard let to = displayTab(at: index) else { return }
+        let from = lastNotifiedSelectedTab ?? selectedDisplayTab
+        let involvesActivity = from == .activity || to == .activity
+        guard involvesActivity else { return }
+        heightSnapIndex = index
+        notifySelectedTab(at: index)
     }
     
     public init(accountSource: AccountSource) {
@@ -232,19 +246,24 @@ public extension WalletAssetsDelegate {
             }
         }
         
-        walletAssetsView.onScrollingOffsetChanged = { [weak self] _, animated in
+        walletAssetsView.onScrollingOffsetChanged = { [weak self] _, _ in
             guard let self else { return }
-            // Height interpolates during the swipe; content tab notifies only on settle.
-            self.headerHeightChanged(animated: animated)
-            
+            // Never animate height while the pager is moving — avoids lag/flicker.
+            // Activity feed swap waits for settle (or tap via onWillChangeToIndex).
+            self.headerHeightChanged(animated: false)
+
             if self.editingNavigator.state.editingState == .selection {
                 self.editingNavigator.cancelEditing()
             }
         }
-        
+
         walletAssetsView.layer.cornerRadius = S.homeInsetSectionCornerRadius
         walletAssetsView.layer.masksToBounds = true
 
+        walletAssetsView.tabsContainer.onWillChangeToIndex = { [weak self] index in
+            // Tab tap only: swap Activity feed before the pager spring (no mid-swipe thrash).
+            self?.notifySelectedTabEarly(at: index)
+        }
         walletAssetsView.tabsContainer.onWillStartTransition = { [weak self] in
             self?.pauseAllEmptyStateAnimations()
             self?.pauseAllNftAnimations()
@@ -254,9 +273,13 @@ public extension WalletAssetsDelegate {
             self?.pauseAllNftAnimations()
         }
         walletAssetsView.tabsContainer.onDidEndScrolling = { [weak self] in
-            self?.activateEmptyStateAnimationForSelectedPage()
-            self?.activateNftAnimationForSelectedPage()
-            self?.notifySelectedTab()
+            guard let self else { return }
+            self.heightSnapIndex = nil
+            // Refresh after clearing snap so settle height matches the active page.
+            self.headerHeightChanged(animated: false)
+            self.activateEmptyStateAnimationForSelectedPage()
+            self.activateNftAnimationForSelectedPage()
+            self.notifySelectedTab()
         }
         
         updateTheme()
@@ -445,6 +468,8 @@ public extension WalletAssetsDelegate {
             newItemsHeight = 44
         } else if vcs.count == 1 {
             newItemsHeight = 44 + calculatedHeight(for: vcs[0])
+        } else if let snap = heightSnapIndex, vcs.indices.contains(snap) {
+            newItemsHeight = 44 + calculatedHeight(for: vcs[snap])
         } else {
             let lo = max(0, min(vcs.count - 2, Int(progress)))
             newItemsHeight = 44 + interpolate(

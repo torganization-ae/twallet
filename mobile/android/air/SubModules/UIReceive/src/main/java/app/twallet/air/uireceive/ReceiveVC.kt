@@ -12,7 +12,6 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
 import androidx.constraintlayout.widget.ConstraintLayout.generateViewId
@@ -20,11 +19,7 @@ import androidx.core.view.updateLayoutParams
 import app.twallet.air.icons.R
 import app.twallet.air.uicomponents.base.WViewControllerWithModelStore
 import app.twallet.air.uicomponents.extensions.dp
-import app.twallet.air.uicomponents.helpers.ClipboardHelpers
-import app.twallet.air.uicomponents.helpers.HapticType
-import app.twallet.air.uicomponents.helpers.Haptics
 import app.twallet.air.uicomponents.helpers.WFont
-import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import app.twallet.air.uicomponents.widgets.WAlertLabel
 import app.twallet.air.uicomponents.widgets.WBaseView
 import app.twallet.air.uicomponents.widgets.WLabel
@@ -205,7 +200,13 @@ class ReceiveVC private constructor(
                         val vc = qrCodeVCs[chain] ?: continue
                         val progress = (currentOffset - i).let { kotlin.math.abs(it) }.coerceIn(0f, 1f)
                         val direction = if (currentOffset > i) -1 else 1
-                        animateQrView(vc.qrCodeView, vc.ornamentView, direction, progress)
+                        animateQrView(
+                            vc.qrCodeView,
+                            vc.ornamentView,
+                            vc.descriptionLabel,
+                            direction,
+                            progress
+                        )
                     }
 
                     if (chainCount > 1) {
@@ -214,9 +215,10 @@ class ReceiveVC private constructor(
                         val vcA = qrCodeVCs[availableChains[floorIdx]]!!
                         val vcB = qrCodeVCs[availableChains[floorIdx + 1]]!!
                         val height = ((1 - frac) * qrCodeHeight(vcA)) + (frac * qrCodeHeight(vcB))
-                        val layoutParams = qrSegmentView.layoutParams
-                        layoutParams.height = height.toInt()
-                        qrSegmentView.layoutParams = layoutParams
+                        lastAppliedQrHeight = height.toInt()
+                        qrSegmentView.updateLayoutParams {
+                            this.height = lastAppliedQrHeight
+                        }
                     }
 
                     updateOptionsForOffset(currentOffset)
@@ -240,86 +242,47 @@ class ReceiveVC private constructor(
             setBackgroundColor(WColor.Background.color, 0f, ViewConstants.BLOCK_RADIUS.dp)
         }
 
-    private val currentQRCode: QRCodeVC
-        get() {
-            return (qrSegmentView.currentItem as QRCodeVC)
-        }
-
-    private val copyAddressLabel: WLabel by lazy {
-        val lbl = WLabel(context)
-        lbl.setStyle(adaptiveFontSize())
-        lbl.text =
-            LocaleController.getString("Copy Address")
-        lbl
-    }
-    private val copyAddressSeparator: WBaseView by lazy {
-        val v = WBaseView(context)
-        v
-    }
-    private val copyAddressView: WView by lazy {
-        val v = WView(context)
-        v.addView(copyAddressLabel)
-        v.setConstraints {
-            toStart(copyAddressLabel, 20f)
-            toCenterY(copyAddressLabel)
-            toStart(copyAddressSeparator, 20f)
-            toEnd(copyAddressSeparator, 16f)
-            toBottom(copyAddressSeparator)
-        }
-        v.setOnClickListener {
-            if (!ClipboardHelpers.copyToClipboard(
-                    context,
-                    "Wallet Address",
-                    currentQRCode.walletAddress
-                )
-            ) {
-                return@setOnClickListener
-            }
-            Haptics.play(v, HapticType.LIGHT_TAP)
-            Toast
-                .makeText(
-                    context,
-                    LocaleController
-                        .getString("%chain% Address Copied")
-                        .replace("%chain%", currentQRCode.chain.displayName),
-                    Toast.LENGTH_SHORT
-                ).show()
-        }
-        v
-    }
-
-    private val shareQRCodeLabel: WLabel by lazy {
-        val lbl = WLabel(context)
-        lbl.setStyle(adaptiveFontSize())
-        lbl.text =
-            LocaleController.getString("Share QR Code")
-        lbl
-    }
-
     private val optionsSeparatorView: WBaseView by lazy {
-        val v = WBaseView(context)
-        v
+        WBaseView(context)
+    }
+
+    private val invoiceIconView: AppCompatImageView by lazy {
+        AppCompatImageView(context).apply {
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+        }
     }
 
     private val invoiceLabel: WLabel by lazy {
-        val lbl = WLabel(context)
-        lbl.setStyle(adaptiveFontSize())
-        lbl.text =
-            LocaleController.getString("Create Deposit Link")
-        lbl
+        WLabel(context).apply {
+            setStyle(15f, WFont.Medium)
+            text = LocaleController.getString("Create Deposit Link")
+        }
     }
+
+    private val invoiceChevronView: AppCompatImageView by lazy {
+        AppCompatImageView(context).apply {
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+        }
+    }
+
     private val invoiceView: WView by lazy {
-        val v = WView(context)
-        v.addView(invoiceLabel)
-        v.setConstraints {
-            toStart(invoiceLabel, 20f)
-            toTop(invoiceLabel, 14f)
+        WView(context).apply {
+            addView(invoiceIconView, LayoutParams(30.dp, 30.dp))
+            addView(invoiceLabel, LayoutParams(LayoutParams.MATCH_CONSTRAINT, WRAP_CONTENT))
+            addView(invoiceChevronView, LayoutParams(16.dp, 16.dp))
+            setConstraints {
+                toStart(invoiceIconView, 12f)
+                toCenterY(invoiceIconView)
+                startToEnd(invoiceLabel, invoiceIconView, 8f)
+                endToStart(invoiceLabel, invoiceChevronView, 8f)
+                toCenterY(invoiceLabel)
+                toEnd(invoiceChevronView, 12f)
+                toCenterY(invoiceChevronView)
+            }
+            setOnClickListener {
+                navigationController?.push(InvoiceVC(context))
+            }
         }
-        v.setOnClickListener {
-            val invoiceVC = InvoiceVC(context)
-            navigationController?.push(invoiceVC)
-        }
-        v
     }
 
     private val viewOnlyWarningView: WAlertLabel by lazy {
@@ -436,11 +399,6 @@ class ReceiveVC private constructor(
     override fun updateTheme() {
         super.updateTheme()
         view.setBackgroundColor(WColor.SecondaryBackground.color)
-        copyAddressView.setBackgroundColor(WColor.Background.color)
-        copyAddressView.addRippleEffect(WColor.SecondaryBackground.color)
-        copyAddressLabel.setTextColor(WColor.Tint.color)
-        copyAddressSeparator.setBackgroundColor(WColor.Separator.color)
-        shareQRCodeLabel.setTextColor(WColor.Tint.color)
         optionsSeparatorView.setBackgroundColor(WColor.SecondaryBackground.color)
         if (isViewOnlyAccount) {
             viewOnlyWarningView.updateTheme()
@@ -451,11 +409,22 @@ class ReceiveVC private constructor(
             )
             invoiceView.setBackgroundColor(WColor.Background.color)
             invoiceView.addRippleEffect(WColor.SecondaryBackground.color)
-            invoiceLabel.setTextColor(WColor.Tint.color)
+            invoiceLabel.setTextColor(WColor.PrimaryText.color)
+            invoiceIconView.setImageDrawable(
+                context.getDrawableCompat(R.drawable.ic_link)?.apply {
+                    setTint(WColor.Tint.color)
+                }
+            )
+            invoiceChevronView.setImageDrawable(
+                context.getDrawableCompat(R.drawable.ic_arrow_right_24)?.apply {
+                    setTint(WColor.SecondaryText.color)
+                }
+            )
         }
 
         val cacheWidth = ApplicationContextHolder.screenWidth
-        val cacheHeight = (navigationController?.getSystemBars()?.top ?: 0) + 307.dp + 64.dp
+        val cacheHeight =
+            (navigationController?.getSystemBars()?.top ?: 0) + QRCodeVC.HEIGHT.dp + 64.dp
         for ((i, chain) in availableChains.withIndex()) {
             val targetView = gradientColorViews[i]
             ReceiveBackgroundCache.render(chain, cacheWidth, cacheHeight) { drawable ->
@@ -469,6 +438,8 @@ class ReceiveVC private constructor(
     override fun insetsUpdated() {
         super.insetsUpdated()
         qrSegmentView.insetsUpdated()
+        // Insets change top padding inside QR pages — re-measure segment height or address clips.
+        applyQrSegmentHeight(force = true)
         if (isViewOnlyAccount) {
             view.setConstraints {
                 toStartPx(
@@ -530,18 +501,28 @@ class ReceiveVC private constructor(
     private val viewTreeObserver =
         object : ViewTreeObserver.OnPreDrawListener {
             override fun onPreDraw(): Boolean {
-                val calculatedQRHeight = qrHeight
-                if (calculatedQRHeight == lastAppliedQrHeight) {
-                    defaultVC.addressView.viewTreeObserver.removeOnPreDrawListener(this)
-                    return true
-                }
-                lastAppliedQrHeight = calculatedQRHeight
-                qrSegmentView.updateLayoutParams {
-                    height = calculatedQRHeight
+                if (applyQrSegmentHeight(force = false)) {
+                    val minHeight = defaultVC.minExpectedHeight()
+                    if (lastAppliedQrHeight >= minHeight) {
+                        defaultVC.addressView.viewTreeObserver.removeOnPreDrawListener(this)
+                    }
                 }
                 return true
             }
         }
+
+    /** Returns true when the applied height is unchanged (stable). */
+    private fun applyQrSegmentHeight(force: Boolean): Boolean {
+        val calculatedQRHeight = qrHeight
+        if (!force && calculatedQRHeight == lastAppliedQrHeight) {
+            return true
+        }
+        lastAppliedQrHeight = calculatedQRHeight
+        qrSegmentView.updateLayoutParams {
+            height = calculatedQRHeight
+        }
+        return false
+    }
 
     private val defaultVC get() = qrCodeVCs[resolvedDefaultChain] ?: qrCodeVCs.values.first()
 
@@ -623,6 +604,7 @@ class ReceiveVC private constructor(
     private fun animateQrView(
         qrCodeView: View,
         ornamentView: View,
+        descriptionView: View,
         direction: Int,
         progress: Float
     ) {
@@ -638,16 +620,17 @@ class ReceiveVC private constructor(
 
         val alpha = 1f - (0.75f * progress)
         qrCodeView.alpha = alpha
+        descriptionView.alpha = (0.85f * (1f - progress)).coerceIn(0f, 0.85f)
 
         val translation = progress * 100.dp * -direction
         qrCodeView.translationX = translation
         ornamentView.translationX = translation
+        descriptionView.translationX = translation
     }
 
     override fun onDestroy() {
         super.onDestroy()
         qrSegmentView.onDestroy()
-        copyAddressView.setOnClickListener(null)
         if (!isViewOnlyAccount) {
             invoiceView.setOnClickListener(null)
         }

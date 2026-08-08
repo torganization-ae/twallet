@@ -58,6 +58,8 @@ class WSegmentedController(
     val navHeight: Int = WNavigationBar.DEFAULT_HEIGHT.dp,
     private var onOffsetChange: ((position: Int, currentOffset: Float) -> Unit)? = null,
     private var onSelectedIndexChanged: ((Int) -> Unit)? = null,
+    /** Fires as soon as a tab target is known (tap), before the pager settles. */
+    private var onTargetIndexSelected: ((Int) -> Unit)? = null,
     // Lets parent know the view items are reordered
     private var onItemsReordered: (() -> Unit)? = null,
     // Lets parent know the view asked to go to reordering mode
@@ -80,6 +82,9 @@ class WSegmentedController(
 
     var currentOffset: Float = 0f
     val clipContent = pilledTabs
+
+    // Remember explicit hide/show so applyItems()/updateItems() cannot re-show pills.
+    private var tabsVisiblePreference: Boolean = true
 
     // Blur state for each tab, from 0 to 1, and -1 if it's on the bottom and paused, but with blur screenshot
     private var blurState: HashMap<Int, Float> = hashMapOf()
@@ -495,7 +500,7 @@ class WSegmentedController(
                 color = it.color,
             )
         }, selectedItem, this)
-        clearSegmentedControl.isVisible = items.size > 1 && !actionBar.isVisible
+        applyTabsVisibility()
         syncCloseButtonVisibility()
         clearSegmentedControl.updateItemsTrailingViews()
     }
@@ -660,7 +665,13 @@ class WSegmentedController(
     }
 
     fun setTabsVisible(visible: Boolean) {
-        clearSegmentedControl.isVisible = visible && items.size > 1 && !actionBar.isVisible
+        tabsVisiblePreference = visible
+        applyTabsVisibility()
+    }
+
+    private fun applyTabsVisibility() {
+        clearSegmentedControl.isVisible =
+            tabsVisiblePreference && items.size > 1 && !actionBar.isVisible
     }
 
     fun addLeadingView(view: View, width: Int = WRAP_CONTENT, height: Int = 40.dp) {
@@ -877,6 +888,7 @@ class WSegmentedController(
     fun onIndexChanged(to: Int, animated: Boolean, onCompletion: (() -> Unit)?) {
         isAnimatingChangeTab = true
         targetIndex = to
+        onTargetIndexSelected?.invoke(to)
         if (animated) {
             viewPager.springToItem(to, 0f, onCompletion)
         } else {
@@ -937,6 +949,8 @@ class WSegmentedController(
             items.forEach { it.viewController.onDestroy() }
         items = mutableListOf()
         onOffsetChange = null
+        onSelectedIndexChanged = null
+        onTargetIndexSelected = null
         onItemsReordered = null
         removeAllViews()
     }

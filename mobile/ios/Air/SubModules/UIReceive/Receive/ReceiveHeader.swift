@@ -62,13 +62,31 @@ private struct ReceiveHeaderItemView: View {
             let progress = viewModel.directionalDistanceToItem(itemId: chain.rawValue)
             let progressAbs = 1 - abs(progress)
             
-            ZStack {
-                receiveOrnament(progressAbs: progressAbs)
-                
-                _QRCodeView(chain: chain, address: address, opacity: interpolate(from: 0.25, to: 1, progress: progressAbs), onTap: {})
-                    .frame(width: 220, height: 220)
-                    .clipShape(.rect(cornerRadius: 32))
+            VStack(spacing: 16) {
+                Text(lang("$receive_description"))
+                    .font(.system(size: 15))
+                    .foregroundStyle(.white.opacity(0.85))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 24)
+                    .opacity(interpolate(from: 0.25, to: 1, progress: progressAbs))
+
+                ZStack {
+                    receiveOrnament(progressAbs: progressAbs)
+
+                    _QRCodeView(
+                        chain: chain,
+                        address: address,
+                        opacity: interpolate(from: 0.25, to: 1, progress: progressAbs),
+                        onTap: {}
+                    )
+                    .frame(width: 200, height: 200)
+                    .clipShape(.rect(cornerRadius: 28))
+                }
+                .frame(width: 200, height: 200)
             }
+            .frame(maxWidth: .infinity)
             .scaleEffect(min(1.05, interpolate(from: 0.5, to: 1, progress: progressAbs)))
             .offset(x: progress * 320)
             .rotation3DEffect(.degrees(-10) * progress, axis: (0, 1, 0))
@@ -111,13 +129,13 @@ private struct _QRCodeView: UIViewRepresentable {
         container.translatesAutoresizingMaskIntoConstraints = false
         container.backgroundColor = .white
         let url = chain.config.formatTransferUrl?(address, nil, nil, nil) ?? address
-        let view = QRCodeContainerView(url: url, image: chain.image, size: 200, centerImageSize: 40, delegate: context.coordinator)
+        let view = QRCodeContainerView(url: url, image: chain.image, size: 184, centerImageSize: 36, delegate: context.coordinator)
         container.addSubview(view)
         NSLayoutConstraint.activate([
-            container.widthAnchor.constraint(equalToConstant: 220),
-            container.heightAnchor.constraint(equalToConstant: 220),
-            view.widthAnchor.constraint(equalToConstant: 200),
-            view.heightAnchor.constraint(equalToConstant: 200),
+            container.widthAnchor.constraint(equalToConstant: 200),
+            container.heightAnchor.constraint(equalToConstant: 200),
+            view.widthAnchor.constraint(equalToConstant: 184),
+            view.heightAnchor.constraint(equalToConstant: 184),
             view.centerXAnchor.constraint(equalTo: container.centerXAnchor),
             view.centerYAnchor.constraint(equalTo: container.centerYAnchor),
         ])
