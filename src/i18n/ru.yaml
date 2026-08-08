@@ -780,10 +780,7 @@ Add Tokens: Добавить токены
 No tokens yet: Токенов пока нет
 $no_tokens_description: Получите токены из другого кошелька или просто включите нужные токены в настройках для мониторинга.
 Exchange Rate: Обменный курс
-Notifications & Sounds: Уведомления и звуки
 Sounds: Звуки
-Push Notifications: Уведомления
-Select up to %count% wallets for notifications: Выберите до %count% кошельков
 $swap_aggregator_fee_tooltip: Встроенный **DEX-агрегатор** помогает выбрать **лучший курс** среди доступных бирж. Комиссия сервиса — %percent%.
 Accumulated Rewards: Накопленные награды
 $swap_reverse_prohibited: Указание суммы покупки невозможно для этой пары токенов
@@ -1112,7 +1109,6 @@ Back Up, Passcode, Auto-Lock: Резервная копия, код, автоб�
 Back Up, Password, Auto-Lock: Резервная копия, пароль, автоблокировка
 Base Currency, Token Order, Hidden NFTs: Базовая валюта, порядок токенов, NFT
 Your assets on other contracts: Ваши активы на других контрактах
-Wallets, Sounds: Кошельки, звуки
 Help: Помощь
 About: О приложении
 Wallets: Кошельки
@@ -1485,8 +1481,6 @@ Popular and connected apps: Популярные и подключённые п�
 Connected Dapp: Подключённое приложение
 $ago: "%1$d назад"
 $visited_ago: "Посещено: %1$d назад"
-Notifications are disabled: Уведомления отключены
-Enable in Settings: Включить в Настройках
 Open Link: Открыть ссылку
 Open in App: Открыть в приложении
 Search in Google: Поиск в Google

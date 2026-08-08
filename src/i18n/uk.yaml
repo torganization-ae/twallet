@@ -780,10 +780,7 @@ Add Tokens: Додати токени
 No tokens yet: Ще немає токенів
 $no_tokens_description: Отримайте токени з іншого гаманця або просто увімкніть потрібні токени в налаштуваннях для моніторингу.
 Exchange Rate: Обмінний курс
-Notifications & Sounds: Сповіщення та звуки
 Sounds: Звуки
-Push Notifications: Сповіщення
-Select up to %count% wallets for notifications: Виберіть до %count% гаманців для сповіщень
 $swap_aggregator_fee_tooltip: Вбудований **агрегатор DEX** знаходить **найкращий курс** серед доступних DEX. Плата за послугу становить %percent%.
 Accumulated Rewards: Накоплені нагороди
 $swap_reverse_prohibited: Встановити суму покупки для цієї пари токенів неможливо
@@ -1111,7 +1108,6 @@ Back Up, Passcode, Auto-Lock: Резервна копія, Код, Автобл�
 Back Up, Password, Auto-Lock: Резервна копія, Пароль, Автоблокування
 Base Currency, Token Order, Hidden NFTs: Базова валюта, Порядок токенів, Приховані NFT
 Your assets on other contracts: Ваші активи на інших контрактах
-Wallets, Sounds: Гаманці, Звуки
 Help: Допомога
 About: Про додаток
 Wallets: Гаманці
@@ -1485,8 +1481,6 @@ Popular and connected apps: Популярні та підключені зас�
 Connected Dapp: Підключена dApp
 $ago: "%1$d тому"
 $visited_ago: "Відвідано: %1$d тому"
-Notifications are disabled: Сповіщення вимкнено
-Enable in Settings: Увімкніть у налаштуваннях
 Open Link: Відкрити посилання
 Open in App: Відкрити в додатку
 Search in Google: Шукати в Google

@@ -183,8 +183,6 @@ async function tryAutoImportTestMnemonic(actions: any) {
   nextGlobal = updateCurrentAccountId(nextGlobal, firstAccount.accountId);
   setGlobal(nextGlobal);
   syncVaultAccountsFromGlobal(nextGlobal);
-
-  actions.tryAddNotificationAccount({ accountId: firstAccount.accountId });
   actions.afterSignIn();
 }
 
@@ -361,7 +359,6 @@ addActionHandler('signOut', async (global, actions, payload) => {
   }
 
   if (isFromAllAccounts || accountIds.length === 1) {
-    actions.deleteAllNotificationAccounts({ accountIds });
     if (otherNetworkAccountIds.length) {
       await callApi('removeNetworkAccounts', network);
 
@@ -430,7 +427,6 @@ addActionHandler('signOut', async (global, actions, payload) => {
       : undefined;
 
     await callApi('removeAccount', removingAccountId, nextAccountId, nextNewestActivityTimestamps);
-    actions.deleteNotificationAccount({ accountId: removingAccountId });
 
     global = getGlobal();
 

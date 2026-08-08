@@ -56,7 +56,6 @@ import type {
   ApiUpdateWalletVersions,
   ApiVestingInfo,
   ApiWalletWithVersionInfo,
-  NativePlatform,
 } from '../api/types';
 import type { AUTOLOCK_OPTIONS_LIST } from '../config';
 import type { AuthConfig } from '../util/authApi/types';
@@ -366,7 +365,7 @@ export enum VestingUnfreezeState {
 
 export enum SettingsState {
   Initial,
-  PushNotifications,
+  Sounds,
   Appearance,
   Assets,
   Security,
@@ -1027,13 +1026,6 @@ export type GlobalState = {
 
   isLoadingOverlayOpen?: boolean;
 
-  pushNotifications: {
-    isAvailable?: boolean;
-    userToken?: string;
-    platform?: NativePlatform;
-    enabledAccounts: string[]; // Values - account ids
-  };
-
   isAppLockActive?: boolean;
   isManualLockActive?: boolean;
   appLockHideBiometrics?: boolean;
@@ -1183,7 +1175,6 @@ export interface ActionPayloads {
 
   fetchPastActivities: { accountId?: string; slug?: string; shouldLoadWithBudget?: boolean };
   showActivityInfo: { id: string };
-  showAnyAccountTx: { txId: string; accountId: string; network: ApiNetwork; chain: ApiChain };
   showTokenActivity: { slug: string; returnTab?: ContentTab };
   closeActivityInfo: { id: string };
   fetchActivityDetails: { id: string };
@@ -1475,15 +1466,6 @@ export interface ActionPayloads {
 
   openPromotionModal: undefined;
   closePromotionModal: undefined;
-
-  toggleNotifications: { isEnabled: boolean };
-  renameNotificationAccount: { accountId: string };
-  toggleNotificationAccount: { accountId: string };
-  createNotificationAccount: { accountId: string; withAbort?: boolean };
-  tryAddNotificationAccount: { accountId: string };
-  deleteNotificationAccount: { accountId: string; withAbort?: boolean };
-  deleteAllNotificationAccounts: undefined | { accountIds: string[] };
-  registerNotifications: { userToken: string; platform: NativePlatform };
 
   openFullscreen: undefined;
   closeFullscreen: undefined;

@@ -16,7 +16,6 @@ import app.twallet.air.walletcore.api.validateMnemonic
 import app.twallet.air.walletcore.helpers.PrivateKeyHelper
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.MBridgeError
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.air.walletcore.utils.jsonObject
 import java.lang.ref.WeakReference
 
@@ -98,7 +97,6 @@ class ImportWalletVM(delegate: Delegate) {
                     byChain = account.byChain.jsonObject,
                     importedAt = account.importedAt
                 )
-                AirPushNotifications.subscribe(account, ignoreIfLimitReached = true)
             }
             WalletCore.refreshStoredMfaIfPossible(
                 importedAccounts.map { it.accountId },

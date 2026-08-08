@@ -12,7 +12,6 @@ import {
   APP_VERSION,
   DEBUG,
 } from '../../../config';
-import { parseNotificationTxId } from '../../../util/activities';
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import {
   openDeeplinkOrUrl,
@@ -61,26 +60,6 @@ const APP_VERSION_URL = 'version.txt';
 
 addActionHandler('showActivityInfo', (global, actions, { id }) => {
   return updateCurrentAccountState(global, { currentActivityId: id });
-});
-
-addActionHandler('showAnyAccountTx', async (global, actions, { txId, accountId, network, chain }) => {
-  await Promise.all([
-    closeAllOverlays(),
-    switchAccount(global, accountId, network),
-  ]);
-
-  if (txId.startsWith('swap:')) {
-    const result = await callApi('fetchSwaps', accountId, [{ id: txId, chain }]);
-    const swapActivity = result?.swaps[0];
-
-    if (swapActivity) {
-      actions.openTransactionInfo({ txId, chain, activities: [swapActivity] });
-      return;
-    }
-  }
-
-  const txHash = parseNotificationTxId(txId);
-  actions.openTransactionInfo({ txHash, chain });
 });
 
 addActionHandler('closeActivityInfo', (global, actions, { id }) => {
@@ -302,8 +281,6 @@ addActionHandler('addAccount2', (global, actions, { method, password }) => {
 
 addActionHandler('renameAccount', (global, actions, { accountId, title }) => {
   setGlobal(renameAccount(global, accountId, title));
-
-  actions.renameNotificationAccount({ accountId });
 });
 
 addActionHandler('setAccountProfile', async (global, actions, { accountId, profile }) => {

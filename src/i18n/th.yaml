@@ -771,10 +771,7 @@ Add Tokens: เพิ่มโทเค็น
 No tokens yet: ยังไม่มีโทเคน
 $no_tokens_description: รับโทเคนจากกระเป๋าเงินอื่น หรือเพียงแค่เปิดใช้งานโทเคนที่ต้องการในการตั้งค่าเพื่อการติดตาม
 Exchange Rate: อัตราแลกเปลี่ยน
-Notifications & Sounds: การแจ้งเตือนและเสียง
 Sounds: เสียง
-Push Notifications: การแจ้งเตือนแบบพุช
-Select up to %count% wallets for notifications: เลือกกระเป๋าเงินได้สูงสุด %count% ใบสำหรับการแจ้งเตือน
 $swap_aggregator_fee_tooltip: ตัวรวบรวม **DEX ในตัว** จะค้นหา **อัตราที่ดีที่สุด** จาก DEX ที่มีอยู่ ค่าบริการคือ %percent%.
 Accumulated Rewards: รางวัลที่สะสม
 $swap_reverse_prohibited: การตั้งค่าจำนวนซื้อเป็นไปไม่ได้สำหรับคู่โทเค็นนี้
@@ -1089,7 +1086,6 @@ Back Up, Passcode, Auto-Lock: สำรองข้อมูล, รหัสผ
 Back Up, Password, Auto-Lock: สำรองข้อมูล, รหัสผ่าน, ล็อกอัตโนมัติ
 Base Currency, Token Order, Hidden NFTs: สกุลเงินหลัก, ลำดับโทเค็น, NFT ที่ซ่อน
 Your assets on other contracts: สินทรัพย์ของคุณในสัญญาอื่น
-Wallets, Sounds: กระเป๋าเงิน, เสียง
 Help: ช่วยเหลือ
 About: เกี่ยวกับ
 Wallets: กระเป๋าเงิน
@@ -1451,8 +1447,6 @@ Popular and connected apps: แอปยอดนิยมและที่เ�
 Connected Dapp: dApp ที่เชื่อมต่อ
 $ago: "%1$d ที่แล้ว"
 $visited_ago: "เข้าชมเมื่อ %1$d ที่แล้ว"
-Notifications are disabled: ปิดการแจ้งเตือนอยู่
-Enable in Settings: เปิดในเมนูตั้งค่า
 Open Link: เปิดลิงก์
 Open in App: เปิดในแอป
 Search in Google: ค้นหาใน Google

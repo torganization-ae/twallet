@@ -16,7 +16,6 @@ import app.twallet.air.walletcore.moshi.inject.ApiDappSessionChain
 import app.twallet.air.walletcore.moshi.inject.ApiDappSignDataRequest
 import app.twallet.air.walletcore.moshi.inject.ApiDappTransactionRequest
 import app.twallet.air.walletcore.moshi.ApiNft
-import app.twallet.air.walletcore.moshi.ApiNotificationAddress
 import app.twallet.air.walletcore.moshi.ApiSubmitTransferResult
 import app.twallet.air.walletcore.moshi.ApiSubmitTransfersResult
 import app.twallet.air.walletcore.moshi.ApiTonConnectProof
@@ -1060,41 +1059,6 @@ sealed class ApiMethod<T> {
         }
     }
 
-
-    /* Notifications */
-    object Notifications {
-        class SubscribeNotifications(props: Props) : ApiMethod<JSONObject>() {
-
-            @JsonClass(generateAdapter = true)
-            data class Props(
-                val userToken: String,
-                val addresses: List<ApiNotificationAddress>,
-                val langCode: String,
-                val platform: String = "android",
-            )
-
-            override val name: String = "subscribeNotifications"
-            override val type: Type = JSONObject::class.java
-            override val arguments: String = ArgumentsBuilder()
-                .jsObject(props, Props::class.java)
-                .build()
-        }
-
-        class UnsubscribeNotifications(props: Props) : ApiMethod<Any>() {
-
-            @JsonClass(generateAdapter = true)
-            data class Props(
-                val userToken: String,
-                val addresses: List<ApiNotificationAddress>
-            )
-
-            override val name: String = "unsubscribeNotifications"
-            override val type: Type = Any::class.java
-            override val arguments: String = ArgumentsBuilder()
-                .jsObject(props, Props::class.java)
-                .build()
-        }
-    }
 
     /* MFA */
     object Mfa {

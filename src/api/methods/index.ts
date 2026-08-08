@@ -32,5 +32,4 @@ export * from './portfolio';
 export * from './walletConnectPay';
 export * from './prices';
 export * from './preload';
-export * from './notifications';
 export * from './mfa';

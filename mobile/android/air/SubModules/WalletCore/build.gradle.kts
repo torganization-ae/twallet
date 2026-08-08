@@ -47,7 +47,6 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.webkit)
-    implementation(libs.firebase.messaging)
     implementation(project("$airSubModulePath:WalletContext"))
     implementation(project("$airSubModulePath:WalletBaseContext"))
     implementation(project("$airSubModulePath:Icons"))

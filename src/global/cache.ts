@@ -537,7 +537,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
   }
 
   if (cached.stateVersion === 47) {
-    cached.pushNotifications.enabledAccounts = Object.keys(cached.pushNotifications.enabledAccounts ?? {});
+    // Former pushNotifications.enabledAccounts shape migration (feature removed).
     cached.stateVersion = 48;
   }
 
@@ -669,6 +669,12 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
 
     cached.stateVersion = 60;
   }
+
+  if (cached.stateVersion === 60) {
+    // Push notifications removed — drop persisted subscription state.
+    delete (cached as any).pushNotifications;
+    cached.stateVersion = 61;
+  }
   // When adding migration here, increase `STATE_VERSION`
 }
 
@@ -732,7 +738,6 @@ function updateCache(force?: boolean) {
       'currentTemporaryViewAccountId',
       'stateVersion',
       'restrictions',
-      'pushNotifications',
       'isFullscreen',
       'isManualLockActive',
       'currencyRates',

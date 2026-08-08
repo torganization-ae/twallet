@@ -774,10 +774,7 @@ Add Tokens: Token Hinzufügen
 No tokens yet: Noch keine Token
 $no_tokens_description: Erhalten Sie Token von einer anderen Wallet oder aktivieren Sie einfach bevorzugte Token in den Einstellungen zur Überwachung.
 Exchange Rate: Wechselkurs
-Notifications & Sounds: Benachrichtigungen & Töne
 Sounds: Töne
-Push Notifications: Push-Benachrichtigungen
-Select up to %count% wallets for notifications: Wählen Sie bis zu %count% Wallets für Benachrichtigungen aus
 $swap_aggregator_fee_tooltip: Ein integrierter **DEX-Aggregator** findet den **besten Kurs** über verfügbare DEXs. Die Servicegebühr beträgt %percent%.
 Accumulated Rewards: Akkumulierte Belohnungen
 $swap_reverse_prohibited: Das Festlegen des Kaufbetrags ist für dieses Tokenpaar nicht möglich
@@ -1098,7 +1095,6 @@ Back Up, Passcode, Auto-Lock: Backup, Passcode, Automatische Sperre
 Back Up, Password, Auto-Lock: Backup, Passwort, Automatische Sperre
 Base Currency, Token Order, Hidden NFTs: Basiswährung, Token-Reihenfolge, Versteckte NFTs
 Your assets on other contracts: Ihre Vermögenswerte auf anderen Verträgen
-Wallets, Sounds: Wallets, Töne
 Help: Hilfe
 About: Über
 Wallets: Wallets
@@ -1465,8 +1461,6 @@ Popular and connected apps: Beliebte und verbundene Apps
 Connected Dapp: Verbundene dApp
 $ago: "vor %1$d"
 $visited_ago: "vor %1$d besucht"
-Notifications are disabled: Benachrichtigungen sind deaktiviert
-Enable in Settings: In den Einstellungen aktivieren
 Open Link: Link öffnen
 Open in App: In der App öffnen
 Search in Google: In Google suchen

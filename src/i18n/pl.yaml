@@ -783,10 +783,7 @@ Add Tokens: Dodaj tokeny
 No tokens yet: Brak tokenów
 $no_tokens_description: Otrzymaj tokeny z innego portfela lub po prostu włącz preferowane tokeny w ustawieniach, aby je monitorować.
 Exchange Rate: Kurs wymiany
-Notifications & Sounds: Powiadomienia i dźwięki
 Sounds: Dźwięki
-Push Notifications: Powiadomienia Push
-Select up to %count% wallets for notifications: Wybierz do %count% portfeli do powiadomień
 $swap_aggregator_fee_tooltip: Wbudowany **agregator DEX** znajduje **najlepszy kurs** w dostępnych DEX-ach. Opłata za usługę wynosi %percent%.
 Accumulated Rewards: Nagromadzone nagrody
 $swap_reverse_prohibited: Ustawienie kwoty zakupu jest niemożliwe dla tej pary tokenów
@@ -1115,7 +1112,6 @@ Back Up, Passcode, Auto-Lock: Kopia zapasowa, Hasło, Automatyczna blokada
 Back Up, Password, Auto-Lock: Kopia zapasowa, Hasło, Automatyczna blokada
 Base Currency, Token Order, Hidden NFTs: Waluta bazowa, Kolejność tokenów, Ukryte NFT
 Your assets on other contracts: Twoje aktywa na innych kontraktach
-Wallets, Sounds: Portfele, Dźwięki
 Help: Pomoc
 About: O aplikacji
 Wallets: Portfele
@@ -1489,8 +1485,6 @@ Popular and connected apps: Popularne i połączone aplikacje
 Connected Dapp: Połączona dApp
 $ago: "%1$d temu"
 $visited_ago: "Odwiedzono: %1$d temu"
-Notifications are disabled: Powiadomienia są wyłączone
-Enable in Settings: Włącz w ustawieniach
 Open Link: Otwórz link
 Open in App: Otwórz w aplikacji
 Search in Google: Szukaj w Google

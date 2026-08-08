@@ -87,7 +87,7 @@ extension SettingsItem.Identifier {
             return SettingsItem(
                 id: self,
                 icon: UIImage.airBundle("NotificationsSettingsIcon"),
-                title: lang("Notifications & Sounds"),
+                title: lang("Sounds"),
                 hasPrimaryColor: false,
                 hasChild: true,
                 isDangerous: false

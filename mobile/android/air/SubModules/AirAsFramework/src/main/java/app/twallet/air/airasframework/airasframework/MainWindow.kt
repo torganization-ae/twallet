@@ -1,12 +1,8 @@
 package app.twallet.air.airasframework
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.view.MotionEvent
-import androidx.core.content.ContextCompat
 import app.twallet.air.airasframework.splash.SplashVC
 import app.twallet.air.uicomponents.base.WNavigationController
 import app.twallet.air.uicomponents.base.WWindow
@@ -25,7 +21,6 @@ import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.helpers.AutoLockHelper
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.uihome.tabletTabs.TabletTabsVC
 import app.twallet.uihome.tabs.PhoneTabsVC
 
@@ -57,10 +52,11 @@ class MainWindow : WWindow() {
         ViewConstants.ADDITIONAL_TABLET_PADDING =
             if (isWideLayout) ADDITIONAL_TABLET_PADDING.dp else 0
         windowView.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
-            if (r - l != or - ol || b - t != ob - ot)
+            if (r - l != or - ol || b - t != ob - ot) {
                 swapTabContainerIfNeeded()
-            else
+            } else {
                 isConfiguring = false
+            }
         }
 
         if (!WGlobalStorage.isInitialized) {
@@ -76,8 +72,6 @@ class MainWindow : WWindow() {
         AutoLockHelper.start(WGlobalStorage.getAppLock().period)
 
         ShakeDetector.onShake = { presentDebugMenuIfAllowed() }
-
-        checkPushNotifications()
     }
 
     private fun presentDebugMenuIfAllowed() {
@@ -87,10 +81,11 @@ class MainWindow : WWindow() {
         if (topVC is PasscodeConfirmVC) return
         if (topVC.isLockedScreen) return
         if (topVC is DebugMenuVC) return
-        val nav = WNavigationController(
-            this,
-            WNavigationController.PresentationConfig.PreferredFullScreen
-        )
+        val nav =
+            WNavigationController(
+                this,
+                WNavigationController.PresentationConfig.PreferredFullScreen
+            )
         nav.setRoot(DebugMenuVC(this))
         present(nav, animated = true)
     }
@@ -148,21 +143,23 @@ class MainWindow : WWindow() {
         // Swap the root tab container (phone <-> tablet) if it changed direction.
         (navigationControllers.firstOrNull()?.viewControllers?.firstOrNull())?.let { currentContainer ->
             when (currentContainer) {
-                is PhoneTabsVC -> if (nowWide) {
-                    // Tablet has no minimized-nav support; restore it as a presented nav first.
-                    currentContainer.maximize(animated = false)
-                    val transfer = currentContainer.exportStacks()
-                    val tabletContainer = TabletTabsVC(this)
-                    tabletContainer.adoptStacksBeforeSetup(transfer)
-                    navigationControllers.first().replaceRoot(tabletContainer)
-                }
+                is PhoneTabsVC ->
+                    if (nowWide) {
+                        // Tablet has no minimized-nav support; restore it as a presented nav first.
+                        currentContainer.maximize(animated = false)
+                        val transfer = currentContainer.exportStacks()
+                        val tabletContainer = TabletTabsVC(this)
+                        tabletContainer.adoptStacksBeforeSetup(transfer)
+                        navigationControllers.first().replaceRoot(tabletContainer)
+                    }
 
-                is TabletTabsVC -> if (!nowWide) {
-                    val transfer = currentContainer.exportStacks()
-                    val phoneContainer = PhoneTabsVC(this)
-                    phoneContainer.adoptStacksBeforeSetup(transfer)
-                    navigationControllers.first().replaceRoot(phoneContainer)
-                }
+                is TabletTabsVC ->
+                    if (!nowWide) {
+                        val transfer = currentContainer.exportStacks()
+                        val phoneContainer = PhoneTabsVC(this)
+                        phoneContainer.adoptStacksBeforeSetup(transfer)
+                        navigationControllers.first().replaceRoot(phoneContainer)
+                    }
 
                 else -> {}
             }
@@ -218,23 +215,4 @@ class MainWindow : WWindow() {
             destroyBridge()
         }
     }
-
-    private fun checkPushNotifications() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            // Permission already granted
-            AirPushNotifications.register(subscribePreviousAccountsIfEmpty = false)
-        } else {
-            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) { _, grantResults ->
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    AirPushNotifications.register(subscribePreviousAccountsIfEmpty = true)
-                }
-            }
-        }
-    }
-
 }

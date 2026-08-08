@@ -15,10 +15,8 @@ final class AirRuntimeCoordinator: NSObject {
     private lazy var startupCoordinator = AirStartupCoordinator(lockCoordinator: lockCoordinator)
 
     private var nextDeeplink: Deeplink?
-    private var nextNotification: UNNotification?
     private var nextSystemActions: [AirSystemAction] = []
     private var _isWalletReady = false
-    private var didSchedulePushPermissionRequest = false
     private var startupImportError: Error?
 
     #if DEBUG
@@ -71,12 +69,11 @@ final class AirRuntimeCoordinator: NSObject {
         lockCoordinator.lockApp(animated: animated)
     }
 
-    // Queued deeplinks/notifications/system actions are intentionally kept: events may arrive
+    // Queued deeplinks/system actions are intentionally kept: events may arrive
     // before `soarIntoAir` resets the coordinator (e.g. a cold-start deeplink) and must survive
     // until the wallet is ready and unlocked.
     func reset() {
         _isWalletReady = false
-        didSchedulePushPermissionRequest = false
         startupImportError = nil
         lockCoordinator.reset()
     }
@@ -91,10 +88,6 @@ final class AirRuntimeCoordinator: NSObject {
 
     func handle(url: URL, source: DeeplinkOpenSource = .generic) -> Bool {
         deeplinkHandler.handle(url, source: source)
-    }
-
-    func handle(notification: UNNotification) {
-        handleNotification(notification)
     }
 
     func handle(systemAction: AirSystemAction) {
@@ -112,12 +105,6 @@ final class AirRuntimeCoordinator: NSObject {
             self.nextDeeplink = nil
             DispatchQueue.main.async {
                 self.handle(deeplink: nextDeeplink)
-            }
-        }
-        if let nextNotification {
-            self.nextNotification = nil
-            DispatchQueue.main.async {
-                self.handleNotification(nextNotification)
             }
         }
         if !nextSystemActions.isEmpty {
@@ -330,13 +317,6 @@ extension AirRuntimeCoordinator: WalletContextDelegate {
             if #available(iOS 18.4, *) {
                 TokenSpotlightIndexer.shared.reindexSoon()
             }
-            if !didSchedulePushPermissionRequest {
-                didSchedulePushPermissionRequest = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
-                    self?.requestPushNotificationsPermission()
-                }
-            }
-            UNUserNotificationCenter.current().delegate = self
         }
     }
 
@@ -441,97 +421,5 @@ extension AirRuntimeCoordinator: DeeplinkNavigator {
         } else {
             nextDeeplink = deeplink
         }
-    }
-
-    func handleNotification(_ notification: UNNotification) {
-        guard isWalletReady, isAppUnlocked else {
-            nextNotification = notification
-            return
-        }
-        nextNotification = nil
-        guard AccountStore.account != nil else { return }
-        Task {
-            try await _handleNotification(notification)
-        }
-    }
-
-    @MainActor private func _handleNotification(_ notification: UNNotification) async throws {
-        let payload = PushNotificationPayload(userInfo: notification.request.content.userInfo)
-        let accountId = payload.address.flatMap { address in
-            AccountStore.orderedAccounts.first { $0.getAddress(chain: payload.chain) == address }?.id
-        }
-
-        if payload.action == .openUrl {
-            try await handleOpenUrlNotification(payload, accountId: accountId)
-            return
-        }
-
-        guard let accountId else { return }
-        switch payload.action {
-        case .nativeTx, .swap:
-            if payload.chain.isSupported, let txId = payload.txId {
-                AppActions.showAnyAccountTx(accountId: accountId, chain: payload.chain, txId: txId, showError: false)
-            }
-        case .jettonTx:
-            if payload.chain.isSupported, let txId = payload.txId {
-                AppActions.showAnyAccountTx(accountId: accountId, chain: payload.chain, txId: txId, showError: false)
-            } else if let slug = payload.slug {
-                try await AccountStore.activateAccount(accountId: accountId)
-                AppActions.showTokenBySlug(slug)
-            }
-        case .expiringDns:
-            try await AccountStore.activateAccount(accountId: accountId)
-            if let domainAddress = payload.domainAddress {
-                AppActions.showRenewDomain(accountSource: .accountId(accountId), nftsToRenew: [domainAddress])
-            }
-        default:
-            break
-        }
-    }
-
-    private func handleOpenUrlNotification(_ payload: PushNotificationPayload, accountId: String?) async throws {
-        guard let url = payload.url else { return }
-        if let accountId {
-            try await AccountStore.activateAccount(accountId: accountId)
-        }
-        if deeplinkHandler.handle(url) {
-            return
-        }
-        if payload.isExternal || url.isTelegramURL {
-            await UIApplication.shared.open(url)
-        } else {
-            AppActions.openInBrowser(url, title: payload.title, injectDappConnect: true)
-        }
-    }
-}
-
-extension AirRuntimeCoordinator: UNUserNotificationCenterDelegate {
-    private func requestPushNotificationsPermission() {
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
-            switch settings.authorizationStatus {
-            case .authorized, .provisional:
-                DispatchQueue.main.async {
-                    UIApplication.shared.registerForRemoteNotifications()
-                }
-            case .denied:
-                break
-            case .notDetermined:
-                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
-                    if granted {
-                        DispatchQueue.main.async {
-                            UIApplication.shared.registerForRemoteNotifications()
-                        }
-                    }
-                }
-            case .ephemeral:
-                break
-            @unknown default:
-                break
-            }
-        }
-    }
-
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
-        handleNotification(response.notification)
     }
 }

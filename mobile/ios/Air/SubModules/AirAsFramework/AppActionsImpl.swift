@@ -235,27 +235,6 @@ private class AppActionsImpl: AppActionsProtocol {
         }
     }
 
-    static func showAnyAccountTx(accountId: String, chain: ApiChain, txId: String, showError: Bool) {
-        Task {
-            do {
-                let account = try await AccountStore.activateAccount(accountId: accountId)
-                let normalizedTxId = normalizeNotificationTxId(txId)
-                let walletAddress = account.getAddress(chain: chain) ?? ""
-                let activities = try await Api.fetchTransactionById(
-                    chain: chain,
-                    network: account.network,
-                    txHash: normalizedTxId,
-                    walletAddress: walletAddress
-                )
-                presentActivities(activities, accountId: account.id, showError: showError)
-            } catch {
-                if showError {
-                    AppActions.showError(error: DisplayError(text: lang("Transfer not found")))
-                }
-            }
-        }
-    }
-
     private static func presentActivities(_ activities: [ApiActivity], accountId: String, showError: Bool) {
         switch activities.count {
         case 0:

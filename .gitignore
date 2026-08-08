@@ -45,3 +45,8 @@ AGENTS.md
 /worktrees/
 .cursor/
 .tools/
+
+# Keystores — block accidental commits; only the shared debug keystore is allowlisted.
+*.jks
+*.keystore
+!mobile/android/debugSigningKey.jks

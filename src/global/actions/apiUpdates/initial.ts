@@ -337,7 +337,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
       // Run the application only after the post-migration GlobalState has been applied
       requestAnimationFrame(() => {
-        actions.tryAddNotificationAccount({ accountId });
         actions.switchAccount({ accountId, newNetwork: isTestnet ? 'testnet' : 'mainnet' });
         actions.afterSignIn();
 
@@ -353,16 +352,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       const removed = new Set(accountIds);
       const wasCurrentRemoved = Boolean(global.currentAccountId && removed.has(global.currentAccountId));
       global = omitAccounts(global, accountIds);
-
-      // Drop any push-notification references to the removed accounts (local only; twins were never subscribed).
-      const { enabledAccounts } = global.pushNotifications;
-      const nextEnabledAccounts = enabledAccounts.filter((id) => !removed.has(id));
-      if (nextEnabledAccounts.length !== enabledAccounts.length) {
-        global = {
-          ...global,
-          pushNotifications: { ...global.pushNotifications, enabledAccounts: nextEnabledAccounts },
-        };
-      }
 
       setGlobal(global);
 

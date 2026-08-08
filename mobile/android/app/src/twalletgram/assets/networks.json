@@ -129,7 +129,6 @@
         "doesBackendSocketSupport": true,
         "canImportTokens": true,
         "shouldShowScamWarningIfNotEnoughGas": false,
-        "doesSupportPushNotifications": true,
         "isNetWorthSupported": true
       },
       "feeCheckAddress": "UQBE5NzPPnfb6KAy7Rba2yQiuUnihrfcFw96T-p5JtZjAl_c",
@@ -234,7 +233,6 @@
         "doesBackendSocketSupport": true,
         "canImportTokens": false,
         "shouldShowScamWarningIfNotEnoughGas": true,
-        "doesSupportPushNotifications": false,
         "isNetWorthSupported": false
       },
       "feeCheckAddress": "TW2LXSebZ7Br1zHaiA2W1zRojDkDwjGmpw",
@@ -350,7 +348,6 @@
         "doesBackendSocketSupport": false,
         "canImportTokens": false,
         "shouldShowScamWarningIfNotEnoughGas": false,
-        "doesSupportPushNotifications": false,
         "isNetWorthSupported": false
       },
       "feeCheckAddress": "35YT7tt9edJbroEKaC3T3XY4cLNWKtVzmyTEfW8LHPEA",
@@ -467,7 +464,6 @@
         "doesBackendSocketSupport": false,
         "canImportTokens": false,
         "shouldShowScamWarningIfNotEnoughGas": false,
-        "doesSupportPushNotifications": false,
         "isNetWorthSupported": false
       },
       "feeCheckAddress": "0x0000000000000000000000000000000000000000",
@@ -584,7 +580,6 @@
         "doesBackendSocketSupport": false,
         "canImportTokens": false,
         "shouldShowScamWarningIfNotEnoughGas": false,
-        "doesSupportPushNotifications": false,
         "isNetWorthSupported": false
       },
       "feeCheckAddress": "0x0000000000000000000000000000000000000000",
@@ -699,7 +694,6 @@
         "doesBackendSocketSupport": false,
         "canImportTokens": false,
         "shouldShowScamWarningIfNotEnoughGas": false,
-        "doesSupportPushNotifications": false,
         "isNetWorthSupported": false
       },
       "feeCheckAddress": "0x0000000000000000000000000000000000000000",
@@ -810,7 +804,6 @@
         "doesBackendSocketSupport": false,
         "canImportTokens": false,
         "shouldShowScamWarningIfNotEnoughGas": false,
-        "doesSupportPushNotifications": false,
         "isNetWorthSupported": false
       },
       "feeCheckAddress": "0x0000000000000000000000000000000000000000",
@@ -924,7 +917,6 @@
         "doesBackendSocketSupport": false,
         "canImportTokens": false,
         "shouldShowScamWarningIfNotEnoughGas": false,
-        "doesSupportPushNotifications": false,
         "isNetWorthSupported": false
       },
       "feeCheckAddress": "0x0000000000000000000000000000000000000000",
@@ -1037,7 +1029,6 @@
         "doesBackendSocketSupport": false,
         "canImportTokens": false,
         "shouldShowScamWarningIfNotEnoughGas": false,
-        "doesSupportPushNotifications": false,
         "isNetWorthSupported": false
       },
       "feeCheckAddress": "0x0000000000000000000000000000000000000000",
@@ -1150,7 +1141,6 @@
         "doesBackendSocketSupport": false,
         "canImportTokens": false,
         "shouldShowScamWarningIfNotEnoughGas": false,
-        "doesSupportPushNotifications": false,
         "isNetWorthSupported": false
       },
       "feeCheckAddress": "0x0000000000000000000000000000000000000000",
@@ -1260,7 +1250,6 @@
         "doesBackendSocketSupport": false,
         "canImportTokens": false,
         "shouldShowScamWarningIfNotEnoughGas": false,
-        "doesSupportPushNotifications": false,
         "isNetWorthSupported": false
       },
       "feeCheckAddress": "0x0000000000000000000000000000000000000000",

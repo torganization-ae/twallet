@@ -11,7 +11,6 @@ import { callApi } from '../../../api';
 import { addActionHandler, setGlobal } from '../..';
 import { resetHardware, updateAccountSettings, updateSettings } from '../../reducers';
 import { selectCurrentAccountId, selectIsBiometricAuthEnabled } from '../../selectors';
-import { selectNotificationAddressesSlow } from '../../selectors/notifications';
 
 let prevGlobal: GlobalState | undefined;
 
@@ -31,17 +30,6 @@ addCallback((global: GlobalState) => {
   if (settings.langCode !== prevSettings.langCode) {
     void setLanguage(settings.langCode);
     void callApi('setLangCode', settings.langCode);
-    const {
-      userToken, platform, enabledAccounts,
-    } = global.pushNotifications;
-    if (userToken && platform && enabledAccounts.length) {
-      void callApi('subscribeNotifications', {
-        userToken,
-        platform,
-        langCode: settings.langCode,
-        addresses: Object.values(selectNotificationAddressesSlow(global, enabledAccounts)).flat(),
-      });
-    }
   }
 
   prevGlobal = global;

@@ -25,15 +25,13 @@ private let lastLaunchVersionKey = "lastLaunchVersion"
 @MainActor
 public class AirLauncher {
     private static var window: WWindow!
-    // Long-lived: queues incoming deeplinks/notifications/system actions until the wallet
+    // Long-lived: queues incoming deeplinks/system actions until the wallet
     // is ready and unlocked, including those arriving before `soarIntoAir` has run.
     private static let runtimeCoordinator = AirRuntimeCoordinator()
 
     private static var db: (any DatabaseWriter)?
     private static var hasStartedDeferredLaunch = false
-    static var pendingPushToken: String? = nil
     static var appUnlocked = false
-    private static var hasStartedWalletCore = false
     public private(set) static var isFirstLaunch = false
 
     public static func recordLaunchMetadata() {
@@ -66,7 +64,6 @@ public class AirLauncher {
         log.info("soarIntoAir")
         StartupTrace.beginInterval("airLauncher.soarIntoAir")
         StartupTrace.mark("airLauncher.soarIntoAir.begin")
-        hasStartedWalletCore = false
         hasStartedDeferredLaunch = false
         appUnlocked = false
         runtimeCoordinator.reset()
@@ -138,22 +135,14 @@ public class AirLauncher {
 
         await WalletCoreData.startDeferred(db: db)
         StartupTrace.mark("airLauncher.walletCoreData.start.end")
-        hasStartedWalletCore = true
-        if let pendingPushToken {
-            AccountStore.didRegisterForPushNotifications(userToken: pendingPushToken)
-            self.pendingPushToken = nil
-        }
         installCurrentAccountTheme()
         window?.updateTheme()
 
-        UIApplication.shared.registerForRemoteNotifications()
-        StartupTrace.mark("airLauncher.remoteNotifications.requested")
         await runtimeCoordinator.walletCoreBootstrapDidFinish()
     }
 
     private static func presentStartupFailure(_ error: any Error, phase: StartupFailurePhase) async {
         hasStartedDeferredLaunch = false
-        hasStartedWalletCore = false
         await StartupFailureManager.handle(error, phase: phase) {
             Task { @MainActor in
                 await AirLauncher.soarIntoAir()
@@ -179,20 +168,8 @@ public class AirLauncher {
         _ = runtimeCoordinator.handle(url: url)
     }
 
-    public static func handle(notification: UNNotification) {
-        runtimeCoordinator.handle(notification: notification)
-    }
-
     public static func handle(systemAction: AirSystemAction) {
         runtimeCoordinator.handle(systemAction: systemAction)
-    }
-
-    public static func didRegisterForPushNotifications(userToken: String) {
-        guard hasStartedWalletCore else {
-            pendingPushToken = userToken
-            return
-        }
-        AccountStore.didRegisterForPushNotifications(userToken: userToken)
     }
 
     static func lockApp(animated: Bool) {

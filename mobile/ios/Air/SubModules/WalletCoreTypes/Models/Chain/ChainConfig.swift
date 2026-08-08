@@ -99,8 +99,6 @@ public struct ChainConfig: Sendable {
     public var canImportTokens: Bool
     /// If `true`, the Send form UI will show a scam warning if the wallet has tokens but not enough gas to sent them
     public var shouldShowScamWarningIfNotEnoughGas: Bool
-    /** Whether our own backend supports push notifications for addresses in this chain */
-    public var doesSupportPushNotifications: Bool
     /// A random but valid address for checking transfer fees
     public var feeCheckAddress: String
     /// A swap configuration used to buy the native token in this chain
@@ -369,7 +367,6 @@ private func makeEvmChainConfig(
         doesBackendSocketSupport: false,
         canImportTokens: false,
         shouldShowScamWarningIfNotEnoughGas: false,
-        doesSupportPushNotifications: false,
         feeCheckAddress: EVM_FEE_CHECK_ADDRESS,
         buySwap: .init(tokenInSlug: nativeToken.slug, amountIn: buySwapAmountIn),
         usdtSlug: [
@@ -421,7 +418,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
         doesBackendSocketSupport: true,
         canImportTokens: true,
         shouldShowScamWarningIfNotEnoughGas: false,
-        doesSupportPushNotifications: true,
         feeCheckAddress: "UQBE5NzPPnfb6KAy7Rba2yQiuUnihrfcFw96T-p5JtZjAl_c",
         buySwap: .init(tokenInSlug: TRON_USDT_SLUG, amountIn: "100"),
         usdtSlug: [
@@ -530,7 +526,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
         doesBackendSocketSupport: true,
         canImportTokens: false,
         shouldShowScamWarningIfNotEnoughGas: true,
-        doesSupportPushNotifications: false,
         feeCheckAddress: "TW2LXSebZ7Br1zHaiA2W1zRojDkDwjGmpw",
         buySwap: .init(tokenInSlug: TONCOIN_SLUG, amountIn: "10"),
         usdtSlug: [
@@ -578,7 +573,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
         doesBackendSocketSupport: false,
         canImportTokens: false,
         shouldShowScamWarningIfNotEnoughGas: false,
-        doesSupportPushNotifications: false,
         feeCheckAddress: "35YT7tt9edJbroEKaC3T3XY4cLNWKtVzmyTEfW8LHPEA",
         buySwap: .init(tokenInSlug: SOLANA_USDT_MAINNET_SLUG, amountIn: "100"),
         usdtSlug: [
@@ -630,7 +624,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
         doesBackendSocketSupport: false,
         canImportTokens: false,
         shouldShowScamWarningIfNotEnoughGas: false,
-        doesSupportPushNotifications: false,
         feeCheckAddress: "0x0000000000000000000000000000000000000000",
         buySwap: .init(tokenInSlug: ETH_SLUG, amountIn: "0.001"),
         usdtSlug: [
@@ -694,7 +687,6 @@ private let CHAIN_CONFIG: [ApiChain: ChainConfig] = [
         doesBackendSocketSupport: false,
         canImportTokens: false,
         shouldShowScamWarningIfNotEnoughGas: false,
-        doesSupportPushNotifications: false,
         feeCheckAddress: "0x0000000000000000000000000000000000000000",
         buySwap: .init(tokenInSlug: BASE_SLUG, amountIn: "0.001"),
         usdtSlug: [
@@ -887,7 +879,6 @@ private func makeOtherChainConfig(for chain: ApiChain) -> ChainConfig {
         doesBackendSocketSupport: false,
         canImportTokens: false,
         shouldShowScamWarningIfNotEnoughGas: false,
-        doesSupportPushNotifications: false,
         feeCheckAddress: "",
         buySwap: .init(tokenInSlug: TONCOIN_SLUG, amountIn: "0"),
         usdtSlug: [:],

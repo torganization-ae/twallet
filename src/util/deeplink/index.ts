@@ -81,7 +81,7 @@ const SETTINGS_SECTION_MAP: Record<string, SettingsState> = {
   appearance: SettingsState.Appearance,
   assets: SettingsState.Assets,
   language: SettingsState.Language,
-  notifications: SettingsState.PushNotifications,
+  notifications: SettingsState.Sounds,
   dapps: SettingsState.Dapps,
   'wallet-versions': SettingsState.WalletVersions,
   disclaimer: SettingsState.Disclaimer,

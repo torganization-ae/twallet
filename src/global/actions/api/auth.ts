@@ -444,12 +444,6 @@ addActionHandler('addHardwareAccounts', (global, actions, { accounts }) => {
     actions.closeSettings();
   }
 
-  accounts.forEach((hardwareWallet) => {
-    if (hardwareWallet?.accountId) {
-      actions.tryAddNotificationAccount({ accountId: hardwareWallet?.accountId });
-    }
-  });
-
   global = updateAuth(getGlobal(), { state: AuthState.congratulations });
   setGlobal(global);
 });
@@ -466,9 +460,6 @@ addActionHandler('afterCongratulations', (global, actions, { isImporting }) => {
   if (isImporting) {
     actions.afterConfirmDisclaimer();
   } else {
-    if (global.auth.accounts?.[0]) {
-      actions.tryAddNotificationAccount({ accountId: global.auth.accounts[0].accountId });
-    }
     actions.afterSignIn();
 
     if (selectIsOneAccount(global)) {
@@ -505,8 +496,6 @@ addActionHandler('skipCheckMnemonic', (global, actions) => {
   global = updateCurrentAccountState(global, { isBackupRequired: true });
   setGlobal(global);
   syncVaultAccountsFromGlobal(global);
-
-  actions.tryAddNotificationAccount({ accountId: global.auth.accounts![0].accountId });
 
   actions.afterSignIn();
   if (selectIsOneAccount(global)) {
@@ -593,8 +582,6 @@ addActionHandler('afterConfirmDisclaimer', (global, actions) => {
   global = updateAuth(global, { state: AuthState.ready });
   setGlobal(global);
   syncVaultAccountsFromGlobal(global);
-
-  actions.tryAddNotificationAccount({ accountId });
 
   actions.afterSignIn();
   if (selectIsOneAccount(global)) {
@@ -945,8 +932,6 @@ addActionHandler('importAccountByVersion', async (global, actions, { version, is
   setGlobal(global);
 
   await callApi('activateAccount', wallet.accountId);
-
-  actions.tryAddNotificationAccount({ accountId: wallet.accountId });
 });
 
 addActionHandler('createSubWallet', async (global, actions, { password }) => {
@@ -993,8 +978,6 @@ addActionHandler('createSubWallet', async (global, actions, { password }) => {
 
     global = updateCurrentAccountId(global, result.accountId);
     setGlobal(global);
-
-    void actions.tryAddNotificationAccount({ accountId: result.accountId });
   }
 
   actions.showToast({
@@ -1061,8 +1044,6 @@ addActionHandler('addSubWallet', async (global, actions, { group }) => {
 
     global = updateCurrentAccountId(global, result.accountId);
     setGlobal(global);
-
-    void actions.tryAddNotificationAccount({ accountId: result.accountId });
   }
 
   actions.showToast({
@@ -1128,8 +1109,6 @@ addActionHandler('addAllFoundSubwallets', async (global, actions, { foundSubwall
       }
 
       setGlobal(global);
-
-      void actions.tryAddNotificationAccount({ accountId: entry.accountId });
     } else if (isLast && !entry.isNew) {
       actions.switchAccount({ accountId: entry.accountId });
     }
@@ -1200,8 +1179,6 @@ addActionHandler('importViewAccount', async (global, actions, { addressByChain }
     actions.closeSettings();
   }
 
-  actions.tryAddNotificationAccount({ accountId: result.accountId });
-
   actions.afterSignIn();
   if (isFirstAccount) {
     actions.resetApiSettings();
@@ -1265,8 +1242,6 @@ addActionHandler('saveTemporaryAccount', (global, actions) => {
     currentTemporaryViewAccountId: undefined,
   };
   setGlobal(global);
-
-  actions.tryAddNotificationAccount({ accountId: newAccountId });
   actions.showToast({ message: getTranslation('Account Saved'), icon: 'icon-check' });
   void vibrateOnSuccess();
 });

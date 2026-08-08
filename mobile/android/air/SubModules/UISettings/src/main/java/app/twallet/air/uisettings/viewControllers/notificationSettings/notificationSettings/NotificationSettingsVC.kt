@@ -1,35 +1,22 @@
 package app.twallet.air.uisettings.viewControllers.notificationSettings
 
-import android.Manifest
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
-import android.provider.Settings
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import app.twallet.air.uicomponents.base.WRecyclerViewAdapter
 import app.twallet.air.uicomponents.base.WViewController
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.extensions.setPaddingLocalized
-import app.twallet.air.uicomponents.helpers.LastItemPaddingDecoration
 import app.twallet.air.uicomponents.helpers.LinearLayoutManagerAccurateOffset
 import app.twallet.air.uicomponents.widgets.WCell
 import app.twallet.air.uicomponents.widgets.WRecyclerView
-import app.twallet.air.uisettings.viewControllers.notificationSettings.cells.NotificationSettingsAccountCell
 import app.twallet.air.uisettings.viewControllers.notificationSettings.cells.NotificationSettingsFooterCell
-import app.twallet.air.uisettings.viewControllers.notificationSettings.cells.NotificationSettingsHeaderCell
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
-import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.utils.IndexPath
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
-import app.twallet.air.walletcore.stores.AccountStore
 import java.lang.ref.WeakReference
 
 class NotificationSettingsVC(
@@ -39,42 +26,15 @@ class NotificationSettingsVC(
     WRecyclerViewAdapter.WRecyclerViewDataSource {
     override val TAG = "NotificationSettings"
 
-    val isPermissionGranted: Boolean
-        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
-
-    val accounts = WGlobalStorage.accountIds().mapNotNull { accountId ->
-        AccountStore.accountById(accountId)
-    }.filter {
-        it.tonAddress != null
-    }
-    var enabledAccounts: MutableList<String>? =
-        WGlobalStorage.getPushNotificationsEnabledAccounts()?.toMutableList()
-    var pushNotificationsChecked =
-        isPermissionGranted && !enabledAccounts.isNullOrEmpty()
-
     override val shouldDisplayBottomBar = true
 
     companion object {
-        const val SECTION_HEADER = 0
-        const val SECTION_ACCOUNTS = 1
-        const val SECTION_FOOTER = 2
-
-        val HEADER_CELL = WCell.Type(1)
-        val ITEM_CELL = WCell.Type(2)
-        val FOOTER_CELL = WCell.Type(3)
+        val FOOTER_CELL = WCell.Type(1)
     }
 
     private val rvAdapter =
-        WRecyclerViewAdapter(WeakReference(this), arrayOf(HEADER_CELL, ITEM_CELL, FOOTER_CELL))
+        WRecyclerViewAdapter(WeakReference(this), arrayOf(FOOTER_CELL))
 
-    var isFirstAppearance = true
     private val recyclerView: WRecyclerView by lazy {
         val rv = WRecyclerView(this)
         rv.adapter = rvAdapter
@@ -102,27 +62,13 @@ class NotificationSettingsVC(
     override fun setupViews() {
         super.setupViews()
 
-        setNavTitle(LocaleController.getString("Notifications & Sounds"))
+        setNavTitle(LocaleController.getString("Sounds"))
         setupNavBar(true)
 
         view.addView(recyclerView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
         recyclerView.clipToPadding = false
 
         updateTheme()
-    }
-
-    override fun viewWillAppear() {
-        super.viewWillAppear()
-        val pushNotificationsChecked = isPermissionGranted && !enabledAccounts.isNullOrEmpty()
-        if (this.pushNotificationsChecked != pushNotificationsChecked) {
-            this.pushNotificationsChecked = pushNotificationsChecked
-            rvAdapter.reloadData()
-        }
-    }
-
-    override fun viewDidAppear() {
-        super.viewDidAppear()
-        isFirstAppearance = false
     }
 
     override fun insetsUpdated() {
@@ -141,15 +87,13 @@ class NotificationSettingsVC(
     }
 
     override fun recyclerViewNumberOfSections(rv: RecyclerView): Int {
-        return 3
+        return 1
     }
 
     override fun recyclerViewNumberOfItems(
         rv: RecyclerView,
         section: Int
     ): Int {
-        if (section == SECTION_ACCOUNTS)
-            return accounts.size
         return 1
     }
 
@@ -157,109 +101,14 @@ class NotificationSettingsVC(
         rv: RecyclerView,
         indexPath: IndexPath
     ): WCell.Type {
-        return when (indexPath.section) {
-            SECTION_HEADER -> HEADER_CELL
-            SECTION_FOOTER -> FOOTER_CELL
-            else -> ITEM_CELL
-        }
+        return FOOTER_CELL
     }
 
     override fun recyclerViewCellView(
         rv: RecyclerView,
         cellType: WCell.Type
     ): WCell {
-        return when (cellType) {
-            HEADER_CELL -> {
-                NotificationSettingsHeaderCell(
-                    context,
-                    onPushNotificationsCheckChanged = { isChecked ->
-                        if (isChecked && !isPermissionGranted) {
-                            rvAdapter.notifyItemChanged(
-                                rvAdapter.indexPathToPosition(
-                                    IndexPath(
-                                        SECTION_HEADER,
-                                        0
-                                    )
-                                )
-                            )
-                            requestNotificationPermission()
-                            return@NotificationSettingsHeaderCell
-                        }
-
-                        pushNotificationsChecked = isChecked
-                        if (isChecked) {
-                            val defaultEnabledAccounts = accounts.take(3)
-                            enabledAccounts =
-                                defaultEnabledAccounts.map { it.accountId }.toMutableList()
-                            defaultEnabledAccounts.forEach {
-                                AirPushNotifications.subscribe(it, ignoreIfLimitReached = false)
-                            }
-                        } else {
-                            enabledAccounts?.clear()
-                            AirPushNotifications.unsubscribeAll()
-                        }
-                        for (i in accounts.indices) {
-                            rvAdapter.notifyItemChanged(
-                                rvAdapter.indexPathToPosition(
-                                    IndexPath(
-                                        SECTION_ACCOUNTS,
-                                        i
-                                    )
-                                )
-                            )
-                        }
-                    })
-            }
-
-            FOOTER_CELL -> {
-                NotificationSettingsFooterCell(context)
-            }
-
-            else -> {
-                NotificationSettingsAccountCell(context).apply {
-                    onTap = { account, isChecked ->
-                        if (isChecked) {
-                            AirPushNotifications.subscribe(account, ignoreIfLimitReached = false)
-                            if (enabledAccounts == null)
-                                enabledAccounts = mutableListOf()
-                            if (enabledAccounts?.contains(account.accountId) != true)
-                                enabledAccounts?.add(account.accountId)
-                        } else {
-                            AirPushNotifications.unsubscribe(account)
-                            enabledAccounts?.remove(account.accountId)
-                        }
-                        val currentIndex =
-                            accounts.indexOfFirst { it.accountId == account.accountId }
-                        for (i in accounts.indices) {
-                            if (i != currentIndex) {
-                                rvAdapter.notifyItemChanged(
-                                    rvAdapter.indexPathToPosition(
-                                        IndexPath(
-                                            SECTION_ACCOUNTS,
-                                            i
-                                        )
-                                    )
-                                )
-                            }
-                        }
-                        if ((pushNotificationsChecked && enabledAccounts.isNullOrEmpty()) ||
-                            (!pushNotificationsChecked && !enabledAccounts.isNullOrEmpty())
-                        ) {
-                            // Update push notifications switch based on selections
-                            pushNotificationsChecked = !enabledAccounts.isNullOrEmpty()
-                            rvAdapter.notifyItemChanged(
-                                rvAdapter.indexPathToPosition(
-                                    IndexPath(
-                                        SECTION_HEADER,
-                                        0
-                                    )
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        return NotificationSettingsFooterCell(context)
     }
 
     override fun recyclerViewConfigureCell(
@@ -267,77 +116,6 @@ class NotificationSettingsVC(
         cellHolder: WCell.Holder,
         indexPath: IndexPath
     ) {
-        when (indexPath.section) {
-            SECTION_HEADER -> {
-                (cellHolder.cell as NotificationSettingsHeaderCell).configure(
-                    pushNotificationsChecked,
-                    accounts.isNotEmpty()
-                )
-            }
-
-            SECTION_ACCOUNTS -> {
-                val item = accounts[indexPath.row]
-                val isChecked = enabledAccounts?.contains(item.accountId) ?: false
-                (cellHolder.cell as NotificationSettingsAccountCell).configure(
-                    item,
-                    isChecked = isChecked,
-                    isLocked = !isPermissionGranted || ((enabledAccounts?.size
-                        ?: 0) >= 3 && !isChecked),
-                    isLast = indexPath.row == accounts.size - 1,
-                    animated = !isFirstAppearance
-                )
-            }
-
-            SECTION_FOOTER -> {
-                (cellHolder.cell as NotificationSettingsFooterCell).configure()
-            }
-        }
-    }
-
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            window?.requestPermissions(
-                arrayOf(Manifest.permission.POST_NOTIFICATIONS)
-            ) { _, grantResults ->
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    pushNotificationsChecked = true
-                    if (enabledAccounts.isNullOrEmpty()) {
-                        val defaultEnabledAccounts = accounts.take(3)
-                        enabledAccounts =
-                            defaultEnabledAccounts.map { it.accountId }.toMutableList()
-                        defaultEnabledAccounts.forEach {
-                            AirPushNotifications.subscribe(it, ignoreIfLimitReached = false)
-                        }
-                        rvAdapter.notifyItemChanged(
-                            rvAdapter.indexPathToPosition(
-                                IndexPath(
-                                    SECTION_HEADER,
-                                    0
-                                )
-                            )
-                        )
-                        for (i in accounts.indices) {
-                            rvAdapter.notifyItemChanged(
-                                rvAdapter.indexPathToPosition(
-                                    IndexPath(SECTION_ACCOUNTS, i)
-                                )
-                            )
-                        }
-                    }
-                    AirPushNotifications.register(subscribePreviousAccountsIfEmpty = true)
-                } else {
-                    openNotificationSettings()
-                }
-            }
-        } else {
-            // Should not happen
-        }
-    }
-
-    private fun openNotificationSettings() {
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri = Uri.fromParts("package", context.applicationContext.packageName, null)
-        intent.data = uri
-        window?.startActivity(intent)
+        (cellHolder.cell as NotificationSettingsFooterCell).configure()
     }
 }

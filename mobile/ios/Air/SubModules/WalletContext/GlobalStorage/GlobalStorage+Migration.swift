@@ -1,6 +1,6 @@
 import Foundation
 
-public let STATE_VERSION: Int = 60
+public let STATE_VERSION: Int = 61
 
 private let log = Log("GlobalStorage+Migration")
 private let mainAccountId = "0-ton-mainnet"
@@ -222,7 +222,7 @@ extension GlobalStorage {
         }
 
         if self.stateVersion == 47 {
-            _migratePushNotificationEnabledAccounts()
+            // Push notifications removed; keep version bump, ignore legacy push keys.
             self.stateVersion = 48
         }
         
@@ -279,6 +279,18 @@ extension GlobalStorage {
         if self.stateVersion == 59 {
             _dropLegacyStakingPinnedSlugs()
             self.stateVersion = 60
+        }
+
+        if self.stateVersion == 60 {
+            // Push notifications removed — drop persisted subscription keys.
+            update {
+                $0["pushNotifications"] = nil
+                $0["pushNotifications.userToken"] = nil
+                $0["pushNotifications.enabledAccounts"] = nil
+                $0["pushNotifications.platform"] = nil
+                $0["pushNotifications.isAvailable"] = nil
+            }
+            self.stateVersion = 61
         }
 
         assert(self.stateVersion == STATE_VERSION)
@@ -603,14 +615,6 @@ extension GlobalStorage {
         update { $0["accounts.byId"] = accounts }
         log.info("migrated legacy ledger indexes count=\(migratedCount)")
         return true
-    }
-
-    private func _migratePushNotificationEnabledAccounts() {
-        guard var pushNotifications = self["pushNotifications"] as? [String: Any] else { return }
-        if let enabledAccounts = pushNotifications["enabledAccounts"] as? [String: Any] {
-            pushNotifications["enabledAccounts"] = Array(enabledAccounts.keys)
-        }
-        update { $0["pushNotifications"] = pushNotifications }
     }
 
     private func _migrateStakingPinnedSlugs() {

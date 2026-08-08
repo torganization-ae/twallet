@@ -21,7 +21,6 @@ import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.utils.IndexPath
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import java.lang.ref.WeakReference
 
 class LanguageVC(context: Context) : WViewController(context),
@@ -169,7 +168,6 @@ class LanguageVC(context: Context) : WViewController(context),
                 ) {
                     WGlobalStorage.setLangCode(language.langCode)
                     WGlobalStorage.setLangSource(WGlobalStorage.LANG_SOURCE_USER)
-                    AirPushNotifications.refreshSubscriptions()
                     switchLanguageIfRequired(language)
                     // Rely on AppCompat flow, avoid restart duplication race
                     LocaleController.setApplicationLocale(language.langCode)

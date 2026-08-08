@@ -174,8 +174,6 @@ export const SOLANA_GASLESS_PAYER_ADDRESS = process.env.SOLANA_GASLESS_PAYER_ADD
 export const FRACTION_DIGITS = 9;
 export const SHORT_FRACTION_DIGITS = 2;
 
-export const MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT = 3;
-
 export const SUPPORT_USERNAME = 'mysupport';
 export const MW_NEWS_CHANNEL_NAME: Partial<Record<LangCode, string>> = {
   en: 'MyWalletEng',
@@ -302,7 +300,6 @@ export const NO_SWAP = process.env.NO_SWAP === '1';
 export const NO_PORTFOLIO = process.env.NO_PORTFOLIO === '1';
 export const NO_MFA = process.env.NO_MFA === '1';
 export const NO_LEDGER = process.env.NO_LEDGER === '1';
-export const NO_NOTIFICATIONS = process.env.NO_NOTIFICATIONS === '1';
 export const VALIDATION_PERIOD_MS = 65_536_000; // 18.2 h.
 export const ONE_TON = 1_000_000_000n;
 export const DEFAULT_FEE = 15_000_000n; // 0.015 TON

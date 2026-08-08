@@ -25,8 +25,6 @@ import app.twallet.air.walletcore.models.MBridgeError
 import app.twallet.air.walletcore.moshi.adapter.AccountDomainUpdate
 import app.twallet.air.walletcore.moshi.adapter.MfaUpdate
 import app.twallet.air.walletcore.moshi.api.ApiUpdate
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
-
 object AccountStore : IStore {
 
     // Observable Flow /////////////////////////////////////////////////////////////////////////////
@@ -212,15 +210,6 @@ object AccountStore : IStore {
             }
 
             Logger.d(Logger.LogTag.ACCOUNT, "Remove account: $removingAccountId")
-            val accountObj = WGlobalStorage.getAccount(removingAccountId)
-            accountObj?.let {
-                val account = MAccount(
-                    removingAccountId,
-                    accountObj
-                )
-                if (!account.isTemporary)
-                    AirPushNotifications.unsubscribe(account) {}
-            }
             ActivityStore.removeAccount(removingAccountId)
             PoisoningCacheHelper.removeAccount(removingAccountId)
             DappsStore.removeAccount(removingAccountId)
@@ -260,7 +249,6 @@ object AccountStore : IStore {
         if (activeAccountId == account.accountId) {
             activeAccount?.name = newWalletName
         }
-        AirPushNotifications.accountNameChanged(account)
         notifyEvent(WalletEvent.AccountNameChanged(account.accountId, newWalletName))
     }
 
@@ -275,7 +263,6 @@ object AccountStore : IStore {
         activeAccount?.isTemporary = false
         account.isTemporary = false
         WGlobalStorage.saveTemporaryAccount(account.accountId)
-        AirPushNotifications.subscribe(account, ignoreIfLimitReached = true)
         // Update home screen
         isPushedTemporary = false
         notifyEvent(WalletEvent.AccountChanged(account.accountId, isSavingTemporaryAccount = true))

@@ -25,7 +25,6 @@ import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.api.resetAccounts
 import app.twallet.air.walletcore.models.MAccount
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.air.walletcore.stores.AccountStore
 
 class AccountDialogHelpers {
@@ -213,9 +212,6 @@ class AccountDialogHelpers {
             val vc = window.topViewController ?: return
             val view = vc.view
             view.lockView()
-            AccountStore.activeAccount?.let { acc ->
-                AirPushNotifications.unsubscribe(acc) {}
-            }
             WalletCore.resetAccounts { ok, err ->
                 if (ok != true || err != null) {
                     view.unlockView()

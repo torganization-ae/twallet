@@ -116,7 +116,6 @@ dependencies {
   implementation "com.google.android.gms:play-services-base:$playServicesBaseVersion"
   implementation "androidx.camera:camera-camera2:$cameraCamera2Version"
   implementation platform('com.google.firebase:firebase-bom:33.5.1')
-  implementation 'com.google.firebase:firebase-messaging'
 
   implementation project("$airSubModulePath:AirAsFramework")
 

@@ -343,7 +343,6 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
 
         let primaryAccount = accounts[0]
         _ = try await self.activateAccount(accountId: primaryAccount.id, isNew: true)
-        await subscribeNotificationsIfAvailable(account: primaryAccount)
         return accounts.map { self.accountsById[$0.id] ?? $0 }
     }
     
@@ -358,7 +357,6 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
         try await _storeAccount(account: account)
         await refreshStoredMfaIfPossible(accountIds: [account.id], password: passcode)
         _ = try await self.activateAccount(accountId: result.accountId, isNew: true)
-        await subscribeNotificationsIfAvailable(account: account)
         return self.accountsById[account.id] ?? account
     }
 
@@ -373,7 +371,6 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
             byChain: result.byChain,
         )
         try await _storeAccount(account: account)
-        await subscribeNotificationsIfAvailable(account: account)
         return result.accountId
     }
 
@@ -393,7 +390,6 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
             try await _storeAccount(account: account)
             await refreshStoredMfaIfPossible(accountIds: [account.id], password: nil)
             _ = try await self.activateAccount(accountId: result.accountId, isNew: true)
-            await subscribeNotificationsIfAvailable(account: account)
             return self.accountsById[account.id] ?? account
             
         } else {
@@ -407,7 +403,6 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
                 )
                 try await _storeAccount(account: recoveredAccount)
                 await refreshStoredMfaIfPossible(accountIds: [recoveredAccount.id], password: nil)
-                await subscribeNotificationsIfAvailable(account: recoveredAccount)
             }
             let account = try await self.activateAccount(accountId: result.accountId)
             return account
@@ -531,7 +526,6 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
 
         try await _storeAccount(account: account)
         _ = try await self.activateAccount(accountId: result.accountId, isNew: true)
-        await subscribeNotificationsIfAvailable(account: account)
         return account
     }
 
@@ -619,7 +613,6 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
         if shouldActivate {
             try await _activateStoredAccountLocally(account: account, isNew: true)
         }
-        await subscribeNotificationsIfAvailable(account: account)
         return account
     }
 
@@ -675,9 +668,6 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
             accountsById[accountId] = account
             try await _storeAccount(account: account)
             WalletCoreData.notify(event: .accountNameChanged)
-            if notificationsEnabledAccountIds.contains(accountId) {
-                await _subscribeNotifications(account: account, force: true)
-            }
         }
     }
 
@@ -752,7 +742,6 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
             try await _storeAccount(account: account)
             accountsById[accountId] = account
             _ = try await self.activateAccount(accountId: accountId, isNew: false)
-            await subscribeNotificationsIfAvailable(account: account)
             if nameChanged {
                 WalletCoreData.notify(event: .accountNameChanged)
             }
@@ -835,9 +824,6 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
 
     @discardableResult
     public func removeAccount(accountId: String, nextAccountId: String) async throws -> MAccount {
-        if let account = accountsById[accountId] {
-            await _unsubscribeNotifications(account: account)
-        }
         let timestamps = await ActivityStore.getNewestActivityTimestamps(accountId: nextAccountId)
         try await Api.removeAccount(accountId: accountId, nextAccountId: nextAccountId, newestActivityTimestamps: timestamps)
         try await db.write { db in
@@ -975,193 +961,6 @@ public final class _AccountStore: @unchecked Sendable, WalletCoreData.EventsObse
         }
     }
 
-
-    // MARK: - Notifications
-
-    public var notificationsEnabledAccountIds: Set<String> {
-        Set(AppStorageHelper.pushNotifications?.enabledAccounts ?? [])
-    }
-    
-    public func didRegisterForPushNotifications(userToken: String) {
-        let existingInfo = AppStorageHelper.pushNotifications
-        let previousToken = existingInfo?.userToken
-
-        let info = GlobalPushNotifications(
-            isAvailable: true,
-            userToken: userToken,
-            platform: .ios,
-            enabledAccounts: existingInfo?.enabledAccounts ?? []
-        )
-        AppStorageHelper.pushNotifications = info
-
-        let enabledAccounts = info.enabledAccounts
-        guard !enabledAccounts.isEmpty else { return }
-
-        let accounts = info.enabledAccounts.compactMap { accountsById[$0] }
-        let addresses = accounts.flatMap { notificationAddresses(for: $0) }
-        guard !addresses.isEmpty else { return }
-
-        Task {
-            do {
-                let subscribeProps = ApiSubscribeNotificationsProps(
-                    userToken: userToken,
-                    platform: .ios,
-                    langCode: LocalizationSupport.shared.langCode,
-                    addresses: addresses
-                )
-
-                if let previousToken, previousToken != userToken {
-                    async let subscribeResult = Api.subscribeNotifications(props: subscribeProps)
-                    async let _ = Api.unsubscribeNotifications(props: ApiUnsubscribeNotificationsProps(
-                        userToken: previousToken,
-                        addresses: addresses
-                    ))
-                    let result = try await subscribeResult
-                    updateEnabledNotificationAccounts(info: info, accounts: accounts, result: result)
-                } else {
-                    let result = try await Api.subscribeNotifications(props: subscribeProps)
-                    updateEnabledNotificationAccounts(info: info, accounts: accounts, result: result)
-                }
-            } catch {
-                log.info("didRegisterForPushNotifications: \(error, .public)")
-            }
-        }
-    }
-    
-    public func refreshEnabledNotificationSubscriptions() {
-        guard let info = AppStorageHelper.pushNotifications,
-              let userToken = info.userToken else {
-            return
-        }
-        let accounts = info.enabledAccounts.compactMap { accountsById[$0] }
-        let addresses = accounts.flatMap { notificationAddresses(for: $0) }
-        guard !addresses.isEmpty else { return }
-
-        Task {
-            do {
-                let result = try await Api.subscribeNotifications(props: ApiSubscribeNotificationsProps(
-                    userToken: userToken,
-                    platform: .ios,
-                    langCode: LocalizationSupport.shared.langCode,
-                    addresses: addresses
-                ))
-                updateEnabledNotificationAccounts(info: info, accounts: accounts, result: result)
-            } catch {
-                log.info("refreshEnabledNotificationSubscriptions: \(error, .public)")
-            }
-        }
-    }
-    
-    private func subscribeNotificationsIfAvailable(account: MAccount) async {
-        if let info = AppStorageHelper.pushNotifications, info.enabledAccounts.count < MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT {
-            await _subscribeNotifications(account: account)
-        }
-    }
-    
-    @MainActor public func selectedNotificationsAccounts(accounts: [MAccount]) async {
-        let toEnableAccountIds = Set(accounts.map(\.id))
-        let oldEnabledAccountIds = Set(AppStorageHelper.pushNotifications?.enabledAccounts ?? [])
-        if oldEnabledAccountIds == toEnableAccountIds {
-            return
-        }
-        let toUnsubscribeAccounts = oldEnabledAccountIds
-            .filter { !toEnableAccountIds.contains($0) }
-            .compactMap { accountsById[$0] }
-        for account in toUnsubscribeAccounts {
-            await _unsubscribeNotifications(account: account)
-        }
-        for account in accounts {
-            await _subscribeNotifications(account: account)
-        }
-    }
-
-    private func _subscribeNotifications(account: MAccount, force: Bool = false) async {
-        do {
-            if var info = AppStorageHelper.pushNotifications,
-                let userToken = info.userToken
-            {
-                if info.enabledAccounts.contains(account.id), !force {
-                    return
-                }
-                let addresses = notificationAddresses(for: account)
-                guard !addresses.isEmpty else {
-                    log.info("_subscribeNotifications: no supported addresses")
-                    return
-                }
-                let result = try await Api.subscribeNotifications(props: ApiSubscribeNotificationsProps(
-                    userToken: userToken,
-                    platform: .ios,
-                    langCode: LocalizationSupport.shared.langCode,
-                    addresses: addresses
-                ))
-                let enabledAddresses = Set(result.addressKeys.keys)
-                if addresses.contains(where: { enabledAddresses.contains($0.address) }) {
-                    if !info.enabledAccounts.contains(account.id) {
-                        info.enabledAccounts.append(account.id)
-                    }
-                } else {
-                    info.enabledAccounts.removeAll { $0 == account.id }
-                }
-                AppStorageHelper.pushNotifications = info
-            } else {
-                log.info("_subscribeNotifications: no info or token")
-            }
-        } catch {
-            log.info("_subscribeNotifications: \(error)")
-        }
-    }
-
-    private func _unsubscribeNotifications(account: MAccount) async {
-        do {
-            if var info = AppStorageHelper.pushNotifications,
-                let userToken = info.userToken
-            {
-                let addresses = notificationAddresses(for: account)
-                if !addresses.isEmpty {
-                    _ = try await Api.unsubscribeNotifications(props: ApiUnsubscribeNotificationsProps(
-                        userToken: userToken,
-                        addresses: addresses
-                    ))
-                }
-                info.enabledAccounts.removeAll { $0 == account.id }
-                AppStorageHelper.pushNotifications = info
-            } else {
-                log.info("_unsubscribeNotifications: no info or userToken")
-            }
-        } catch {
-            log.info("\(error)")
-        }
-    }
-    
-    private func notificationAddresses(for account: MAccount) -> [ApiNotificationAddress] {
-        account.orderedChains.compactMap { chain, info in
-            if chain.doesSupportPushNotifications {
-                return ApiNotificationAddress(
-                    title: account.displayName,
-                    address: info.address,
-                    chain: chain
-                )
-            }
-            return nil
-        }
-    }
-
-    private func updateEnabledNotificationAccounts(
-        info: GlobalPushNotifications,
-        accounts: [MAccount],
-        result: ApiSubscribeNotificationsResult
-    ) {
-        let enabledAddresses = Set(result.addressKeys.keys)
-        let enabledAccountIds = accounts
-            .filter { account in
-                notificationAddresses(for: account)
-                    .contains { enabledAddresses.contains($0.address) }
-            }
-            .map(\.id)
-        var updatedInfo = info
-        updatedInfo.enabledAccounts = enabledAccountIds
-        AppStorageHelper.pushNotifications = updatedInfo
-    }
 
     // MARK: - Misc
     

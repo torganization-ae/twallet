@@ -772,10 +772,7 @@ Add Tokens: Add Tokens
 No tokens yet: No tokens yet
 $no_tokens_description: Receive tokens from another wallet, or simply enable preferred tokens in the settings for monitoring.
 Exchange Rate: Exchange Rate
-Notifications & Sounds: Notifications & Sounds
 Sounds: Sounds
-Push Notifications: Push Notifications
-Select up to %count% wallets for notifications: Select up to %count% wallets for notifications
 $swap_aggregator_fee_tooltip: A built-in **DEX aggregator** finds the **best rate** across available DEXes. Service fee is %percent%.
 Accumulated Rewards: Accumulated Rewards
 $swap_reverse_prohibited: Setting the buy amount is impossible for this pair of tokens
@@ -1097,7 +1094,6 @@ Back Up, Passcode, Auto-Lock: Back Up, Passcode, Auto-Lock
 Back Up, Password, Auto-Lock: Back Up, Password, Auto-Lock
 Base Currency, Token Order, Hidden NFTs: Base Currency, Token Order, Hidden NFTs
 Your assets on other contracts: Your assets on other contracts
-Wallets, Sounds: Wallets, Sounds
 Help: Help
 About: About
 Wallets: Wallets
@@ -1468,8 +1464,6 @@ Popular and connected apps: Popular and connected apps
 Connected Dapp: Connected Dapp
 $ago: "%1$d ago"
 $visited_ago: Visited %1$d ago
-Notifications are disabled: Notifications are disabled
-Enable in Settings: Enable in Settings
 Open Link: Open Link
 Open in App: Open in App
 Search in Google: Search in Google

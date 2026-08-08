@@ -44,7 +44,6 @@ import app.twallet.air.walletcore.api.activateAccount
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.moshi.api.ApiMethod
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.air.walletcore.utils.jsonObject
 import java.lang.ref.WeakReference
 
@@ -339,10 +338,6 @@ class ImportViewWalletVC(
                     byChain = result.byChain.jsonObject,
                     name = importedName,
                     importedAt = null
-                )
-                AirPushNotifications.subscribe(
-                    result.accountId,
-                    ignoreIfLimitReached = true
                 )
                 WalletCore.activateAccount(
                     accountId = result.accountId,

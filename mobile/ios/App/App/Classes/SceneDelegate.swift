@@ -45,8 +45,6 @@ final class SceneDelegate: UIResponder, UISceneDelegate, UIWindowSceneDelegate {
             handleUrl(url)
         } else if let urlContext = connectionOptions.urlContexts.first {
             handleUrl(urlContext.url)
-        } else if let notificationResponse = connectionOptions.notificationResponse {
-            handleNotification(notificationResponse)
         }
         
         StartupTrace.mark("sceneDelegate.willConnect.end")
@@ -77,10 +75,6 @@ final class SceneDelegate: UIResponder, UISceneDelegate, UIWindowSceneDelegate {
     
     private func handleUrl(_ url: URL) {
         AirLauncher.handle(url: url)
-    }
-
-    private func handleNotification(_ notificationResponse: UNNotificationResponse) {
-        AirLauncher.handle(notification: notificationResponse.notification)
     }
     
     func sceneDidEnterBackground(_ scene: UIScene) {
@@ -135,6 +129,6 @@ final class SceneDelegate: UIResponder, UISceneDelegate, UIWindowSceneDelegate {
     }
 
     private func summarize(_ connectionOptions: UIScene.ConnectionOptions) -> String {
-        "urlContexts=\(connectionOptions.urlContexts.count) userActivities=\(connectionOptions.userActivities.count) notificationResponse=\(connectionOptions.notificationResponse != nil) shortcutItem=\(connectionOptions.shortcutItem != nil)"
+        "urlContexts=\(connectionOptions.urlContexts.count) userActivities=\(connectionOptions.userActivities.count) shortcutItem=\(connectionOptions.shortcutItem != nil)"
     }
 }

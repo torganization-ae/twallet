@@ -85,7 +85,6 @@ public class LanguageVC: SettingsBaseVC, UICollectionViewDelegate {
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if let id = dataSource?.itemIdentifier(for: indexPath) {
             LocalizationSupport.shared.setLanguageCode(id)
-            AccountStore.refreshEnabledNotificationSubscriptions()
             WalletContextManager.delegate?.restartApp()
         }
     }

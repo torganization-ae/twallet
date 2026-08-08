@@ -37,7 +37,6 @@ import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.api.activateAccount
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.moshi.api.ApiMethod
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.air.walletcore.stores.AccountStore
 import java.lang.ref.WeakReference
 
@@ -477,7 +476,6 @@ class AddAccountOptionsVC(
                     name = subwalletTitle(activeAccount.name, derivationIndex),
                     importedAt = System.currentTimeMillis()
                 )
-                AirPushNotifications.subscribe(result.accountId, ignoreIfLimitReached = true)
             }
 
             WalletCore.activateAccount(

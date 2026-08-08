@@ -61,7 +61,6 @@ export type SharedChainFlags = {
   doesBackendSocketSupport: boolean;
   canImportTokens: boolean;
   shouldShowScamWarningIfNotEnoughGas: boolean;
-  doesSupportPushNotifications: boolean;
   isNetWorthSupported: boolean;
 };
 

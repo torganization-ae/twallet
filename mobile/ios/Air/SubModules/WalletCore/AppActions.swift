@@ -35,7 +35,6 @@ import WalletCoreTypes
     static func showActivityDetailsById(chain: ApiChain, txId: String, showError: Bool)
     static func showAddToken()
     static func showAddWallet(network: ApiNetwork)
-    static func showAnyAccountTx(accountId: String, chain: ApiChain, txId: String, showError: Bool)
     static func showAssets(accountSource: AccountSource, selectedTab: DisplayAssetTab, collectionsFilter: NftCollectionFilter)
     static func showAssetsAndActivity()
     static func showConnectedDapps(push: Bool)
@@ -163,7 +162,6 @@ private class DummyAppActionProtocolImpl: AppActionsProtocol {
     static func showActivityDetailsById(chain: ApiChain, txId: String, showError: Bool) { }
     static func showAddToken() { }
     static func showAddWallet(network: ApiNetwork) { }
-    static func showAnyAccountTx(accountId: String, chain: ApiChain, txId: String, showError: Bool) { }
     static func showAssets(accountSource: AccountSource, selectedTab: DisplayAssetTab, collectionsFilter: NftCollectionFilter) { }
     static func showAssetsAndActivity() { }
     static func showConnectedDapps(push: Bool) { }

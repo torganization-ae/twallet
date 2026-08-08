@@ -88,7 +88,6 @@ import app.twallet.air.walletcore.deeplink.Deeplink
 import app.twallet.air.walletcore.deeplink.DeeplinkNavigator
 import app.twallet.air.walletcore.deeplink.DeeplinkParser
 import app.twallet.air.walletcore.helpers.TonConnectHelper
-import app.twallet.air.walletcore.models.InAppBrowserConfig
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.MBridgeError
 import app.twallet.air.walletcore.models.MScreenMode
@@ -211,7 +210,7 @@ class SplashVC(context: Context) : WViewController(context),
                 AccountStore.accountIdByAddress(nextDeeplink?.deeplink?.accountAddress)
             if (resolvedAccountId != null && accountIds.contains(resolvedAccountId)) {
                 activeAccountId = resolvedAccountId
-            } else if (nextDeeplink?.deeplink !is Deeplink.NotificationUrl) {
+            } else {
                 nextDeeplink = null
             }
         }
@@ -688,10 +687,8 @@ class SplashVC(context: Context) : WViewController(context),
         if (deeplink.accountAddress != null) {
             val accountId = AccountStore.accountIdByAddress(deeplink.accountAddress)
             if (accountId == null) {
-                if (deeplink !is Deeplink.NotificationUrl) {
-                    nextDeeplink = null
-                    return
-                }
+                nextDeeplink = null
+                return
             } else {
                 val prevAccountId = AccountStore.activeAccountId
                 if (accountId != prevAccountId) {
@@ -963,16 +960,6 @@ class SplashVC(context: Context) : WViewController(context),
                 window?.present(nav)
             }
 
-            is Deeplink.NotificationUrl -> {
-                // Consume the current deeplink before routing: routeNotificationUrl may
-                // re-enter the deeplink handler and defer a nested deeplink into nextDeeplink,
-                // which the trailing reset below would otherwise drop. Returning here keeps any
-                // such nested deeplink intact.
-                nextDeeplink = null
-                routeNotificationUrl(deeplink.config, deeplink.isExternal)
-                return
-            }
-
             is Deeplink.TokenBySlug -> {
                 presentToken(deeplink.slug)
             }
@@ -1014,12 +1001,11 @@ class SplashVC(context: Context) : WViewController(context),
                     )
                 ) { activities, err ->
                     if (activities.isNullOrEmpty()) {
-                        if (!deeplink.isPushNotification)
-                            showAlertOverTopVC(
-                                null,
-                                err?.parsed?.toLocalized
-                                    ?: LocaleController.getString("Transfer not found")
-                            )
+                        showAlertOverTopVC(
+                            null,
+                            err?.parsed?.toLocalized
+                                ?: LocaleController.getString("Transfer not found")
+                        )
                         return@call
                     }
                     if (AccountStore.activeAccountId != accountId)
@@ -1167,28 +1153,6 @@ class SplashVC(context: Context) : WViewController(context),
 
     private fun openExternalUri(uri: Uri) {
         window?.startActivityCatching(Intent(Intent.ACTION_VIEW, uri))
-    }
-
-    private fun routeNotificationUrl(config: InAppBrowserConfig, isExternal: Boolean) {
-        val url = config.url
-        if (handleDeeplink(url, DeeplinkOpenSource.OS_EXTERNAL))
-            return
-        if (isExternal || shouldOpenUrlExternally(url)) {
-            openExternalUri(url.toUri())
-            return
-        }
-        val inAppBrowserVC = InAppBrowserVC(context, null, config)
-        val nav = WNavigationController(window!!)
-        nav.setRoot(inAppBrowserVC)
-        window?.present(nav)
-    }
-
-    private fun shouldOpenUrlExternally(url: String): Boolean {
-        val uri = url.toUri()
-        val scheme = uri.scheme?.lowercase()
-        if (scheme in setOf("tg", "geo", "mailto", "market"))
-            return true
-        return uri.host?.lowercase() == "t.me"
     }
 
     private fun importTemporaryAccount(

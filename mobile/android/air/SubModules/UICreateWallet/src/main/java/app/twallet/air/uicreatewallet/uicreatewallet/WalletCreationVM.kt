@@ -15,7 +15,6 @@ import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.MBridgeError
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.moshi.api.ApiMethod
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.air.walletcore.stores.BalanceStore
 import app.twallet.air.walletcore.utils.jsonObject
 import java.lang.ref.WeakReference
@@ -88,7 +87,6 @@ class WalletCreationVM(delegate: Delegate) {
                         }
                     }
                     BalanceStore.setBalances(account.accountId, seededBalances, true)
-                    AirPushNotifications.subscribe(account, ignoreIfLimitReached = true)
                 }
                 if (profile == "vault") {
                     accounts.forEach { account ->

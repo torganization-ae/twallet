@@ -76,8 +76,8 @@ import SettingsHiddenTokens from './SettingsHiddenTokens';
 import SettingsLanguage from './SettingsLanguage';
 import SettingsNetworks from './SettingsNetworks';
 import SettingsPermissions from './SettingsPermissions';
-import SettingsPushNotifications from './SettingsPushNotifications';
 import SettingsSecurity from './SettingsSecurity';
+import SettingsSounds from './SettingsSounds';
 import SettingsTokenList from './SettingsTokenList';
 import SettingsWalletVariants from './wallets/SettingsWalletVariants';
 import SettingsWalletVersions from './wallets/SettingsWalletVersions';
@@ -113,7 +113,6 @@ type StateProps = {
   currentVersion?: ApiTonWalletVersion;
   versions?: ApiWalletWithVersionInfo[];
   isCopyStorageEnabled?: boolean;
-  arePushNotificationsAvailable?: boolean;
   isViewMode: boolean;
   accountType?: AccountType;
   isMultichain: boolean;
@@ -142,7 +141,6 @@ function Settings({
   currentVersion,
   versions,
   isCopyStorageEnabled,
-  arePushNotificationsAvailable,
   isViewMode,
   accountType,
   isMultichain,
@@ -248,8 +246,8 @@ function Settings({
     setSettingsState({ state: SettingsState.Appearance });
   }
 
-  function handlePushNotificationsOpen() {
-    setSettingsState({ state: SettingsState.PushNotifications });
+  function handleSoundsOpen() {
+    setSettingsState({ state: SettingsState.Sounds });
   }
 
   function handleSecurityOpen() {
@@ -550,17 +548,15 @@ function Settings({
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             )}
-            <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handlePushNotificationsOpen}>
+            <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleSoundsOpen}>
               <img
                 className={styles.menuIcon}
                 src={notifications}
-                alt={arePushNotificationsAvailable ? lang('Notifications') : lang('Sounds')}
+                alt={lang('Sounds')}
               />
               <div className={styles.itemContent}>
-                <span className={styles.itemTitle}>
-                  {arePushNotificationsAvailable ? lang('Notifications') : lang('Sounds')}
-                </span>
-                <span className={styles.itemSubtitle}>{lang('Wallets, Sounds')}</span>
+                <span className={styles.itemTitle}>{lang('Sounds')}</span>
+                <span className={styles.itemSubtitle}>{lang('Play Sounds')}</span>
               </div>
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
@@ -612,9 +608,9 @@ function Settings({
     switch (currentKey) {
       case SettingsState.Initial:
         return renderSettings();
-      case SettingsState.PushNotifications:
+      case SettingsState.Sounds:
         return (
-          <SettingsPushNotifications
+          <SettingsSounds
             isActive={isActive && isSlideActive}
             onBackClick={handleBackClick}
           />
@@ -812,7 +808,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     currentVersion,
     versions,
     isCopyStorageEnabled,
-    arePushNotificationsAvailable: global.pushNotifications.isAvailable,
     isViewMode: selectIsCurrentAccountViewMode(global),
     accountType: account?.type,
     isMultichain: Object.keys(account?.byChain ?? {}).length > 1,

@@ -33,7 +33,7 @@ import { getTokenInfo } from '../util/chain';
 import { buildCollectionByKey, mapValues } from '../util/iteratees';
 import { USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
-export const STATE_VERSION = 60;
+export const STATE_VERSION = 61;
 
 export const INITIAL_STATE: GlobalState = {
   appState: IS_EXPLORER ? AppState.Main : AppState.Auth,
@@ -127,10 +127,6 @@ export const INITIAL_STATE: GlobalState = {
 
   currentTransactionInfo: {
     state: TransactionInfoState.None,
-  },
-
-  pushNotifications: {
-    enabledAccounts: [],
   },
 
   currencyRates: mapValues(CURRENCIES, (currency) => currency.fallbackRate) as ApiCurrencyRates,

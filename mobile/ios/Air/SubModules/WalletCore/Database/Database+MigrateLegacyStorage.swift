@@ -159,9 +159,6 @@ private func mergeLegacySettings(into row: inout MSettings, legacyRow: MSettings
     if row.isTokenChartExpanded == defaultRow.isTokenChartExpanded {
         row.isTokenChartExpanded = legacyRow.isTokenChartExpanded
     }
-    if row.pushNotifications == defaultRow.pushNotifications {
-        row.pushNotifications = legacyRow.pushNotifications
-    }
     if row.currentTokenPeriod == defaultRow.currentTokenPeriod {
         row.currentTokenPeriod = legacyRow.currentTokenPeriod
     }

@@ -147,16 +147,6 @@ public final class SettingsStore: Sendable {
         }
     }
 
-    public var pushNotifications: GlobalPushNotifications? {
-        _row.withLock { $0.pushNotifications }
-    }
-
-    public func setPushNotifications(_ pushNotifications: GlobalPushNotifications?) {
-        update {
-            $0.pushNotifications = pushNotifications
-        }
-    }
-
     public var currentTokenPeriod: String {
         _row.withLock { $0.currentTokenPeriod }
     }

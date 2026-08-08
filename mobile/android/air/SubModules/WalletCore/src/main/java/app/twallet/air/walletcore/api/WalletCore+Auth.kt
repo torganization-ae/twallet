@@ -20,7 +20,6 @@ import app.twallet.air.walletcore.helpers.VaultUnlock
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.MBridgeError
 import app.twallet.air.walletcore.moshi.api.ApiMethod
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.ActivityStore
 
@@ -309,7 +308,6 @@ fun WalletCore.resetAccounts(
         if (error != null || result == null) {
             callback(null, error)
         } else {
-            AirPushNotifications.unsubscribeAll()
             WalletCore.stores.forEach { it.wipeData() }
             PoisoningCacheHelper.clearCache()
             WCacheStorage.clean(accountIds)

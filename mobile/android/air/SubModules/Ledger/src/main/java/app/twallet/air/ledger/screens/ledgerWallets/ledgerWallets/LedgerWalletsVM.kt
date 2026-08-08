@@ -18,7 +18,6 @@ import app.twallet.air.walletcore.moshi.MApiLedgerAccountInfo
 import app.twallet.air.walletcore.moshi.MApiLedgerDriver
 import app.twallet.air.walletcore.moshi.api.ApiMethod
 import app.twallet.air.walletcore.moshi.ledger.MLedgerWalletInfo
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.air.walletcore.utils.jsonObject
 import java.lang.ref.WeakReference
 
@@ -74,7 +73,6 @@ class LedgerWalletsVM(delegate: Delegate) {
                         importedAt = null,
                     )
                     finalizedWallets.add(result.accountId)
-                    AirPushNotifications.subscribe(result.accountId, ignoreIfLimitReached = true)
                 } catch (_: Throwable) {
                 }
             }

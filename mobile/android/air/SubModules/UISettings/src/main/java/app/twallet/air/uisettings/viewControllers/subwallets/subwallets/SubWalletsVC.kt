@@ -65,7 +65,6 @@ import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.moshi.ApiGroupedWalletVariant
 import app.twallet.air.walletcore.moshi.ApiSubWallet
 import app.twallet.air.walletcore.moshi.api.ApiMethod
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.BalanceStore
 import app.twallet.air.walletcore.stores.TokenStore
@@ -609,7 +608,6 @@ class SubWalletsVC(
                     name = subwalletTitle(activeAccount.name, derivationIndex),
                     importedAt = System.currentTimeMillis()
                 )
-                AirPushNotifications.subscribe(newAccountId, ignoreIfLimitReached = true)
                 WalletCore.activateAccount(
                     accountId = newAccountId,
                     notifySDK = false
@@ -684,7 +682,6 @@ class SubWalletsVC(
                         name = subwalletTitle(activeAccount.name, derivationIndex),
                         importedAt = System.currentTimeMillis()
                     )
-                    AirPushNotifications.subscribe(entry.accountId, ignoreIfLimitReached = true)
                 }
             }
 
@@ -763,7 +760,6 @@ class SubWalletsVC(
                     name = subwalletTitle(activeAccount.name, derivationIndex),
                     importedAt = System.currentTimeMillis()
                 )
-                AirPushNotifications.subscribe(result.accountId, ignoreIfLimitReached = true)
             }
 
             WalletCore.activateAccount(

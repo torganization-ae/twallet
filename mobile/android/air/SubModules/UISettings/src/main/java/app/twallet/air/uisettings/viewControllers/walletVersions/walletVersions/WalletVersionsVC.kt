@@ -29,7 +29,6 @@ import app.twallet.air.walletcore.api.refreshStoredMfaIfPossible
 import app.twallet.air.walletcore.api.activateAccount
 import app.twallet.air.walletcore.api.importNewWalletVersion
 import app.twallet.air.walletcore.models.MAccount
-import app.twallet.air.walletcore.pushNotifications.AirPushNotifications
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.utils.jsonObject
 import java.lang.ref.WeakReference
@@ -256,7 +255,6 @@ class WalletVersionsVC(context: Context) : WViewController(context),
                 name = importedAccount.name,
                 importedAt = importedAccount.importedAt
             )
-            AirPushNotifications.subscribe(importedAccount, ignoreIfLimitReached = true)
             WalletCore.refreshStoredMfaIfPossible(listOf(importedAccountId), null)
             WalletCore.activateAccount(
                 accountId = importedAccountId,

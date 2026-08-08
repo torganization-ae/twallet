@@ -33,7 +33,6 @@ function makeGlobal(currentAccountId: string): GlobalState {
       byAccountId: Object.fromEntries(accountIds.map((id) => [id, {}])),
       orderedAccountIds: accountIds,
     },
-    pushNotifications: { enabledAccounts: [] },
   } as unknown as GlobalState;
 }
 

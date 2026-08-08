@@ -191,8 +191,7 @@ class SettingsVM {
             SettingsItem(
                 identifier = SettingsItem.Identifier.NOTIFICATION_SETTINGS,
                 icon = R.drawable.ic_notifications,
-                title = LocaleController.getString("Notifications & Sounds"),
-                subtitle = LocaleController.getString("Wallets, Sounds"),
+                title = LocaleController.getString("Sounds"),
                 hasTintColor = false
             ),
             SettingsItem(

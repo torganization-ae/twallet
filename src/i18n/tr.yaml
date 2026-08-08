@@ -770,10 +770,7 @@ Add Tokens: Jeton Ekle
 No tokens yet: Henüz jeton yok
 $no_tokens_description: Başka bir cüzdandan jeton alın veya izleme için tercih edilen jetonları ayarlardan etkinleştirin.
 Exchange Rate: Döviz Kuru
-Notifications & Sounds: Bildirimler ve sesler
 Sounds: Sesler
-Push Notifications: Anlık Bildirimler
-Select up to %count% wallets for notifications: Bildirimler için en fazla %count% cüzdan seçin
 $swap_aggregator_fee_tooltip: Dahili bir **DEX toplayıcı**, mevcut DEX'ler arasında **en iyi oranı** bulur. Hizmet ücreti %percent%.
 Accumulated Rewards: Birikmiş ödüller
 $swap_reverse_prohibited: Bu token çifti için satın alma miktarını ayarlamak imkansız
@@ -1094,7 +1091,6 @@ Back Up, Passcode, Auto-Lock: Yedekleme, Şifre, Otomatik Kilit
 Back Up, Password, Auto-Lock: Yedekleme, Şifre, Otomatik Kilit
 Base Currency, Token Order, Hidden NFTs: Temel Para Birimi, Token Sırası, Gizli NFT'ler
 Your assets on other contracts: Diğer sözleşmelerdeki varlıklarınız
-Wallets, Sounds: Cüzdanlar, Sesler
 Help: Yardım
 About: Hakkında
 Wallets: Cüzdanlar
@@ -1457,8 +1453,6 @@ Popular and connected apps: Popüler ve bağlı uygulamalar
 Connected Dapp: Bağlı dApp
 $ago: "%1$d önce"
 $visited_ago: "%1$d önce ziyaret edildi"
-Notifications are disabled: Bildirimler devre dışı
-Enable in Settings: Ayarlar'da etkinleştir
 Open Link: Bağlantıyı aç
 Open in App: Uygulamada aç
 Search in Google: Google'da ara

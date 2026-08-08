@@ -105,8 +105,6 @@ object WGlobalStorage {
     private const val IS_APP_LOCK_ENABLED = "settings.isAppLockEnabled"
     private const val IS_SENSITIVE_DATA_HIDDEN = "settings.isSensitiveDataHidden"
     private const val STATE_VERSION = "stateVersion"
-    private const val PUSH_NOTIFICATIONS_TOKEN = "pushNotifications.userToken"
-    private const val PUSH_NOTIFICATIONS_ENABLED_ACCOUNTS = "pushNotifications.enabledAccounts"
     private const val ORDERED_ACCOUNT_IDS = "settings.orderedAccountIds"
     private const val EXPLORER = "settings.selectedExplorerIds"
     private const val IS_SCREEN_RECORD_WARNING_DISABLED = "settings.isScreenRecordWarningDisabled"
@@ -758,58 +756,6 @@ object WGlobalStorage {
         return _isSensitiveDataProtectionOn
     }
 
-    fun setPushNotificationsToken(userToken: String) {
-        return globalStorageProvider.set(
-            mapOf(
-                PUSH_NOTIFICATIONS_TOKEN to userToken,
-                "pushNotifications.platform" to "android"
-            ),
-            IGlobalStorageProvider.PERSIST_INSTANT
-        )
-    }
-
-    fun setPushNotificationAccounts(enabledAccounts: List<String>) {
-        return globalStorageProvider.set(
-            PUSH_NOTIFICATIONS_ENABLED_ACCOUNTS,
-            JSONArray(enabledAccounts),
-            IGlobalStorageProvider.PERSIST_INSTANT
-        )
-    }
-
-    fun setPushNotificationAccount(accountId: String) {
-        val currentAccounts =
-            getPushNotificationsEnabledAccounts()?.toMutableList() ?: mutableListOf()
-        if (!currentAccounts.contains(accountId)) {
-            currentAccounts.add(accountId)
-        }
-        globalStorageProvider.set(
-            PUSH_NOTIFICATIONS_ENABLED_ACCOUNTS,
-            JSONArray(currentAccounts),
-            IGlobalStorageProvider.PERSIST_INSTANT
-        )
-    }
-
-    fun removePushNotificationAccount(accountId: String) {
-        val currentAccounts = getPushNotificationsEnabledAccounts() ?: return
-        globalStorageProvider.set(
-            PUSH_NOTIFICATIONS_ENABLED_ACCOUNTS,
-            JSONArray(currentAccounts.filter { it != accountId }),
-            IGlobalStorageProvider.PERSIST_INSTANT
-        )
-    }
-
-    fun getPushNotificationsToken(): String? {
-        return globalStorageProvider.getString(PUSH_NOTIFICATIONS_TOKEN)
-    }
-
-    fun getPushNotificationsEnabledAccounts(): List<String>? {
-        val arr = globalStorageProvider.getArray(PUSH_NOTIFICATIONS_ENABLED_ACCOUNTS)
-            ?: return null
-        return ArrayList(List(arr.length()) { i ->
-            arr.getString(i)
-        })
-    }
-
     fun getBlacklistedNftAddresses(accountId: String): ArrayList<String> {
         val arr = globalStorageProvider.getArray("byAccountId.$accountId.blacklistedNftAddresses")
             ?: return ArrayList()
@@ -1054,7 +1000,7 @@ object WGlobalStorage {
         )
     }
 
-    private const val LAST_STATE: Int = 60
+    private const val LAST_STATE: Int = 61
 
     fun migrate() {
         // Lock the storage
@@ -1264,21 +1210,6 @@ object WGlobalStorage {
             }
         }
 
-        if (currentState < 48) {
-            val enabledAccounts = globalStorageProvider.getDict(PUSH_NOTIFICATIONS_ENABLED_ACCOUNTS)
-            if (enabledAccounts != null) {
-                val accountIds = JSONArray()
-                enabledAccounts.keys().forEach { key ->
-                    accountIds.put(key)
-                }
-                globalStorageProvider.set(
-                    PUSH_NOTIFICATIONS_ENABLED_ACCOUNTS,
-                    accountIds,
-                    IGlobalStorageProvider.PERSIST_NO
-                )
-            }
-        }
-
         if (currentState < 49) {
             val accountIds = accountIds(network = null)
             for (accountId in accountIds) {
@@ -1456,6 +1387,14 @@ object WGlobalStorage {
                 stripVirtualStakingSlugs("$ASSETS_AND_ACTIVITY.$accountId.importedSlugs")
             }
             WCacheStorage.clearAllStakingData()
+        }
+
+        // State 60→61: drop push-notification subscription keys (feature removed).
+        if (currentState < 61) {
+            globalStorageProvider.remove("pushNotifications.userToken", IGlobalStorageProvider.PERSIST_NO)
+            globalStorageProvider.remove("pushNotifications.enabledAccounts", IGlobalStorageProvider.PERSIST_NO)
+            globalStorageProvider.remove("pushNotifications.platform", IGlobalStorageProvider.PERSIST_NO)
+            globalStorageProvider.remove("pushNotifications.isAvailable", IGlobalStorageProvider.PERSIST_NO)
         }
 
         // Update and unlock the storage

@@ -150,17 +150,6 @@ public enum AppStorageHelper {
         }
     }
 
-    // MARK: - Push notifications
-
-    public static var pushNotifications: GlobalPushNotifications? {
-        get {
-            settingsStore.pushNotifications
-        }
-        set {
-            settingsStore.setPushNotifications(newValue)
-        }
-    }
-
     // MARK: - Wallet settings
     
     public static var walletSettingsListLayout: String {

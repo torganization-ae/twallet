@@ -1,11 +1,7 @@
 
-import Foundation
 import SwiftUI
-import UIKit
 import UIComponents
 import WalletContext
-
-private let log = Log("NotificationsSettingsVC")
 
 public final class NotificationsSettingsVC: SettingsBaseVC {
     
@@ -15,7 +11,7 @@ public final class NotificationsSettingsVC: SettingsBaseVC {
     public override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.title = lang("Notifications & Sounds")
+        navigationItem.title = lang("Sounds")
         
         hostingController = addHostingController(makeView(), constraints: .fill)
 

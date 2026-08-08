@@ -2,7 +2,6 @@ package app.twallet.air.walletcore.deeplink
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Bundle
 import app.twallet.air.walletbasecontext.APP_SCHEME
 import app.twallet.air.walletbasecontext.APP_TC_SCHEME
 import app.twallet.air.walletbasecontext.R as BaseR
@@ -71,18 +70,11 @@ sealed class Deeplink {
         val config: InAppBrowserConfig
     ) : Deeplink()
 
-    data class NotificationUrl(
-        override val accountAddress: String?,
-        val config: InAppBrowserConfig,
-        val isExternal: Boolean
-    ) : Deeplink()
-
     data class Transaction(
         override val accountAddress: String?,
         val chain: String?,
         val txId: String?,
-        val txHash: String?,
-        val isPushNotification: Boolean
+        val txHash: String?
     ) : Deeplink()
 
     data class TokenBySlug(override val accountAddress: String?, val slug: String) : Deeplink()
@@ -128,7 +120,7 @@ class DeeplinkParser {
         )
 
         fun parse(intent: Intent): Deeplink? {
-            return parse(intent.data) ?: parse(intent.extras)
+            return parse(intent.data)
         }
 
         fun parse(uri: Uri?): Deeplink? {
@@ -143,54 +135,6 @@ class DeeplinkParser {
                 in WC_WRAPPER_SCHEMES -> handleWalletConnectWrapper(uri)
                 else -> {
                     null
-                }
-            }
-        }
-
-        private fun parse(bundle: Bundle?): Deeplink? {
-            if (bundle == null)
-                return null
-            val address = bundle.getString("address")
-            val action = bundle.getString("action")
-            if (address == null && action != "openUrl")
-                return null
-            return when (action) {
-                "openUrl" -> {
-                    val url = bundle.getString("url") ?: return null
-                    Deeplink.NotificationUrl(
-                        address, InAppBrowserConfig(
-                            url = url,
-                            title = bundle.getString("title"),
-                            injectDappConnect = true
-                        ),
-                        isExternal = bundle.getString("isExternal")?.equals("true", ignoreCase = true)
-                            ?: false
-                    )
-                }
-
-                "nativeTx", "swap", "jettonTx" -> {
-                    val txId = bundle.getString("txId") ?: return null
-                    val chain = bundle.getString("chain") ?: MBlockchain.ton.name
-                    return Deeplink.Transaction(
-                        accountAddress = address,
-                        chain = chain,
-                        txId = txId,
-                        txHash = null,
-                        isPushNotification = true
-                    )
-                }
-
-
-                "expiringDns" -> {
-                    val domainAddress = bundle.getString("domainAddress") ?: return null
-                    return Deeplink.ExpiringDns(
-                        accountAddress = address,
-                        domainAddress = domainAddress
-                    )
-                }
-
-                else -> {
-                    return null
                 }
             }
         }
@@ -411,7 +355,6 @@ class DeeplinkParser {
                             chain = chain,
                             txId = txId,
                             txHash = null,
-                            isPushNotification = false,
                         )
                     } else {
                         return null

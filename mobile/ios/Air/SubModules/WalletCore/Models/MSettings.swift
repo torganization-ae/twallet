@@ -25,7 +25,6 @@ public struct MSettings: Equatable, Hashable, Codable, Sendable, FetchableRecord
     public var isSensitiveDataHidden: Bool
     public var selectedExplorerIds: [String: String]
     public var isTokenChartExpanded: Bool
-    public var pushNotifications: GlobalPushNotifications?
     // Air intentionally keeps token period shared across accounts.
     public var currentTokenPeriod: String
     public var walletTokensLimit: Int
@@ -46,7 +45,6 @@ public struct MSettings: Equatable, Hashable, Codable, Sendable, FetchableRecord
         isSensitiveDataHidden: Bool = false,
         selectedExplorerIds: [String: String] = [:],
         isTokenChartExpanded: Bool = false,
-        pushNotifications: GlobalPushNotifications? = nil,
         currentTokenPeriod: String = defaultCurrentTokenPeriod,
         walletTokensLimit: Int = defaultWalletTokensLimit,
         walletSettingsListLayout: String? = nil,
@@ -65,7 +63,6 @@ public struct MSettings: Equatable, Hashable, Codable, Sendable, FetchableRecord
         self.isSensitiveDataHidden = isSensitiveDataHidden
         self.selectedExplorerIds = selectedExplorerIds
         self.isTokenChartExpanded = isTokenChartExpanded
-        self.pushNotifications = pushNotifications
         self.currentTokenPeriod = currentTokenPeriod
         self.walletTokensLimit = HomeWalletVisibleTokensLimit(storedValue: walletTokensLimit).rawValue
         self.walletSettingsListLayout = walletSettingsListLayout
@@ -87,8 +84,6 @@ public struct MSettings: Equatable, Hashable, Codable, Sendable, FetchableRecord
             selectedExplorerIds: global.getDict(key: "settings.selectedExplorerIds")
                 .flatMap { try? JSONSerialization.decode([String: String].self, from: $0) } ?? [:],
             isTokenChartExpanded: global.getBool(key: "settings.isTokenChartExpanded") ?? false,
-            pushNotifications: global["pushNotifications"]
-                .flatMap { try? JSONSerialization.decode(GlobalPushNotifications.self, from: $0) },
             currentTokenPeriod: MSettings.currentTokenPeriod(from: global, currentAccountId: currentAccountId),
             walletTokensLimit: MSettings.defaultWalletTokensLimit
         )
@@ -113,11 +108,6 @@ public extension MSettings {
     var authConfigObject: Any? {
         guard let authConfig else { return nil }
         return try? JSONSerialization.jsonObject(withString: authConfig)
-    }
-
-    var pushNotificationsObject: Any? {
-        guard let pushNotifications else { return nil }
-        return try? JSONSerialization.encode(pushNotifications)
     }
 
     var globalAnimationLevel: Int {

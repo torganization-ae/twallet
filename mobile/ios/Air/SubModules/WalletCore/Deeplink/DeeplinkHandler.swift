@@ -1,11 +1,9 @@
 import Foundation
-import UserNotifications
 import WalletContext
 
 @MainActor
 public protocol DeeplinkNavigator: AnyObject {
     func handle(deeplink: Deeplink)
-    func handleNotification(_ notification: UNNotification)
 }
 
 @MainActor
@@ -24,9 +22,5 @@ public final class DeeplinkHandler {
         }
         deeplinkNavigator?.handle(deeplink: deeplink)
         return true
-    }
-
-    public func handleNotification(_ notification: UNNotification) {
-        deeplinkNavigator?.handleNotification(notification)
     }
 }

@@ -766,10 +766,7 @@ Add Tokens: 添加令牌
 No tokens yet: 尚無代幣
 $no_tokens_description: 從其他錢包接收代幣，或者在設定中啟用首選代幣進行監控。
 Exchange Rate: 匯率
-Notifications & Sounds: 通知和聲音
 Sounds: 聲音
-Push Notifications: 推送通知
-Select up to %count% wallets for notifications: 選擇最多 %count% 個錢包接收通知
 $swap_aggregator_fee_tooltip: 內建的 **DEX 聚合器** 會在可用的 DEX 中找到 **最佳匯率**。服務費為 %percent%。
 Accumulated Rewards: 累積獎勵
 $swap_reverse_prohibited: 無法為這對代幣設置購買金額
@@ -1089,7 +1086,6 @@ Back Up, Passcode, Auto-Lock: 備份、密碼、自動鎖定
 Back Up, Password, Auto-Lock: 備份、密碼、自動鎖定
 Base Currency, Token Order, Hidden NFTs: 基礎貨幣、代幣順序、隱藏的 NFT
 Your assets on other contracts: 您在其他合約上的資產
-Wallets, Sounds: 錢包、聲音
 Help: 幫助
 About: 關於
 Wallets: 錢包
@@ -1444,8 +1440,6 @@ Popular and connected apps: 熱門與已連線應用程式
 Connected Dapp: 已連線 dApp
 $ago: "%1$d 前"
 $visited_ago: "%1$d 前造訪"
-Notifications are disabled: 通知已停用
-Enable in Settings: 前往設定開啟
 Open Link: 開啟連結
 Open in App: 在應用程式中打開
 Search in Google: 在 Google 搜尋
