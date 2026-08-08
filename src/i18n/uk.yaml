@@ -132,6 +132,38 @@ Share this URL to receive %token%: Поділитися посиланням
 Invoice Link Copied: Посилання скопійовано
 Theme: Тема
 Language: Мова
+RPC and API endpoints: RPC і API-ендпоінти
+RPC URL: URL RPC
+API URL: URL API
+API Key: API-ключ
+Enhanced API Key: Ключ Enhanced API
+Leave empty to use the default enhanced API; add your own key for better reliability.: "Залиште порожнім, щоб використовувати Enhanced API за замовчуванням; додайте свій ключ для більшої надійності."
+Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.: "Вставте сумісний з Alchemy URL Enhanced API вище, потім за потреби додайте API-ключ."
+Enhanced API disabled: Enhanced API вимкнено
+Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.: "Розширені функції (історія, NFT, оновлення в реальному часі) вимкнено. Додайте URL API (+ключ), щоб увімкнути їх."
+Reset to Default: Скинути
+Save Anyway: Зберегти все одно
+Default: За замовчуванням
+Custom: Свій
+Hidden: Прихована
+Disabled — add endpoint to enable: "Вимкнена — додайте endpoint, щоб увімкнути"
+No endpoint: Немає посилання
+Using default endpoint: Використовується endpoint за замовчуванням
+Using custom endpoint: Використовується свій endpoint
+Show API Key: Показати API-ключ
+Endpoint is unreachable: Endpoint недоступний
+Unexpected response from endpoint: Неочікувана відповідь від endpoint
+Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.: Власні endpoints без підтримки indexer API можуть вимкнути NFT та історію для цієї мережі.
+Password required to save API key: Для збереження API-ключа потрібен пароль
+Show in wallet: Показувати в гаманці
+At least one network must stay enabled.: Принаймні одна мережа має залишатися увімкненою.
+Network Menu: Меню мережі
+Show Wallet QR: Показати QR гаманця
+Enter URL: Введіть URL
+Edit Network: Редагувати
+Enable: Увімкнути
+Disable: Вимкнути
+Saved: Збережено
 Enable Animations: Увімкнути анімацію
 Enable Seasonal Theming: Увімкнути сезонне оформлення
 Enable Landscape Mode: Увімкнути горизонтальний режим

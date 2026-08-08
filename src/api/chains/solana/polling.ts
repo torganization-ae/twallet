@@ -17,6 +17,7 @@ import { throttle } from '../../../util/schedulers';
 import { NftStream } from './util/nftStream';
 import { getHeliusSocket } from './util/socket';
 import { fetchStoredWallet } from '../../common/accounts';
+import { registerCollectiblesPolling } from '../../common/polling/collectiblesPolling';
 import { getConcurrencyLimiter } from '../../common/polling/setupInactiveChainPolling';
 import {
   activeNftTiming, activeWalletTiming, inactiveNftTiming, inactiveWalletTiming, periodToMs,
@@ -25,19 +26,17 @@ import { swapReplaceActivities } from '../../common/swap';
 import { sendUpdateTokens } from '../../common/tokens';
 import { txCallbacks } from '../../common/txCallbacks';
 import { BalanceStream } from '../../common/websocket/balanceStream';
-import { FIRST_TRANSACTIONS_LIMIT, MINUTE } from '../../constants';
+import { FIRST_TRANSACTIONS_LIMIT } from '../../constants';
 import { isSolanaEnhancedApiEnabled } from '../rpcOverrides';
 import { getTokenActivitySlice } from './activities';
 import { fetchAccountAssets, getIsWalletActive } from './wallet';
 
 const activeSolanaWalletTiming = {
   ...activeWalletTiming,
-  forcedPollingPeriod: { focused: 3 * MINUTE, notFocused: 10 * MINUTE },
 };
 
 const inactiveSolanaWalletTiming = {
   ...inactiveWalletTiming,
-  forcedPollingPeriod: { focused: 10 * MINUTE, notFocused: 10 * MINUTE },
 };
 
 export function setupActivePolling(
@@ -61,15 +60,15 @@ export function setupActivePolling(
     )
     : setupDisabledActivityPolling(accountId, onUpdate, onUpdatingStatusChange.bind(undefined, 'activities'));
 
-  const nftPolling = hasEnhancedApi
-    ? setupNftPolling(
+  const stopCollectiblesPolling = hasEnhancedApi
+    ? registerCollectiblesPolling(accountId, () => setupNftPolling(
       accountId,
       address,
       true,
       activityPolling.update,
       onUpdate,
-    )
-    : setupDisabledNftPolling(accountId, onUpdate);
+    ).stop, 'solana')
+    : setupDisabledNftPolling(accountId, onUpdate).stop;
 
   const balancePolling = setupBalancePolling(
     accountId,
@@ -82,7 +81,7 @@ export function setupActivePolling(
   );
 
   return () => {
-    nftPolling.stop();
+    stopCollectiblesPolling();
     balancePolling.stop();
   };
 }

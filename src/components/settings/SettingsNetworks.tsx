@@ -1,7 +1,7 @@
 import React, {
   memo, useEffect, useMemo, useRef, useState,
 } from '../../lib/teact/teact';
-import { withGlobal } from '../../global';
+import { getActions, withGlobal } from '../../global';
 
 import type {
   NetworkRpcConfigItem,
@@ -12,7 +12,10 @@ import type { ApiChain, ApiNetwork } from '../../api/types';
 import type { Layout } from '../../hooks/useMenuPosition';
 import type { DropdownItem } from '../ui/Dropdown';
 
+import { selectCurrentAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
+import { getChainTitle } from '../../util/chain';
+import { copyTextToClipboard } from '../../util/clipboard';
 import { stopEvent } from '../../util/domEvents';
 import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
 import { callApi } from '../../api';
@@ -26,6 +29,7 @@ import useScrolledState from '../../hooks/useScrolledState';
 import Button from '../ui/Button';
 import DropdownMenu from '../ui/DropdownMenu';
 import Input from '../ui/Input';
+import Modal from '../ui/Modal';
 import PasswordForm from '../ui/PasswordForm';
 import Spinner from '../ui/Spinner';
 import Switcher from '../ui/Switcher';
@@ -40,9 +44,10 @@ type OwnProps = {
 
 type StateProps = {
   network: ApiNetwork;
+  addressesByChain?: Partial<Record<ApiChain, string>>;
 };
 
-type NetworkMenuHandler = 'edit' | 'enable' | 'disable';
+type NetworkMenuHandler = 'edit' | 'enable' | 'disable' | 'copyAddress' | 'showQr';
 type NetworkStatus = 'active' | 'inactive' | 'warning';
 
 function hostLabel(url: string) {
@@ -92,81 +97,244 @@ function apiFieldPlaceholder(chain: ApiChain, field: NetworkRpcFieldConfig) {
   return field.defaultUrl || undefined;
 }
 
+type FieldDraft = {
+  url: string;
+  apiKey: string;
+  isApiKeyUnlocked: boolean;
+  testResult?: RpcTestResult & { saved?: boolean };
+};
+
+function draftsFromFields(fields: NetworkRpcFieldConfig[]): Record<string, FieldDraft> {
+  return Object.fromEntries(fields.map((field) => [
+    field.field,
+    {
+      url: field.url,
+      apiKey: '',
+      // Locked until eye-unlock when a stored key exists; empty keys are editable immediately
+      isApiKeyUnlocked: !field.hasApiKey,
+      testResult: undefined,
+    } satisfies FieldDraft,
+  ]));
+}
+
 function NetworkFieldForm({
   chain,
-  network,
   field,
+  draft,
+  onUrlChange,
+  onApiKeyChange,
+  onRequestUnlock,
+  onReset,
+  isLoading,
+}: {
+  chain: ApiChain;
+  field: NetworkRpcFieldConfig;
+  draft: FieldDraft;
+  onUrlChange: (value: string) => void;
+  onApiKeyChange: (value: string) => void;
+  onRequestUnlock: NoneToVoidFunction;
+  onReset: NoneToVoidFunction;
+  isLoading: boolean;
+}) {
+  const lang = useLang();
+  const { testResult } = draft;
+  const isKeyLocked = Boolean(field.hasApiKey) && !draft.isApiKeyUnlocked;
+
+  return (
+    <div className={styles.block}>
+      <p className={styles.itemTitle} style="padding: 0.75rem 1rem 0;">
+        {fieldLabel(field, lang)}
+      </p>
+      <div style="padding: 0.75rem 1rem 0;">
+        <Input
+          value={draft.url}
+          placeholder={apiFieldPlaceholder(chain, field)}
+          onInput={onUrlChange}
+          isMultiline
+          isStatic
+        />
+      </div>
+
+      <div className={styles.apiKeyField}>
+        <p className={styles.itemTitle} style="padding: 0 0 0.5rem;">
+          {lang('API Key')}
+        </p>
+        <div className={styles.apiKeyInputRow}>
+          {isKeyLocked ? (
+            <>
+              <Input
+                value=""
+                placeholder="••••••••"
+                isDisabled
+                onInput={() => {}}
+                isStatic
+                wrapperClassName={styles.apiKeyInput}
+              />
+              <button
+                type="button"
+                className={styles.apiKeyEyeButton}
+                aria-label={lang('Show API Key')}
+                onClick={onRequestUnlock}
+              >
+                <i className="icon-eye" aria-hidden />
+              </button>
+            </>
+          ) : (
+            <Input
+              value={draft.apiKey}
+              type="password"
+              placeholder={lang('Optional')}
+              onInput={onApiKeyChange}
+              isStatic
+              wrapperClassName={styles.apiKeyInput}
+            />
+          )}
+        </div>
+      </div>
+
+      {testResult?.status === 'unreachable' && (
+        <p className={styles.itemSubtitle} style="color: var(--color-red); padding: 0 1rem 0.75rem;">
+          {testResult.details || lang('Endpoint is unreachable')}
+        </p>
+      )}
+      {testResult?.status === 'unexpected_response' && !testResult.saved && (
+        <p className={styles.itemSubtitle} style="color: var(--color-orange); padding: 0 1rem 0.75rem;">
+          {testResult.details || lang('Unexpected response from endpoint')}
+        </p>
+      )}
+      {testResult?.saved && (
+        <p className={styles.itemSubtitle} style="color: var(--color-green); padding: 0 1rem 0.75rem;">
+          {lang('Saved')}
+        </p>
+      )}
+
+      {!field.isDefault && (
+        <div className={styles.fullWidthButtons} style="padding-top: 0;">
+          <Button isLoading={isLoading} className={styles.fullWidthButton} onClick={onReset}>
+            {lang('Reset to Default')}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NetworkFieldsEditor({
+  chain,
+  network,
+  fields,
   onSaved,
 }: {
   chain: ApiChain;
   network: ApiNetwork;
-  field: NetworkRpcFieldConfig;
+  fields: NetworkRpcFieldConfig[];
   onSaved: () => void;
 }) {
   const lang = useLang();
-  const [draftUrl, setDraftUrl] = useState(field.url);
-  const [draftApiKey, setDraftApiKey] = useState(field.apiKey || '');
+  const [drafts, setDrafts] = useState<Record<string, FieldDraft>>(() => draftsFromFields(fields));
   const [isLoading, setIsSaving] = useState(false);
-  const [testResult, setTestResult] = useState<(RpcTestResult & { saved?: boolean }) | undefined>();
-  const [isApiKeyUnlocked, setIsApiKeyUnlocked] = useState(false);
-  const [isUnlockingApiKey, setIsUnlockingApiKey] = useState(false);
+  const [unlockingField, setUnlockingField] = useState<string | undefined>();
   const [passwordError, setPasswordError] = useState<string | undefined>();
   const [sessionPassword, setSessionPassword] = useState<string | undefined>();
-  /** When set, password form is for continuing a save (value = force flag). */
   const [pendingSaveForce, setPendingSaveForce] = useState<boolean | undefined>();
 
-  const showApiKey = isSharedApiKeyEligible(chain, field.field);
-
   useEffect(() => {
-    setDraftUrl(field.url);
-    setDraftApiKey(field.apiKey || '');
-  }, [field.url, field.apiKey]);
+    setDrafts((prev) => Object.fromEntries(fields.map((field) => {
+      const prevDraft = prev[field.field];
+      const wasUnlocked = Boolean(prevDraft?.isApiKeyUnlocked);
+      return [
+        field.field,
+        {
+          url: field.url,
+          apiKey: wasUnlocked ? (prevDraft?.apiKey || '') : '',
+          isApiKeyUnlocked: wasUnlocked || !field.hasApiKey,
+          testResult: prevDraft?.testResult,
+        } satisfies FieldDraft,
+      ];
+    })));
+  }, [fields]);
 
-  const doSave = useLastCallback(async (force: boolean, password?: string) => {
+  const updateDraft = useLastCallback((fieldKey: string, patch: Partial<FieldDraft>) => {
+    setDrafts((prev) => ({
+      ...prev,
+      [fieldKey]: { ...prev[fieldKey], ...patch },
+    }));
+  });
+
+  const fieldsNeedingPassword = useLastCallback(() => {
+    return fields.filter((field) => {
+      const draft = drafts[field.field];
+      return draft?.isApiKeyUnlocked && Boolean(draft.apiKey);
+    });
+  });
+
+  const doSaveAll = useLastCallback(async (force: boolean, password?: string) => {
     setIsSaving(true);
-    setTestResult(undefined);
-    const apiKeyToSave = showApiKey && isApiKeyUnlocked ? (draftApiKey || undefined) : undefined;
-    const result = await callApi(
-      'setRpcOverride',
-      chain,
-      network,
-      field.field,
-      draftUrl,
-      apiKeyToSave,
-      force,
-      password,
-    );
-    setIsSaving(false);
-    if (result) {
-      setTestResult(result);
-      if (result.saved) {
-        onSaved();
+    const nextDrafts = { ...drafts };
+
+    for (const field of fields) {
+      const draft = nextDrafts[field.field];
+      if (!draft) continue;
+
+      const apiKeyToSave = draft.isApiKeyUnlocked
+        ? draft.apiKey
+        : undefined;
+      const result = await callApi(
+        'setRpcOverride',
+        chain,
+        network,
+        field.field,
+        draft.url,
+        apiKeyToSave,
+        force,
+        password,
+      );
+      if (result) {
+        nextDrafts[field.field] = { ...draft, testResult: result };
       }
     }
+
+    setDrafts(nextDrafts);
+    setIsSaving(false);
+    const allSaved = fields.every((field) => nextDrafts[field.field]?.testResult?.saved);
+    if (allSaved) {
+      onSaved();
+    }
   });
 
-  const handleSave = useLastCallback(async (force = false) => {
-    const needsPasswordForApiKey = showApiKey && isApiKeyUnlocked && Boolean(draftApiKey);
-    if (needsPasswordForApiKey && !sessionPassword) {
+  const handleSaveAll = useLastCallback(async (force = false) => {
+    const needingPassword = fieldsNeedingPassword();
+    if (needingPassword.length > 0 && !sessionPassword) {
       setPendingSaveForce(force);
-      setIsUnlockingApiKey(true);
+      setUnlockingField(needingPassword[0].field);
       return;
     }
-    await doSave(force, sessionPassword);
+    await doSaveAll(force, sessionPassword);
   });
 
-  const handleReset = useLastCallback(async () => {
+  const handleReset = useLastCallback(async (fieldKey: string) => {
     setIsSaving(true);
-    await callApi('resetRpcOverride', chain, network, field.field);
+    await callApi('resetRpcOverride', chain, network, fieldKey as NetworkRpcFieldConfig['field']);
     setIsSaving(false);
-    setTestResult({ status: 'ok', saved: true });
+    updateDraft(fieldKey, {
+      testResult: { status: 'ok', saved: true },
+      apiKey: '',
+      isApiKeyUnlocked: true,
+    });
     onSaved();
   });
 
   const handleUnlockApiKey = useLastCallback(async (password: string) => {
+    if (!unlockingField) return;
     setPasswordError(undefined);
 
-    const unlock = await callApi('unlockRpcApiKey', chain, network, password, field.field);
+    const unlock = await callApi(
+      'unlockRpcApiKey',
+      chain,
+      network,
+      password,
+      unlockingField as NetworkRpcFieldConfig['field'],
+    );
     if (!unlock?.ok) {
       const isValid = await callApi('verifyPassword', password);
       if (!isValid) {
@@ -176,133 +344,106 @@ function NetworkFieldForm({
     }
 
     setSessionPassword(password);
-    if (unlock?.apiKey !== undefined) {
-      setDraftApiKey(unlock.apiKey);
-    }
-    setIsApiKeyUnlocked(true);
-    setIsUnlockingApiKey(false);
+    updateDraft(unlockingField, {
+      isApiKeyUnlocked: true,
+      ...(unlock?.apiKey !== undefined ? { apiKey: unlock.apiKey } : undefined),
+    });
+    setUnlockingField(undefined);
 
     if (pendingSaveForce !== undefined) {
       const force = pendingSaveForce;
       setPendingSaveForce(undefined);
-      await doSave(force, password);
+      await doSaveAll(force, password);
     }
   });
 
+  const showSaveAnyway = fields.some((field) => {
+    const result = drafts[field.field]?.testResult;
+    return result?.status === 'unexpected_response' && !result.saved;
+  });
+
   return (
-    <div className={styles.block}>
-      <p className={styles.itemTitle} style="padding: 0.75rem 1rem 0;">
-        {fieldLabel(field, lang)}
-      </p>
-      <p className={styles.itemSubtitle} style="padding: 0.25rem 1rem 0;">
-        {field.isDefault
-          ? (field.field === 'api' && !field.defaultUrl
-            ? lang('Enhanced API disabled')
-            : lang('Using default endpoint'))
-          : lang('Using custom endpoint')}
-      </p>
-      {field.field === 'api' && field.isDefault && !field.defaultUrl && (
-        <p className={styles.itemSubtitle} style="padding: 0.25rem 1rem 0;">
-          {lang(
-            'Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.',
-          )}
-        </p>
-      )}
-      <div style="padding: 0.75rem 1rem;">
-        <Input
-          label={fieldLabel(field, lang)}
-          value={draftUrl}
-          placeholder={apiFieldPlaceholder(chain, field)}
-          onInput={setDraftUrl}
-          isMultiline
-        />
-      </div>
+    <>
+      {fields.map((field) => {
+        const draft = drafts[field.field];
+        if (!draft) return undefined;
 
-      {showApiKey && (
-        <div style="padding: 0 1rem 0.75rem;">
-          {field.field === 'api' && (
-            <div style="margin-bottom: 0.5rem; opacity: 0.8;">
-              {field.isDefault && !field.defaultUrl
-                ? lang('Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.')
-                : lang('Leave empty to use the default enhanced API; add your own key for better reliability.')}
-            </div>
-          )}
-          {!isApiKeyUnlocked ? (
-            <Button isPrimary isSmall onClick={() => setIsUnlockingApiKey(true)}>
-              {lang('Show API Key')}
-            </Button>
-          ) : (
-            <Input
-              label={field.field === 'api' ? lang('Enhanced API Key') : lang('API Key')}
-              value={draftApiKey}
-              type="password"
-              placeholder={lang('Optional')}
-              onInput={setDraftApiKey}
-            />
-          )}
-        </div>
-      )}
+        return (
+          <NetworkFieldForm
+            key={field.field}
+            chain={chain}
+            field={field}
+            draft={draft}
+            onUrlChange={(value) => updateDraft(field.field, { url: value })}
+            onApiKeyChange={(value) => updateDraft(field.field, { apiKey: value })}
+            onRequestUnlock={() => setUnlockingField(field.field)}
+            onReset={() => void handleReset(field.field)}
+            isLoading={isLoading}
+          />
+        );
+      })}
 
-      {testResult?.status === 'unreachable' && (
-        <p className={styles.itemSubtitle} style="color: var(--color-red); padding: 0 1rem;">
-          {testResult.details || lang('Endpoint is unreachable')}
-        </p>
-      )}
-      {testResult?.status === 'unexpected_response' && !testResult.saved && (
-        <p className={styles.itemSubtitle} style="color: var(--color-orange); padding: 0 1rem;">
-          {testResult.details || lang('Unexpected response from endpoint')}
-        </p>
-      )}
-      {testResult?.saved && (
-        <p className={styles.itemSubtitle} style="color: var(--color-green); padding: 0 1rem;">
-          {lang('Saved')}
-        </p>
-      )}
-
-      <div style="display: flex; gap: 0.5rem; padding: 0.75rem 1rem 1rem; flex-wrap: wrap;">
-        <Button isPrimary isLoading={isLoading} onClick={() => handleSave(false)}>
+      <div className={styles.fullWidthButtons}>
+        <Button
+          isPrimary
+          isLoading={isLoading}
+          className={styles.fullWidthButton}
+          onClick={() => handleSaveAll(false)}
+        >
           {lang('Save')}
         </Button>
-        {testResult?.status === 'unexpected_response' && !testResult.saved && (
-          <Button isLoading={isLoading} onClick={() => handleSave(true)}>
+        {showSaveAnyway && (
+          <Button
+            isLoading={isLoading}
+            className={styles.fullWidthButton}
+            onClick={() => handleSaveAll(true)}
+          >
             {lang('Save Anyway')}
           </Button>
         )}
-        {!field.isDefault && (
-          <Button isLoading={isLoading} onClick={handleReset}>
-            {lang('Reset to Default')}
-          </Button>
-        )}
       </div>
 
-      {isUnlockingApiKey && (
-        <div style="padding: 0 1rem 1rem;">
-          <PasswordForm
-            isActive
-            error={passwordError}
-            submitLabel={lang('Confirm')}
-            cancelLabel={lang('Cancel')}
-            onSubmit={handleUnlockApiKey}
-            onCancel={() => setIsUnlockingApiKey(false)}
-            onUpdate={() => setPasswordError(undefined)}
-          />
-        </div>
-      )}
-    </div>
+      <Modal
+        isOpen={Boolean(unlockingField)}
+        title={lang('Enter Password')}
+        onClose={() => {
+          setUnlockingField(undefined);
+          setPendingSaveForce(undefined);
+          setPasswordError(undefined);
+        }}
+      >
+        <PasswordForm
+          isActive={Boolean(unlockingField)}
+          error={passwordError}
+          submitLabel={lang('Confirm')}
+          cancelLabel={lang('Cancel')}
+          isFullWidthButton
+          onSubmit={handleUnlockApiKey}
+          onCancel={() => {
+            setUnlockingField(undefined);
+            setPendingSaveForce(undefined);
+          }}
+          onUpdate={() => setPasswordError(undefined)}
+        />
+      </Modal>
+    </>
   );
 }
 
 function NetworkListItem({
   item,
+  address,
   canDisable,
   onSelect,
   onToggleVisibility,
 }: {
   item: NetworkRpcConfigItem;
+  address?: string;
   canDisable: boolean;
   onSelect: (chain: ApiChain) => void;
   onToggleVisibility: (chain: ApiChain, isHidden: boolean) => void;
 }) {
+  const { showToast, openReceiveModal } = getActions();
   const lang = useLang();
   const menuRef = useRef<HTMLDivElement>();
   const menuButtonRef = useRef<HTMLButtonElement>();
@@ -310,18 +451,40 @@ function NetworkListItem({
   const isMenuOpen = Boolean(menuAnchor);
   const status = getNetworkStatus(item);
   const isHidden = Boolean(item.isHidden);
+  const hasWalletAddress = Boolean(address);
 
-  const menuItems = useMemo<DropdownItem<NetworkMenuHandler>[]>(() => [
-    {
-      value: 'edit',
-      name: 'Edit Network',
-    },
-    {
-      value: isHidden ? 'enable' : 'disable',
-      name: isHidden ? 'Enable' : 'Disable',
-      isDisabled: !isHidden && !canDisable,
-    },
-  ], [canDisable, isHidden]);
+  const menuItems = useMemo<DropdownItem<NetworkMenuHandler>[]>(() => {
+    const items: DropdownItem<NetworkMenuHandler>[] = [
+      {
+        value: 'edit',
+        name: 'Edit Network',
+        fontIcon: 'pen',
+      },
+      {
+        value: isHidden ? 'enable' : 'disable',
+        name: isHidden ? 'Enable' : 'Disable',
+        fontIcon: isHidden ? 'eye' : 'eye-closed',
+        isDisabled: !isHidden && !canDisable,
+      },
+    ];
+
+    if (hasWalletAddress) {
+      items.push(
+        {
+          value: 'copyAddress',
+          name: 'Copy Address',
+          fontIcon: 'copy',
+        },
+        {
+          value: 'showQr',
+          name: 'Show Wallet QR',
+          fontIcon: 'qr-code',
+        },
+      );
+    }
+
+    return items;
+  }, [canDisable, hasWalletAddress, isHidden]);
 
   const getTriggerElement = useLastCallback(() => menuButtonRef.current);
   const getRootElement = useLastCallback(() => document.body);
@@ -336,6 +499,19 @@ function NetworkListItem({
   const handleMenuSelect = useLastCallback((value: NetworkMenuHandler) => {
     if (value === 'edit') {
       onSelect(item.chain);
+      return;
+    }
+    if (value === 'copyAddress') {
+      if (!address) return;
+      void copyTextToClipboard(address);
+      showToast({
+        message: lang('%chain% Address Copied', { chain: getChainTitle(item.chain) }) as string,
+        icon: 'icon-copy',
+      });
+      return;
+    }
+    if (value === 'showQr') {
+      openReceiveModal({ chain: item.chain });
       return;
     }
     if (value === 'disable' && !canDisable) {
@@ -406,6 +582,7 @@ function NetworkListItem({
 function SettingsNetworks({
   isActive,
   network,
+  addressesByChain,
   onBackClick,
 }: OwnProps & StateProps) {
   const lang = useLang();
@@ -480,6 +657,7 @@ function SettingsNetworks({
             <NetworkListItem
               key={item.chain}
               item={item}
+              address={addressesByChain?.[item.chain]}
               canDisable={Boolean(item.isHidden) || visibleCount > 1}
               onSelect={handleSelectChain}
               onToggleVisibility={(chain, isHidden) => {
@@ -520,21 +698,13 @@ function SettingsNetworks({
           </p>
         )}
 
-        {selected.fields.map((field) => (
-          <NetworkFieldForm
-            key={field.field}
-            chain={selected.chain}
-            network={network}
-            field={field}
-            onSaved={() => void reload()}
-          />
-        ))}
-
-        <p className={styles.itemSubtitle} style="padding: 0 1rem 1rem;">
-          {lang(
-            'Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.',
-          )}
-        </p>
+        <NetworkFieldsEditor
+          key={selected.chain}
+          chain={selected.chain}
+          network={network}
+          fields={selected.fields}
+          onSaved={() => void reload()}
+        />
       </>
     );
   }
@@ -561,7 +731,15 @@ function SettingsNetworks({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
+  const account = selectCurrentAccount(global);
+  const addressesByChain = account
+    ? Object.fromEntries(
+      Object.entries(account.byChain).map(([chain, info]) => [chain, info.address]),
+    ) as Partial<Record<ApiChain, string>>
+    : undefined;
+
   return {
     network: global.settings.isTestnet ? 'testnet' : 'mainnet',
+    addressesByChain,
   };
 })(SettingsNetworks));

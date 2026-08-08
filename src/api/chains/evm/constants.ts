@@ -1,7 +1,7 @@
 import type { ApiNetwork, EVMChain } from '../../types';
 
 import { resolveEvmJsonRpcUrl } from '../defaultEndpoints';
-import { getEffectiveApiUrl } from '../rpcOverrides';
+import { applyApiKeyToUrl, getEffectiveApiApiKey, getEffectiveApiUrl } from '../rpcOverrides';
 
 /** Safety multiplier applied to the estimated gas fee when sending the max native balance */
 export const EVM_MAX_TRANSFER_FEE_MULTIPLIER = 1.5;
@@ -42,7 +42,10 @@ const EVM_ENHANCED_API_URLS: Record<ApiNetwork, (chain: EVMChain) => string> = {
   testnet: (chain: EVMChain) => getEffectiveApiUrl(chain, 'testnet').replace(/\/$/, ''),
 };
 
-export const getEvmApiUrl = (network: ApiNetwork, chain: EVMChain) => EVM_ENHANCED_API_URLS[network](chain);
+export const getEvmApiUrl = (network: ApiNetwork, chain: EVMChain) => {
+  const base = EVM_ENHANCED_API_URLS[network](chain);
+  return applyApiKeyToUrl(base, getEffectiveApiApiKey(chain, network));
+};
 
 /**
  * Resolve JSON-RPC endpoint for enhanced providers.

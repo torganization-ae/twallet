@@ -162,8 +162,11 @@ export async function writeRpcOverride(
 
   if (options?.clearApiKey) {
     // leave apiKey unset
-  } else if (effectiveApiKey) {
-    value.apiKey = effectiveApiKey;
+  } else if (apiKey !== undefined) {
+    // Explicit value from caller — empty string clears any previous key
+    if (effectiveApiKey) {
+      value.apiKey = effectiveApiKey;
+    }
   } else if (previous?.apiKey) {
     value.apiKey = previous.apiKey;
   }
@@ -175,7 +178,7 @@ export async function writeRpcOverride(
   }
 
   // Keep plaintext in session memory when we just wrote a non-encrypted key.
-  if (!isEncryptedApiKey(effectiveApiKey) && effectiveApiKey !== undefined) {
+  if (apiKey !== undefined && !isEncryptedApiKey(effectiveApiKey)) {
     setCachedDecryptedApiKey(chain, network, field, effectiveApiKey || undefined);
   }
 
@@ -273,6 +276,25 @@ export function getEffectiveApiApiKey(chain: ApiChain, network: ApiNetwork): str
   const defaults = getDefaultEndpoint(chain, network);
   if ('rpcApiKey' in defaults) return defaults.rpcApiKey;
   return undefined;
+}
+
+/**
+ * Attach a provider API key to an endpoint URL when the URL itself does not already
+ * embed one. Alchemy/Infura (`…/v2`, `…/v3`) get `/{key}`; other endpoints get `?apiKey=`.
+ */
+export function applyApiKeyToUrl(url: string, apiKey: string | undefined): string {
+  if (!url || !apiKey) return url;
+  const trimmed = url.trim();
+  if (!trimmed) return trimmed;
+  if (/\/v[23]\/[^/?#]+/i.test(trimmed)) {
+    return trimmed;
+  }
+  const withoutTrailing = trimmed.replace(/\/$/, '');
+  if (/\/v[23]$/i.test(withoutTrailing)) {
+    return `${withoutTrailing}/${apiKey}`;
+  }
+  const join = trimmed.includes('?') ? '&' : '?';
+  return `${trimmed}${join}apiKey=${encodeURIComponent(apiKey)}`;
 }
 
 export function getStoredRpcApiKey(

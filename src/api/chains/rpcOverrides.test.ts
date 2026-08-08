@@ -1,6 +1,7 @@
 import { DEFAULT_EVM_API_BASE, DEFAULT_EVM_ENDPOINTS, DEFAULT_TON_ENDPOINTS } from './defaultEndpoints';
 import {
   __resetRpcOverridesForTests,
+  applyApiKeyToUrl,
   clearRpcOverride,
   getEffectiveApiUrl,
   getEffectiveRpcApiKey,
@@ -92,5 +93,26 @@ describe('rpcOverrides resolution', () => {
 
     expect(getEffectiveRpcUrl('ethereum', 'mainnet')).toBe('https://custom-rpc.example');
     expect(getEffectiveApiUrl('ethereum', 'mainnet')).toBe('https://custom-enhanced.example');
+  });
+
+  it('clears stored api key when empty string is written', async () => {
+    await writeRpcOverride('ethereum', 'mainnet', 'rpc', 'https://rpc.example', 'keep-me');
+    expect(getEffectiveRpcApiKey('ethereum', 'mainnet')).toBe('keep-me');
+
+    await writeRpcOverride('ethereum', 'mainnet', 'rpc', 'https://rpc.example', '');
+    expect(getEffectiveRpcApiKey('ethereum', 'mainnet')).toBeUndefined();
+  });
+
+  it('applies api keys to Alchemy-style and generic URLs', () => {
+    expect(applyApiKeyToUrl('https://eth-mainnet.g.alchemy.io/v2/', 'abc')).toBe(
+      'https://eth-mainnet.g.alchemy.io/v2/abc',
+    );
+    expect(applyApiKeyToUrl('https://eth-mainnet.g.alchemy.io/v2/already', 'abc')).toBe(
+      'https://eth-mainnet.g.alchemy.io/v2/already',
+    );
+    expect(applyApiKeyToUrl('https://rpc.example', 'abc')).toBe(
+      'https://rpc.example?apiKey=abc',
+    );
+    expect(applyApiKeyToUrl('https://rpc.example', undefined)).toBe('https://rpc.example');
   });
 });

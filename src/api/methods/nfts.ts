@@ -7,8 +7,9 @@ import { logDebug, logDebugError } from '../../util/logs';
 import chains from '../chains';
 import { parseTonapiioNft } from '../chains/ton/util/metadata';
 import { fetchNftByAddress as fetchRawNftByAddress } from '../chains/ton/util/tonapiio';
-import { fetchStoredWallet } from '../common/accounts';
+import { fetchStoredWallet, getCurrentAccountId } from '../common/accounts';
 import { getNftSuperCollectionsByCollectionAddress } from '../common/addresses';
+import { setCollectiblesPollingActive } from '../common/polling/collectiblesPolling';
 import { publishSignedMfaRequest, refreshMfaState, registerMfaConfirmationHandler } from './mfa';
 import { createLocalTransactions } from './transfer';
 
@@ -16,6 +17,13 @@ let onUpdate: OnApiUpdate;
 
 export function initNfts(_onUpdate: OnApiUpdate) {
   onUpdate = _onUpdate;
+}
+
+/** Start/stop NFT network scanning for the current account (Collectibles tab). */
+export async function setCollectiblesActive(isActive: boolean): Promise<{ ok: true }> {
+  const accountId = await getCurrentAccountId();
+  setCollectiblesPollingActive(accountId, isActive);
+  return { ok: true };
 }
 
 export async function fetchNftsFromCollection(accountId: string, collection: ApiNftCollection) {

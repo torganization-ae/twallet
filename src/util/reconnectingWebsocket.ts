@@ -10,6 +10,8 @@ export type DisconnectCallback = (isUnexpected: boolean) => void;
 
 const RECONNECT_BASE_DELAY = 500;
 const RECONNECT_MAX_DELAY = 5000;
+/** Give up auto-reconnect after this many failed opens/closes without a healthy session. */
+const RECONNECT_MAX_ATTEMPTS = 8;
 
 /**
  * Like WebSocket, but reconnects automatically when the socket disconnects
@@ -21,6 +23,12 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
 
   /** `true` between the `open` and the `close` events, i.e. when the socket can send and receive messages */
   #isConnected = false;
+
+  /**
+   * When `false`, unexpected closes and open timeouts do not schedule another connect.
+   * `close()` turns this off; `reconnect()` turns it back on.
+   */
+  #autoReconnect = true;
 
   #reconnectAttemptCount = 0;
 
@@ -62,7 +70,14 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
 
   /** Closes the current socket connection and creates a new one. Call it when you suspect the socket has hung. */
   public reconnect() {
-    this.close();
+    this.#autoReconnect = true;
+    this.#stopSocket();
+
+    if (this.#isConnected) {
+      this.#isConnected = false;
+      this.#disconnectListeners.runCallbacks(false);
+    }
+
     this.#startSocket();
   }
 
@@ -87,8 +102,12 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
     return this.#disconnectListeners.addCallback(callback);
   }
 
-  /** Call it when you don't need the socket anymore. The callbacks won't fire after that. */
+  /**
+   * Call it when you don't need the socket anymore.
+   * Stops auto-reconnect; the callbacks won't fire after that except the final disconnect (if connected).
+   */
   public close() {
+    this.#autoReconnect = false;
     this.#stopSocket();
 
     if (this.#isConnected) {
@@ -137,7 +156,9 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
     logDebug('WebSocket opened', this.#url);
 
     this.#cancelTimeout?.();
-    this.#reconnectAttemptCount = 0;
+    // Do not reset `#reconnectAttemptCount` here: open→instant-close flaps
+    // (no useful server message) must keep growing the delay. Reset happens on
+    // the first inbound message via `#handleSocketMessage`.
 
     while (this.#outMessageQueue.length) {
       this.#sendMessageNow(this.#outMessageQueue.shift()!);
@@ -158,13 +179,6 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
 
     this.#stopSocket();
 
-    this.#reconnectAttemptCount++;
-    const reconnectDelay = Math.min(
-      (RECONNECT_BASE_DELAY + (2000 * Math.random())) * this.#reconnectAttemptCount,
-      RECONNECT_MAX_DELAY,
-    );
-    this.#cancelTimeout = setCancellableTimeout(reconnectDelay, () => this.#startSocket());
-
     if (this.#isConnected) {
       if (event === 'openTimeout') {
         throw new Error('Unexpected timeout event in an open socket');
@@ -173,9 +187,32 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
       this.#isConnected = false;
       this.#disconnectListeners.runCallbacks(true);
     }
+
+    if (!this.#autoReconnect) {
+      return;
+    }
+
+    this.#reconnectAttemptCount++;
+    if (this.#reconnectAttemptCount > RECONNECT_MAX_ATTEMPTS) {
+      this.#autoReconnect = false;
+      logDebugError(
+        'WebSocket giving up after repeated failures',
+        this.#url,
+        `attempts=${this.#reconnectAttemptCount}`,
+      );
+      return;
+    }
+
+    const reconnectDelay = Math.min(
+      (RECONNECT_BASE_DELAY + (2000 * Math.random())) * this.#reconnectAttemptCount,
+      RECONNECT_MAX_DELAY,
+    );
+    this.#cancelTimeout = setCancellableTimeout(reconnectDelay, () => this.#startSocket());
   };
 
   #handleSocketMessage = ({ data }: MessageEvent<string | ArrayBuffer>) => {
+    // Any server frame means the link was actually usable (even an error frame).
+    this.#reconnectAttemptCount = 0;
     this.#inMessageListeners.runCallbacks(
       data instanceof ArrayBuffer
         ? data as InMessage

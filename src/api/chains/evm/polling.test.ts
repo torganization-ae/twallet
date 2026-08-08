@@ -3,6 +3,10 @@ import type { ApiAccountWithChain, ApiActivity, ApiNft, OnApiUpdate, OnUpdatingS
 import { getChainConfig } from '../../../util/chain';
 import { NftStream } from './util/nftStream';
 import { fetchStoredWallet } from '../../common/accounts';
+import {
+  clearCollectiblesPolling,
+  setCollectiblesPollingActive,
+} from '../../common/polling/collectiblesPolling';
 import { swapReplaceActivities } from '../../common/swap';
 import { BalanceStream } from '../../common/websocket/balanceStream';
 import { getTokenActivitySlice } from './activities';
@@ -102,7 +106,12 @@ async function flushPromises() {
 describe('EVM polling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    clearCollectiblesPolling();
     mockedFetchStoredWallet.mockResolvedValue({ address: ADDRESS, index: 0 });
+  });
+
+  afterEach(() => {
+    clearCollectiblesPolling();
   });
 
   it('forces balance polling when initial activity catch-up finds an EVM transaction', async () => {
@@ -123,6 +132,7 @@ describe('EVM polling', () => {
       },
     } as ApiAccountWithChain<'bnb'>;
 
+    setCollectiblesPollingActive('0-mainnet', true);
     setupActivePolling('bnb', '0-mainnet', account, onUpdate, onUpdatingStatusChange, {});
 
     expect(MockedBalanceStream).toHaveBeenCalledTimes(1);

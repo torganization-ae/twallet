@@ -17,6 +17,9 @@ import { throttleToncenterSocketActions } from './throttleSocketActions';
 
 const SOCKET_THROTTLE_DELAY = 250;
 const FINISHED_HASH_MEMORY_SIZE = 100;
+/** Skip reconnect HTTP catch-up when we polled successfully within this window (WS flap → 429). */
+const HISTORY_RESTORE_COOLDOWN_MS = 30_000;
+const HISTORY_RESTORE_MAX_ATTEMPTS = 4;
 
 /**
  * The activities are sorted by timestamp descending.
@@ -71,6 +74,9 @@ export class ActivityStream {
 
   #isDestroyed = false;
 
+  #hasLoadedOnce = false;
+  #lastSuccessfulPollAt = 0;
+
   constructor(
     network: ApiNetwork,
     address: string,
@@ -123,9 +129,10 @@ export class ActivityStream {
   }
 
   #handleSocketConnect = () => {
-    // When the socket gets connected, it's important to load the confirmed activities since the last activity,
-    // otherwise the activities arriving from the socket will create a gap in the activity history.
-    this.#doesNeedToRestoreHistory = true;
+    // Catch up after a reconnect, but ignore brief WS flaps — they otherwise spam
+    // /actions + /pendingActions and trip toncenter 429s.
+    const isFresh = Date.now() - this.#lastSuccessfulPollAt < HISTORY_RESTORE_COOLDOWN_MS;
+    this.#doesNeedToRestoreHistory = !isFresh || !this.#hasLoadedOnce;
     this.#fallbackPollingScheduler.onSocketConnect();
   };
 
@@ -154,13 +161,26 @@ export class ActivityStream {
 
   /** Fetches the activities when the socket is not connected or has just connected */
   #poll = async () => {
-    try {
-      this.#loadingListeners.runCallbacks(true);
+    // Avoid duplicate HTTP catch-up right after a successful poll (common on WS 101 flaps).
+    if (
+      this.#hasLoadedOnce
+      && !this.#doesNeedToRestoreHistory
+      && Date.now() - this.#lastSuccessfulPollAt < HISTORY_RESTORE_COOLDOWN_MS
+    ) {
+      return;
+    }
 
-      const [pendingActivities, newFinalizedActivities] = await Promise.all([
-        loadPendingActivities(this.#network, this.#address),
-        this.#loadNewFinalizedActivities(),
-      ]);
+    const showLoading = !this.#hasLoadedOnce || this.#doesNeedToRestoreHistory;
+
+    try {
+      if (showLoading) {
+        this.#loadingListeners.runCallbacks(true);
+      }
+
+      // Sequential on purpose: toncenter public limits ~1 rps; parallel doubles 429 risk.
+      const pendingActivities = await loadPendingActivities(this.#network, this.#address);
+      if (this.#isDestroyed) return;
+      const newFinalizedActivities = await this.#loadNewFinalizedActivities();
 
       if (this.#isDestroyed) return;
 
@@ -173,14 +193,17 @@ export class ActivityStream {
       );
 
       this.#doesNeedToRestoreHistory = false;
+      this.#hasLoadedOnce = true;
+      this.#lastSuccessfulPollAt = Date.now();
     } finally {
-      if (!this.#isDestroyed) {
+      if (showLoading && !this.#isDestroyed) {
         this.#loadingListeners.runCallbacks(false);
       }
     }
   };
 
   async #loadNewFinalizedActivities() {
+    let attempt = 0;
     while (!this.#isDestroyed) {
       try {
         return await fetchActions({
@@ -192,8 +215,11 @@ export class ActivityStream {
         });
       } catch (err) {
         logDebugError('loadNewFinalizedActivities', err);
+        attempt += 1;
 
-        if (this.#isDestroyed || !this.#doesNeedToRestoreHistory) {
+        if (this.#isDestroyed || !this.#doesNeedToRestoreHistory || attempt >= HISTORY_RESTORE_MAX_ATTEMPTS) {
+          // Stop the retry storm; the next scheduled/forced poll can try again later.
+          this.#doesNeedToRestoreHistory = false;
           break;
         }
 

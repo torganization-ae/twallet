@@ -20,7 +20,7 @@ import type {
 } from './types';
 
 import { TONCENTER_ACTIONS_VERSION } from '../../../../config';
-import { logDebug } from '../../../../util/logs';
+import { logDebug, logDebugError } from '../../../../util/logs';
 import { type InMessageCallback } from '../../../../util/reconnectingWebsocket';
 import safeExec from '../../../../util/safeExec';
 import { forbidConcurrency, setCancellableTimeout } from '../../../../util/schedulers';
@@ -30,6 +30,7 @@ import { getNftSuperCollectionsByCollectionAddress } from '../../../common/addre
 import { addBackendHeadersToSocketUrl } from '../../../common/backend';
 import { AbstractWebsocketClient } from '../../../common/websocket/abstractWsClient';
 import { SEC } from '../../../constants';
+import { getEffectiveRpcApiKey } from '../../rpcOverrides';
 import { NETWORK_CONFIG } from '../constants';
 import { parseActionsToActivities } from './actions';
 
@@ -39,6 +40,32 @@ const PING_INTERVAL = 20 * SEC;
 // When the internet connection is interrupted, the Toncenter socket doesn't always disconnect automatically.
 // Disconnecting manually if there is no response for "ping".
 const PONG_TIMEOUT = 5 * SEC;
+
+/** Public toncenter free tier reports this and then drops the socket — retrying forever only floods logs/HTTP. */
+export function isFatalToncenterSocketError(error: string) {
+  return /connection limit reached/i.test(error)
+    || /too many connections/i.test(error)
+    || /quota/i.test(error)
+    || /unauthorized|forbidden|api key/i.test(error);
+}
+
+/**
+ * Free public toncenter hosts advertise `/api/streaming/v2/ws` but allow 0 connections
+ * (`connection limit reached: 0`). Opening them only produces open→1006 reconnect noise.
+ * With an API key the plan may include streaming, so we still try.
+ */
+export function isToncenterStreamingLikelyAvailable(network: ApiNetwork) {
+  if (getEffectiveRpcApiKey('ton', network)) {
+    return true;
+  }
+
+  try {
+    const { hostname } = new URL(NETWORK_CONFIG[network].toncenterUrl);
+    return hostname !== 'toncenter.com' && hostname !== 'testnet.toncenter.com';
+  } catch {
+    return true;
+  }
+}
 
 /**
  * Connects to Toncenter to passively listen to updates.
@@ -63,8 +90,23 @@ class ToncenterSocket extends AbstractWebsocketClient<
     this.#network = network;
   }
 
+  protected isSocketTransportEnabled() {
+    return isToncenterStreamingLikelyAvailable(this.#network);
+  }
+
   protected handleSocketMessage: InMessageCallback<ServerSocketMessage> = (message) => {
     this.#cancelReconnect?.();
+
+    if ('error' in message) {
+      logDebugError('toncenter socket error', message.error);
+
+      // Public toncenter.com allows 0 streaming connections on the free tier: it accepts the
+      // handshake, pushes this error, then closes with 1006. Auto-reconnect would loop forever.
+      if (isFatalToncenterSocketError(message.error)) {
+        this.socket?.close();
+      }
+      return;
+    }
 
     if ('status' in message) {
       if (message.status === 'subscribed') {
@@ -395,6 +437,14 @@ function getSocketUrl(network: ApiNetwork) {
   url.protocol = 'wss:';
   url.pathname = '/api/streaming/v2/ws';
   addBackendHeadersToSocketUrl(url);
+
+  // Streaming on public toncenter requires a plan with WS quota; without a key the free
+  // tier answers with "connection limit reached: 0 active connections".
+  const apiKey = getEffectiveRpcApiKey('ton', network);
+  if (apiKey) {
+    url.searchParams.set('api_key', apiKey);
+  }
+
   return url;
 }
 

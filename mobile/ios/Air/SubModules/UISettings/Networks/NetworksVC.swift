@@ -181,19 +181,52 @@ public final class NetworksVC: SettingsBaseVC, UICollectionViewDelegate {
 
     private func makeMenu(for config: ApiNetworkRpcConfigItem) -> UIMenu {
         let isHidden = config.isHidden == true
-        let edit = UIAction(title: lang("Edit Network"), image: nil) { [weak self] _ in
+        let edit = UIAction(
+            title: lang("Edit Network"),
+            image: UIImage(systemName: "pencil")
+        ) { [weak self] _ in
             self?.openDetail(config)
         }
         let allowDisable = canDisable(config)
         let toggleTitle = isHidden ? lang("Enable") : lang("Disable")
-        var toggle = UIAction(title: toggleTitle, image: nil) { [weak self] _ in
+        var toggle = UIAction(
+            title: toggleTitle,
+            image: UIImage(systemName: isHidden ? "eye" : "eye.slash")
+        ) { [weak self] _ in
             guard isHidden || allowDisable else { return }
             Task { await self?.setVisibility(chain: config.chain, isHidden: !isHidden) }
         }
         if !isHidden && !allowDisable {
             toggle.attributes.insert(.disabled)
         }
-        return UIMenu(children: [edit, toggle])
+
+        var children: [UIMenuElement] = [edit, toggle]
+
+        if let apiChain = ApiChain(rawValue: config.chain),
+           let address = AccountStore.account?.getAddress(chain: apiChain),
+           !address.isEmpty {
+            let copy = UIAction(
+                title: lang("Copy Address"),
+                image: UIImage(systemName: "doc.on.doc")
+            ) { _ in
+                AppActions.copyString(
+                    address,
+                    toastMessage: lang("%chain% Address Copied", arg1: apiChain.title)
+                )
+            }
+            let showQr = UIAction(
+                title: lang("Show Wallet QR"),
+                image: UIImage(systemName: "qrcode")
+            ) { _ in
+                AppActions.showReceive(
+                    accountContext: AccountContext(source: .current),
+                    chain: apiChain
+                )
+            }
+            children.append(contentsOf: [copy, showQr])
+        }
+
+        return UIMenu(children: children)
     }
 
     private func openDetail(_ config: ApiNetworkRpcConfigItem) {

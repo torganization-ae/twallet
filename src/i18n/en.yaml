@@ -127,15 +127,19 @@ Share this URL to receive %token%: Share this URL to receive %token%
 Invoice Link Copied: Invoice Link Copied
 Theme: Theme
 Language: Language
+At least one network must stay enabled.: At least one network must stay enabled.
+Network Menu: Network Menu
+Show Wallet QR: Show Wallet QR
+Enter URL: Enter URL
 RPC and API endpoints: RPC and API endpoints
 RPC URL: RPC URL
 API URL: API URL
 API Key: API Key
 Enhanced API Key: Enhanced API Key
 Leave empty to use the default enhanced API; add your own key for better reliability.: Leave empty to use the default enhanced API; add your own key for better reliability.
-Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.: Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.
+Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.: "Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key."
 Enhanced API disabled: Enhanced API disabled
-Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.: Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.
+Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.: "Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them."
 Reset to Default: Reset to Default
 Save Anyway: Save Anyway
 Default: Default

@@ -128,6 +128,38 @@ Share this URL to receive %token%: แชร์ลิงก์นี้เพื
 Invoice Link Copied: ลิงก์ใบแจ้งหนี้ถูกคัดลอกแล้ว
 Theme: ธีม
 Language: ภาษา
+RPC and API endpoints: RPC และ API endpoints
+RPC URL: RPC URL
+API URL: API URL
+API Key: คีย์ API
+Enhanced API Key: คีย์ Enhanced API
+Leave empty to use the default enhanced API; add your own key for better reliability.: เว้นว่างเพื่อใช้ Enhanced API เริ่มต้น เพิ่มคีย์ของคุณเองเพื่อความเสถียรยิ่งขึ้น
+Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.: วาง URL Enhanced API ที่เข้ากันได้กับ Alchemy ด้านบน จากนั้นเพิ่มคีย์ API ได้ตามต้องการ
+Enhanced API disabled: Enhanced API ถูกปิดใช้งาน
+Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.: ฟีเจอร์ขั้นสูง (กิจกรรม NFT การอัปเดตแบบเรียลไทม์) ถูกปิดใช้งาน เพิ่ม API URL (+คีย์) เพื่อเปิดใช้
+Reset to Default: รีเซ็ตเป็นค่าเริ่มต้น
+Save Anyway: บันทึกต่อไป
+Default: ค่าเริ่มต้น
+Custom: กำหนดเอง
+Hidden: ซ่อน
+Disabled — add endpoint to enable: ปิดใช้งาน — เพิ่ม endpoint เพื่อเปิดใช้
+No endpoint: ไม่มี endpoint
+Using default endpoint: ใช้ endpoint เริ่มต้น
+Using custom endpoint: ใช้ endpoint ที่กำหนดเอง
+Show API Key: แสดงคีย์ API
+Endpoint is unreachable: เข้าถึง endpoint ไม่ได้
+Unexpected response from endpoint: การตอบกลับจาก endpoint ไม่ถูกต้อง
+Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.: endpoint ที่กำหนดเองซึ่งไม่รองรับ indexer API อาจปิดฟีเจอร์ NFT และกิจกรรมของเครือข่ายนี้
+Password required to save API key: ต้องใช้รหัสผ่านเพื่อบันทึกคีย์ API
+Show in wallet: แสดงในวอลเล็ต
+At least one network must stay enabled.: ต้องเปิดใช้งานอย่างน้อยหนึ่งเครือข่าย
+Network Menu: เมนูเครือข่าย
+Show Wallet QR: แสดง QR ของวอลเล็ต
+Enter URL: ป้อน URL
+Edit Network: แก้ไข
+Enable: เปิดใช้
+Disable: ปิดใช้
+Saved: บันทึกแล้ว
 Enable Animations: เปิดการเล่นอนิเมชั่น
 Enable Seasonal Theming: เปิดธีมตามฤดูกาล
 Enable Landscape Mode: เปิดใช้งานโหมดแนวนอน

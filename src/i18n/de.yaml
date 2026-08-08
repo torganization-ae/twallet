@@ -128,6 +128,38 @@ Share this URL to receive %token%: Teilen Sie diese URL, um %token% zu empfangen
 Invoice Link Copied: Die Rechnungslink wurde kopiert
 Theme: Thema
 Language: Sprache
+RPC and API endpoints: RPC- und API-Endpunkte
+RPC URL: RPC-URL
+API URL: API-URL
+API Key: API-Schlüssel
+Enhanced API Key: Enhanced-API-Schlüssel
+Leave empty to use the default enhanced API; add your own key for better reliability.: "Leer lassen, um die Enhanced API standardmäßig zu nutzen; eigenen Schlüssel für mehr Zuverlässigkeit hinzufügen."
+Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.: Fügen Sie oben eine Alchemy-kompatible Enhanced-API-URL ein und optional Ihren API-Schlüssel.
+Enhanced API disabled: Enhanced API deaktiviert
+Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.: "Erweiterte Funktionen (Aktivitäten, NFTs, Live-Updates) sind deaktiviert. Fügen Sie eine API-URL (+Schlüssel) hinzu, um sie zu aktivieren."
+Reset to Default: Zurücksetzen
+Save Anyway: Trotzdem speichern
+Default: Standard
+Custom: Benutzerdefiniert
+Hidden: Ausgeblendet
+Disabled — add endpoint to enable: Deaktiviert — Endpunkt hinzufügen zum Aktivieren
+No endpoint: Kein Endpunkt
+Using default endpoint: Standard-Endpunkt wird verwendet
+Using custom endpoint: Benutzerdefinierter Endpunkt wird verwendet
+Show API Key: API-Schlüssel anzeigen
+Endpoint is unreachable: Endpunkt ist nicht erreichbar
+Unexpected response from endpoint: Unerwartete Antwort vom Endpunkt
+Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.: Benutzerdefinierte Endpunkte ohne Indexer-API-Unterstützung können NFT- und Aktivitätsfunktionen für dieses Netzwerk deaktivieren.
+Password required to save API key: "Passwort erforderlich, um den API-Schlüssel zu speichern"
+Show in wallet: In der Wallet anzeigen
+At least one network must stay enabled.: Mindestens ein Netzwerk muss aktiviert bleiben.
+Network Menu: Netzwerkmenü
+Show Wallet QR: Wallet-QR anzeigen
+Enter URL: URL eingeben
+Edit Network: Bearbeiten
+Enable: Aktivieren
+Disable: Deaktivieren
+Saved: Gespeichert
 Enable Animations: Animationen aktivieren
 Enable Seasonal Theming: Saisonales Design aktivieren
 Enable Landscape Mode: Querformat aktivieren

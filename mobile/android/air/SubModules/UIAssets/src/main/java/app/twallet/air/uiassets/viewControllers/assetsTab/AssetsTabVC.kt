@@ -29,6 +29,7 @@ import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.models.NftCollection
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
+import app.twallet.air.walletcore.moshi.api.ApiMethod
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.NftStore
 import java.util.concurrent.Executors
@@ -482,10 +483,19 @@ class AssetsTabVC(
             },
             onSelectedIndexChanged = {
                 applyCollectiblesExpiringDomainsBanner()
+                syncCollectiblesPollingActive()
             },
             pilledTabs = true,
         )
         sc
+    }
+
+    /** NFT HTTP scanning lives in the shared JS SDK; only run it while Collectibles is selected. */
+    private fun syncCollectiblesPollingActive() {
+        val index = segmentedController.currentOffset.roundToInt()
+        val identifier = segmentedController.items.getOrNull(index)?.identifier
+        val isCollectibles = identifier != null && identifier != TAB_COINS
+        WalletCore.call(ApiMethod.Nft.SetCollectiblesActive(isCollectibles)) { _, _ -> }
     }
 
     private fun collectiblesTabProgress(currentOffset: Float = segmentedController.currentOffset): Float {
@@ -638,6 +648,7 @@ class AssetsTabVC(
     }
 
     override fun onDestroy() {
+        WalletCore.call(ApiMethod.Nft.SetCollectiblesActive(false)) { _, _ -> }
         super.onDestroy()
         backgroundExecutor.shutdown()
         collectiblesExpiringDomainsData = null

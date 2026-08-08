@@ -22,6 +22,7 @@ import { logDebug, logDebugError } from '../../../util/logs';
 import { pause, throttle } from '../../../util/schedulers';
 import { fetchStoredAccount, fetchStoredWallet, updateStoredWallet } from '../../common/accounts';
 import { getBackendConfigCache, getStakingCommonCache } from '../../common/cache';
+import { registerCollectiblesPolling } from '../../common/polling/collectiblesPolling';
 import { getConcurrencyLimiter } from '../../common/polling/setupInactiveChainPolling';
 import {
   activeWalletTiming,
@@ -50,16 +51,18 @@ import { fetchVestings } from './vesting';
 import { fetchBalances, getWalletInfo, getWalletVersionInfos, isAddressInitialized } from './wallet';
 
 const POLL_DELAY_AFTER_SOCKET = 3 * SEC;
-const POLL_MIN_INTERVAL = { focused: 10 * SEC, notFocused: 30 * SEC };
-const DOMAIN_INTERVAL = { focused: MINUTE, notFocused: 5 * MINUTE };
-const INITIALIZATION_INTERVAL = { focused: MINUTE, notFocused: 5 * MINUTE };
-const STAKING_INTERVAL = { focused: 30 * SEC, notFocused: 2 * MINUTE };
-const VERSIONS_INTERVAL = { focused: 5 * MINUTE, notFocused: 15 * MINUTE };
-const VESTING_INTERVAL = { focused: 30 * SEC, notFocused: 2 * MINUTE };
-const TON_DNS_INTERVAL = { focused: 30 * SEC, notFocused: 2 * MINUTE };
+const POLL_MIN_INTERVAL = { focused: 30 * SEC, notFocused: MINUTE };
+/** Domain rarely changes — do not share the balance poll's /walletStates cadence. */
+const DOMAIN_INTERVAL = { focused: 5 * MINUTE, notFocused: 15 * MINUTE };
+const INITIALIZATION_INTERVAL = { focused: 2 * MINUTE, notFocused: 10 * MINUTE };
+/** Staking reads hit toncenter jsonRPC (runMethod); keep well clear of public rate limits. */
+const STAKING_INTERVAL = { focused: 5 * MINUTE, notFocused: 15 * MINUTE };
+const VERSIONS_INTERVAL = { focused: 15 * MINUTE, notFocused: 30 * MINUTE };
+const VESTING_INTERVAL = { focused: 10 * MINUTE, notFocused: 30 * MINUTE };
+const TON_DNS_INTERVAL = { focused: 10 * MINUTE, notFocused: 30 * MINUTE };
 
-const NFT_FULL_INTERVAL = { focused: MINUTE, notFocused: 5 * MINUTE };
-const DOUBLE_CHECK_NFT_PAUSE = 5 * SEC;
+const NFT_FULL_INTERVAL = { focused: 2 * MINUTE, notFocused: 10 * MINUTE };
+const DOUBLE_CHECK_NFT_PAUSE = 10 * SEC;
 
 export function setupActivePolling(
   accountId: string,
@@ -85,10 +88,19 @@ export function setupActivePolling(
     onUpdatingStatusChange.bind(undefined, 'activities'),
   );
   const domainPolling = setupDomainPolling(accountId, account.byChain.ton.address, onUpdate);
-  const nftPolling = setupNftPolling(accountId, onUpdate);
+  let nftPartialPoll: NoneToVoidFunction | undefined;
+  // NFT HTTP scanning only while the Collectibles tab is open (see collectiblesPolling).
+  const stopCollectiblesPolling = registerCollectiblesPolling(accountId, () => {
+    const nftPolling = setupNftPolling(accountId, onUpdate);
+    nftPartialPoll = nftPolling.poll;
+    return () => {
+      nftPartialPoll = undefined;
+      nftPolling.stop();
+    };
+  }, 'ton');
   const walletInitializationPolling = setupWalletInitializationPolling(accountId);
   const stopWalletVersionPolling = setupWalletVersionsPolling(accountId, onUpdate);
-  const stopTonDnsPolling = setupTonDnsPolling(accountId, nftPolling.firstFullLoadPromise, onUpdate);
+  const stopTonDnsPolling = setupTonDnsPolling(accountId, onUpdate);
   const stopStakingPolling = setupStakingPolling(accountId, balancePolling.getBalances, onUpdate);
   const stopVestingPolling = setupVestingPolling(accountId, onUpdate);
 
@@ -100,7 +112,7 @@ export function setupActivePolling(
 
     // These data change only when the wallet gets new activities. The other pollings don't depend on the wallet content.
     domainPolling.poll();
-    nftPolling.poll();
+    nftPartialPoll?.();
     walletInitializationPolling.poll();
   }
 
@@ -108,7 +120,7 @@ export function setupActivePolling(
     balancePolling.stop();
     stopActivityPolling();
     domainPolling.stop();
-    nftPolling.stop();
+    stopCollectiblesPolling();
     stopWalletVersionPolling();
     stopTonDnsPolling();
     stopStakingPolling();
@@ -528,7 +540,6 @@ function setupWalletVersionsPolling(accountId: string, onUpdate: OnApiUpdate) {
 
 function setupTonDnsPolling(
   accountId: string,
-  waitForNftLoad: Promise<void> | undefined,
   onUpdate: OnApiUpdate,
 ) {
   let lastResult: Awaited<ReturnType<typeof fetchDomains>> | undefined;
@@ -536,11 +547,6 @@ function setupTonDnsPolling(
   return pollingLoop({
     period: TON_DNS_INTERVAL,
     async poll() {
-      if (waitForNftLoad) {
-        await waitForNftLoad;
-        waitForNftLoad = undefined;
-      }
-
       try {
         const result = await fetchDomains(accountId);
 

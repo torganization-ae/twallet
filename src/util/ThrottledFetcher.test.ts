@@ -40,7 +40,7 @@ describe('ThrottledFetcher', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    jest.advanceTimersByTime(1199);
+    jest.advanceTimersByTime(1999);
     await Promise.resolve();
     await Promise.resolve();
     expect(fetchMock).toHaveBeenCalledTimes(1);

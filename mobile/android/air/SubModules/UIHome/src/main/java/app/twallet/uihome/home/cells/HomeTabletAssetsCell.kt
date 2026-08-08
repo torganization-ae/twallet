@@ -41,8 +41,10 @@ import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.models.MCollectionTab
 import app.twallet.air.walletcontext.utils.IndexPath
 import app.twallet.air.walletcontext.utils.VerticalImageSpan
+import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.models.NftCollection
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
+import app.twallet.air.walletcore.moshi.api.ApiMethod
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.NftStore
 import app.twallet.air.uiassets.viewControllers.assets.title
@@ -134,6 +136,8 @@ class HomeTabletAssetsCell(
         tokensVC.onScrollToVisibleRequested = { onScrollToVisibleRequested?.invoke() }
         bindPooledAssetsVC(pool.collectiblesVC)
         columns.forEach { (it.viewController as? AssetsVC)?.let { vc -> bindPooledAssetsVC(vc) } }
+        // Tablet shows Collectibles as a permanent column — keep NFT scanning on while attached.
+        WalletCore.call(ApiMethod.Nft.SetCollectiblesActive(true)) { _, _ -> }
     }
 
     // Re-point an AssetsVC's mutable callbacks at this (tablet/column) host. No segmented controller
@@ -428,6 +432,7 @@ class HomeTabletAssetsCell(
     // Detach only: unmount the hosted column views; does NOT destroy the pooled VCs (the pool owns
     // their teardown).
     override fun onDestroy() {
+        WalletCore.call(ApiMethod.Nft.SetCollectiblesActive(false)) { _, _ -> }
         if (pool.host === this) pool.host = null
         for (i in 0 until recyclerView.childCount) {
             (recyclerView.getChildAt(i) as? ColumnCell)?.detachContent()

@@ -21,6 +21,7 @@ import { getChainBySlug } from '../../../util/tokens';
 import { NftStream } from './util/nftStream';
 import { getAlchemySocket } from './util/socket';
 import { fetchStoredWallet } from '../../common/accounts';
+import { registerCollectiblesPolling } from '../../common/polling/collectiblesPolling';
 import {
   activeNftTiming,
   activeWalletTiming,
@@ -31,22 +32,17 @@ import { swapReplaceActivities } from '../../common/swap';
 import { sendUpdateTokens } from '../../common/tokens';
 import { txCallbacks } from '../../common/txCallbacks';
 import { BalanceStream } from '../../common/websocket/balanceStream';
-import { FIRST_TRANSACTIONS_LIMIT, MINUTE, SEC } from '../../constants';
+import { FIRST_TRANSACTIONS_LIMIT, SEC } from '../../constants';
 import { isEvmEnhancedApiEnabled } from '../rpcOverrides';
 import { getTokenActivitySlice } from './activities';
 import { fetchAccountAssets, fetchCrosschainAccountAssets, getIsWalletActive } from './wallet';
 
-/** Builtin EVM poll stagger so 8× eth_getBalance don't all fire on the same tick at launch. */
-const CUSTOM_BALANCE_STAGGER_MS = 400;
-
 const activeEvmWalletTiming = {
   ...activeWalletTiming,
-  forcedPollingPeriod: { focused: 3 * MINUTE, notFocused: 10 * MINUTE },
 };
 
 const inactiveEvmWalletTiming = {
   ...inactiveWalletTiming,
-  forcedPollingPeriod: { focused: 10 * MINUTE, notFocused: 10 * MINUTE },
 };
 
 export function setupActivePolling<C extends EVMChain>(
@@ -83,8 +79,12 @@ export function setupActivePolling<C extends EVMChain>(
     () => markWalletActiveForBalancePolling(),
   );
 
-  const nftPolling = getChainConfig(chain).isNftSupported
-    ? setupNftPolling(chain, accountId, address, scheduleCrossApiActivityCatchUp, onUpdate)
+  const stopCollectiblesPolling = getChainConfig(chain).isNftSupported
+    ? registerCollectiblesPolling(
+      accountId,
+      () => setupNftPolling(chain, accountId, address, scheduleCrossApiActivityCatchUp, onUpdate).stop,
+      chain,
+    )
     : undefined;
 
   const balancePolling = setupBalancePolling(
@@ -101,7 +101,7 @@ export function setupActivePolling<C extends EVMChain>(
   markWalletActiveForBalancePolling = balancePolling.markWalletActiveAndForcePoll;
 
   return () => {
-    nftPolling?.stop();
+    stopCollectiblesPolling?.();
     balancePolling.stop();
   };
 }
@@ -385,25 +385,17 @@ function setupCustomBalancePolling(
   }
 
   const timing = isActive ? activeEvmWalletTiming : inactiveEvmWalletTiming;
-  // Spread first eth_getBalance across builtin EVM chains so launch doesn't DDoS publicnode.
-  const staggerIndex = Math.abs(
-    [...chain].reduce((acc, ch) => acc + ch.charCodeAt(0), 0),
-  ) % 8;
   let lastBalances: ApiBalanceBySlug | undefined;
-  let didInitialPoll = false;
+  let hasLoadedOnce = false;
 
   const loop = pollingLoop({
     period: timing.pollingPeriod,
     skipInitialPoll: !isActive,
     async poll() {
-      if (isActive && !didInitialPoll && staggerIndex > 0) {
-        didInitialPoll = true;
-        await pause(staggerIndex * CUSTOM_BALANCE_STAGGER_MS);
-      } else {
-        didInitialPoll = true;
+      const showLoading = !hasLoadedOnce;
+      if (showLoading) {
+        onUpdatingStatusChange?.(true);
       }
-
-      onUpdatingStatusChange?.(true);
       try {
         const balances = await fetchAccountAssets(
           chain,
@@ -411,6 +403,7 @@ function setupCustomBalancePolling(
           address,
           () => sendUpdateTokens(onUpdate),
         );
+        hasLoadedOnce = true;
         if (areDeepEqual(balances, lastBalances)) {
           return;
         }
@@ -424,7 +417,9 @@ function setupCustomBalancePolling(
       } catch (err) {
         logDebugError(`EVM:${chain} setupCustomBalancePolling`, err);
       } finally {
-        onUpdatingStatusChange?.(false);
+        if (showLoading) {
+          onUpdatingStatusChange?.(false);
+        }
       }
     },
   });

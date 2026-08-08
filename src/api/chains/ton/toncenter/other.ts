@@ -8,10 +8,14 @@ import { fetchJson } from '../../../../util/fetch';
 import { buildCollectionByKey, split } from '../../../../util/iteratees';
 import { toRawAddress } from '../util/tonCore';
 import { getApiHeadersForUrl } from '../../../environment';
+import { SEC } from '../../../constants';
 import { getEffectiveRpcApiKey } from '../../rpcOverrides';
 import { NETWORK_CONFIG } from '../constants';
 
 const ADDRESS_BOOK_CHUNK_SIZE = 128;
+/** Coalesce balance/domain/init callers that all hit /walletStates within the same window. */
+const WALLET_STATES_CACHE_TTL_MS = 20 * SEC;
+const walletStatesCache = new Map<string, { at: number; value: Record<string, ApiWalletInfo> }>();
 const VERSION_MAP: Record<WalletVersion, ApiTonWalletVersion> = {
   'wallet v1 r1': 'simpleR1',
   'wallet v1 r2': 'simpleR2',
@@ -50,6 +54,21 @@ export async function fixAddressFormat(network: ApiNetwork, address: string): Pr
  * Every input address is guaranteed to be a key of the dictionary.
  */
 export async function getWalletInfos(network: ApiNetwork, addresses: string[]): Promise<Record<string, ApiWalletInfo>> {
+  const rawKeys = addresses.map((a) => toRawAddress(a).toLowerCase());
+  const cacheKey = `${network}:${[...rawKeys].sort().join(',')}`;
+  const cached = walletStatesCache.get(cacheKey);
+  if (cached && Date.now() - cached.at < WALLET_STATES_CACHE_TTL_MS) {
+    return Object.fromEntries(addresses.map((inputAddress, index) => {
+      const hit = cached.value[rawKeys[index]];
+      return [inputAddress, hit ? { ...hit, address: inputAddress } : {
+        address: inputAddress,
+        balance: 0n,
+        isInitialized: false,
+        seqno: 0,
+      } satisfies ApiWalletInfo];
+    }));
+  }
+
   const { wallets: states, address_book: addressBook } = await callToncenterV3<{
     address_book: AddressBook;
     wallets: WalletState[];
@@ -60,18 +79,20 @@ export async function getWalletInfos(network: ApiNetwork, addresses: string[]): 
     buildWalletInfo(state, addressBook),
   ]));
 
-  return Object.fromEntries(addresses.map((inputAddress) => {
-    const rawAddress = toRawAddress(inputAddress).toLowerCase();
-    return [
-      inputAddress,
-      walletInfoByRawAddress[rawAddress] ?? {
-        address: inputAddress,
-        balance: 0n,
-        isInitialized: false,
-        seqno: 0,
-      } satisfies ApiWalletInfo,
-    ];
+  const byRaw: Record<string, ApiWalletInfo> = {};
+  const result = Object.fromEntries(addresses.map((inputAddress, index) => {
+    const info = walletInfoByRawAddress[rawKeys[index]] ?? {
+      address: inputAddress,
+      balance: 0n,
+      isInitialized: false,
+      seqno: 0,
+    } satisfies ApiWalletInfo;
+    byRaw[rawKeys[index]] = info;
+    return [inputAddress, info];
   }));
+
+  walletStatesCache.set(cacheKey, { at: Date.now(), value: byRaw });
+  return result;
 }
 
 function buildWalletInfo(state: WalletState, addressBook: AddressBook): ApiWalletInfo {

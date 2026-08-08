@@ -112,6 +112,9 @@ export class BalanceStream {
 
   #isDestroyed = false;
 
+  /** When true, the next HTTP poll reports the UI updating indicator (manual refresh). */
+  #showLoadingOnNextPoll = false;
+
   #ensureIsPollingNeeded?: () => Promise<boolean>;
   #walletStatus: 'active' | 'inactive' | undefined = undefined;
 
@@ -207,11 +210,19 @@ export class BalanceStream {
     this.#fallbackPollingScheduler?.destroy();
   }
 
-  public markWalletActiveAndForcePoll() {
+  public markWalletActiveAndForcePoll(options?: { showLoading?: boolean }) {
     if (this.#isDestroyed) return;
 
     this.#walletStatus = 'active';
+    if (options?.showLoading) {
+      this.#showLoadingOnNextPoll = true;
+    }
     this.#fallbackPollingScheduler?.forceImmediatePoll();
+  }
+
+  /** User-initiated refresh: show the updating indicator even if balances already loaded. */
+  public forceRefresh() {
+    this.markWalletActiveAndForcePoll({ showLoading: true });
   }
 
   #handleSocketConnect = () => {
@@ -273,8 +284,14 @@ export class BalanceStream {
 
   /** Fetches all balances when the socket is not connected or has just connected */
   #poll = async (isInitial?: boolean) => {
+    // Routine fallback polls must not flash the UI loader when amounts are unchanged.
+    const showLoading = this.#balances === undefined || this.#showLoadingOnNextPoll;
+    this.#showLoadingOnNextPoll = false;
+
     try {
-      this.#loadingListeners.runCallbacks(true);
+      if (showLoading) {
+        this.#loadingListeners.runCallbacks(true);
+      }
 
       if (!this.#walletStatus) {
         const isEnsured = await this.#ensureIsPollingNeeded!();
@@ -337,7 +354,7 @@ export class BalanceStream {
       this.#setAllBalances(newBalances, pollVersion);
       this.#balancesDeferred.resolve();
     } finally {
-      if (!this.#isDestroyed) {
+      if (showLoading && !this.#isDestroyed) {
         this.#loadingListeners.runCallbacks(false);
       }
     }

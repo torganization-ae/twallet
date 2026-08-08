@@ -5,7 +5,7 @@ import type { ApiNetwork } from '../../../types';
 import { getChainConfig } from '../../../../util/chain';
 import { fetchWithRetry } from '../../../../util/fetch';
 import { getApiHeadersForUrl } from '../../../environment';
-import { onRpcOverrideChanged } from '../../rpcOverrides';
+import { getEffectiveApiApiKey, onRpcOverrideChanged } from '../../rpcOverrides';
 import { NETWORK_CONFIG } from '../constants';
 
 const EVENTS_LIMIT = 100;
@@ -16,9 +16,11 @@ function getApi(network: ApiNetwork) {
   const cached = apiCache.get(network);
   if (cached) return cached;
 
+  const apiKey = getEffectiveApiApiKey('ton', network);
   const headers = {
     ...getApiHeadersForUrl(NETWORK_CONFIG[network].tonApiIoUrl),
     'Content-Type': 'application/json',
+    ...(apiKey && { Authorization: `Bearer ${apiKey}` }),
   };
 
   const api = new Api(new HttpClient({

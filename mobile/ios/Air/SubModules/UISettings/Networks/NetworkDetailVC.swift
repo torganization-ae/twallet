@@ -43,15 +43,41 @@ public final class NetworkDetailVC: SettingsBaseVC {
     }
 }
 
+private struct FieldDraft: Equatable {
+    var url: String
+    var apiKey: String
+    var isApiKeyUnlocked: Bool
+    var isKeyVisible: Bool
+    var statusText: String?
+    var statusKind: StatusKind
+    var needsSaveAnyway: Bool
+
+    enum StatusKind: Equatable {
+        case success, warning, error
+
+        var color: Color {
+            switch self {
+            case .success: return Color.air.positiveAmount
+            case .warning: return .orange
+            case .error: return Color.air.error
+            }
+        }
+    }
+}
+
 struct NetworkDetailView: View {
     let chain: String
     let initiallyHidden: Bool
     let canDisableInitially: Bool
 
     @State private var fields: [ApiNetworkRpcFieldConfig] = []
+    @State private var drafts: [String: FieldDraft] = [:]
     @State private var isHidden: Bool
     @State private var canDisable: Bool
     @State private var isTogglingVisibility = false
+    @State private var isSaving = false
+    @State private var sessionPassword: String?
+    @State private var showSaveAnyway = false
 
     init(chain: String, initiallyHidden: Bool, canDisableInitially: Bool) {
         self.chain = chain
@@ -70,9 +96,14 @@ struct NetworkDetailView: View {
             InsetList(topPadding: 16, spacing: 24) {
                 visibilitySection
                 ForEach(fields, id: \.field) { field in
-                    NetworkFieldSection(chain: chain, field: field, onSaved: reload)
+                    NetworkFieldSection(
+                        field: field,
+                        draft: binding(for: field.field),
+                        onShowApiKey: { unlockApiKey(for: field.field) },
+                        onReset: { Task { await reset(field: field.field) } }
+                    )
                 }
-                warningSection
+                actionsSection
             }
             .task {
                 await reload()
@@ -106,17 +137,58 @@ struct NetworkDetailView: View {
         }
     }
 
-    private var warningSection: some View {
+    private var actionsSection: some View {
         InsetSection {
-            InsetCell {
-                Text(
-                    lang("Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.")
-                )
-                .font(.footnote)
-                .foregroundStyle(Color.air.secondaryLabel)
-                .padding(.vertical, 8)
+            InsetButtonCell(alignment: .center, action: { Task { await saveAll(force: false) } }) {
+                Text(isSaving ? lang("Please wait...") : lang("Save"))
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .disabled(isSaving)
+            if showSaveAnyway {
+                InsetButtonCell(alignment: .center, action: { Task { await saveAll(force: true) } }) {
+                    Text(lang("Save Anyway"))
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .disabled(isSaving)
             }
         }
+    }
+
+    private func binding(for fieldKey: String) -> Binding<FieldDraft> {
+        Binding(
+            get: {
+                drafts[fieldKey] ?? FieldDraft(
+                    url: "",
+                    apiKey: "",
+                    isApiKeyUnlocked: false,
+                    isKeyVisible: false,
+                    statusText: nil,
+                    statusKind: .error,
+                    needsSaveAnyway: false
+                )
+            },
+            set: { drafts[fieldKey] = $0 }
+        )
+    }
+
+    private func syncDrafts(from fields: [ApiNetworkRpcFieldConfig]) {
+        var next = drafts
+        for field in fields {
+            let previous = next[field.field]
+            let wasUnlocked = previous?.isApiKeyUnlocked == true
+            next[field.field] = FieldDraft(
+                url: field.url,
+                apiKey: wasUnlocked ? (previous?.apiKey ?? "") : "",
+                isApiKeyUnlocked: wasUnlocked || field.hasApiKey != true,
+                isKeyVisible: wasUnlocked ? (previous?.isKeyVisible ?? false) : false,
+                statusText: previous?.statusText,
+                statusKind: previous?.statusKind ?? .error,
+                needsSaveAnyway: previous?.needsSaveAnyway ?? false
+            )
+        }
+        drafts = next
     }
 
     private func reload() async {
@@ -127,6 +199,7 @@ struct NetworkDetailView: View {
             let visibleCount = config.reduce(0) { $0 + ($1.isHidden == true ? 0 : 1) }
             await MainActor.run {
                 fields = item.fields
+                syncDrafts(from: item.fields)
                 isHidden = item.isHidden == true
                 canDisable = item.isHidden == true || visibleCount > 1
             }
@@ -154,118 +227,221 @@ struct NetworkDetailView: View {
             isHidden = nextHidden
             await reload()
         } catch {
-            // Revert on failure via reload
             await reload()
+        }
+    }
+
+    private func fieldsNeedingPassword() -> [ApiNetworkRpcFieldConfig] {
+        fields.filter { field in
+            guard let draft = drafts[field.field] else { return false }
+            return draft.isApiKeyUnlocked && !draft.apiKey.isEmpty
+        }
+    }
+
+    private func saveAll(force: Bool) async {
+        let needingPassword = fieldsNeedingPassword()
+        if !needingPassword.isEmpty && sessionPassword == nil {
+            unlockApiKey(for: needingPassword[0].field, andSaveForce: force)
+            return
+        }
+
+        isSaving = true
+        showSaveAnyway = false
+        defer { isSaving = false }
+
+        for field in fields {
+            guard var draft = drafts[field.field] else { continue }
+            do {
+                let apiKey: String? = draft.isApiKeyUnlocked ? draft.apiKey : nil
+                let result = try await Api.setRpcOverride(
+                    chain: chain,
+                    network: AccountStore.activeNetwork,
+                    field: field.field,
+                    url: draft.url,
+                    apiKey: apiKey,
+                    force: force,
+                    password: sessionPassword
+                )
+                applySaveResult(result, to: &draft)
+                drafts[field.field] = draft
+            } catch {
+                draft.statusText = error.localizedDescription
+                draft.statusKind = .error
+                draft.needsSaveAnyway = false
+                drafts[field.field] = draft
+            }
+        }
+
+        showSaveAnyway = drafts.values.contains(where: \.needsSaveAnyway)
+        let allSaved = fields.allSatisfy { drafts[$0.field]?.statusKind == .success }
+        if allSaved {
+            await reload()
+        }
+    }
+
+    private func applySaveResult(_ result: ApiRpcTestResult, to draft: inout FieldDraft) {
+        switch result.status {
+        case "ok":
+            draft.statusText = lang("Saved")
+            draft.statusKind = .success
+            draft.needsSaveAnyway = false
+        case "unexpected_response":
+            draft.statusText = result.details ?? lang("Unexpected response from endpoint")
+            draft.statusKind = .warning
+            draft.needsSaveAnyway = result.saved != true
+        default:
+            draft.statusText = result.details ?? lang("Endpoint is unreachable")
+            draft.statusKind = .error
+            draft.needsSaveAnyway = false
+        }
+    }
+
+    private func reset(field fieldKey: String) async {
+        do {
+            _ = try await Api.resetRpcOverride(
+                chain: chain,
+                network: AccountStore.activeNetwork,
+                field: fieldKey
+            )
+            if var draft = drafts[fieldKey] {
+                draft.statusText = lang("Saved")
+                draft.statusKind = .success
+                draft.needsSaveAnyway = false
+                draft.isApiKeyUnlocked = false
+                draft.apiKey = ""
+                drafts[fieldKey] = draft
+            }
+            await reload()
+        } catch {
+            if var draft = drafts[fieldKey] {
+                draft.statusText = error.localizedDescription
+                draft.statusKind = .error
+                drafts[fieldKey] = draft
+            }
+        }
+    }
+
+    private func unlockApiKey(for fieldKey: String, andSaveForce: Bool? = nil) {
+        Task { @MainActor in
+            guard let host = topWViewController() else { return }
+            if let password = await UnlockVC.presentAuthAsync(on: host, title: lang("API Key")) {
+                do {
+                    let unlocked = try await Api.unlockRpcApiKey(
+                        chain: chain,
+                        network: AccountStore.activeNetwork,
+                        password: password,
+                        field: fieldKey
+                    )
+                    if unlocked.ok {
+                        sessionPassword = password
+                        if var draft = drafts[fieldKey] {
+                            draft.apiKey = unlocked.apiKey ?? draft.apiKey
+                            draft.isApiKeyUnlocked = true
+                            draft.isKeyVisible = true
+                            drafts[fieldKey] = draft
+                        }
+                        if let andSaveForce {
+                            await saveAll(force: andSaveForce)
+                        }
+                    } else if var draft = drafts[fieldKey] {
+                        draft.statusText = lang("Wrong password, please try again.")
+                        draft.statusKind = .error
+                        drafts[fieldKey] = draft
+                    }
+                } catch {
+                    if var draft = drafts[fieldKey] {
+                        draft.statusText = error.localizedDescription
+                        draft.statusKind = .error
+                        drafts[fieldKey] = draft
+                    }
+                }
+            }
         }
     }
 }
 
 private struct NetworkFieldSection: View {
-    let chain: String
     let field: ApiNetworkRpcFieldConfig
-    let onSaved: () async -> Void
-
-    private enum StatusKind {
-        case success, warning, error
-
-        var color: Color {
-            switch self {
-            case .success: return Color.air.positiveAmount
-            case .warning: return .orange
-            case .error: return Color.air.error
-            }
-        }
-    }
-
-    @State private var draftUrl: String
-    @State private var draftApiKey: String
-    @State private var isApiKeyUnlocked = false
-    @State private var statusText: String?
-    @State private var statusKind: StatusKind = .error
-    @State private var showSaveAnyway = false
-    @State private var isSaving = false
-    @State private var sessionPassword: String?
+    @Binding var draft: FieldDraft
+    let onShowApiKey: () -> Void
+    let onReset: () -> Void
 
     private var isApiField: Bool { field.field == "api" }
     private var fieldLabel: String { isApiField ? lang("API URL") : lang("RPC URL") }
-    private var showApiKey: Bool {
-        SharedNetworksConfig.isApiKeyEligible(chain: chain, field: field.field)
-    }
-
-    init(chain: String, field: ApiNetworkRpcFieldConfig, onSaved: @escaping () async -> Void) {
-        self.chain = chain
-        self.field = field
-        self.onSaved = onSaved
-        _draftUrl = State(initialValue: field.url)
-        _draftApiKey = State(initialValue: field.apiKey ?? "")
-    }
+    private var isKeyLocked: Bool { field.hasApiKey == true && !draft.isApiKeyUnlocked }
 
     var body: some View {
         endpointSection
-            .onChange(of: field) { _, newField in
-                draftUrl = newField.url
-                draftApiKey = newField.apiKey ?? ""
-            }
-        actionsSection
+        if !field.isDefault {
+            resetSection
+        }
     }
 
     private var endpointSection: some View {
         InsetSection {
             InsetCell {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(
-                        if (field.isDefault) {
-                            if (isApiField && field.defaultUrl.isEmpty) {
-                                lang("Enhanced API disabled")
-                            } else {
-                                lang("Using default endpoint")
-                            }
-                        } else {
-                            lang("Using custom endpoint")
-                        }
-                    )
-                        .font(.footnote)
-                        .foregroundStyle(Color.air.secondaryLabel)
-
-                    if (isApiField && field.isDefault && field.defaultUrl.isEmpty) {
-                        Text(
-                            lang("Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.")
-                        )
-                        .font(.footnote)
-                        .foregroundStyle(Color.air.secondaryLabel)
-                    }
-
                     TextField(
                         "",
-                        text: $draftUrl,
+                        text: $draft.url,
                         prompt: Text(
                             field.defaultUrl.isEmpty
                                 ? (isApiField ? "https://eth-mainnet.g.alchemy.io/v2/" : lang("Enter URL"))
                                 : field.defaultUrl
                         )
                     )
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .keyboardType(.URL)
-
-                    if showApiKey {
-                        if !isApiKeyUnlocked {
-                            Button(lang("Show API Key")) {
-                                unlockApiKey()
-                            }
-                            .padding(.top, 4)
-                        } else {
-                            SecureField(
-                                lang(field.field == "api" ? "Enhanced API Key" : "API Key"),
-                                text: $draftApiKey
-                            )
-                        }
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .keyboardType(.URL)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .strokeBorder(Color.air.secondaryLabel.opacity(0.25), lineWidth: 1)
                     }
 
-                    if let statusText {
+                    Text(lang("API Key"))
+                        .font(.footnote)
+                        .foregroundStyle(Color.air.secondaryLabel)
+
+                    HStack(spacing: 8) {
+                        Group {
+                            if isKeyLocked {
+                                TextField("", text: .constant(""), prompt: Text("••••••••"))
+                                    .disabled(true)
+                            } else if draft.isKeyVisible {
+                                TextField(lang("Optional"), text: $draft.apiKey)
+                            } else {
+                                SecureField(lang("Optional"), text: $draft.apiKey)
+                            }
+                        }
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+
+                        Button {
+                            if isKeyLocked {
+                                onShowApiKey()
+                            } else {
+                                draft.isKeyVisible.toggle()
+                            }
+                        } label: {
+                            Image(systemName: isKeyLocked || !draft.isKeyVisible ? "eye" : "eye.slash")
+                                .foregroundStyle(Color.air.secondaryLabel)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.trailing, 8)
+                    }
+                    .background {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .strokeBorder(Color.air.secondaryLabel.opacity(0.25), lineWidth: 1)
+                    }
+
+                    if let statusText = draft.statusText {
                         Text(statusText)
                             .font(.footnote)
-                            .foregroundStyle(statusKind.color)
+                            .foregroundStyle(draft.statusKind.color)
                     }
                 }
                 .padding(.vertical, 8)
@@ -275,130 +451,12 @@ private struct NetworkFieldSection: View {
         }
     }
 
-    private var actionsSection: some View {
+    private var resetSection: some View {
         InsetSection {
-            InsetButtonCell(alignment: .center, action: { Task { await save(force: false) } }) {
-                Text(isSaving ? lang("Please wait...") : lang("Save"))
+            InsetButtonCell(alignment: .center, action: onReset) {
+                Text(lang("Reset to Default"))
                     .foregroundStyle(Color.air.tint)
                     .frame(maxWidth: .infinity, minHeight: 44)
-            }
-            .disabled(isSaving)
-            if showSaveAnyway {
-                InsetButtonCell(alignment: .center, action: { Task { await save(force: true) } }) {
-                    Text(lang("Save Anyway"))
-                        .foregroundStyle(Color.air.tint)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                }
-            }
-            if !field.isDefault {
-                InsetButtonCell(alignment: .center, action: { Task { await reset() } }) {
-                    Text(lang("Reset to Default"))
-                        .foregroundStyle(Color.air.tint)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                }
-            }
-        }
-    }
-
-    private func save(force: Bool) async {
-        let needsPassword = showApiKey
-            && isApiKeyUnlocked
-            && !draftApiKey.isEmpty
-            && sessionPassword == nil
-        if needsPassword {
-            unlockApiKey(andSaveForce: force)
-            return
-        }
-
-        isSaving = true
-        showSaveAnyway = false
-        defer { isSaving = false }
-
-        do {
-            let apiKey: String? = (showApiKey && isApiKeyUnlocked)
-                ? (draftApiKey.isEmpty ? nil : draftApiKey)
-                : nil
-            let result = try await Api.setRpcOverride(
-                chain: chain,
-                network: AccountStore.activeNetwork,
-                field: field.field,
-                url: draftUrl,
-                apiKey: apiKey,
-                force: force,
-                password: sessionPassword
-            )
-            applySaveResult(result)
-            if result.saved == true {
-                await onSaved()
-            }
-        } catch {
-            statusText = error.localizedDescription
-            statusKind = .error
-        }
-    }
-
-    private func applySaveResult(_ result: ApiRpcTestResult) {
-        switch result.status {
-        case "ok":
-            statusText = lang("Saved")
-            statusKind = .success
-            showSaveAnyway = false
-        case "unexpected_response":
-            statusText = result.details ?? lang("Unexpected response from endpoint")
-            statusKind = .warning
-            showSaveAnyway = result.saved != true
-        default:
-            statusText = result.details ?? lang("Endpoint is unreachable")
-            statusKind = .error
-            showSaveAnyway = false
-        }
-    }
-
-    private func reset() async {
-        do {
-            _ = try await Api.resetRpcOverride(
-                chain: chain,
-                network: AccountStore.activeNetwork,
-                field: field.field
-            )
-            statusText = lang("Saved")
-            statusKind = .success
-            showSaveAnyway = false
-            isApiKeyUnlocked = false
-            draftApiKey = ""
-            await onSaved()
-        } catch {
-            statusText = error.localizedDescription
-            statusKind = .error
-        }
-    }
-
-    private func unlockApiKey(andSaveForce: Bool? = nil) {
-        Task { @MainActor in
-            guard let host = topWViewController() else { return }
-            if let password = await UnlockVC.presentAuthAsync(on: host, title: lang("API Key")) {
-                do {
-                    let unlocked = try await Api.unlockRpcApiKey(
-                        chain: chain,
-                        network: AccountStore.activeNetwork,
-                        password: password,
-                        field: field.field
-                    )
-                    if unlocked.ok {
-                        sessionPassword = password
-                        draftApiKey = unlocked.apiKey ?? draftApiKey
-                        isApiKeyUnlocked = true
-                        if let andSaveForce {
-                            await save(force: andSaveForce)
-                        }
-                    } else {
-                        statusText = lang("Wrong password, please try again.")
-                        statusKind = .error
-                    }
-                } catch {
-                    statusText = error.localizedDescription
-                    statusKind = .error
-                }
             }
         }
     }

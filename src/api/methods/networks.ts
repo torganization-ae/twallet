@@ -22,8 +22,8 @@ import {
   clearRpcOverride,
   decryptApiKeyFromStorage,
   encryptApiKeyForStorage,
+  applyApiKeyToUrl,
   getCachedDecryptedApiKey,
-  getChainOverride,
   getEffectiveApiApiKey,
   getEffectiveApiUrl,
   getEffectiveRpcApiKey,
@@ -101,8 +101,13 @@ async function postJson(url: string, body: unknown, headers: Record<string, stri
   return response;
 }
 
-async function testEvmRpc(chain: EVMChain, network: ApiNetwork, url: string): Promise<RpcTestResult> {
-  const endpoint = resolveEvmJsonRpcUrl(url);
+async function testEvmRpc(
+  chain: EVMChain,
+  network: ApiNetwork,
+  url: string,
+  apiKey?: string,
+): Promise<RpcTestResult> {
+  const endpoint = resolveEvmJsonRpcUrl(applyApiKeyToUrl(url, apiKey));
   try {
     const response = await postJson(endpoint, {
       jsonrpc: '2.0',
@@ -140,9 +145,12 @@ async function testEvmRpc(chain: EVMChain, network: ApiNetwork, url: string): Pr
   }
 }
 
-async function testEvmApi(url: string): Promise<RpcTestResult> {
+async function testEvmApi(url: string, apiKey?: string): Promise<RpcTestResult> {
   try {
-    const response = await withTimeout(fetch(url.replace(/\/$/, '')), TEST_TIMEOUT_MS);
+    const response = await withTimeout(
+      fetch(applyApiKeyToUrl(url.replace(/\/$/, ''), apiKey)),
+      TEST_TIMEOUT_MS,
+    );
     // Enhanced APIs/proxies often return 401/404 on the root path.
     if (response.status >= 500) {
       return { status: 'unexpected_response', details: `HTTP ${response.status}` };
@@ -153,10 +161,12 @@ async function testEvmApi(url: string): Promise<RpcTestResult> {
   }
 }
 
-async function testTronApi(url: string): Promise<RpcTestResult> {
+async function testTronApi(url: string, apiKey?: string): Promise<RpcTestResult> {
   try {
     const response = await withTimeout(
-      fetch(`${url.replace(/\/$/, '')}/wallet/getnowblock`),
+      fetch(`${url.replace(/\/$/, '')}/wallet/getnowblock`, {
+        headers: apiKey ? { 'TRON-PRO-API-KEY': apiKey } : undefined,
+      }),
       TEST_TIMEOUT_MS,
     );
     if (!response.ok) {
@@ -172,9 +182,12 @@ async function testTronApi(url: string): Promise<RpcTestResult> {
   }
 }
 
-async function testSolanaRpc(url: string): Promise<RpcTestResult> {
+async function testSolanaRpc(url: string, apiKey?: string): Promise<RpcTestResult> {
+  const endpoint = apiKey
+    ? `${url.replace(/\/$/, '')}/?api-key=${encodeURIComponent(apiKey)}`
+    : url;
   try {
-    const response = await postJson(url, {
+    const response = await postJson(endpoint, {
       jsonrpc: '2.0',
       id: 1,
       method: 'getVersion',
@@ -193,9 +206,12 @@ async function testSolanaRpc(url: string): Promise<RpcTestResult> {
   }
 }
 
-async function testSolanaApi(url: string): Promise<RpcTestResult> {
+async function testSolanaApi(url: string, apiKey?: string): Promise<RpcTestResult> {
+  const endpoint = apiKey
+    ? `${url.replace(/\/$/, '')}/?api-key=${encodeURIComponent(apiKey)}`
+    : url.replace(/\/$/, '');
   try {
-    const response = await withTimeout(fetch(url.replace(/\/$/, '')), TEST_TIMEOUT_MS);
+    const response = await withTimeout(fetch(endpoint), TEST_TIMEOUT_MS);
     // Helius / enhanced APIs may return 404 on bare root — treat any HTTP response as reachable.
     if (response.status >= 500) {
       return { status: 'unexpected_response', details: `HTTP ${response.status}` };
@@ -231,10 +247,12 @@ async function testTonRpc(url: string, apiKey?: string): Promise<RpcTestResult> 
   }
 }
 
-async function testTonApi(url: string): Promise<RpcTestResult> {
+async function testTonApi(url: string, apiKey?: string): Promise<RpcTestResult> {
   try {
     const response = await withTimeout(
-      fetch(`${url.replace(/\/$/, '')}/v2/status`),
+      fetch(`${url.replace(/\/$/, '')}/v2/status`, {
+        headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
+      }),
       TEST_TIMEOUT_MS,
     );
     if (response.status >= 500) {
@@ -260,16 +278,18 @@ export async function testRpcEndpoint(
   }
 
   if (isEvmChain(chain)) {
-    return field === 'api' ? testEvmApi(trimmed) : testEvmRpc(chain, network, trimmed);
+    return field === 'api'
+      ? testEvmApi(trimmed, apiKey)
+      : testEvmRpc(chain, network, trimmed, apiKey);
   }
   if (chain === 'tron') {
-    return testTronApi(trimmed);
+    return testTronApi(trimmed, apiKey);
   }
   if (chain === 'solana') {
-    return field === 'api' ? testSolanaApi(trimmed) : testSolanaRpc(trimmed);
+    return field === 'api' ? testSolanaApi(trimmed, apiKey) : testSolanaRpc(trimmed, apiKey);
   }
   if (chain === 'ton') {
-    return field === 'api' ? testTonApi(trimmed) : testTonRpc(trimmed, apiKey);
+    return field === 'api' ? testTonApi(trimmed, apiKey) : testTonRpc(trimmed, apiKey);
   }
   return { status: 'unreachable', details: `Unsupported chain: ${chain as string}` };
 }
@@ -321,13 +341,10 @@ export async function getRpcConfig(network: ApiNetwork): Promise<NetworkRpcConfi
   const items: NetworkRpcConfigItem[] = getDisplayOrderedChains(network).map((chain): NetworkRpcConfigItem => {
     const title = getChainConfig(chain).title;
     const defaults = getDefaultEndpoint(chain, network);
-    const override = getChainOverride(chain, network);
 
     if (chain === 'solana' || chain === 'ton') {
       const rpcDefault = 'rpcUrl' in defaults ? defaults.rpcUrl : '';
       const apiDefault = 'apiUrl' in defaults ? defaults.apiUrl : '';
-      const rpcApiKeyInfo = chain === 'ton' ? resolveApiKeyForConfig(chain, network, 'rpc') : {};
-      const enhancedApiKeyInfo = chain === 'solana' ? resolveApiKeyForConfig(chain, network, 'api') : {};
       return {
         chain,
         title,
@@ -337,7 +354,7 @@ export async function getRpcConfig(network: ApiNetwork): Promise<NetworkRpcConfi
             field: 'rpc',
             label: 'rpc',
             url: getEffectiveRpcUrl(chain, network),
-            ...rpcApiKeyInfo,
+            ...resolveApiKeyForConfig(chain, network, 'rpc'),
             isDefault: isRpcFieldDefault(chain, network, 'rpc'),
             defaultUrl: rpcDefault,
           },
@@ -345,7 +362,7 @@ export async function getRpcConfig(network: ApiNetwork): Promise<NetworkRpcConfi
             field: 'api',
             label: 'api',
             url: getEffectiveApiUrl(chain, network),
-            ...enhancedApiKeyInfo,
+            ...resolveApiKeyForConfig(chain, network, 'api'),
             isDefault: isRpcFieldDefault(chain, network, 'api'),
             defaultUrl: apiDefault,
           },
@@ -365,6 +382,7 @@ export async function getRpcConfig(network: ApiNetwork): Promise<NetworkRpcConfi
             field: 'rpc',
             label: 'rpc',
             url: getEffectiveRpcUrl(chain, network),
+            ...resolveApiKeyForConfig(chain, network, 'rpc'),
             isDefault: isRpcFieldDefault(chain, network, 'rpc'),
             defaultUrl: rpcDefault,
           },
@@ -390,9 +408,7 @@ export async function getRpcConfig(network: ApiNetwork): Promise<NetworkRpcConfi
           field: 'rpc',
           label: 'rpc',
           url: getEffectiveRpcUrl(chain, network),
-          apiKey: override?.rpc?.apiKey && !isEncryptedApiKey(override.rpc.apiKey)
-            ? override.rpc.apiKey
-            : undefined,
+          ...resolveApiKeyForConfig(chain, network, 'rpc'),
           isDefault: isRpcFieldDefault(chain, network, 'rpc'),
           defaultUrl,
         },

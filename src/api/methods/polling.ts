@@ -21,7 +21,7 @@ import { findChainConfig } from '../../util/chain';
 import { omit } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { OrGate } from '../../util/orGate';
-import { forbidConcurrency, pause } from '../../util/schedulers';
+import { forbidConcurrency } from '../../util/schedulers';
 import { getNativeToken } from '../../util/tokens';
 import chains from '../chains';
 import { isChainHidden } from '../chains/chainVisibility';
@@ -36,6 +36,10 @@ import {
 import { tryUpdateKnownAddresses } from '../common/addresses';
 import { callBackendGet, callBackendPost } from '../common/backend';
 import { setBackendConfigCache } from '../common/cache';
+import {
+  clearCollectiblesPolling,
+  retargetCollectiblesPollingAccount,
+} from '../common/polling/collectiblesPolling';
 import { pollingLoop } from '../common/polling/utils';
 import { getTokensCache, loadTokensCache, sendUpdateTokens, tokensPreload, updateTokens } from '../common/tokens';
 import { MINUTE, SEC } from '../constants';
@@ -45,20 +49,12 @@ import { resolveDataPreloadPromise } from './preload';
 import { tryUpdateStakingCommonData } from './staking';
 import { swapGetAssets } from './swap';
 
-const BACKEND_INTERVAL = 30 * SEC;
-const LONG_BACKEND_INTERVAL = MINUTE;
+const BACKEND_INTERVAL = MINUTE;
+const LONG_BACKEND_INTERVAL = 2 * MINUTE;
 const INCORRECT_TIME_DIFF = 30 * SEC;
 
-const ACCOUNT_CONFIG_INTERVAL = { focused: MINUTE, notFocused: 10 * MINUTE };
-const MFA_INTERVAL = MINUTE;
-
-/**
- * Only TON starts immediately for the active wallet. Everything else is deferred + staggered so
- * launch does not fan out eth_getBalance / Solana / Tron / … across all networks at once.
- */
-const IMMEDIATE_ACTIVE_POLL_CHAINS = new Set<ApiChain>(['ton']);
-const DEFERRED_ACTIVE_POLL_BASE_DELAY = 8 * SEC;
-const DEFERRED_ACTIVE_POLL_STAGGER = 4 * SEC;
+const ACCOUNT_CONFIG_INTERVAL = { focused: 5 * MINUTE, notFocused: 15 * MINUTE };
+const MFA_INTERVAL = 5 * MINUTE;
 
 /**
  * A chain is scannable when it has a usable RPC endpoint (shared default or user override).
@@ -109,6 +105,7 @@ export function initPolling(_onUpdate: OnApiUpdate) {
 export async function destroyPolling() {
   stopCommonBackendPolling?.();
   stopCommonBackendPolling = undefined;
+  clearCollectiblesPolling();
   removeAllPollingAccounts();
   await setActivePollingAccount(undefined, {});
 }
@@ -261,6 +258,7 @@ export async function setActivePollingAccount(
 ) {
   stopActiveAccountPolling?.();
   stopActiveAccountPolling = undefined;
+  retargetCollectiblesPollingAccount(accountId);
 
   if (accountId) {
     lastActivePollingAccountId = accountId;
@@ -278,45 +276,22 @@ export async function setActivePollingAccount(
       }),
     )).filter((chain): chain is ApiChain => Boolean(chain));
 
-    const immediateChains = visibleChains.filter((chain) => IMMEDIATE_ACTIVE_POLL_CHAINS.has(chain));
-    const deferredChains = visibleChains.filter((chain) => !IMMEDIATE_ACTIVE_POLL_CHAINS.has(chain));
-
+    // Each visible chain is an independent module: start them together. Hidden
+    // chains are already filtered out above, so there is no reason to stagger.
     const stopPollingFns: Array<NoneToVoidFunction | undefined> = [
       !IS_FEATURE_LIMITED ? setupAccountConfigPolling(accountId, account).stop : undefined,
       !NO_MFA && doesAccountHaveChain(account, 'ton') ? setupMfaPolling(accountId).stop : undefined,
-    ];
-
-    let deferredGeneration = 0;
-    const startChainPolling = (chain: ApiChain) => {
-      const stopFn = chains[chain].setupActivePolling(
+      ...visibleChains.map((chain) => chains[chain].setupActivePolling(
         accountId,
         account as any,
         onUpdate,
         setUpdatingStatus.bind(undefined, accountId, chain),
         pickChainTimestamps(newestActivityTimestamps, chain),
         shouldResetBalances,
-      );
-      stopPollingFns.push(stopFn);
-    };
-
-    for (const chain of immediateChains) {
-      startChainPolling(chain);
-    }
-
-    // Defer non-TON chains so the Network panel is not a simultaneous multi-RPC storm.
-    const thisDeferredGeneration = ++deferredGeneration;
-    void (async () => {
-      for (let i = 0; i < deferredChains.length; i++) {
-        await pause(i === 0 ? DEFERRED_ACTIVE_POLL_BASE_DELAY : DEFERRED_ACTIVE_POLL_STAGGER);
-        if (thisDeferredGeneration !== deferredGeneration) {
-          return;
-        }
-        startChainPolling(deferredChains[i]);
-      }
-    })();
+      )),
+    ];
 
     stopActiveAccountPolling = () => {
-      deferredGeneration += 1;
       for (const stopFn of stopPollingFns) {
         stopFn?.();
       }

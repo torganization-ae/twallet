@@ -6,16 +6,19 @@ import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.recyclerview.widget.RecyclerView
+import app.twallet.air.uicomponents.base.WNavigationController
 import app.twallet.air.uicomponents.base.WRecyclerViewAdapter
 import app.twallet.air.uicomponents.base.WViewController
 import app.twallet.air.uicomponents.commonViews.cells.HeaderCell
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.extensions.setPaddingLocalized
+import app.twallet.air.uicomponents.helpers.AddressPopupHelpers
 import app.twallet.air.uicomponents.helpers.LastItemPaddingDecoration
 import app.twallet.air.uicomponents.helpers.LinearLayoutManagerAccurateOffset
 import app.twallet.air.uicomponents.widgets.WCell
 import app.twallet.air.uicomponents.widgets.WRecyclerView
 import app.twallet.air.uicomponents.widgets.menu.WMenuPopup
+import app.twallet.air.uireceive.ReceiveVC
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
@@ -172,30 +175,65 @@ class NetworksVC(
     private fun showMenu(anchor: View, item: MNetworkRpcConfigItem) {
         val isHidden = item.isHidden == true
         val allowDisable = canDisable(item)
-        val items = mutableListOf(
+        val chain = MBlockchain.valueOfOrNull(item.chain)
+        val address = chain?.let { AccountStore.activeAccount?.addressByChain?.get(it.name) }
+        val menuItems = mutableListOf(
             WMenuPopup.Item(
-                null,
+                app.twallet.air.uisettings.R.drawable.ic_edit,
                 LocaleController.getString("Edit Network")
             ) {
                 openDetail(item)
             },
         )
         if (isHidden || allowDisable) {
-            items.add(
+            menuItems.add(
                 WMenuPopup.Item(
-                    null,
+                    if (isHidden) {
+                        app.twallet.air.icons.R.drawable.ic_header_eye
+                    } else {
+                        app.twallet.air.icons.R.drawable.ic_header_eye_hidden
+                    },
                     LocaleController.getString(if (isHidden) "Enable" else "Disable")
                 ) {
                     setVisibility(item, !isHidden)
                 },
             )
         }
+        if (chain != null && !address.isNullOrBlank()) {
+            menuItems.add(
+                WMenuPopup.Item(
+                    app.twallet.air.icons.R.drawable.ic_copy,
+                    LocaleController.getString("Copy Address")
+                ) {
+                    AddressPopupHelpers.copyAddress(context, address, chain)
+                },
+            )
+            menuItems.add(
+                WMenuPopup.Item(
+                    app.twallet.air.uisettings.R.drawable.ic_qr,
+                    LocaleController.getString("Show Wallet QR")
+                ) {
+                    showWalletQr(chain)
+                },
+            )
+        }
         WMenuPopup.present(
             anchor,
-            items,
+            menuItems,
             popupWidth = WRAP_CONTENT,
             positioning = WMenuPopup.Positioning.ALIGNED
         )
+    }
+
+    private fun showWalletQr(chain: MBlockchain) {
+        val receiveVC = ReceiveVC.createIfAvailable(context, chain) ?: return
+        val window = window ?: return
+        val navVC = WNavigationController(
+            window,
+            WNavigationController.PresentationConfig.PreferredFullScreen
+        )
+        navVC.setRoot(receiveVC)
+        window.present(navVC)
     }
 
     override fun recyclerViewNumberOfSections(rv: RecyclerView): Int = 2

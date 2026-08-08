@@ -1047,6 +1047,17 @@ sealed class ApiMethod<T> {
                 .jsObject(collection, Collection::class.java)
                 .build()
         }
+
+        /** Start/stop background NFT scanning (Collectibles tab visibility). */
+        class SetCollectiblesActive(
+            isActive: Boolean,
+        ) : ApiMethod<MRpcResetResult>() {
+            override val name: String = "setCollectiblesActive"
+            override val type: Type = MRpcResetResult::class.java
+            override val arguments: String = ArgumentsBuilder()
+                .boolean(isActive)
+                .build()
+        }
     }
 
     /* Staking */

@@ -156,11 +156,13 @@ public class AssetsTabVC: WViewController, WalletCoreData.EventsObserver {
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         activateNftAnimationForSelectedPage()
+        syncCollectiblesPollingActive()
     }
 
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         pauseAllNftAnimations()
+        Task { try? await Api.setCollectiblesActive(isActive: false) }
     }
     
     private func defaultItemId(displayTabs: [DisplayAssetTab]) -> String? {
@@ -322,6 +324,19 @@ public class AssetsTabVC: WViewController, WalletCoreData.EventsObserver {
         forEachNftAnimationController { controller in
             controller.setNftAnimationPlaybackActive(selectedControllerID == ObjectIdentifier(controller as AnyObject))
         }
+        syncCollectiblesPollingActive()
+    }
+
+    /// NFT HTTP scanning lives in the shared JS SDK; only run it while a Collectibles page is selected.
+    private func syncCollectiblesPollingActive() {
+        let viewControllers = segmentedController.viewControllers ?? []
+        let isNftTab: Bool = {
+            guard let index = segmentedController.selectedIndex, viewControllers.indices.contains(index) else {
+                return false
+            }
+            return viewControllers[index] is NftsVC
+        }()
+        Task { try? await Api.setCollectiblesActive(isActive: isNftTab) }
     }
 }
 
@@ -338,5 +353,6 @@ extension AssetsTabVC: WSegmentedControllerDelegate {
 
     public func segmentedControllerDidEndScrolling() {
         activateNftAnimationForSelectedPage()
+        syncCollectiblesPollingActive()
     }
 }

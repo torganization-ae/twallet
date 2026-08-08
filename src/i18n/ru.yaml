@@ -132,6 +132,32 @@ Share this URL to receive %token%: Поделиться ссылкой
 Invoice Link Copied: Ссылка скопирована
 Theme: Тема
 Language: Язык
+RPC URL: URL RPC
+API URL: URL API
+API Key: API-ключ
+Enhanced API Key: Ключ Enhanced API
+Leave empty to use the default enhanced API; add your own key for better reliability.: "Оставьте пустым, чтобы использовать Enhanced API по умолчанию; добавьте свой ключ для большей надёжности."
+Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.: "Вставьте совместимый с Alchemy URL Enhanced API выше, затем при необходимости добавьте API-ключ."
+Enhanced API disabled: Enhanced API отключён
+Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.: "Расширенные функции (история, NFT, обновления в реальном времени) отключены. Добавьте URL API (+ключ), чтобы включить их."
+Reset to Default: Сбросить
+Save Anyway: Сохранить всё равно
+Default: По умолчанию
+Custom: Свой
+Hidden: Скрыта
+Disabled — add endpoint to enable: "Отключена — добавьте endpoint, чтобы включить"
+Using default endpoint: Используется endpoint по умолчанию
+Using custom endpoint: Используется свой endpoint
+Show API Key: Показать API-ключ
+Endpoint is unreachable: Endpoint недоступен
+Unexpected response from endpoint: Неожиданный ответ от endpoint
+Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.: Свои endpoints без поддержки indexer API могут отключить NFT и историю для этой сети.
+Password required to save API key: Для сохранения API-ключа нужен пароль
+At least one network must stay enabled.: Хотя бы одна сеть должна оставаться включённой.
+Network Menu: Меню сети
+Show Wallet QR: Показать QR кошелька
+Enter URL: Введите URL
+Saved: Сохранено
 Enable Animations: Включить анимацию
 Enable Seasonal Theming: Включить сезонное оформление
 Enable Landscape Mode: Включить горизонтальный режим
@@ -221,7 +247,7 @@ Enable: Включить
 Disable: Отключить
 No endpoint: Нет ссылки
 Show in wallet: Показывать в кошельке
-RPC and API endpoints: RPC и API endpoints
+RPC and API endpoints: RPC и API-эндпоинты
 Confirm: Подтвердить
 Data Signed!: Данные подписаны!
 Details: Инфо

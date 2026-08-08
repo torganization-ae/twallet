@@ -128,6 +128,38 @@ Share this URL to receive %token%: "%token% almak için bu URL'yi paylaşın"
 Invoice Link Copied: Fatura bağlantısı kopyalandı
 Theme: Tema
 Language: Dil
+RPC and API endpoints: RPC ve API uç noktaları
+RPC URL: "RPC URL'si"
+API URL: "API URL'si"
+API Key: API Anahtarı
+Enhanced API Key: Enhanced API Anahtarı
+Leave empty to use the default enhanced API; add your own key for better reliability.: "Varsayılan Enhanced API'yi kullanmak için boş bırakın; daha iyi güvenilirlik için kendi anahtarınızı ekleyin."
+Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.: "Yukarıya Alchemy uyumlu bir Enhanced API URL'si yapıştırın, ardından isteğe bağlı olarak API anahtarınızı ekleyin."
+Enhanced API disabled: Enhanced API devre dışı
+Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.: "Gelişmiş özellikler (etkinlikler, NFT'ler, canlı güncellemeler) devre dışı. Etkinleştirmek için bir API URL'si (+anahtar) ekleyin."
+Reset to Default: Varsayılana sıfırla
+Save Anyway: Yine de kaydet
+Default: Varsayılan
+Custom: Özel
+Hidden: Gizli
+Disabled — add endpoint to enable: Devre dışı — etkinleştirmek için uç nokta ekleyin
+No endpoint: Uç nokta yok
+Using default endpoint: Varsayılan uç nokta kullanılıyor
+Using custom endpoint: Özel uç nokta kullanılıyor
+Show API Key: API anahtarını göster
+Endpoint is unreachable: Uç noktaya ulaşılamıyor
+Unexpected response from endpoint: Uç noktadan beklenmeyen yanıt
+Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.: Indexer API desteklemeyen özel uç noktalar bu ağ için NFT ve etkinlik özelliklerini devre dışı bırakabilir.
+Password required to save API key: API anahtarını kaydetmek için şifre gerekli
+Show in wallet: Cüzdanda göster
+At least one network must stay enabled.: En az bir ağ etkin kalmalıdır.
+Network Menu: Ağ menüsü
+Show Wallet QR: Cüzdan QR'sini göster
+Enter URL: URL girin
+Edit Network: Düzenle
+Enable: Etkinleştir
+Disable: Devre dışı bırak
+Saved: Kaydedildi
 Enable Animations: Animasyonları Etkinleştir
 Enable Seasonal Theming: Mevsimsel Temayı Etkinleştir
 Enable Landscape Mode: Yatay Modu Etkinleştir

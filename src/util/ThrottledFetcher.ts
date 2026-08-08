@@ -6,10 +6,11 @@ type FetchInput = string | URL | Request;
 type CleanupAbortSignal = AbortSignal & { cleanup?: () => void };
 
 const DEFAULT_TIMEOUT_MS = 30000;
-/** Public toncenter (no API key) rate-limits at ~1 rps; keep well under that. */
-const TONCENTER_MIN_DELAY_MS = 1200;
-const TONCENTER_RETRIES = 3;
-const TONCENTER_FALLBACK_RETRY_AFTER_MS = 10000;
+/** Public toncenter (no API key) rate-limits at ~1 rps; stay well under and serialize callers. */
+const TONCENTER_MIN_DELAY_MS = 2000;
+/** One attempt only — retrying 429s amplifies the ban window. Next poll cycle will try again. */
+const TONCENTER_RETRIES = 1;
+const TONCENTER_FALLBACK_RETRY_AFTER_MS = 15_000;
 const TONCENTER_ORIGINS = new Set([
   new URL(DEFAULT_TON_ENDPOINTS.mainnet.rpcUrl).origin,
   new URL(DEFAULT_TON_ENDPOINTS.testnet.rpcUrl).origin,

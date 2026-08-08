@@ -126,6 +126,38 @@ Share this URL to receive %token%: 分享此链接来接收 %token%
 Invoice Link Copied: 发票链接已复制
 Theme: 主题
 Language: 语言
+RPC and API endpoints: RPC 与 API 节点
+RPC URL: RPC URL
+API URL: API URL
+API Key: API 密钥
+Enhanced API Key: Enhanced API 密钥
+Leave empty to use the default enhanced API; add your own key for better reliability.: 留空以使用默认 Enhanced API；添加自己的密钥可提高稳定性。
+Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.: 在上方粘贴兼容 Alchemy 的 Enhanced API URL，然后可选择添加 API 密钥。
+Enhanced API disabled: Enhanced API 已禁用
+Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.: 增强功能（活动、NFT、实时更新）已禁用。请添加 API URL（+密钥）以启用。
+Reset to Default: 重置为默认
+Save Anyway: 仍然保存
+Default: 默认
+Custom: 自定义
+Hidden: 已隐藏
+Disabled — add endpoint to enable: 已禁用 — 添加节点以启用
+No endpoint: 无节点
+Using default endpoint: 正在使用默认节点
+Using custom endpoint: 正在使用自定义节点
+Show API Key: 显示 API 密钥
+Endpoint is unreachable: 无法访问节点
+Unexpected response from endpoint: 节点返回了意外响应
+Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.: 不支持 indexer API 的自定义节点可能会禁用该网络的 NFT 和活动功能。
+Password required to save API key: 保存 API 密钥需要密码
+Show in wallet: 在钱包中显示
+At least one network must stay enabled.: 至少需要保持一个网络启用。
+Network Menu: 网络菜单
+Show Wallet QR: 显示钱包二维码
+Enter URL: 输入 URL
+Edit Network: 编辑
+Enable: 启用
+Disable: 禁用
+Saved: 已保存
 Enable Animations: 启用动画
 Enable Seasonal Theming: 启用季节性主题
 Enable Landscape Mode: 启用横屏模式

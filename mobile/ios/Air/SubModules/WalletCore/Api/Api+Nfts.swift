@@ -25,6 +25,11 @@ extension Api {
     public static func checkNftOwnership(chain: ApiChain, accountId: String, nftAddress: String) async throws -> Bool? {
         try await bridge.callApiOptional("checkNftOwnership", chain, accountId, nftAddress, decodingOptional: Bool.self)
     }
+
+    /// Start/stop background NFT scanning (Collectibles tab visibility).
+    public static func setCollectiblesActive(isActive: Bool) async throws {
+        try await bridge.callApiVoid("setCollectiblesActive", isActive)
+    }
 }
 
 

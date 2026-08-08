@@ -159,7 +159,7 @@ export abstract class AbstractWebsocketClient<
    *  - Avoid reconnecting the socket when watched addresses arrive shortly after stopping watching all addresses.
    */
   #actualizeSocket = throttle(() => {
-    if (this.#doesHaveWatchedAddresses()) {
+    if (this.#doesHaveWatchedAddresses() && this.isSocketTransportEnabled()) {
       this.socket ??= this.#createSocket();
       if (this.socket.isConnected) {
         this.sendWatchedWalletsToSocket();
@@ -180,6 +180,14 @@ export abstract class AbstractWebsocketClient<
 
   #doesHaveWatchedAddresses() {
     return this.walletWatchers.some((watcher) => watcher.wallets.length);
+  }
+
+  /**
+   * When `false`, wallets are watched over HTTP fallback only (no WebSocket).
+   * Used for providers that advertise streaming but reject every connection (e.g. free toncenter).
+   */
+  protected isSocketTransportEnabled() {
+    return true;
   }
 
   protected isWatcherReady(watcher: WalletWatcherInternal<WatchedWallet, Activity, NftUpdate>) {

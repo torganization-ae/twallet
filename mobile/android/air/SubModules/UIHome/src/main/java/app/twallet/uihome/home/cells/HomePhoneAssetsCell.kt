@@ -32,8 +32,10 @@ import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.models.MCollectionTab
+import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.models.NftCollection
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
+import app.twallet.air.walletcore.moshi.api.ApiMethod
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.NftStore
 import java.util.concurrent.Executors
@@ -86,7 +88,16 @@ class HomePhoneAssetsCell(
         if (segmentedController.currentItem === vc) {
             areAssetsShown = true
             onAssetsShown()
+            syncCollectiblesPollingActive()
         }
+    }
+
+    /** NFT HTTP scanning lives in the shared JS SDK; only run it while Collectibles is selected. */
+    private fun syncCollectiblesPollingActive() {
+        val index = segmentedController.currentOffset.roundToInt()
+        val identifier = segmentedController.items.getOrNull(index)?.identifier
+        val isCollectibles = identifier != null && identifier != AssetsTabVC.TAB_COINS
+        WalletCore.call(ApiMethod.Nft.SetCollectiblesActive(isCollectibles)) { _, _ -> }
     }
 
     override fun requestReordering(reordering: Boolean) = onReorderingRequested.invoke(reordering)
@@ -117,6 +128,9 @@ class HomePhoneAssetsCell(
             navHeight = 56.dp,
             onOffsetChange = { _, _ ->
                 updateHeight()
+            },
+            onSelectedIndexChanged = {
+                syncCollectiblesPollingActive()
             },
             onItemsReordered = null,
             onReorderingStarted = {
@@ -498,6 +512,7 @@ class HomePhoneAssetsCell(
     }
 
     override fun onDestroy() {
+        WalletCore.call(ApiMethod.Nft.SetCollectiblesActive(false)) { _, _ -> }
         if (pool.host === this) pool.host = null
         segmentedController.onDestroy()
     }

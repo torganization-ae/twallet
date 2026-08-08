@@ -1,5 +1,6 @@
 import type { ApiAnyDisplayError, ApiChain, ApiSwapAsset, ApiToken, ApiTokenWithPrice } from '../../../api/types';
 import { ApiHardwareError } from '../../../api/types';
+import { ContentTab } from '../../types';
 
 import { getDoesUsePinPad } from '../../../util/biometrics';
 import { getChainTitle } from '../../../util/chain';
@@ -256,6 +257,9 @@ async function connectLedger(chain: ApiChain, noRetry?: boolean) {
 }
 
 addActionHandler('setActiveContentTab', (global, actions, { tab }) => {
+  // NFT providers are scanned only while Collectibles is open — not on a background timer.
+  void callApi('setCollectiblesActive', tab === ContentTab.Nft);
+
   return updateCurrentAccountState(global, {
     activeContentTab: tab,
   });

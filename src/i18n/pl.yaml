@@ -130,6 +130,38 @@ Share this URL to receive %token%: Udostępnij ten adres URL, aby otrzymać %tok
 Invoice Link Copied: Link do faktury został skopiowany
 Theme: Temat
 Language: Język
+RPC and API endpoints: Endpointy RPC i API
+RPC URL: URL RPC
+API URL: URL API
+API Key: Klucz API
+Enhanced API Key: Klucz Enhanced API
+Leave empty to use the default enhanced API; add your own key for better reliability.: "Pozostaw puste, aby użyć domyślnego Enhanced API; dodaj własny klucz dla większej niezawodności."
+Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.: "Wklej powyżej URL Enhanced API zgodny z Alchemy, a następnie opcjonalnie dodaj klucz API."
+Enhanced API disabled: Enhanced API wyłączone
+Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.: "Zaawansowane funkcje (aktywność, NFT, aktualizacje na żywo) są wyłączone. Dodaj URL API (+klucz), aby je włączyć."
+Reset to Default: Przywróć domyślne
+Save Anyway: Zapisz mimo to
+Default: Domyślny
+Custom: Własny
+Hidden: Ukryta
+Disabled — add endpoint to enable: "Wyłączona — dodaj endpoint, aby włączyć"
+No endpoint: Brak endpointu
+Using default endpoint: Używany jest domyślny endpoint
+Using custom endpoint: Używany jest własny endpoint
+Show API Key: Pokaż klucz API
+Endpoint is unreachable: Endpoint jest niedostępny
+Unexpected response from endpoint: Nieoczekiwana odpowiedź endpointu
+Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.: Własne endpointy bez wsparcia indexer API mogą wyłączyć NFT i aktywność w tej sieci.
+Password required to save API key: "Hasło jest wymagane, aby zapisać klucz API"
+Show in wallet: Pokaż w portfelu
+At least one network must stay enabled.: Co najmniej jedna sieć musi pozostać włączona.
+Network Menu: Menu sieci
+Show Wallet QR: Pokaż QR portfela
+Enter URL: Wprowadź URL
+Edit Network: Edytuj
+Enable: Włącz
+Disable: Wyłącz
+Saved: Zapisano
 Enable Animations: Włącz animacje
 Enable Seasonal Theming: Włącz motyw sezonowy
 Enable Landscape Mode: Włącz tryb poziomy

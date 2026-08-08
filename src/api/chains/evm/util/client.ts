@@ -3,7 +3,7 @@ import { JsonRpcProvider, Network } from 'ethers';
 import type { ApiNetwork, EVMChain } from '../../../types';
 
 import { EVM_CHAIN_IDS, isEvmChain, resolveEvmJsonRpcUrl } from '../../defaultEndpoints';
-import { getEffectiveRpcUrl, onRpcOverrideChanged } from '../../rpcOverrides';
+import { applyApiKeyToUrl, getEffectiveRpcApiKey, getEffectiveRpcUrl, onRpcOverrideChanged } from '../../rpcOverrides';
 
 const providerCache = new Map<string, JsonRpcProvider>();
 
@@ -15,8 +15,12 @@ function createProvider(network: ApiNetwork, chain: EVMChain) {
   // `staticNetwork` is required: without it ethers auto-polls `eth_blockNumber`
   // every 4s per chain, which DDoSes public RPCs once all EVM chains are active.
   const staticNetwork = Network.from(EVM_CHAIN_IDS[network][chain]);
+  const url = applyApiKeyToUrl(
+    getEffectiveRpcUrl(chain, network),
+    getEffectiveRpcApiKey(chain, network),
+  );
   return new JsonRpcProvider(
-    resolveEvmJsonRpcUrl(getEffectiveRpcUrl(chain, network)),
+    resolveEvmJsonRpcUrl(url),
     staticNetwork,
     { staticNetwork, batchMaxCount: 1 },
   );

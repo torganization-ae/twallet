@@ -15,6 +15,7 @@ import {
 import { getChainsSupportingNft, getOrderedAccountChains } from '../../../../../util/chain';
 import { compact } from '../../../../../util/iteratees';
 import { getIsActiveStakingState } from '../../../../../util/staking';
+import { callApi } from '../../../../../api';
 import useNftCollectionMenuItems, { HIDDEN_NFTS_VALUE } from './useNftCollectionMenuItems';
 
 import useEffectOnce from '../../../../../hooks/useEffectOnce';
@@ -204,6 +205,11 @@ export default function useContentTabs({
       setActiveContentTab({ tab: isLandscape ? ContentTab.Overview : ContentTab.Assets });
     }
   });
+
+  // Keep NFT polling gated to the Collectibles tab (also covers restored tab state).
+  useEffect(() => {
+    void callApi('setCollectiblesActive', activeContentTab === ContentTab.Nft);
+  }, [activeContentTab]);
 
   const handleHeaderBackClick = useLastCallback(() => {
     const returnTab = activeContentTab === ContentTab.Activity && activityReturnContentTab !== undefined

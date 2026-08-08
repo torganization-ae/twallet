@@ -593,6 +593,11 @@ export type StatusSocketMessage = BaseSocketMessage & {
   status: 'subscribed' | 'unsubscribed' | 'pong';
 };
 
+/** Fatal/non-fatal errors pushed by the streaming API before the socket is closed */
+export type ErrorSocketMessage = {
+  error: string;
+};
+
 export type ActionsSocketMessage = BaseSocketMessage & {
   type: 'actions';
   finality: SocketFinality;
@@ -656,6 +661,7 @@ export type JettonChangeSocketMessage = BaseSocketMessage & {
 /** Server messages from the streaming API */
 export type ServerSocketMessage =
   | StatusSocketMessage
+  | ErrorSocketMessage
   | ActionsSocketMessage
   | TransactionsSocketMessage
   | InvalidationSocketMessage

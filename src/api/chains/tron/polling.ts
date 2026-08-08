@@ -25,7 +25,7 @@ import { getTokenActivitySlice, mergeActivities } from './activities';
 import { NETWORK_CONFIG } from './constants';
 import { getTrc20Balance, getWalletBalance, isTronAccountMultisig } from './wallet';
 
-const DOUBLE_CHECK_ACTIVITY_PAUSE = 3 * SEC;
+const DOUBLE_CHECK_ACTIVITY_PAUSE = 10 * SEC;
 
 export function setupActivePolling(
   accountId: string,

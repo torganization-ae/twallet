@@ -120,6 +120,7 @@ function Input({
     type === 'password' && styles.input_password,
     (hasError || error) && styles.error,
     isDisabled && styles.disabled,
+    isStatic && styles.inputWrapperStatic,
     valueOverlay && styles.input_withvalueOverlay,
   );
   const labelFullClass = buildClassName(

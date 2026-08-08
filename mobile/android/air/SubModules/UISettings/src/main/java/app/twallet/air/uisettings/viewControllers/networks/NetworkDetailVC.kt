@@ -30,7 +30,6 @@ import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.helpers.BiometricHelpers
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
-import app.twallet.air.walletcore.models.blockchain.SharedNetworksConfig
 import app.twallet.air.walletcore.moshi.MNetworkRpcFieldConfig
 import app.twallet.air.walletcore.moshi.api.ApiMethod
 import app.twallet.air.walletcore.stores.AccountStore
@@ -50,6 +49,10 @@ class NetworkDetailVC(
     private var fieldBlocks: List<FieldBlock> = emptyList()
     private var isHidden = initiallyHidden
     private var canDisable = canDisableInitially
+    private var sessionPassword: String? = null
+    private var pendingSaveCount = 0
+    private var anySavedInBatch = false
+    private var anyIssueInBatch = false
 
     private val lastNetworkHintLabel =
         WLabel(context).apply {
@@ -80,14 +83,17 @@ class NetworkDetailVC(
             it.isEnabled = initiallyHidden || canDisableInitially
         }
 
-    private val warningLabel =
-        WLabel(context).apply {
-            setStyle(13f)
-            setPaddingLocalized(16.dp, 16.dp, 16.dp, 16.dp)
-            text =
-                LocaleController.getString(
-                    "Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network."
-                )
+    private val saveButton =
+        WButton(context, WButton.Type.PRIMARY).apply {
+            text = LocaleController.getString("Save")
+            setOnClickListener { saveAll(force = false) }
+        }
+
+    private val saveAnywayButton =
+        WButton(context, WButton.Type.SECONDARY).apply {
+            text = LocaleController.getString("Save Anyway")
+            isGone = true
+            setOnClickListener { saveAll(force = true) }
         }
 
     private val contentContainer =
@@ -132,7 +138,6 @@ class NetworkDetailVC(
         super.updateTheme()
         view.setBackgroundColor(WColor.SecondaryBackground.color)
         fieldBlocks.forEach { it.updateTheme() }
-        warningLabel.setTextColor(WColor.SecondaryText.color)
         lastNetworkHintLabel.setTextColor(WColor.SecondaryText.color)
         visibilitySwitch.updateTheme()
     }
@@ -202,13 +207,47 @@ class NetworkDetailVC(
             )
         }
         contentContainer.addView(
-            warningLabel,
-            LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+            saveButton,
+            LinearLayout.LayoutParams(MATCH_PARENT, 50.dp).apply {
+                topMargin = 16.dp
+            }
         )
+        contentContainer.addView(
+            saveAnywayButton,
+            LinearLayout.LayoutParams(MATCH_PARENT, 50.dp).apply {
+                topMargin = 8.dp
+                bottomMargin = 16.dp
+            }
+        )
+        saveAnywayButton.isGone = true
         updateTheme()
     }
 
-    private fun save(block: FieldBlock, force: Boolean, password: String? = null) {
+    private fun fieldsNeedingPassword(): List<FieldBlock> =
+        fieldBlocks.filter {
+            it.isApiKeyUnlocked && !it.apiKeyInput.text.isNullOrEmpty()
+        }
+
+    private fun saveAll(force: Boolean) {
+        val needingPassword = fieldsNeedingPassword()
+        if (needingPassword.isNotEmpty() && sessionPassword == null) {
+            requestApiKeyUnlock(needingPassword.first(), andSaveForce = force)
+            return
+        }
+
+        if (fieldBlocks.isEmpty()) return
+
+        saveButton.isLoading = true
+        saveAnywayButton.isGone = true
+        pendingSaveCount = fieldBlocks.size
+        anySavedInBatch = false
+        anyIssueInBatch = false
+        fieldBlocks.forEach { block ->
+            saveField(block, force = force, password = sessionPassword)
+        }
+    }
+
+    private fun saveField(block: FieldBlock, force: Boolean, password: String? = null) {
         val field = block.field
         val url =
             block.urlInput.text
@@ -216,13 +255,12 @@ class NetworkDetailVC(
                 ?.trim()
                 .orEmpty()
         val apiKey =
-            if (block.showApiKey && block.isApiKeyUnlocked) {
-                block.apiKeyInput.text?.toString()
+            if (block.isApiKeyUnlocked) {
+                block.apiKeyInput.text?.toString().orEmpty()
             } else {
                 null
             }
 
-        block.saveButton.isLoading = true
         WalletCore.call(
             ApiMethod.Networks.SetRpcOverride(
                 chain = chain,
@@ -234,38 +272,48 @@ class NetworkDetailVC(
                 password = password,
             )
         ) { result, err ->
-            block.saveButton.isLoading = false
             if (err != null || result == null) {
+                anyIssueInBatch = true
                 block.setStatus(
                     err?.message ?: LocaleController.getString("Endpoint is unreachable"),
                     WColor.Red.color
                 )
-                return@call
+            } else {
+                when (result.status) {
+                    "ok" -> {
+                        block.setStatus(LocaleController.getString("Saved"), WColor.Green.color)
+                        if (result.saved == true) anySavedInBatch = true
+                    }
+
+                    "unexpected_response" -> {
+                        block.setStatus(
+                            result.details
+                                ?: LocaleController.getString("Unexpected response from endpoint"),
+                            WColor.Orange.color
+                        )
+                        if (result.saved != true) {
+                            anyIssueInBatch = true
+                            saveAnywayButton.isGone = false
+                        }
+                        if (result.saved == true) anySavedInBatch = true
+                    }
+
+                    else -> {
+                        anyIssueInBatch = true
+                        block.setStatus(
+                            result.details
+                                ?: LocaleController.getString("Endpoint is unreachable"),
+                            WColor.Red.color
+                        )
+                    }
+                }
             }
-            when (result.status) {
-                "ok" -> {
-                    block.setStatus(LocaleController.getString("Saved"), WColor.Green.color)
-                    block.saveAnywayButton.isGone = true
+
+            pendingSaveCount -= 1
+            if (pendingSaveCount <= 0) {
+                saveButton.isLoading = false
+                if (anySavedInBatch && !anyIssueInBatch) {
                     reload()
-                }
-
-                "unexpected_response" -> {
-                    block.setStatus(
-                        result.details
-                            ?: LocaleController.getString("Unexpected response from endpoint"),
-                        WColor.Orange.color
-                    )
-                    block.saveAnywayButton.isGone = result.saved == true
-                    if (result.saved == true) reload()
-                }
-
-                else -> {
-                    block.setStatus(
-                        result.details
-                            ?: LocaleController.getString("Endpoint is unreachable"),
-                        WColor.Red.color
-                    )
-                    block.saveAnywayButton.isGone = true
                 }
             }
         }
@@ -282,7 +330,7 @@ class NetworkDetailVC(
         }
     }
 
-    private fun requestApiKeyUnlock(block: FieldBlock) {
+    private fun requestApiKeyUnlock(block: FieldBlock, andSaveForce: Boolean? = null) {
         val nav =
             navigationController?.tabBarController?.mainNavigationController
                 ?: navigationController
@@ -315,9 +363,13 @@ class NetworkDetailVC(
                             )
                             return@call
                         }
+                        sessionPassword = passcode
                         block.isApiKeyUnlocked = true
                         block.unlockedApiKey = result.apiKey.orEmpty()
                         block.refreshVisibility()
+                        if (andSaveForce != null) {
+                            saveAll(force = andSaveForce)
+                        }
                     }
                 }
             )
@@ -327,18 +379,8 @@ class NetworkDetailVC(
     private inner class FieldBlock(
         val field: MNetworkRpcFieldConfig
     ) {
-        var isApiKeyUnlocked = false
+        var isApiKeyUnlocked = field.hasApiKey != true
         var unlockedApiKey = ""
-
-        val showApiKey = SharedNetworksConfig.isApiKeyEligible(chain, field.field)
-
-        private fun statusTextFor(field: MNetworkRpcFieldConfig): String =
-            when {
-                field.isDefault && field.field == "api" && field.defaultUrl.isNullOrEmpty() ->
-                    LocaleController.getString("Enhanced API disabled")
-                field.isDefault -> LocaleController.getString("Using default endpoint")
-                else -> LocaleController.getString("Using custom endpoint")
-            }
 
         private val headerCell =
             HeaderCell(context).apply {
@@ -354,28 +396,20 @@ class NetworkDetailVC(
                 )
             }
 
+        private val apiKeyHeader =
+            HeaderCell(context).apply {
+                configure(
+                    title = LocaleController.getString("API Key"),
+                    titleColor = WColor.Tint,
+                    topRounding = HeaderCell.TopRounding.ZERO
+                )
+            }
+
         private val statusLabel =
             WLabel(context).apply {
                 setStyle(14f)
                 setPaddingLocalized(16.dp, 4.dp, 16.dp, 12.dp)
-                setText(statusTextFor(field))
-            }
-
-        private val enhancedHintLabel =
-            WLabel(context).apply {
-                setStyle(13f)
-                setPaddingLocalized(16.dp, 0.dp, 16.dp, 8.dp)
-                setText(
-                    LocaleController.getString(
-                        "Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them."
-                    )
-                )
-                visibility =
-                    if (field.field == "api" && field.isDefault && field.defaultUrl.isNullOrEmpty()) {
-                        android.view.View.VISIBLE
-                    } else {
-                        android.view.View.GONE
-                    }
+                visibility = android.view.View.GONE
             }
 
         val urlInput =
@@ -399,27 +433,48 @@ class NetworkDetailVC(
                 setSingleLine()
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
                 typeface = WFont.Regular.typeface
-                setPaddingLocalized(16.dp, 14.dp, 16.dp, 14.dp)
+                setPaddingLocalized(16.dp, 14.dp, 48.dp, 14.dp)
                 inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                hint = LocaleController.getString("Optional")
             }
 
-        private val showApiKeyButton =
-            WButton(context, WButton.Type.SECONDARY).apply {
-                text = LocaleController.getString("Show API Key")
-                setOnClickListener { requestApiKeyUnlock(this@FieldBlock) }
+        private val eyeButton =
+            android.widget.ImageButton(context).apply {
+                setImageResource(app.twallet.air.icons.R.drawable.ic_header_eye)
+                background = null
+                contentDescription = LocaleController.getString("Show API Key")
+                setOnClickListener {
+                    if (!isApiKeyUnlocked && field.hasApiKey == true) {
+                        requestApiKeyUnlock(this@FieldBlock)
+                    } else {
+                        val hidden = apiKeyInput.inputType and InputType.TYPE_TEXT_VARIATION_PASSWORD != 0
+                        apiKeyInput.inputType = if (hidden) {
+                            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                        } else {
+                            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                        }
+                        apiKeyInput.setSelection(apiKeyInput.text?.length ?: 0)
+                        setImageResource(
+                            if (hidden) {
+                                app.twallet.air.icons.R.drawable.ic_header_eye_hidden
+                            } else {
+                                app.twallet.air.icons.R.drawable.ic_header_eye
+                            }
+                        )
+                    }
+                }
             }
 
-        val saveButton =
-            WButton(context, WButton.Type.PRIMARY).apply {
-                text = LocaleController.getString("Save")
-                setOnClickListener { save(this@FieldBlock, force = false) }
-            }
-
-        val saveAnywayButton =
-            WButton(context, WButton.Type.SECONDARY).apply {
-                text = LocaleController.getString("Save Anyway")
-                isGone = true
-                setOnClickListener { save(this@FieldBlock, force = true) }
+        private val apiKeyRow =
+            android.widget.FrameLayout(context).apply {
+                addView(apiKeyInput, android.widget.FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+                addView(
+                    eyeButton,
+                    android.widget.FrameLayout.LayoutParams(40.dp, 40.dp).apply {
+                        gravity = android.view.Gravity.END or android.view.Gravity.CENTER_VERTICAL
+                        marginEnd = 8.dp
+                    }
+                )
             }
 
         val resetButton =
@@ -437,8 +492,6 @@ class NetworkDetailVC(
                         topMargin = 16.dp
                     }
                 )
-                addView(statusLabel, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
-                addView(enhancedHintLabel, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
                 addView(
                     urlInput,
                     LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
@@ -446,66 +499,68 @@ class NetworkDetailVC(
                     }
                 )
                 addView(
-                    showApiKeyButton,
+                    apiKeyHeader,
                     LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
                         topMargin = 8.dp
                     }
                 )
                 addView(
-                    apiKeyInput,
+                    apiKeyRow,
                     LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                        topMargin = 8.dp
-                    }
-                )
-                addView(
-                    saveButton,
-                    LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                        topMargin = 16.dp
-                    }
-                )
-                addView(
-                    saveAnywayButton,
-                    LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                        topMargin = 8.dp
+                        topMargin = 4.dp
                     }
                 )
                 addView(
                     resetButton,
-                    LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                    LinearLayout.LayoutParams(MATCH_PARENT, 50.dp).apply {
                         topMargin = 8.dp
                     }
                 )
+                addView(statusLabel, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
                 refreshVisibility()
             }
 
         fun setStatus(text: String, color: Int) {
             statusLabel.text = text
             statusLabel.setTextColor(color)
+            statusLabel.visibility = android.view.View.VISIBLE
         }
 
         fun refreshVisibility() {
-            showApiKeyButton.isGone = !showApiKey || isApiKeyUnlocked
-            apiKeyInput.isGone = !showApiKey || !isApiKeyUnlocked
-            if (isApiKeyUnlocked) {
+            val locked = field.hasApiKey == true && !isApiKeyUnlocked
+            apiKeyInput.isEnabled = !locked
+            apiKeyInput.isFocusable = !locked
+            apiKeyInput.isFocusableInTouchMode = !locked
+            if (locked) {
+                apiKeyInput.setText("")
+                apiKeyInput.hint = "••••••••"
+            } else if (isApiKeyUnlocked) {
+                apiKeyInput.hint = LocaleController.getString("Optional")
                 apiKeyInput.setText(unlockedApiKey.ifEmpty { field.apiKey.orEmpty() })
             }
             resetButton.isGone = field.isDefault
-            saveAnywayButton.isGone = true
         }
 
         fun updateTheme() {
             headerCell.updateTheme()
-            statusLabel.setBackgroundColor(
+            apiKeyHeader.updateTheme()
+            urlInput.setBackgroundColor(
                 WColor.Background.color,
-                0f,
-                ViewConstants.BLOCK_RADIUS.dp
+                ViewConstants.BLOCK_RADIUS.dp.toFloat(),
+                WColor.Separator.color,
+                1f.dp
             )
-            enhancedHintLabel.setTextColor(WColor.SecondaryText.color)
-            urlInput.setBackgroundColor(WColor.Background.color, ViewConstants.BLOCK_RADIUS.dp)
-            apiKeyInput.setBackgroundColor(WColor.Background.color, ViewConstants.BLOCK_RADIUS.dp)
+            apiKeyInput.setBackgroundColor(
+                WColor.Background.color,
+                ViewConstants.BLOCK_RADIUS.dp.toFloat(),
+                WColor.Separator.color,
+                1f.dp
+            )
             urlInput.setTextColor(WColor.PrimaryText.color)
             apiKeyInput.setTextColor(WColor.PrimaryText.color)
-            statusLabel.setTextColor(WColor.SecondaryText.color)
+            urlInput.setHintTextColor(WColor.SecondaryText.color)
+            apiKeyInput.setHintTextColor(WColor.SecondaryText.color)
+            eyeButton.setColorFilter(WColor.SecondaryText.color)
         }
     }
 }

@@ -4,7 +4,9 @@ import { TonClient as TonCoreClient } from '@ton/ton/dist/client/TonClient';
 import type { GetAddressInfoResponse } from '../types';
 
 import { fetchWithRetry } from '../../../../util/fetch';
+import { getProviderFetchRetryPolicy } from '../../../../util/ThrottledFetcher';
 import { ApiServerError } from '../../../errors';
+import { createToncenterAxiosAdapter } from './toncenterAxiosAdapter';
 
 type Parameters = TonClientParameters & {
   headers?: AnyLiteral;
@@ -14,7 +16,11 @@ export class TonClient extends TonCoreClient {
   private initParameters: Parameters;
 
   constructor(parameters: Parameters) {
-    super(parameters);
+    super({
+      ...parameters,
+      // `runMethod` / MFA go through HttpApi→axios, not `sendRequest`. Share the throttled path.
+      httpAdapter: parameters.httpAdapter ?? createToncenterAxiosAdapter(),
+    });
     this.initParameters = parameters;
   }
 
@@ -45,12 +51,18 @@ export class TonClient extends TonCoreClient {
     }
     const body = JSON.stringify(request);
 
+    const providerRetry = getProviderFetchRetryPolicy(apiUrl);
     const response = await fetchWithRetry(apiUrl, {
       method: 'POST',
       body,
       headers,
     }, {
-      shouldSkipRetryFn: (message, statusCode) => isNotTemporaryError(method, message, statusCode),
+      ...providerRetry,
+      // 429 must not be retried here — TonClient previously used DEFAULT_RETRIES (3) and
+      // treated rate-limits as temporary, which is exactly what floods public toncenter.
+      shouldSkipRetryFn: (message, statusCode) => (
+        statusCode === 429 || isNotTemporaryError(method, message, statusCode)
+      ),
     });
 
     const data = await response.json();

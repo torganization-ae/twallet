@@ -71,7 +71,7 @@
       },
       "apiKeyEligible": {
         "rpc": true,
-        "api": false
+        "api": true
       },
       "evmChainId": null,
       "explorers": [
@@ -202,8 +202,8 @@
         "testnet": false
       },
       "apiKeyEligible": {
-        "rpc": false,
-        "api": false
+        "rpc": true,
+        "api": true
       },
       "evmChainId": null,
       "explorers": [
@@ -303,7 +303,7 @@
         "testnet": false
       },
       "apiKeyEligible": {
-        "rpc": false,
+        "rpc": true,
         "api": true
       },
       "evmChainId": null,
@@ -421,7 +421,7 @@
         "testnet": false
       },
       "apiKeyEligible": {
-        "rpc": false,
+        "rpc": true,
         "api": true
       },
       "evmChainId": {
@@ -538,7 +538,7 @@
         "testnet": false
       },
       "apiKeyEligible": {
-        "rpc": false,
+        "rpc": true,
         "api": true
       },
       "evmChainId": {
@@ -653,7 +653,7 @@
         "testnet": false
       },
       "apiKeyEligible": {
-        "rpc": false,
+        "rpc": true,
         "api": true
       },
       "evmChainId": {
@@ -764,7 +764,7 @@
         "testnet": false
       },
       "apiKeyEligible": {
-        "rpc": false,
+        "rpc": true,
         "api": true
       },
       "evmChainId": {
@@ -878,7 +878,7 @@
         "testnet": false
       },
       "apiKeyEligible": {
-        "rpc": false,
+        "rpc": true,
         "api": true
       },
       "evmChainId": {
@@ -991,7 +991,7 @@
         "testnet": false
       },
       "apiKeyEligible": {
-        "rpc": false,
+        "rpc": true,
         "api": true
       },
       "evmChainId": {
@@ -1104,7 +1104,7 @@
         "testnet": false
       },
       "apiKeyEligible": {
-        "rpc": false,
+        "rpc": true,
         "api": true
       },
       "evmChainId": {
@@ -1214,7 +1214,7 @@
         "testnet": false
       },
       "apiKeyEligible": {
-        "rpc": false,
+        "rpc": true,
         "api": true
       },
       "evmChainId": {

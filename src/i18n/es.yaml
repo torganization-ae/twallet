@@ -128,6 +128,38 @@ Share this URL to receive %token%: Comparte esta URL para recibir %token%
 Invoice Link Copied: Se copió el enlace de la factura
 Theme: Tema
 Language: Idioma
+RPC and API endpoints: Endpoints RPC y API
+RPC URL: URL RPC
+API URL: URL de API
+API Key: Clave API
+Enhanced API Key: Clave de Enhanced API
+Leave empty to use the default enhanced API; add your own key for better reliability.: Déjalo vacío para usar la Enhanced API predeterminada; añade tu propia clave para mayor fiabilidad.
+Paste an Alchemy-compatible enhanced API URL above, then optionally add your API key.: "Pega arriba una URL de Enhanced API compatible con Alchemy y, opcionalmente, tu clave API."
+Enhanced API disabled: Enhanced API desactivada
+Enhanced features (activities, NFTs, live updates) are disabled. Add an API URL (+key) to enable them.: "Las funciones avanzadas (actividades, NFT, actualizaciones en vivo) están desactivadas. Añade una URL de API (+clave) para activarlas."
+Reset to Default: Restablecer
+Save Anyway: Guardar de todos modos
+Default: Predeterminado
+Custom: Personalizado
+Hidden: Oculta
+Disabled — add endpoint to enable: Desactivada — añade un endpoint para activar
+No endpoint: Sin endpoint
+Using default endpoint: Usando endpoint predeterminado
+Using custom endpoint: Usando endpoint personalizado
+Show API Key: Mostrar clave API
+Endpoint is unreachable: El endpoint no es accesible
+Unexpected response from endpoint: Respuesta inesperada del endpoint
+Custom endpoints that do not support indexer APIs may disable NFT and activity features for this network.: Los endpoints personalizados sin soporte de indexer API pueden desactivar NFT y actividades en esta red.
+Password required to save API key: Se requiere contraseña para guardar la clave API
+Show in wallet: Mostrar en la billetera
+At least one network must stay enabled.: Al menos una red debe permanecer activada.
+Network Menu: Menú de red
+Show Wallet QR: Mostrar QR de la billetera
+Enter URL: Introduce la URL
+Edit Network: Editar
+Enable: Activar
+Disable: Desactivar
+Saved: Guardado
 Enable Animations: Habilitar animaciones
 Enable Seasonal Theming: Activar tema estacional
 Enable Landscape Mode: Activar modo horizontal

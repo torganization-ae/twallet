@@ -12,36 +12,37 @@ export type Period = number | {
 
 export const activeWalletTiming: FallbackPollingOptions = {
   pollOnStart: true,
-  minPollDelay: { focused: 5 * SEC, notFocused: 15 * SEC },
-  pollingStartDelay: 5 * SEC,
-  // Public providers (toncenter without key, publicnode, …) rate-limit hard.
-  // 3s was fine behind our keyed proxy; on public endpoints it DDoSes and gets 429s.
-  pollingPeriod: { focused: 30 * SEC, notFocused: MINUTE },
-  forcedPollingPeriod: { focused: 2 * MINUTE, notFocused: 5 * MINUTE },
+  minPollDelay: { focused: 20 * SEC, notFocused: MINUTE },
+  pollingStartDelay: 15 * SEC,
+  // Public providers (toncenter / publicnode / …) rate-limit hard. HTTP fallback
+  // at most once a minute while focused; live sockets push interim changes.
+  pollingPeriod: { focused: MINUTE, notFocused: 3 * MINUTE },
+  forcedPollingPeriod: { focused: 10 * MINUTE, notFocused: 20 * MINUTE },
 };
 
 export const inactiveWalletTiming: FallbackPollingOptions = {
   pollOnStart: false,
-  minPollDelay: { focused: 5 * SEC, notFocused: 30 * SEC },
-  pollingStartDelay: 5 * SEC,
-  pollingPeriod: { focused: 30 * SEC, notFocused: MINUTE },
-  forcedPollingPeriod: { focused: 2 * MINUTE, notFocused: 5 * MINUTE },
+  minPollDelay: { focused: 30 * SEC, notFocused: 2 * MINUTE },
+  pollingStartDelay: 30 * SEC,
+  pollingPeriod: { focused: 3 * MINUTE, notFocused: 10 * MINUTE },
+  forcedPollingPeriod: { focused: 15 * MINUTE, notFocused: 30 * MINUTE },
 };
 
 export const activeNftTiming: FallbackPollingOptions = {
   pollOnStart: true,
-  minPollDelay: { focused: SEC, notFocused: 3 * SEC },
-  pollingStartDelay: 3 * SEC,
-  pollingPeriod: { focused: 30 * SEC, notFocused: MINUTE },
-  forcedPollingPeriod: { focused: 5 * MINUTE, notFocused: 10 * MINUTE },
+  minPollDelay: { focused: 15 * SEC, notFocused: MINUTE },
+  pollingStartDelay: 0,
+  // Full NFT rescans only while the Collectibles tab is open.
+  pollingPeriod: { focused: 2 * MINUTE, notFocused: 10 * MINUTE },
+  forcedPollingPeriod: { focused: 10 * MINUTE, notFocused: 30 * MINUTE },
 };
 
 export const inactiveNftTiming: FallbackPollingOptions = {
   pollOnStart: false,
-  minPollDelay: { focused: 5 * SEC, notFocused: 30 * SEC },
-  pollingStartDelay: 5 * SEC,
-  pollingPeriod: { focused: MINUTE, notFocused: 5 * MINUTE },
-  forcedPollingPeriod: { focused: 10 * MINUTE, notFocused: 30 * MINUTE },
+  minPollDelay: { focused: 30 * SEC, notFocused: 2 * MINUTE },
+  pollingStartDelay: 30 * SEC,
+  pollingPeriod: { focused: 5 * MINUTE, notFocused: 15 * MINUTE },
+  forcedPollingPeriod: { focused: 30 * MINUTE, notFocused: 60 * MINUTE },
 };
 
 interface PollingLoopOptions<Dep> {
