@@ -620,6 +620,11 @@ extension JSWebViewBridge: WKScriptMessageHandler { // todo: move to a separate 
                     } catch {
                         log.error("failed to decode updateNfts: \(error, .public)")
                     }
+
+                case "updateChainVisibility":
+                    let hidden = data["hiddenChainsByNetwork"] as? [String: [String]] ?? [:]
+                    ChainVisibilityStore.shared.update(hiddenChainsByNetwork: hidden)
+                    WalletCoreData.notify(event: .chainVisibilityChanged)
                 
                 case "nftReceived":
                     do {

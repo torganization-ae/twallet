@@ -8,6 +8,11 @@ jest.mock('../common/swap', () => ({
   swapReplaceActivities: jest.fn((_accountId: string, activities: unknown[]) => activities),
 }));
 
+jest.mock('../chains/chainVisibility', () => ({
+  isChainHidden: jest.fn().mockResolvedValue(false),
+  getHiddenChainsSnapshot: jest.fn().mockReturnValue(new Set()),
+}));
+
 // Proxy returns a stable stub per chain key, so the mock survives additions and removals
 // of chains in `CHAIN_CONFIG` without a manual list, and `expect(stub).toHaveBeenCalled()`
 // keeps working across multiple accesses to the same chain.

@@ -2,6 +2,8 @@ package app.twallet.air.walletcore.helpers
 
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcore.moshi.MApiTransaction
+import app.twallet.air.walletcore.stores.AccountStore
+import app.twallet.air.walletcore.stores.ChainVisibilityStore
 import kotlin.math.absoluteValue
 
 class ActivityHelpers {
@@ -74,7 +76,11 @@ class ActivityHelpers {
                     !transaction.isPoisoning(accountId) &&
                     !transaction.isHiddenNftActivity(accountId) &&
                     (checkSlug == null || activityBelongsToSlug(transaction, checkSlug)) &&
-                    (!hideTiny || !transaction.isTinyOrScam)
+                    (!hideTiny || !transaction.isTinyOrScam) &&
+                    ChainVisibilityStore.isActivityVisible(
+                        transaction,
+                        AccountStore.activeAccount?.network?.value ?: "mainnet",
+                    )
             }
         }
 

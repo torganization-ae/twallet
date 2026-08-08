@@ -41,6 +41,7 @@ class NetworkDetailVC(
     private val chain: String,
     private val chainTitle: String,
     private val initiallyHidden: Boolean = false,
+    private val canDisableInitially: Boolean = true,
 ) : WViewController(context) {
     override val TAG = "NetworkDetail"
 
@@ -48,6 +49,19 @@ class NetworkDetailVC(
 
     private var fieldBlocks: List<FieldBlock> = emptyList()
     private var isHidden = initiallyHidden
+    private var canDisable = canDisableInitially
+
+    private val lastNetworkHintLabel =
+        WLabel(context).apply {
+            setStyle(13f)
+            setPaddingLocalized(16.dp, 8.dp, 16.dp, 0.dp)
+            text = LocaleController.getString("At least one network must stay enabled.")
+            visibility = if (!initiallyHidden && !canDisableInitially) {
+                android.view.View.VISIBLE
+            } else {
+                android.view.View.GONE
+            }
+        }
 
     private val visibilitySwitch =
         app.twallet.air.uicomponents.commonViews.cells.SwitchCell(
@@ -57,7 +71,13 @@ class NetworkDetailVC(
             isFirst = true,
             isLast = true,
         ) { checked ->
+            if (!checked && !canDisable) {
+                visibilitySwitch.isChecked = true
+                return@SwitchCell
+            }
             setVisibility(isHidden = !checked)
+        }.also {
+            it.isEnabled = initiallyHidden || canDisableInitially
         }
 
     private val warningLabel =
@@ -113,6 +133,7 @@ class NetworkDetailVC(
         view.setBackgroundColor(WColor.SecondaryBackground.color)
         fieldBlocks.forEach { it.updateTheme() }
         warningLabel.setTextColor(WColor.SecondaryText.color)
+        lastNetworkHintLabel.setTextColor(WColor.SecondaryText.color)
         visibilitySwitch.updateTheme()
     }
 
@@ -129,14 +150,20 @@ class NetworkDetailVC(
     private fun networkName(): String = AccountStore.activeAccount?.network?.value ?: "mainnet"
 
     private fun setVisibility(isHidden: Boolean) {
+        if (isHidden && !canDisable) {
+            visibilitySwitch.isChecked = true
+            return
+        }
         WalletCore.call(
             ApiMethod.Networks.SetChainVisibility(chain, networkName(), isHidden)
-        ) { _, err ->
-            if (err != null) {
+        ) { result, err ->
+            if (err != null || result?.ok != true) {
                 visibilitySwitch.isChecked = !this.isHidden
+                reload()
                 return@call
             }
             this.isHidden = isHidden
+            reload()
         }
     }
 
@@ -144,8 +171,13 @@ class NetworkDetailVC(
         WalletCore.call(ApiMethod.Networks.GetRpcConfig(networkName())) { result, err ->
             if (err != null || result == null) return@call
             val item = result.firstOrNull { it.chain == chain } ?: return@call
+            val visibleCount = result.count { it.isHidden != true }
             isHidden = item.isHidden == true
+            canDisable = isHidden || visibleCount > 1
             visibilitySwitch.isChecked = !isHidden
+            visibilitySwitch.isEnabled = isHidden || canDisable
+            lastNetworkHintLabel.visibility =
+                if (!isHidden && !canDisable) android.view.View.VISIBLE else android.view.View.GONE
             render(item.fields)
         }
     }
@@ -157,6 +189,10 @@ class NetworkDetailVC(
             LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
                 topMargin = 16.dp
             }
+        )
+        contentContainer.addView(
+            lastNetworkHintLabel,
+            LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         )
         fieldBlocks = fields.map { FieldBlock(it) }
         fieldBlocks.forEach { block ->

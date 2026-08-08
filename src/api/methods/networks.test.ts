@@ -1,4 +1,4 @@
-import { getHiddenChainsMap } from '../chains/chainVisibility';
+import { getHiddenChainsMap, setHiddenChainsSnapshot } from '../chains/chainVisibility';
 import {
   getEvmProvider,
   invalidateEvmProvider,
@@ -36,6 +36,7 @@ const originalFetch = global.fetch;
 describe('networks RPC API', () => {
   beforeEach(() => {
     Object.keys(mockStorageData).forEach((key) => delete mockStorageData[key]);
+    setHiddenChainsSnapshot({});
     __resetRpcOverridesForTests();
     invalidateEvmProvider();
     global.fetch = originalFetch;
@@ -133,6 +134,25 @@ describe('networks RPC API', () => {
     await setChainVisibility('polygon', 'mainnet', false);
     const shown = await getHiddenChainsMap('mainnet');
     expect(shown.polygon).toBeUndefined();
+  });
+
+  it('refuses to hide the last visible network', async () => {
+    const config = await getRpcConfig('mainnet');
+    const visible = config.filter((item) => !item.isHidden);
+    expect(visible.length).toBeGreaterThan(0);
+
+    // Hide every visible network except the first.
+    for (const item of visible.slice(1)) {
+      const result = await setChainVisibility(item.chain, 'mainnet', true);
+      expect(result).toEqual({ ok: true });
+    }
+
+    const last = visible[0];
+    const blocked = await setChainVisibility(last.chain, 'mainnet', true);
+    expect(blocked).toEqual({ ok: false, reason: 'last_visible' });
+
+    const stillVisible = await getHiddenChainsMap('mainnet');
+    expect(stillVisible[last.chain]).toBeUndefined();
   });
 
   it('returns active networks before inactive, each group sorted A–Z', async () => {

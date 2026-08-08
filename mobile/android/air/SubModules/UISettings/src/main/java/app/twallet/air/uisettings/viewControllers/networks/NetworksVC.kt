@@ -118,6 +118,11 @@ class NetworksVC(
 
     private fun networkName(): String = AccountStore.activeAccount?.network?.value ?: "mainnet"
 
+    private fun visibleCount(): Int = items.count { it.isHidden != true }
+
+    private fun canDisable(item: MNetworkRpcConfigItem): Boolean =
+        item.isHidden == true || visibleCount() > 1
+
     private fun reload() {
         WalletCore.call(ApiMethod.Networks.GetRpcConfig(networkName())) { result, err ->
             if (err != null || result == null) return@call
@@ -144,37 +149,50 @@ class NetworksVC(
 
     private fun openDetail(item: MNetworkRpcConfigItem) {
         navigationController?.push(
-            NetworkDetailVC(context, item.chain, item.title, item.isHidden == true)
+            NetworkDetailVC(
+                context,
+                item.chain,
+                item.title,
+                item.isHidden == true,
+                canDisable(item),
+            )
         )
     }
 
     private fun setVisibility(item: MNetworkRpcConfigItem, isHidden: Boolean) {
+        if (isHidden && !canDisable(item)) return
         WalletCore.call(
             ApiMethod.Networks.SetChainVisibility(item.chain, networkName(), isHidden)
-        ) { _, err ->
-            if (err != null) return@call
+        ) { result, err ->
+            if (err != null || result?.ok != true) return@call
             reload()
         }
     }
 
     private fun showMenu(anchor: View, item: MNetworkRpcConfigItem) {
         val isHidden = item.isHidden == true
-        WMenuPopup.present(
-            anchor,
-            listOf(
-                WMenuPopup.Item(
-                    null,
-                    LocaleController.getString("Edit Network")
-                ) {
-                    openDetail(item)
-                },
+        val allowDisable = canDisable(item)
+        val items = mutableListOf(
+            WMenuPopup.Item(
+                null,
+                LocaleController.getString("Edit Network")
+            ) {
+                openDetail(item)
+            },
+        )
+        if (isHidden || allowDisable) {
+            items.add(
                 WMenuPopup.Item(
                     null,
                     LocaleController.getString(if (isHidden) "Enable" else "Disable")
                 ) {
                     setVisibility(item, !isHidden)
                 },
-            ),
+            )
+        }
+        WMenuPopup.present(
+            anchor,
+            items,
             popupWidth = WRAP_CONTENT,
             positioning = WMenuPopup.Positioning.ALIGNED
         )

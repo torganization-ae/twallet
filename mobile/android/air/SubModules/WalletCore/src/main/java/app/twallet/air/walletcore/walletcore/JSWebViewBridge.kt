@@ -46,6 +46,7 @@ import app.twallet.air.walletcore.moshi.api.ApiUpdate
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.ActivityStore
 import app.twallet.air.walletcore.stores.BalanceStore
+import app.twallet.air.walletcore.stores.ChainVisibilityStore
 import app.twallet.air.walletcore.stores.ConfigStore
 import app.twallet.air.walletcore.stores.EnvironmentStore
 import app.twallet.air.walletcore.stores.NftStore
@@ -600,6 +601,15 @@ class JSWebViewBridge(context: Context) : WebView(context) {
                     ConfigStore.init(configMapString)
                     ensureMainThread {
                         WalletCore.notifyEvent(WalletEvent.ConfigReceived)
+                    }
+                }
+
+                "updateChainVisibility" -> {
+                    ChainVisibilityStore.updateFromJson(
+                        objectJSONObject.optJSONObject("hiddenChainsByNetwork")
+                    )
+                    ensureMainThread {
+                        WalletCore.notifyEvent(WalletEvent.ChainVisibilityChanged)
                     }
                 }
 

@@ -4,10 +4,11 @@ import {
   BASE,
   ETH,
   ETH_USDT_MAINNET,
+  SOLANA,
   TONCOIN,
 } from '../../config';
 import { INITIAL_STATE } from '../initialState';
-import { selectTokenInfoUserTokens } from './tokens';
+import { selectAccountTokens, selectTokenInfoUserTokens } from './tokens';
 
 const ACCOUNT_ID = 'mainnet-0';
 
@@ -24,6 +25,7 @@ function buildGlobal(): GlobalState {
             ton: { address: 'ton-address' },
             ethereum: { address: '0x0000000000000000000000000000000000000000' },
             base: { address: '0x0000000000000000000000000000000000000000' },
+            solana: { address: '2xmoSUHGovXAmxeYVGEH6mWme5ECpDvxQ6PVkmi3wqa2' },
           },
         },
       },
@@ -44,6 +46,7 @@ function buildGlobal(): GlobalState {
         [ETH.slug]: { ...ETH, priceUsd: 3000, percentChange24h: 100 },
         [BASE.slug]: { ...BASE, priceUsd: 3000, percentChange24h: 100 },
         [ETH_USDT_MAINNET.slug]: { ...ETH_USDT_MAINNET, priceUsd: 1, percentChange24h: 0 },
+        [SOLANA.slug]: { ...SOLANA, priceUsd: 75, percentChange24h: 0, isFromBackend: true },
       },
     },
     swapTokenInfo: {
@@ -80,5 +83,53 @@ describe('selectTokenInfoUserTokens', () => {
       ...global,
       isBackupWalletModalOpen: true,
     })).toBe(selectTokenInfoUserTokens(global));
+  });
+});
+
+describe('selectAccountTokens native visibility', () => {
+  it('keeps native tokens enabled below the dust threshold when Hide Tokens With No Cost is on', () => {
+    const global = buildGlobal();
+    // 0.005 SOL ≈ $0.37 — below DEFAULT_DUST_THRESHOLD_USD ($1)
+    global.byAccountId[ACCOUNT_ID] = {
+      ...global.byAccountId[ACCOUNT_ID],
+      balances: {
+        bySlug: {
+          [SOLANA.slug]: 5_000_000n,
+        },
+      },
+    };
+    global.settings = {
+      ...global.settings,
+      areTokensWithNoCostHidden: true,
+    };
+
+    const tokens = selectAccountTokens(global, ACCOUNT_ID)!;
+    const sol = tokens.find((token) => token.slug === SOLANA.slug);
+
+    expect(sol).toBeDefined();
+    expect(sol!.amount).toBe(5_000_000n);
+    expect(sol!.isDisabled).toBe(false);
+  });
+
+  it('does not force-enable native tokens with a zero balance', () => {
+    const global = buildGlobal();
+    global.byAccountId[ACCOUNT_ID] = {
+      ...global.byAccountId[ACCOUNT_ID],
+      balances: {
+        bySlug: {
+          [SOLANA.slug]: 0n,
+        },
+      },
+    };
+    global.settings = {
+      ...global.settings,
+      areTokensWithNoCostHidden: true,
+    };
+
+    const tokens = selectAccountTokens(global, ACCOUNT_ID)!;
+    const sol = tokens.find((token) => token.slug === SOLANA.slug);
+
+    expect(sol).toBeDefined();
+    expect(sol!.isDisabled).toBe(true);
   });
 });

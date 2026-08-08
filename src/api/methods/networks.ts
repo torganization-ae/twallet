@@ -4,6 +4,7 @@ import type { ApiChain, ApiNetwork, EVMChain } from '../types';
 import { parseAccountId } from '../../util/account';
 import { getChainConfig, getDisplayOrderedChains } from '../../util/chain';
 import {
+  getHiddenChains,
   getHiddenChainsMap,
   getHiddenChainsStateSnapshot,
   setChainHidden,
@@ -482,7 +483,15 @@ export async function setChainVisibility(
   chain: ApiChain,
   network: ApiNetwork,
   isHidden: boolean,
-): Promise<{ ok: true }> {
+): Promise<{ ok: true } | { ok: false; reason: 'last_visible' }> {
+  if (isHidden) {
+    const hidden = await getHiddenChains(network);
+    const visible = getDisplayOrderedChains(network).filter((item) => !hidden.has(item));
+    if (visible.length <= 1 && visible[0] === chain) {
+      return { ok: false, reason: 'last_visible' };
+    }
+  }
+
   await setChainHidden(chain, network, isHidden);
   getCurrentUpdater()?.({
     type: 'updateChainVisibility',

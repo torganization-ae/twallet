@@ -20,7 +20,7 @@ import { findChainConfig, getDefaultEnabledSlugs } from '../../util/chain';
 import { toBig } from '../../util/decimals';
 import memoize from '../../util/memoize';
 import { round } from '../../util/round';
-import { getChainBySlug, sortTokens } from '../../util/tokens';
+import { getChainBySlug, getIsNativeToken, sortTokens } from '../../util/tokens';
 import withCache from '../../util/withCache';
 import { getHiddenChainsSnapshot } from '../../api/chains/chainVisibility';
 import {
@@ -128,13 +128,16 @@ export const selectAccountTokensMemoizedFor = withCache((accountId: string) => m
       );
       const isPricelessTokenWithBalance = PRICELESS_TOKEN_HASHES.has(codeHash!) && balance > 0n;
       const isSafe = isSafeAsset(slug, tokenInfo.bySlug[slug], balance, accountSettings, dustThresholdUsd, network);
+      // Native gas tokens should stay visible at any non-zero balance, even below the dust / no-cost threshold.
+      const isNativeWithBalance = getIsNativeToken(slug) && balance > 0n;
 
       const isEnabled = accountSettings.alwaysShownSlugs?.includes(slug)
+        || isNativeWithBalance
         || (shouldShowOnlyDefaultTokens
           ? getDefaultEnabledSlugs(network).has(slug)
           : (isSafe && (hasCost || isPricelessTokenWithBalance || (!areTokensWithNoCostHidden && balance > 0n))));
 
-      const isDisabled = !isEnabled || accountSettings.alwaysHiddenSlugs?.includes(slug);
+      const isDisabled = !isEnabled || Boolean(accountSettings.alwaysHiddenSlugs?.includes(slug));
 
       return {
         chain,

@@ -131,16 +131,17 @@ class MToken(json: JSONObject) : IApiToken, WEquatable<MToken> {
         if (isVisibleToken) {
             return false
         }
+        val tokenBalance =
+            (BalanceStore.getBalances(account.accountId)?.get(slug) ?: BigInteger.ZERO)
+        // Keep native gas tokens visible at any non-zero balance.
+        if (mBlockchain?.nativeSlug == slug && tokenBalance > BigInteger.ZERO) {
+            return false
+        }
         if (DEFAULT_SHOWN_TOKENS[account.network]?.contains(slug) == true && account.isNew)
             return false
-        if (PRICELESS_TOKEN_HASHES.contains(codeHash) &&
-            (BalanceStore.getBalances(account.accountId)?.get(slug)
-                ?: BigInteger.ZERO) > BigInteger.ZERO
-        )
+        if (PRICELESS_TOKEN_HASHES.contains(codeHash) && tokenBalance > BigInteger.ZERO)
             return false
         if (WGlobalStorage.getAreNoCostTokensHidden()) {
-            val tokenBalance =
-                (BalanceStore.getBalances(account.accountId)?.get(slug) ?: BigInteger.ZERO)
             return priceUsd * tokenBalance.doubleAbsRepresentation(decimals) < 0.01
         }
         return false

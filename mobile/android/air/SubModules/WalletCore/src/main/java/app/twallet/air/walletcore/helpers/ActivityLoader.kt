@@ -533,6 +533,7 @@ class ActivityLoader(
             is WalletEvent.ReceivedNewActivities -> handleReceivedNewActivities(walletEvent)
             WalletEvent.HideTinyTransfersChanged -> handleFilterChanged()
             WalletEvent.NftsUpdated -> handleFilterChanged()
+            WalletEvent.ChainVisibilityChanged -> handleFilterChanged()
             else -> {}
         }
     }

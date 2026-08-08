@@ -115,6 +115,7 @@ public struct WalletCoreData {
         case nftReceived(ApiUpdate.NftReceived)
         case nftSent(ApiUpdate.NftSent)
         case nftPutUpForSale(ApiUpdate.NftPutUpForSale)
+        case chainVisibilityChanged
         case exchangeWithLedger(apdu: String, callback: @MainActor (String?) async -> ())
         case isLedgerJettonIdSupported(callback: @MainActor (Bool?) async -> ())
         case isLedgerUnsafeSupported(callback: @MainActor (Bool?) async -> ())

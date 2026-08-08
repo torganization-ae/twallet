@@ -171,32 +171,51 @@ public final class NetworksVC: SettingsBaseVC, UICollectionViewDelegate {
         )
     }
 
+    private func visibleCount() -> Int {
+        items.reduce(0) { $0 + ($1.isHidden == true ? 0 : 1) }
+    }
+
+    private func canDisable(_ config: ApiNetworkRpcConfigItem) -> Bool {
+        config.isHidden == true || visibleCount() > 1
+    }
+
     private func makeMenu(for config: ApiNetworkRpcConfigItem) -> UIMenu {
         let isHidden = config.isHidden == true
         let edit = UIAction(title: lang("Edit Network"), image: nil) { [weak self] _ in
             self?.openDetail(config)
         }
+        let allowDisable = canDisable(config)
         let toggleTitle = isHidden ? lang("Enable") : lang("Disable")
-        let toggle = UIAction(title: toggleTitle, image: nil) { [weak self] _ in
+        var toggle = UIAction(title: toggleTitle, image: nil) { [weak self] _ in
+            guard isHidden || allowDisable else { return }
             Task { await self?.setVisibility(chain: config.chain, isHidden: !isHidden) }
+        }
+        if !isHidden && !allowDisable {
+            toggle.attributes.insert(.disabled)
         }
         return UIMenu(children: [edit, toggle])
     }
 
     private func openDetail(_ config: ApiNetworkRpcConfigItem) {
         navigationController?.pushViewController(
-            NetworkDetailVC(chain: config.chain, title: config.title, isHidden: config.isHidden == true),
+            NetworkDetailVC(
+                chain: config.chain,
+                title: config.title,
+                isHidden: config.isHidden == true,
+                canDisable: canDisable(config)
+            ),
             animated: true
         )
     }
 
     private func setVisibility(chain: String, isHidden: Bool) async {
         do {
-            _ = try await Api.setChainVisibility(
+            let result = try await Api.setChainVisibility(
                 chain: chain,
                 network: AccountStore.activeNetwork,
                 isHidden: isHidden
             )
+            guard result.ok else { return }
             await reload()
         } catch {
             // Keep previous list on failure

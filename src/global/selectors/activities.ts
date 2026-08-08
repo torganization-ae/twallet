@@ -1,9 +1,20 @@
 import type { ApiActivity, ApiActivityTimestamps, ApiChain } from '../../api/types';
 import type { GlobalState } from '../types';
 
-import { getIsActivitySuitableForFetchingTimestamp, getIsTxIdLocal } from '../../util/activities';
+import { parseAccountId } from '../../util/account';
+import { getActivityChains, getIsActivitySuitableForFetchingTimestamp, getIsTxIdLocal } from '../../util/activities';
+import { getOrderedAccountChains } from '../../util/chain';
 import { compact, findLast, mapValues } from '../../util/iteratees';
-import { selectAccountState } from './accounts';
+import { getHiddenChainsSnapshot } from '../../api/chains/chainVisibility';
+import { selectAccount, selectAccountState } from './accounts';
+
+function isActivityOnVisibleChain(activity: ApiActivity, accountId: string) {
+  const { network } = parseAccountId(accountId);
+  const hiddenChains = getHiddenChainsSnapshot(network);
+  if (!hiddenChains.size) return true;
+
+  return getActivityChains(activity).every((chain) => !hiddenChains.has(chain));
+}
 
 export function selectNewestActivityTimestamps(global: GlobalState, accountId: string): ApiActivityTimestamps {
   return mapValues(
@@ -22,7 +33,12 @@ export function selectLastActivityTimestamp(
 
   const { byId, idsMain, idsBySlug } = activities;
   const ids = (tokenSlug ? idsBySlug?.[tokenSlug] : idsMain) || [];
-  const txId = findLast(ids, (id) => getIsActivitySuitableForFetchingTimestamp(byId[id]));
+  const txId = findLast(ids, (id) => {
+    const activity = byId[id];
+    return getIsActivitySuitableForFetchingTimestamp(activity)
+      && activity
+      && isActivityOnVisibleChain(activity, accountId);
+  });
   if (!txId) return undefined;
 
   return byId[txId].timestamp;
@@ -31,11 +47,17 @@ export function selectLastActivityTimestamp(
 export function selectLocalActivitiesSlow(global: GlobalState, accountId: string) {
   const { byId = {}, localActivityIds = [] } = global.byAccountId[accountId]?.activities ?? {};
 
-  return compact(localActivityIds.map((id) => byId[id]));
+  return compact(localActivityIds.map((id) => byId[id]))
+    .filter((activity) => isActivityOnVisibleChain(activity, accountId));
 }
 
 /** Doesn't include local activities */
 export function selectPendingActivitiesSlow(global: GlobalState, accountId: string, chain: ApiChain) {
+  const { network } = parseAccountId(accountId);
+  if (getHiddenChainsSnapshot(network).has(chain)) {
+    return [];
+  }
+
   const { byId = {}, pendingActivityIds = {} } = global.byAccountId[accountId]?.activities ?? {};
   const ids = pendingActivityIds[chain] ?? [];
 
@@ -54,7 +76,7 @@ export function selectRecentNonLocalActivitiesSlow(global: GlobalState, accountI
       continue;
     }
     const activity = byId[id];
-    if (activity) {
+    if (activity && isActivityOnVisibleChain(activity, accountId)) {
       result.push(activity);
     }
   }
@@ -64,18 +86,41 @@ export function selectRecentNonLocalActivitiesSlow(global: GlobalState, accountI
 
 export function selectIsHistoryEndReached(global: GlobalState, accountId: string, tokenSlug?: string) {
   const accountState = selectAccountState(global, accountId);
-  const { isMainHistoryEndReached, isHistoryEndReachedBySlug } = accountState?.activities ?? {};
+  const activities = accountState?.activities;
+  if (tokenSlug) {
+    return !!activities?.isHistoryEndReachedBySlug?.[tokenSlug];
+  }
 
-  return tokenSlug
-    ? !!isHistoryEndReachedBySlug?.[tokenSlug]
-    : !!isMainHistoryEndReached;
+  // Only enabled networks count toward the "history ended" gate — otherwise a disabled
+  // chain that never finished loading keeps the feed spinner forever.
+  const byChain = selectAccount(global, accountId)?.byChain ?? {};
+  const { network } = parseAccountId(accountId);
+  const visibleChains = getOrderedAccountChains(byChain, network);
+  if (!visibleChains.length) {
+    return true;
+  }
+
+  const hasMoreByChain = activities?.mainHistoryHasMoreByChain ?? {};
+  return visibleChains.every((chain) => hasMoreByChain[chain] === false);
 }
 
 /** If returns `undefined`, the activities haven't been loaded yet. If returns `[]`, there are no activities. */
 export function selectActivityHistoryIds(global: GlobalState, accountId: string, tokenSlug?: string) {
-  const { idsMain, idsBySlug } = selectAccountState(global, accountId)?.activities ?? {};
+  const activities = selectAccountState(global, accountId)?.activities;
+  const { idsMain, idsBySlug, byId } = activities ?? {};
+  const ids = tokenSlug ? idsBySlug?.[tokenSlug] : idsMain;
+  if (!ids || !byId) {
+    return ids;
+  }
 
-  return tokenSlug
-    ? idsBySlug?.[tokenSlug]
-    : idsMain;
+  const { network } = parseAccountId(accountId);
+  const hiddenChains = getHiddenChainsSnapshot(network);
+  if (!hiddenChains.size) {
+    return ids;
+  }
+
+  return ids.filter((id) => {
+    const activity = byId[id];
+    return Boolean(activity && isActivityOnVisibleChain(activity, accountId));
+  });
 }

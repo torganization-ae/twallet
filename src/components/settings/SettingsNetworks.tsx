@@ -294,10 +294,12 @@ function NetworkFieldForm({
 
 function NetworkListItem({
   item,
+  canDisable,
   onSelect,
   onToggleVisibility,
 }: {
   item: NetworkRpcConfigItem;
+  canDisable: boolean;
   onSelect: (chain: ApiChain) => void;
   onToggleVisibility: (chain: ApiChain, isHidden: boolean) => void;
 }) {
@@ -317,8 +319,9 @@ function NetworkListItem({
     {
       value: isHidden ? 'enable' : 'disable',
       name: isHidden ? 'Enable' : 'Disable',
+      isDisabled: !isHidden && !canDisable,
     },
-  ], [isHidden]);
+  ], [canDisable, isHidden]);
 
   const getTriggerElement = useLastCallback(() => menuButtonRef.current);
   const getRootElement = useLastCallback(() => document.body);
@@ -333,6 +336,9 @@ function NetworkListItem({
   const handleMenuSelect = useLastCallback((value: NetworkMenuHandler) => {
     if (value === 'edit') {
       onSelect(item.chain);
+      return;
+    }
+    if (value === 'disable' && !canDisable) {
       return;
     }
     onToggleVisibility(item.chain, value === 'disable');
@@ -422,7 +428,10 @@ function SettingsNetworks({
   });
 
   const toggleChainVisibility = useLastCallback(async (chain: ApiChain, isHidden: boolean) => {
-    await callApi('setChainVisibility', chain, network, isHidden);
+    const result = await callApi('setChainVisibility', chain, network, isHidden);
+    if (result && 'ok' in result && !result.ok) {
+      return;
+    }
     await reload({ silent: true });
   });
 
@@ -433,6 +442,11 @@ function SettingsNetworks({
   }, [isActive, network, reload]);
 
   const selected = items.find((item) => item.chain === selectedChain);
+  const visibleCount = useMemo(
+    () => items.reduce((count, item) => (item.isHidden ? count : count + 1), 0),
+    [items],
+  );
+  const canToggleVisibility = Boolean(selected && (selected.isHidden || visibleCount > 1));
 
   const handleSelectChain = useLastCallback((chain: ApiChain) => {
     setSelectedChain(chain);
@@ -449,6 +463,9 @@ function SettingsNetworks({
 
   const handleVisibilityToggle = useLastCallback(() => {
     if (!selected) return;
+    if (!selected.isHidden && visibleCount <= 1) {
+      return;
+    }
     void toggleChainVisibility(selected.chain, !selected.isHidden);
   });
 
@@ -463,6 +480,7 @@ function SettingsNetworks({
             <NetworkListItem
               key={item.chain}
               item={item}
+              canDisable={Boolean(item.isHidden) || visibleCount > 1}
               onSelect={handleSelectChain}
               onToggleVisibility={(chain, isHidden) => {
                 void toggleChainVisibility(chain, isHidden);
@@ -481,8 +499,12 @@ function SettingsNetworks({
       <>
         <div className={styles.block}>
           <div
-            className={buildClassName(styles.item, styles.item_small)}
-            onClick={handleVisibilityToggle}
+            className={buildClassName(
+              styles.item,
+              styles.item_small,
+              !canToggleVisibility && styles.item_nonInteractive,
+            )}
+            onClick={canToggleVisibility ? handleVisibilityToggle : undefined}
           >
             <span className={styles.itemTitle}>{lang('Show in wallet')}</span>
             <Switcher
@@ -492,6 +514,11 @@ function SettingsNetworks({
             />
           </div>
         </div>
+        {!canToggleVisibility && (
+          <p className={styles.itemSubtitle} style="padding: 0 1rem 0.75rem;">
+            {lang('At least one network must stay enabled.')}
+          </p>
+        )}
 
         {selected.fields.map((field) => (
           <NetworkFieldForm

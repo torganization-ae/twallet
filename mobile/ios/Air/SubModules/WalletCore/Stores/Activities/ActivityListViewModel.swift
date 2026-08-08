@@ -78,8 +78,12 @@ public actor ActivityListViewModel: WalletCoreData.EventsObserver {
             accountState.idsMain
         }
         let hideTinyTransfers = AppStorageHelper.hideTinyTransfers
+        let network = AccountStore.activeNetwork
         ids = ids?.filter {
             if let activity = activitiesById?[$0] {
+                if !ChainVisibilityStore.shared.isActivityVisible(activity, network: network) {
+                    return false
+                }
                 switch activity {
                 case .transaction(let transaction):
                     if activity.shouldHide == true {
@@ -188,7 +192,7 @@ public actor ActivityListViewModel: WalletCoreData.EventsObserver {
             if accountId == self.accountId {
                 await getState(updatedIds: updatedIds, replacedIds: replacedIds)
             }
-        case .hideTinyTransfersChanged:
+        case .hideTinyTransfersChanged, .chainVisibilityChanged:
             await getState(updatedIds: [], replacedIds: [:])
         case .nftsChanged(let accountId):
             if accountId == self.accountId {

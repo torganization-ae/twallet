@@ -69,7 +69,7 @@ export function setupActivePolling(
       activityPolling.update,
       onUpdate,
     )
-    : undefined;
+    : setupDisabledNftPolling(accountId, onUpdate);
 
   const balancePolling = setupBalancePolling(
     accountId,
@@ -82,7 +82,7 @@ export function setupActivePolling(
   );
 
   return () => {
-    nftPolling?.stop();
+    nftPolling.stop();
     balancePolling.stop();
   };
 }
@@ -233,6 +233,24 @@ function setupDisabledActivityPolling(
   });
   onUpdatingStatusChange(false);
   return { update() {} };
+}
+
+/** When Solana indexer is disabled, unblock the NFT tab without HTTP. */
+function setupDisabledNftPolling(
+  accountId: string,
+  onUpdate: OnApiUpdate,
+) {
+  onUpdate({
+    type: 'updateNfts',
+    accountId,
+    chain: 'solana',
+    nfts: [],
+    isFullLoading: false,
+  });
+
+  return {
+    stop() {},
+  };
 }
 
 function setupNftPolling(

@@ -7,6 +7,7 @@ import type {
 } from '../types';
 
 import { DEBUG } from '../../config';
+import { parseAccountId } from '../../util/account';
 import { getActivityChains, parseTxId } from '../../util/activities';
 import { areActivitiesSortedAndUnique, mergeSortedActivitiesToMaxTime } from '../../util/activities/order';
 import { getChainConfig, getOrderedAccountChains } from '../../util/chain';
@@ -14,6 +15,7 @@ import { unique } from '../../util/iteratees';
 import { logDebug, logDebugError } from '../../util/logs';
 import { getChainBySlug } from '../../util/tokens';
 import chains from '../chains';
+import { isChainHidden } from '../chains/chainVisibility';
 import { fetchStoredAccount } from '../common/accounts';
 import { swapReplaceActivities } from '../common/swap';
 
@@ -45,13 +47,20 @@ export async function fetchPastActivities(
   }
 }
 
-function fetchTokenActivitySlice(
+async function fetchTokenActivitySlice(
   accountId: string,
   limit: number,
   tokenSlug: string,
   toTimestamp?: number,
 ): Promise<ActivitySliceResult> {
   const chain = getChainBySlug(tokenSlug);
+  const { network } = parseAccountId(accountId);
+
+  // Disabled networks must not be queried until the user turns them back on.
+  if (await isChainHidden(chain, network, accountId)) {
+    return { activities: [], hasMore: false };
+  }
+
   return fetchAndCheckActivitySlice(chain, { accountId, tokenSlug, toTimestamp, limit }, false);
 }
 
@@ -61,9 +70,20 @@ async function fetchAllActivitySlice(
   toTimestamp?: number,
 ): Promise<ActivitySliceResult> {
   const account = await fetchStoredAccount(accountId);
-  // `getOrderedAccountChains` drops stored keys absent from CHAIN_CONFIG; without it a stale
-  // chain crashes `getChainConfig(...).chainStandard` and silently aborts the whole slice.
-  const accountChains = getOrderedAccountChains(account.byChain);
+  const { network } = parseAccountId(accountId);
+  // Skip hidden networks (global + per-account/vault) so history is neither fetched nor merged.
+  const candidateChains = getOrderedAccountChains(account.byChain, network);
+  const accountChains = (
+    await Promise.all(
+      candidateChains.map(async (chain) => (
+        await isChainHidden(chain, network, accountId) ? undefined : chain
+      )),
+    )
+  ).filter((chain): chain is ApiChain => Boolean(chain));
+
+  if (!accountChains.length) {
+    return { activities: [], hasMore: false };
+  }
 
   const deduplicatedChains = unique(accountChains.map((chain) => getChainConfig(chain).chainStandard || chain));
 

@@ -251,6 +251,10 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
 
         if AppStorageHelper.hideNoCostTokens {
             walletTokens = walletTokens.filter { balance in
+                // Keep native gas tokens visible at any non-zero balance.
+                if balance.balance > 0, balance.token?.isNative == true {
+                    return true
+                }
                 if (balance.toUsd ?? 0) <= 0.01, balance.token?.isPricelessToken != true {
                     return false
                 }

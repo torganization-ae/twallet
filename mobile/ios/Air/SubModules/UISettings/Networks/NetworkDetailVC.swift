@@ -13,12 +13,14 @@ public final class NetworkDetailVC: SettingsBaseVC {
     private let chain: String
     private let screenTitle: String
     private let initiallyHidden: Bool
+    private let canDisableInitially: Bool
     private var hostingController: UIHostingController<NetworkDetailView>?
 
-    public init(chain: String, title: String, isHidden: Bool = false) {
+    public init(chain: String, title: String, isHidden: Bool = false, canDisable: Bool = true) {
         self.chain = chain
         self.screenTitle = title
         self.initiallyHidden = isHidden
+        self.canDisableInitially = canDisable
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -31,7 +33,11 @@ public final class NetworkDetailVC: SettingsBaseVC {
         navigationItem.title = screenTitle
         view.backgroundColor = .air.groupedBackground
         hostingController = addHostingController(
-            NetworkDetailView(chain: chain, initiallyHidden: initiallyHidden),
+            NetworkDetailView(
+                chain: chain,
+                initiallyHidden: initiallyHidden,
+                canDisableInitially: canDisableInitially
+            ),
             constraints: .fill
         )
     }
@@ -40,15 +46,23 @@ public final class NetworkDetailVC: SettingsBaseVC {
 struct NetworkDetailView: View {
     let chain: String
     let initiallyHidden: Bool
+    let canDisableInitially: Bool
 
     @State private var fields: [ApiNetworkRpcFieldConfig] = []
     @State private var isHidden: Bool
+    @State private var canDisable: Bool
     @State private var isTogglingVisibility = false
 
-    init(chain: String, initiallyHidden: Bool) {
+    init(chain: String, initiallyHidden: Bool, canDisableInitially: Bool) {
         self.chain = chain
         self.initiallyHidden = initiallyHidden
+        self.canDisableInitially = canDisableInitially
         _isHidden = State(initialValue: initiallyHidden)
+        _canDisable = State(initialValue: canDisableInitially)
+    }
+
+    private var canToggleVisibility: Bool {
+        isHidden || canDisable
     }
 
     var body: some View {
@@ -72,13 +86,22 @@ struct NetworkDetailView: View {
                 Toggle(isOn: Binding(
                     get: { !isHidden },
                     set: { newValue in
+                        guard canToggleVisibility || newValue else { return }
                         Task { await setVisibility(isHidden: !newValue) }
                     }
                 )) {
                     Text(lang("Show in wallet"))
                 }
-                .disabled(isTogglingVisibility)
+                .disabled(isTogglingVisibility || !canToggleVisibility)
                 .padding(.vertical, 4)
+            }
+            if !canToggleVisibility {
+                InsetCell {
+                    Text(lang("At least one network must stay enabled."))
+                        .font(.footnote)
+                        .foregroundStyle(Color.air.secondaryLabel)
+                        .padding(.vertical, 4)
+                }
             }
         }
     }
@@ -101,9 +124,11 @@ struct NetworkDetailView: View {
             let network = AccountStore.activeNetwork
             let config = try await Api.getRpcConfig(network: network)
             guard let item = config.first(where: { $0.chain == chain }) else { return }
+            let visibleCount = config.reduce(0) { $0 + ($1.isHidden == true ? 0 : 1) }
             await MainActor.run {
                 fields = item.fields
                 isHidden = item.isHidden == true
+                canDisable = item.isHidden == true || visibleCount > 1
             }
         } catch {
             // Keep previous fields on failure
@@ -111,15 +136,23 @@ struct NetworkDetailView: View {
     }
 
     private func setVisibility(isHidden nextHidden: Bool) async {
+        if nextHidden && !canDisable {
+            return
+        }
         isTogglingVisibility = true
         defer { isTogglingVisibility = false }
         do {
-            _ = try await Api.setChainVisibility(
+            let result = try await Api.setChainVisibility(
                 chain: chain,
                 network: AccountStore.activeNetwork,
                 isHidden: nextHidden
             )
+            guard result.ok else {
+                await reload()
+                return
+            }
             isHidden = nextHidden
+            await reload()
         } catch {
             // Revert on failure via reload
             await reload()

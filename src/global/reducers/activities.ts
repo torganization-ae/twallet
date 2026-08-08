@@ -1,6 +1,7 @@
 import type { ApiActivity, ApiChain } from '../../api/types';
 import type { AccountState, GlobalState } from '../types';
 
+import { parseAccountId } from '../../util/account';
 import {
   getActivityChains,
   getActivityTokenSlugs,
@@ -433,8 +434,10 @@ function areAllInitialActivitiesLoaded(
   // The initial activities may be loaded and added before the authentication completes.
   // `getOrderedAccountChains` filters stored keys to those still in CHAIN_CONFIG, so a key
   // for a removed chain (whose `loaded` flag is never delivered) doesn't pin this at `false`.
+  // Hidden networks are also excluded — they are not polled until re-enabled.
   const byChain = selectAccountOrAuthAccount(global, accountId)?.byChain ?? {};
-  const chains = getOrderedAccountChains(byChain);
+  const { network } = parseAccountId(accountId);
+  const chains = getOrderedAccountChains(byChain, network);
 
   return chains.every((chain) => newAreInitialActivitiesLoaded[chain]);
 }
@@ -445,7 +448,8 @@ function areAllMainHistoriesEndReached(
   mainHistoryHasMoreByChain: Partial<Record<ApiChain, boolean>>,
 ) {
   const byChain = selectAccountOrAuthAccount(global, accountId)?.byChain ?? {};
-  const chains = getOrderedAccountChains(byChain);
+  const { network } = parseAccountId(accountId);
+  const chains = getOrderedAccountChains(byChain, network);
 
   return chains.every((chain) => mainHistoryHasMoreByChain[chain] === false);
 }

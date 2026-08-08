@@ -38,6 +38,7 @@ sealed class WalletEvent {
     ) : WalletEvent()
 
     data object NftsUpdated : WalletEvent()
+    data object ChainVisibilityChanged : WalletEvent()
     data class CollectionNftsReceived(
         val accountId: String,
         val collectionAddress: String,
