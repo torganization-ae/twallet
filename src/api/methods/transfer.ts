@@ -138,6 +138,7 @@ export async function submitTransfer(
     dieselAmount = 0n,
     isGaslessWithStars,
     gaslessTransaction,
+    addressName,
     ...commonOptions
   } = options;
   const {
@@ -149,6 +150,7 @@ export async function submitTransfer(
   } = options;
 
   const fromAddress = await fetchStoredAddress(accountId, chain);
+  const localMetadata = addressName ? { name: addressName } : undefined;
 
   let result: ApiSubmitGasfullTransferResult | ApiSubmitGaslessTransferResult | { error: string };
 
@@ -189,6 +191,7 @@ export async function submitTransfer(
         fee: realFee ?? 0n,
         slug,
         externalMsgHashNorm: txHash,
+        ...(localMetadata && { metadata: localMetadata }),
       }]);
     });
     return mfaResult;
@@ -203,6 +206,7 @@ export async function submitTransfer(
     comment,
     fee: realFee ?? 0n,
     slug,
+    ...(localMetadata && { metadata: localMetadata }),
   }]);
 
   if ('paymentLink' in result && result.paymentLink) {

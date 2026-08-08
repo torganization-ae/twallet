@@ -3,8 +3,9 @@ import { Address } from '@ton/core';
 import type { ApiNetwork } from '../../types';
 import { ApiCommonError } from '../../types';
 
+import { TMAIL_DOMAIN_SUFFIX } from '../../../config';
 import { getDnsDomainZone, isTonChainDns } from '../../../util/dns';
-import { isTmailAlias } from '../../../util/tmail';
+import { isBareTonAlias, isTmailAlias } from '../../../util/tmail';
 import { dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
 import { getKnownAddressInfo } from '../../common/addresses';
@@ -18,17 +19,17 @@ export async function resolveAddress(network: ApiNetwork, address: string, skipF
   isMemoRequired?: boolean;
   isScam?: boolean;
 } | { error: ApiCommonError }> {
-  const isDomain = isTonChainDns(address) || isTmailAlias(address);
+  const isDomain = isTonChainDns(address) || isTmailAlias(address) || isBareTonAlias(address);
   let domain: string | undefined;
 
   if (isDomain) {
-    const resolvedAddress = await resolveAddressByDomain(network, address);
-    if (!resolvedAddress) {
+    const resolved = await resolveDomainWithName(network, address);
+    if (!resolved) {
       return { error: ApiCommonError.DomainNotResolved };
     }
 
-    domain = address;
-    address = resolvedAddress;
+    domain = resolved.name;
+    address = resolved.address;
 
     if (!skipFormatSelection) {
       const addressBook = await fetchAddressBook(network, [address]);
@@ -55,35 +56,80 @@ export async function resolveAddress(network: ApiNetwork, address: string, skipF
   return { address, name: domain };
 }
 
+/**
+ * Resolves a TON DNS domain, tmail alias, or bare alias word.
+ * Bare words try `@tmail.ton` first, then `.ton` DNS.
+ */
 export async function resolveAddressByDomain(network: ApiNetwork, domain: string) {
+  const resolved = await resolveDomainWithName(network, domain);
+  return resolved?.address;
+}
+
+async function resolveDomainWithName(network: ApiNetwork, domain: string): Promise<{
+  address: string;
+  name: string;
+} | undefined> {
+  const trimmed = domain.trim().toLowerCase();
+  if (!trimmed) {
+    return undefined;
+  }
+
   try {
-    if (isTmailAlias(domain)) {
-      return await resolveTmailAlias(network, domain);
+    if (isTmailAlias(trimmed)) {
+      const address = await resolveTmailAlias(network, trimmed);
+      return address ? { address, name: trimmed } : undefined;
     }
 
-    const zoneMatch = getDnsDomainZone(domain);
-    if (!zoneMatch) {
+    if (isTonChainDns(trimmed)) {
+      const address = await resolveExplicitDns(network, trimmed);
+      return address ? { address, name: trimmed } : undefined;
+    }
+
+    if (isBareTonAlias(trimmed)) {
+      const tmailAlias = `${trimmed}${TMAIL_DOMAIN_SUFFIX}`;
+      const tmailAddress = await resolveTmailAlias(network, tmailAlias);
+      if (tmailAddress) {
+        return { address: tmailAddress, name: tmailAlias };
+      }
+
+      const tonDomain = `${trimmed}.ton`;
+      if (isTonChainDns(tonDomain)) {
+        const dnsAddress = await resolveExplicitDns(network, tonDomain);
+        if (dnsAddress) {
+          return { address: dnsAddress, name: tonDomain };
+        }
+      }
+
       return undefined;
     }
 
-    const result = await dnsResolve(
-      getTonClient(network),
-      zoneMatch.zone.resolver,
-      zoneMatch.base,
-      DnsCategory.Wallet,
-    );
-
-    if (!(result instanceof Address)) {
-      return undefined;
-    }
-
-    return toBase64Address(result, undefined, network);
+    return undefined;
   } catch (err: any) {
     if (!err.message?.includes('exit_code')) {
       throw err;
     }
     return undefined;
   }
+}
+
+async function resolveExplicitDns(network: ApiNetwork, domain: string) {
+  const zoneMatch = getDnsDomainZone(domain);
+  if (!zoneMatch) {
+    return undefined;
+  }
+
+  const result = await dnsResolve(
+    getTonClient(network),
+    zoneMatch.zone.resolver,
+    zoneMatch.base,
+    DnsCategory.Wallet,
+  );
+
+  if (!(result instanceof Address)) {
+    return undefined;
+  }
+
+  return toBase64Address(result, undefined, network);
 }
 
 export function normalizeAddress(address: string, network?: ApiNetwork) {

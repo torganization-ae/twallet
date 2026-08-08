@@ -86,7 +86,8 @@ struct TokenSendFlow: SendFlow {
             gaslessTransaction: diesel?.transaction,
             password: password,
             fee: explainedFee?.fullFee?.nativeSum,
-            noFeeCheck: nil
+            noFeeCheck: nil,
+            addressName: context.transactionDraft?.addressName
         )
     }
     
@@ -204,7 +205,8 @@ struct NftSendFlow: SendFlow {
             toAddress: resolved,
             comment: context.payload?.comment,
             totalRealFee: context.transactionDraft?.realNativeFee ?? 0,
-            isNftBurn: context.nftSendMode == .burn
+            isNftBurn: context.nftSendMode == .burn,
+            addressName: context.transactionDraft?.addressName
         )
         if let error = result.error {
             throw SdkError.apiReturnedError(error: error, context: nil)

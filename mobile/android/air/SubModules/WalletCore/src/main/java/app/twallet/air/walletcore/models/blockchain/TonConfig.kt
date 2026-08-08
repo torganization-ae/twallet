@@ -2,6 +2,7 @@ package app.twallet.air.walletcore.models.blockchain
 
 import java.math.BigDecimal
 import androidx.core.graphics.toColorInt
+import app.twallet.air.walletcontext.helpers.TmailHelpers
 
 object TonConfig : MBlockchainConfig {
 
@@ -42,6 +43,8 @@ object TonConfig : MBlockchainConfig {
         Regex("""^([-\w_]{48}|0:[\da-fA-F]{64})$""").matches(address)
 
     override fun isValidDNS(address: String): Boolean {
+        // Explicit DNS / tmail forms only (not bare words). Bare aliases are handled at the call site.
+        if (TmailHelpers.isTmailAlias(address)) return true
         val zones = listOf(
             Regex("""^([-\da-z]+\.){0,2}[-\da-z]{4,126}\.ton$""", RegexOption.IGNORE_CASE),
             Regex("""^([-\da-z]+\.){0,2}[-_\da-z]{4,32}\.t\.me$""", RegexOption.IGNORE_CASE),

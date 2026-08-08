@@ -77,7 +77,8 @@ export function updateActivityMetadata<T extends ApiActivity>(activity: T): T {
     : false;
 
   if (normalizedAddress in knownAddresses) {
-    metadata = { ...metadata, ...knownAddresses[normalizedAddress] };
+    // Prefer activity metadata (e.g. send-time tmail/DNS alias) over the static known-address book.
+    metadata = { ...knownAddresses[normalizedAddress], ...metadata };
   }
 
   if (hasScamMarkers || hasScamInComment || isScam) {

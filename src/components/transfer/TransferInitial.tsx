@@ -508,7 +508,6 @@ function TransferInitial({
             savedAddresses={savedAddresses}
             validateAddress={checkTransferAddress}
             isReadonly={isTransferReadonly}
-            withAliasSelector={!isNftTransfer}
             withQrScan
             address={resolvedAddress || toAddress}
             addressName={toAddressName}

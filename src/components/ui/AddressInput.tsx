@@ -25,7 +25,7 @@ import { isTonChainDns } from '../../util/dns';
 import { getLocalAddressName } from '../../util/getLocalAddressName';
 import { isTonsiteAddress, isValidAddressOrDomain } from '../../util/isValidAddress';
 import { shortenAddress } from '../../util/shortenAddress';
-import { isTmailAlias } from '../../util/tmail';
+import { isBareTonAlias, isTmailAlias } from '../../util/tmail';
 import { getHostnameFromUrl } from '../../util/url';
 import {
   getIsMobileTelegramApp,
@@ -48,17 +48,12 @@ import DeleteSavedAddressModal from '../main/modals/DeleteSavedAddressModal';
 import AddressBook from './AddressBook';
 import { SUGGESTION_ITEM_CLASS_NAME } from './AddressBookItem';
 import Button from './Button';
-import Dropdown, { type DropdownItem } from './Dropdown';
 import Input from './Input';
 import Transition from './Transition';
 
 import styles from './AddressInput.module.scss';
 
 export const INPUT_CLEAR_BUTTON_ID = 'input-clear-button';
-
-type AliasMode = 'auto' | 'tmail';
-
-const TMAIL_SUFFIX = '@tmail.ton';
 
 interface OwnProps {
   ref?: ElementRef<HTMLInputElement | HTMLTextAreaElement>;
@@ -69,7 +64,6 @@ interface OwnProps {
   isReadonly?: boolean;
   withQrScan?: boolean;
   withCurrentAccount?: boolean;
-  withAliasSelector?: boolean;
   shouldHideAddressBook?: boolean;
   shouldValidateAllChains?: boolean;
   address: string;
@@ -107,7 +101,6 @@ function AddressInput({
   isReadonly,
   withQrScan,
   withCurrentAccount,
-  withAliasSelector,
   shouldHideAddressBook,
   shouldValidateAllChains,
   address,
@@ -131,44 +124,6 @@ function AddressInput({
   } = getActions();
 
   const lang = useLang();
-
-  const [aliasMode, setAliasMode] = useState<AliasMode>('auto');
-  const isTmailMode = aliasMode === 'tmail';
-  const shouldShowAliasSelector = withAliasSelector && chain === 'ton' && !isReadonly;
-
-  const aliasItems = useMemo<DropdownItem<AliasMode>[]>(() => ([
-    { value: 'auto', name: lang('Address or TON DNS') },
-    { value: 'tmail', name: lang('@tmail.ton alias') },
-  ]), [lang]);
-
-  const displayValue = useMemo(() => {
-    if (!isTmailMode) {
-      return value;
-    }
-    return value.endsWith(TMAIL_SUFFIX) ? value.slice(0, -TMAIL_SUFFIX.length) : value;
-  }, [isTmailMode, value]);
-
-  const handleAliasModeChange = useLastCallback((mode: AliasMode) => {
-    if (mode === aliasMode) return;
-    setAliasMode(mode);
-    onInput('');
-  });
-
-  const handleAliasInput = useLastCallback((raw: string, isValueReplaced?: boolean): string => {
-    if (!isTmailMode) {
-      onInput(raw, isValueReplaced);
-      return raw;
-    }
-    const trimmed = raw.trim().toLowerCase();
-    if (!trimmed) {
-      onInput('', isValueReplaced);
-      return '';
-    }
-    // Match Android/iOS: don't double-append when pasting a full @tmail.ton alias.
-    const composed = trimmed.endsWith(TMAIL_SUFFIX) ? trimmed : `${trimmed}${TMAIL_SUFFIX}`;
-    onInput(composed, isValueReplaced);
-    return composed;
-  });
 
   const addressBookTimeoutRef = useRef<number>();
   const isAddressBookSelectionRef = useRef<boolean>(false);
@@ -222,8 +177,8 @@ function AddressInput({
 
   const handleAddressBookItemSelect = useLastCallback((address: string) => {
     isAddressBookSelectionRef.current = true;
-    const composedValue = handleAliasInput(address, true);
-    onPaste?.(composedValue);
+    onInput(address, true);
+    onPaste?.(address);
     closeAddressBook();
   });
 
@@ -292,11 +247,11 @@ function AddressInput({
 
       if (type === 'text/plain') {
         const newValue = cleanTonsiteAddress((text ?? '').trim());
-        const composedValue = handleAliasInput(newValue, true);
-        onPaste?.(composedValue);
+        onInput(newValue, true);
+        onPaste?.(newValue);
 
-        handleAddressValidate(composedValue);
-        handleAddressErrorCheck(composedValue);
+        handleAddressValidate(newValue);
+        handleAddressErrorCheck(newValue);
       }
     } catch (err: any) {
       showToast({ message: lang('Error reading clipboard') });
@@ -380,12 +335,15 @@ function AddressInput({
     }
 
     let addressToCheck = cleanTonsiteAddress(value);
-    if ((isTonChainDns(value) || isTmailAlias(value)) && value !== value.toLowerCase()) {
+    if (
+      (isTonChainDns(value) || isTmailAlias(value) || isBareTonAlias(value))
+      && value !== value.toLowerCase()
+    ) {
       addressToCheck = value.toLowerCase().trim();
-      handleAliasInput(addressToCheck);
+      onInput(addressToCheck);
     } else if (value !== value.trim()) {
       addressToCheck = value.trim();
-      handleAliasInput(addressToCheck);
+      onInput(addressToCheck);
     }
 
     requestAnimationFrame(() => {
@@ -395,18 +353,18 @@ function AddressInput({
     });
   });
 
-  function hanldeInputChange(value: string) {
-    handleAliasInput(value);
+  function hanldeInputChange(newValue: string) {
+    onInput(newValue);
     changeError(undefined);
   }
 
   const handleAddressPaste = useLastCallback((event: ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     event.preventDefault();
-    let value = event.clipboardData.getData('text').trim();
-    value = cleanTonsiteAddress(value);
-    const composedValue = handleAliasInput(value, false);
-    onPaste?.(composedValue);
-    handleAddressErrorCheck(composedValue);
+    let pastedValue = event.clipboardData.getData('text').trim();
+    pastedValue = cleanTonsiteAddress(pastedValue);
+    onInput(pastedValue, false);
+    onPaste?.(pastedValue);
+    handleAddressErrorCheck(pastedValue);
   });
 
   const handleAddressClear = useLastCallback(() => {
@@ -482,17 +440,6 @@ function AddressInput({
 
   return (
     <>
-      {shouldShowAliasSelector && (
-        <div className={styles.aliasSelector}>
-          <Dropdown
-            label={lang('Alias type')}
-            items={aliasItems}
-            selectedValue={aliasMode}
-            menuPositionX="right"
-            onChange={handleAliasModeChange}
-          />
-        </div>
-      )}
       <Input
         id={inputId}
         ref={ref}
@@ -501,13 +448,11 @@ function AddressInput({
         isStatic={isStatic}
         isDisabled={isReadonly}
         label={label}
-        placeholder={isTmailMode
-          ? lang('Alias name')
-          : (shouldShowAliasSelector ? lang('tmail or DNS') : lang('Wallet address or domain'))}
-        value={displayValue}
+        placeholder={chain === 'ton' ? lang('tmail or DNS') : lang('Wallet address or domain')}
+        value={value}
         error={localError || error}
         autoCorrect={false}
-        valueOverlay={!localError ? (isTmailMode ? undefined : addressOverlay) : undefined}
+        valueOverlay={!localError ? addressOverlay : undefined}
         onInput={hanldeInputChange}
         onPaste={handleAddressPaste}
         onKeyDown={handleKeyDown}

@@ -25,4 +25,12 @@ object TmailHelpers {
 
         return if (TMAIL_ALIAS_REGEX.matches(base)) base else null
     }
+
+    /** Bare local-part alias (no `.` / `@`) that can be resolved as `@tmail.ton` then `.ton` DNS. */
+    fun isBareTonAlias(value: String): Boolean {
+        val trimmed = value.trim().lowercase()
+        if (trimmed.isEmpty() || trimmed.contains('.') || trimmed.contains('@')) return false
+
+        return TMAIL_ALIAS_REGEX.matches(trimmed)
+    }
 }

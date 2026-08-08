@@ -57,8 +57,10 @@ export async function submitNftTransfers(
   comment?: string,
   totalRealFee = 0n,
   isNftBurn?: boolean,
+  addressName?: string,
 ): Promise<{ activityIds: string[] } | { mfaRequestHash: string } | { error: string }> {
   const { address: fromAddress } = await fetchStoredWallet(accountId, chain);
+  const localMetadata = addressName ? { name: addressName } : undefined;
 
   logDebug('submitNftTransfers', 'Request', {
     chain,
@@ -95,6 +97,7 @@ export async function submitNftTransfers(
         slug: getChainConfig(chain).nativeToken.slug,
         externalMsgHashNorm: txHash,
         nft,
+        ...(localMetadata && { metadata: localMetadata }),
       })));
     });
 
@@ -124,6 +127,7 @@ export async function submitNftTransfers(
     slug: getChainConfig(chain).nativeToken.slug,
     externalMsgHashNorm: result.msgHashNormalized,
     nft: nfts?.[index],
+    ...(localMetadata && { metadata: localMetadata }),
   })));
 
   if (chain === 'ton') {

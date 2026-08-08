@@ -158,66 +158,13 @@ class SendVC(
 
     private val gap1 by lazy { Space(context) }
 
-    private val aliasTypeSelector by lazy {
-        HeaderCell(context).apply {
-            configure(
-                title = LocaleController.getString("Alias type") + ": " + LocaleController.getString("Address or TON DNS"),
-                titleColor = WColor.SecondaryText,
-                topRounding = HeaderCell.TopRounding.ZERO
-            )
-            setOnClickListener { anchor ->
-                WMenuPopup.present(
-                    anchor,
-                    listOf(
-                        WMenuPopup.Item(
-                            null,
-                            LocaleController.getString("Address or TON DNS"),
-                            false,
-                        ) {
-                            viewModel.setAliasMode(SendViewModel.AliasMode.AUTO)
-                            updateAliasTypeSelector()
-                        },
-                        WMenuPopup.Item(
-                            null,
-                            LocaleController.getString("@tmail.ton alias"),
-                            false,
-                        ) {
-                            viewModel.setAliasMode(SendViewModel.AliasMode.TMAIL)
-                            updateAliasTypeSelector()
-                        }
-                    ),
-                    xOffset = 0,
-                    yOffset = 5.dp,
-                    positioning = WMenuPopup.Positioning.BELOW,
-                )
-            }
-        }
-    }
-
-    private fun updateAliasTypeSelector() {
-        val modeTitle = if (viewModel.isTmailMode)
-            LocaleController.getString("@tmail.ton alias")
-        else
-            LocaleController.getString("Address or TON DNS")
-        aliasTypeSelector.configure(
-            title = LocaleController.getString("Alias type") + ": " + modeTitle,
-            titleColor = WColor.SecondaryText,
-            topRounding = HeaderCell.TopRounding.ZERO
-        )
+    private fun updateAddressHint() {
+        val chain = TokenStore.getToken(viewModel.getTokenSlug())?.mBlockchain ?: MBlockchain.ton
         addressInputView.setHint(
             LocaleController.getString(
-                if (viewModel.isTmailMode) "Alias name" else "Wallet address or domain"
+                if (chain == MBlockchain.ton) "tmail or DNS" else "Wallet address or domain"
             )
         )
-    }
-
-    private fun shouldShowAliasSelector(): Boolean {
-        val chain = TokenStore.getToken(viewModel.getTokenSlug())?.mBlockchain ?: MBlockchain.ton
-        return chain == MBlockchain.ton
-    }
-
-    private fun updateAliasSelectorVisibility() {
-        aliasTypeSelector.isVisible = shouldShowAliasSelector()
     }
 
     private val amountInputView by lazy {
@@ -440,10 +387,6 @@ class SendVC(
             orientation = LinearLayout.VERTICAL
 
             addView(title1, ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
-            addView(
-                aliasTypeSelector,
-                LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-            )
             addView(
                 addressInputView,
                 LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
@@ -843,8 +786,7 @@ class SendVC(
             openConfirmIfPossible()
         }
 
-        updateAliasSelectorVisibility()
-        updateAliasTypeSelector()
+        updateAddressHint()
 
         addressInputView.addTextChangedListener(onInputDestinationTextWatcher)
         addressInputView.doAfterQrCodeScanned { address ->
@@ -1083,7 +1025,7 @@ class SendVC(
             addressInputView.activeChain = blockchain
             suggestionsBoxView.activeChain = blockchain
             suggestionsBoxView.search(addressInputView.getKeyword())
-            updateAliasSelectorVisibility()
+            updateAddressHint()
         }
         viewModel.onInputToken(tokenSlug)
         updateCommentViews()
@@ -1209,16 +1151,8 @@ class SendVC(
             )
         }
 
-        // In tmail mode the field shows the local part (same as web/iOS displayValue).
-        val displayDestination = if (
-            viewModel.isTmailMode && destination.endsWith("@tmail.ton", ignoreCase = true)
-        ) {
-            destination.dropLast("@tmail.ton".length)
-        } else {
-            destination
-        }
-        if (addressInputView.getKeyword() != displayDestination) {
-            addressInputView.setText(displayDestination)
+        if (addressInputView.getKeyword() != destination) {
+            addressInputView.setText(destination)
         }
     }
 

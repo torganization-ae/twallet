@@ -34,23 +34,12 @@ enum AddressDisplayValue {
     case resolved(ResolvedAddress)
 }
 
-enum AliasMode: String, CaseIterable, Identifiable {
-    case auto
-    case tmail
-
-    var id: String { rawValue }
-}
-
-private let TMAIL_SUFFIX = "@tmail.ton"
-
 @Perceptible @MainActor
 final class AddressInputModel {
 
     var textFieldInput: String = ""
 
     var isFocused: Bool = false
-
-    var aliasMode: AliasMode = .auto
     
     var chain: ApiChain { token.chain }
     
@@ -79,28 +68,9 @@ final class AddressInputModel {
         textFieldInput.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// Effective value to resolve/send: in tmail mode the suffix is composed from the local part.
+    /// Effective value to resolve/send.
     var effectiveAddressOrDomain: String {
-        switch aliasMode {
-        case .auto:
-            return normalizedTextFieldInput
-        case .tmail:
-            let local = normalizedTextFieldInput.lowercased()
-            guard !local.isEmpty else { return "" }
-            return local.hasSuffix(TMAIL_SUFFIX) ? local : local + TMAIL_SUFFIX
-        }
-    }
-
-    /// Whether the tmail/DNS alias-type selector should be shown (matches the web `AddressInput` behavior).
-    var shouldShowAliasSelector: Bool {
-        chain == .ton
-    }
-
-    func setAliasMode(_ mode: AliasMode) {
-        guard mode != aliasMode else { return }
-        aliasMode = mode
-        textFieldInput = ""
-        source = .constant("")
+        normalizedTextFieldInput
     }
 
     init(account: AccountContext, token: TokenProvider, suggestionChainMode: AddressSuggestionChainMode = .all) {
@@ -146,8 +116,8 @@ final class AddressInputModel {
         resolveAddressTask = Task {
             do {
                 let compatibleChains: [ApiChain]
-                if TmailHelpers.isTmailAlias(input) {
-                    // tmail aliases are TON-only; avoid resolving them across EVM/Tron chains.
+                if TmailHelpers.isTmailAlias(input) || TmailHelpers.isBareTonAlias(input) {
+                    // tmail aliases (and bare words that resolve via tmail/DNS) are TON-only.
                     compatibleChains = account.supportedChains.contains(.ton) ? [.ton] : []
                 } else {
                     compatibleChains = account.supportedChains.filter { $0.isValidAddressOrDomain(input) }
@@ -212,9 +182,7 @@ final class AddressInputModel {
             return (title, formattedAddress)
             
         case .constant(let raw):
-            let input = aliasMode == .tmail
-                ? effectiveAddressOrDomain
-                : raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            let input = raw.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !input.isEmpty else { return (nil, nil) }
             
             let info = addressInfos?[chain]

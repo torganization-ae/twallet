@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.core.net.toUri
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
+import app.twallet.air.walletcontext.helpers.TmailHelpers
 import app.twallet.air.walletcontext.models.MBlockchainNetwork
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
@@ -245,7 +246,9 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
         val account = AccountStore.activeAccount ?: return
         val network = account.network
         val compatibleChains = MBlockchain.supportedChains.filter {
-            it.isValidAddress(keyword) || it.isValidDNS(keyword)
+            it.isValidAddress(keyword)
+                || it.isValidDNS(keyword)
+                || (it == MBlockchain.ton && TmailHelpers.isBareTonAlias(keyword))
         }
         if (compatibleChains.isEmpty())
             return

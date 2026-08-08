@@ -47,6 +47,12 @@ export interface ApiSubmitTransferOptions extends ApiSubmitGasfullTransferOption
    * The transaction to be signed and sent. Only used for gasless transfers in Solana.
    */
   gaslessTransaction?: string;
+
+  /**
+   * Display name used at send time (tmail alias / DNS domain). Shown on the local pending activity
+   * and preserved when it matches the chain activity.
+   */
+  addressName?: string;
 }
 
 export interface ApiSubmitGasfullTransferOptions extends ApiTransactionCommonOptions {

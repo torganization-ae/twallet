@@ -21,6 +21,7 @@ class ConfirmNftVM(mode: Mode, delegate: Delegate) {
 
     var toAddress: String
     var resolvedAddress: String? = null
+    private var addressName: String? = null
     private var feeValue: BigInteger? = null
 
     init {
@@ -32,6 +33,7 @@ class ConfirmNftVM(mode: Mode, delegate: Delegate) {
             is Mode.Send -> {
                 toAddress = mode.toAddress
                 resolvedAddress = mode.resolvedAddress
+                addressName = mode.addressName
                 feeValue = mode.fee
             }
         }
@@ -81,7 +83,8 @@ class ConfirmNftVM(mode: Mode, delegate: Delegate) {
                 address = resolvedAddress!!,
                 comment = comment,
                 fee = feeValue ?: BigInteger.ZERO,
-                isNftBurn = isNftBurn
+                isNftBurn = isNftBurn,
+                addressName = addressName,
             )
         ) { result, err ->
             if (err != null) {

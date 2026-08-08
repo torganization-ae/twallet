@@ -996,7 +996,8 @@ sealed class ApiMethod<T> {
             address: String,
             comment: String?,
             fee: BigInteger,
-            isNftBurn: Boolean
+            isNftBurn: Boolean,
+            addressName: String? = null,
         ) : ApiMethod<ApiSubmitTransfersResult>() {
             override val name: String = "submitNftTransfers"
             override val type: Type = ApiSubmitTransfersResult::class.java
@@ -1012,6 +1013,7 @@ sealed class ApiMethod<T> {
                 .string(comment)
                 .bigInt(fee)
                 .boolean(isNftBurn)
+                .string(addressName)
                 .build()
         }
 

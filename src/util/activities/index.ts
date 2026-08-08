@@ -334,6 +334,33 @@ function getChainActivityIdReplacements(prevActivities: ApiActivity[], nextActiv
   return idReplacements;
 }
 
+/**
+ * Prefer the send-time address name (tmail / DNS) from a matched local activity over
+ * toncenter reverse-DNS on the chain activity. Only applies when the local activity has a name.
+ */
+export function preferLocalAddressName(localActivity: ApiActivity, chainActivity: ApiActivity): ApiActivity {
+  if (localActivity.kind !== 'transaction' || chainActivity.kind !== 'transaction') {
+    return chainActivity;
+  }
+
+  const localName = localActivity.metadata?.name?.trim();
+  if (!localName) {
+    return chainActivity;
+  }
+
+  if (chainActivity.metadata?.name === localName) {
+    return chainActivity;
+  }
+
+  return {
+    ...chainActivity,
+    metadata: {
+      ...chainActivity.metadata,
+      name: localName,
+    },
+  };
+}
+
 /** Decides whether the local activity matches the activity from the blockchain */
 export function doesLocalActivityMatch(localActivity: ApiActivity, chainActivity: ApiActivity) {
   if (localActivity.extra?.withW5Gasless) {

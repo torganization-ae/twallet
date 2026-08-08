@@ -18,8 +18,8 @@ extension Api {
         try await bridge.callApi("checkNftTransferDraft", chain, options, decoding: ApiCheckTransactionDraftResult.self)
     }
 
-    public static func submitNftTransfers(chain: ApiChain, accountId: String, password: String?, nfts: [ApiNft], toAddress: String, comment: String?, totalRealFee: BigInt?, isNftBurn: Bool?) async throws -> ApiSubmitNftTransfersResult {
-        try await bridge.callApi("submitNftTransfers", chain, accountId, password, nfts, toAddress, comment, totalRealFee, isNftBurn, decoding: ApiSubmitNftTransfersResult.self)
+    public static func submitNftTransfers(chain: ApiChain, accountId: String, password: String?, nfts: [ApiNft], toAddress: String, comment: String?, totalRealFee: BigInt?, isNftBurn: Bool?, addressName: String? = nil) async throws -> ApiSubmitNftTransfersResult {
+        try await bridge.callApi("submitNftTransfers", chain, accountId, password, nfts, toAddress, comment, totalRealFee, isNftBurn, addressName, decoding: ApiSubmitNftTransfersResult.self)
     }
     
     public static func checkNftOwnership(chain: ApiChain, accountId: String, nftAddress: String) async throws -> Bool? {

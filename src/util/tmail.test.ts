@@ -1,5 +1,6 @@
 import {
   getTmailAliasBase,
+  isBareTonAlias,
   isTmailAlias,
 } from './tmail';
 
@@ -50,5 +51,27 @@ describe('getTmailAliasBase', () => {
     expect(getTmailAliasBase('@tmail.ton')).toBeUndefined();
     expect(getTmailAliasBase('-alice@tmail.ton')).toBeUndefined();
     expect(getTmailAliasBase('alice@ton')).toBeUndefined();
+  });
+});
+
+describe('isBareTonAlias', () => {
+  it.each(['alice', 'bob-123', 'a_b', 'x+y', 'ALICE', '  alice  ', 'a'])(
+    'returns true for %s',
+    (alias) => {
+      expect(isBareTonAlias(alias)).toBe(true);
+    },
+  );
+
+  it.each([
+    'alice@tmail.ton',
+    'alice.ton',
+    'al.ice',
+    'al ice',
+    '-alice',
+    'alice-',
+    '',
+    'a.b',
+  ])('returns false for %s', (alias) => {
+    expect(isBareTonAlias(alias)).toBe(false);
   });
 });

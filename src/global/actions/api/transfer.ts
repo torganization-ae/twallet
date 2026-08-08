@@ -227,6 +227,7 @@ addActionHandler('fetchNftFee', async (global, actions, payload) => {
 addActionHandler('submitTransfer', async (global, actions, { password } = {}) => {
   const {
     resolvedAddress,
+    toAddressName,
     comment,
     amount,
     promiseId,
@@ -275,6 +276,7 @@ addActionHandler('submitTransfer', async (global, actions, { password } = {}) =>
         getNftTransferComment(chain, comment),
         realNativeFee && bigintDivideToNumber(realNativeFee, nfts.length / chunk.length),
         isNftBurn,
+        toAddressName,
       );
 
       if (batchResult && 'activityIds' in batchResult) {
@@ -309,6 +311,7 @@ addActionHandler('submitTransfer', async (global, actions, { password } = {}) =>
       isGaslessWithStars,
       noFeeCheck: true,
       gaslessTransaction: diesel?.transaction,
+      addressName: toAddressName,
     };
 
     result = await callApi('submitTransfer', chain, options);

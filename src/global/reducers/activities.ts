@@ -8,6 +8,7 @@ import {
   getIsActivityPending,
   getIsActivitySuitableForFetchingTimestamp,
   getIsTxIdLocal,
+  preferLocalAddressName,
 } from '../../util/activities';
 import { mergeSortedActivityIds } from '../../util/activities/order';
 import { getOrderedAccountChains } from '../../util/chain';
@@ -502,13 +503,19 @@ export function updatePendingActivitiesToTrustedByReplacements(
 
   for (const localActivity of localActivities) {
     const chainActivityId = replacedIds[localActivity.id];
+    if (!chainActivityId) continue;
 
-    if (chainActivityId && localActivity.status === 'pendingTrusted') {
-      const chainActivity = activitiesState.byId[chainActivityId];
+    const chainActivity = newById[chainActivityId] ?? activitiesState.byId[chainActivityId];
+    if (!chainActivity) continue;
 
-      if (chainActivity?.status === 'pending') {
-        newById[chainActivityId] = { ...chainActivity, status: 'pendingTrusted' };
-      }
+    let updated = chainActivity;
+    if (localActivity.status === 'pendingTrusted' && chainActivity.status === 'pending') {
+      updated = { ...updated, status: 'pendingTrusted' };
+    }
+    updated = preferLocalAddressName(localActivity, updated);
+
+    if (updated !== chainActivity) {
+      newById[chainActivityId] = updated;
     }
   }
 
@@ -531,18 +538,43 @@ export function updatePendingActivitiesWithTrustedStatus(
   const prevById = buildCollectionByKey(prevActivitiesForReplacement, 'id');
 
   // For pending activities, we need to check the status of the corresponding local activity
-  // Only convert 'pending' status to 'pendingTrusted', not 'confirmed' status
+  // Only convert 'pending' status to 'pendingTrusted', not 'confirmed' status.
+  // Also keep the send-time address name (tmail / DNS) over toncenter reverse-DNS.
   const adjustedPendingActivities = pendingActivities.map((a) => {
     const oldId = reversedReplacedIds[a.id];
     const oldActivity = oldId ? prevById[oldId] : undefined;
+    let result = a;
     if (oldActivity && oldActivity.status === 'pendingTrusted' && a.status === 'pending') {
-      return { ...a, status: 'pendingTrusted' } as ApiActivity;
+      result = { ...result, status: 'pendingTrusted' } as ApiActivity;
+    }
+    if (oldActivity) {
+      result = preferLocalAddressName(oldActivity, result);
     }
 
-    return a;
+    return result;
   });
 
   global = replacePendingActivities(global, accountId, chain, adjustedPendingActivities);
 
   return global;
+}
+
+/** Apply send-time address names from matched prev (local) activities onto next (chain) activities. */
+export function applyLocalAddressNamesToActivities(
+  prevActivities: ApiActivity[],
+  nextActivities: ApiActivity[],
+  replacedIds: Record<string, string>,
+): ApiActivity[] {
+  if (!nextActivities.length || !Object.keys(replacedIds).length) {
+    return nextActivities;
+  }
+
+  const reversedReplacedIds = swapKeysAndValues(replacedIds);
+  const prevById = buildCollectionByKey(prevActivities, 'id');
+
+  return nextActivities.map((activity) => {
+    const prevId = reversedReplacedIds[activity.id];
+    const prevActivity = prevId ? prevById[prevId] : undefined;
+    return prevActivity ? preferLocalAddressName(prevActivity, activity) : activity;
+  });
 }

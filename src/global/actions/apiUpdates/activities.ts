@@ -14,6 +14,7 @@ import {
   addInitialActivities,
   addNewActivities,
   applyIncomingNftFromActivity,
+  applyLocalAddressNamesToActivities,
   applyOutgoingNftFromActivity,
   removeActivities,
   replaceCurrentActivityId,
@@ -93,7 +94,12 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         replacedIds,
         prevActivitiesForReplacement,
       );
-      global = addNewActivities(global, accountId, newConfirmedActivities);
+      const confirmedWithLocalNames = applyLocalAddressNamesToActivities(
+        prevActivitiesForReplacement,
+        newConfirmedActivities,
+        replacedIds,
+      );
+      global = addNewActivities(global, accountId, confirmedWithLocalNames);
 
       global = replaceCurrentTransferId(global, replacedIds);
       global = replaceCurrentDomainLinkingId(global, replacedIds);

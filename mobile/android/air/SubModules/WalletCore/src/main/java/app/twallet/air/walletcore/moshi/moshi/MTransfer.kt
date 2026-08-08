@@ -175,6 +175,9 @@ data class MApiSubmitTransferOptions(
     val dieselAmount: BigInteger? = null,
     val isGaslessWithStars: Boolean? = null,
     val gaslessTransaction: String? = null,
+
+    /** Display name used at send time (tmail / DNS); shown on the local pending activity. */
+    val addressName: String? = null,
 )
 
 @JsonClass(generateAdapter = false)

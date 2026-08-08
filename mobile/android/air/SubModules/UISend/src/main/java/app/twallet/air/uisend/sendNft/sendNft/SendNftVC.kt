@@ -133,6 +133,9 @@ class SendNftVC(
             }
             textFieldTopPadding = 12.dp
             textFieldBottomPadding = 14.dp
+            if (chain == MBlockchain.ton) {
+                setHint(LocaleController.getString("tmail or DNS"))
+            }
         }
     }
 

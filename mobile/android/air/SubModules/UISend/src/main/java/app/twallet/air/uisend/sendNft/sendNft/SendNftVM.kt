@@ -176,9 +176,11 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
         }
 
         val isValid =
-            chain.isValidAddress(destination) || (chain == MBlockchain.ton && (DNSHelpers.isDnsDomain(
-                destination
-            ) || TmailHelpers.isTmailAlias(destination)))
+            chain.isValidAddress(destination) || (chain == MBlockchain.ton && (
+                DNSHelpers.isDnsDomain(destination)
+                    || TmailHelpers.isTmailAlias(destination)
+                    || TmailHelpers.isBareTonAlias(destination)
+                ))
         if (!isValid) {
             return null
         }
@@ -243,8 +245,11 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
         }
         val isFormatValid =
             chain.isValidAddress(destination) ||
-                (chain == MBlockchain.ton &&
-                    (DNSHelpers.isDnsDomain(destination) || TmailHelpers.isTmailAlias(destination)))
+                (chain == MBlockchain.ton && (
+                    DNSHelpers.isDnsDomain(destination)
+                        || TmailHelpers.isTmailAlias(destination)
+                        || TmailHelpers.isBareTonAlias(destination)
+                    ))
         val ownAddress = AccountStore.activeAccount?.byChain?.get(chain.name)?.address
         val isSelfSend = !chain.isSendToSelfAllowed &&
             ownAddress != null &&

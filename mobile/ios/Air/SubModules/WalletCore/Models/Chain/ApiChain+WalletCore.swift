@@ -10,11 +10,15 @@ public extension ApiChain {
 
     func isValidAddressOrDomain(_ addressOrDomain: String) -> Bool {
         guard isSupported else { return false }
-        return config.addressRegex.matches(addressOrDomain) || isValidDomain(addressOrDomain)
+        return config.addressRegex.matches(addressOrDomain)
+            || isValidDomain(addressOrDomain)
+            || (config.isDnsSupported && TmailHelpers.isBareTonAlias(addressOrDomain))
     }
 
+    /// Explicit DNS / tmail forms only (not bare words). Bare aliases are accepted via `isValidAddressOrDomain`.
     func isValidDomain(_ domain: String) -> Bool {
         guard isSupported else { return false }
-        return config.isDnsSupported && (DNSHelpers.isDnsDomain(domain) || TmailHelpers.isTmailAlias(domain))
+        return config.isDnsSupported
+            && (DNSHelpers.isDnsDomain(domain) || TmailHelpers.isTmailAlias(domain))
     }
 }

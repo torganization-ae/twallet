@@ -35,6 +35,9 @@ public struct ApiSubmitTransferOptions: ApiTransactionCommonOptions, Equatable, 
     
     // ApiSubmitGaslessTransferOptions
     // nothing here, see comments about optionality above
+
+    /// Display name used at send time (tmail / DNS); shown on the local pending activity.
+    public var addressName: String?
     
     public init(
         accountId: String,
@@ -50,7 +53,8 @@ public struct ApiSubmitTransferOptions: ApiTransactionCommonOptions, Equatable, 
         gaslessTransaction: String?,
         password: String?,
         fee: BigInt?,
-        noFeeCheck: Bool?
+        noFeeCheck: Bool?,
+        addressName: String? = nil
     ) {
         self.accountId = accountId
         self.toAddress = toAddress
@@ -66,5 +70,6 @@ public struct ApiSubmitTransferOptions: ApiTransactionCommonOptions, Equatable, 
         self.password = password
         self.fee = fee
         self.noFeeCheck = noFeeCheck
+        self.addressName = addressName
     }
 }

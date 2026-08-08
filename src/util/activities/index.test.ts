@@ -1,7 +1,7 @@
 import type { ApiNft } from '../../api/types';
 
 import { makeMockTransactionActivity } from '../../../tests/mocks';
-import { getIsHiddenNftActivity, isScamTransaction } from '.';
+import { getIsHiddenNftActivity, isScamTransaction, preferLocalAddressName } from '.';
 
 const WHITELISTED_ADDRESS = 'EQNft_Whitelisted_0000000000000000000000000000000000000';
 const BLACKLISTED_ADDRESS = 'EQNft_Blacklisted_0000000000000000000000000000000000000';
@@ -20,6 +20,32 @@ function makeNft(partial: Partial<ApiNft> = {}): ApiNft {
     ...partial,
   };
 }
+
+describe('preferLocalAddressName', () => {
+  it('keeps the local tmail/DNS name over chain reverse-DNS', () => {
+    const local = makeMockTransactionActivity({
+      metadata: { name: 'alice@tmail.ton' },
+    });
+    const chain = makeMockTransactionActivity({
+      metadata: { name: 'alice.ton' },
+    });
+
+    const merged = preferLocalAddressName(local, chain);
+    expect(merged.kind).toBe('transaction');
+    if (merged.kind === 'transaction') {
+      expect(merged.metadata?.name).toBe('alice@tmail.ton');
+    }
+  });
+
+  it('leaves chain activity unchanged when local has no name', () => {
+    const local = makeMockTransactionActivity({ metadata: undefined });
+    const chain = makeMockTransactionActivity({
+      metadata: { name: 'alice.ton' },
+    });
+
+    expect(preferLocalAddressName(local, chain)).toBe(chain);
+  });
+});
 
 describe('isScamTransaction', () => {
   it('marks a transaction carrying a scam NFT as scam', () => {
