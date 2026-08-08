@@ -56,6 +56,7 @@ class ExploreCategoryCell(
 
     private val chevronView =
         ImageView(context).apply {
+            id = generateViewId()
             scaleType = ImageView.ScaleType.CENTER_INSIDE
         }
 

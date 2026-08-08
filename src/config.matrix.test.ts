@@ -75,7 +75,7 @@ const CONFIG_EXPECTATIONS: Record<Flavor, Record<string, string | boolean | numb
     IS_MY_WALLET_BRAND: true,
     IS_FEATURE_LIMITED: false,
     GLOBAL_STATE_CACHE_KEY: 'twallet-global-state',
-    ACTIVE_TAB_STORAGE_KEY: 'mtw-active-tab',
+    ACTIVE_TAB_STORAGE_KEY: 'twallet-active-tab',
     TONCONNECT_WALLET_JSBRIDGE_KEY: 'twallet',
     PRODUCTION_URL: 'https://web.mywallet.io',
     BETA_URL: 'https://beta.mywallet.io',
@@ -116,7 +116,7 @@ const CONFIG_EXPECTATIONS: Record<Flavor, Record<string, string | boolean | numb
     IS_MY_WALLET_BRAND: false,
     IS_FEATURE_LIMITED: false,
     GLOBAL_STATE_CACHE_KEY: 'twallet-global-state',
-    ACTIVE_TAB_STORAGE_KEY: 'mtw-active-tab',
+    ACTIVE_TAB_STORAGE_KEY: 'twallet-active-tab',
     TONCONNECT_WALLET_JSBRIDGE_KEY: 'twallet',
     PRODUCTION_URL: 'https://web.mywallet.io',
     BETA_URL: 'https://beta.mywallet.io',
@@ -161,12 +161,12 @@ const DEEPLINK_EXPECTATIONS: Record<Flavor, {
   SELF_UNIVERSAL_URLS: string[];
 }> = {
   default: {
-    SELF_PROTOCOL: 'mtw://',
+    SELF_PROTOCOL: 'twallet://',
     TONCONNECT_UNIVERSAL_URL: 'https://connect.mytonwallet.org',
     SELF_UNIVERSAL_URLS: ['https://my.tt', 'https://go.mytonwallet.org'],
   },
   core: {
-    SELF_PROTOCOL: 'mtw://',
+    SELF_PROTOCOL: 'twallet://',
     TONCONNECT_UNIVERSAL_URL: 'https://connect.mytonwallet.org',
     SELF_UNIVERSAL_URLS: ['https://my.tt', 'https://go.mytonwallet.org'],
   },
@@ -222,9 +222,8 @@ describe.each(FLAVORS)('build flavor: %s', (flavor) => {
 });
 
 describe('getDefaultEnabledSlugs resolves per identity axis', () => {
-  // Chains of the default-enabled token set per flavor. This is what puts zero-balance rows on an empty wallet's
-  // home screen. It stays TON-only for core/combo even though combo is fully featured: wallet.ton.org accounts hold
-  // TON-native mnemonics that cannot derive foreign addresses, so those rows would be dead. Air does the same.
+  // Driven by `shared/networks.json` zero-bloat: only chains with `defaultEnabled[network] === true`
+  // (currently TON) contribute default home-screen token rows on first run.
   const chainsByFlavor: Partial<Record<Flavor, Set<string>>> = {};
 
   beforeAll(async () => {
@@ -237,14 +236,10 @@ describe('getDefaultEnabledSlugs resolves per identity axis', () => {
     }
   });
 
-  it('core and combo default to TON tokens only', () => {
-    expect([...chainsByFlavor.core!]).toEqual(['ton']);
-    expect([...chainsByFlavor.combo!]).toEqual(['ton']);
-  });
-
-  it('default and twalletgram keep the multichain defaults', () => {
-    expect(chainsByFlavor.default).toEqual(chainsByFlavor.twalletgram);
-    expect(chainsByFlavor.default!.size).toBeGreaterThan(1);
+  it('all flavors default to TON tokens only (zero-bloat)', () => {
+    for (const flavor of FLAVORS) {
+      expect([...chainsByFlavor[flavor]!]).toEqual(['ton']);
+    }
   });
 });
 

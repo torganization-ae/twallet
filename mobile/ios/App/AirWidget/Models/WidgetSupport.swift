@@ -3,9 +3,9 @@ import SwiftUI
 import UIKit
 
 #if GRAM_WALLET
-let SELF_PROTOCOL = "gramwallet://"
+let SELF_PROTOCOL = "twalletgram://"
 #else
-let SELF_PROTOCOL = "mtw://"
+let SELF_PROTOCOL = "twallet://"
 #endif
 
 let TONCOIN_SLUG = "toncoin"

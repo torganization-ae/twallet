@@ -14,6 +14,14 @@ class WConstraintSet(private val constraintView: ConstraintLayout) : ConstraintS
 
     // Create a new constraint set cloned for constraintView
     init {
+        // ConstraintSet.clone requires every child to have an id. Some call sites add
+        // plain Android views (ImageView, LinearLayout, …) without assigning one.
+        for (i in 0 until constraintView.childCount) {
+            val child = constraintView.getChildAt(i)
+            if (child.id == View.NO_ID) {
+                child.id = View.generateViewId()
+            }
+        }
         clone(constraintView)
     }
 

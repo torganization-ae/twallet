@@ -833,15 +833,19 @@ abstract class BaseChartView<T : ChartData, L : LineViewData>(
             )
         }
 
-        canvas.drawBitmap(
+        val pickerMask =
             sharedUiComponents.getPickerMaskBitmap(
                 pikerHeight,
                 (measuredWidth - HORIZONTAL_PADDING * 2).toInt()
-            ),
-            HORIZONTAL_PADDING,
-            (measuredHeight - PICKER_PADDING - pikerHeight).toFloat(),
-            emptyPaint
-        )
+            )
+        if (pickerMask != null) {
+            canvas.drawBitmap(
+                pickerMask,
+                HORIZONTAL_PADDING,
+                (measuredHeight - PICKER_PADDING - pikerHeight).toFloat(),
+                emptyPaint
+            )
+        }
 
         if (data != null) {
             pickerRect.set(start, top, end, bottom)
@@ -2151,7 +2155,8 @@ abstract class BaseChartView<T : ChartData, L : LineViewData>(
         private var k = 0
         private var invalidate = true
 
-        fun getPickerMaskBitmap(h: Int, w: Int): Bitmap {
+        fun getPickerMaskBitmap(h: Int, w: Int): Bitmap? {
+            if (h <= 0 || w <= 0) return null
             if (((h + w) shl 10) != k || invalidate) {
                 invalidate = false
                 k = (h + w) shl 10
@@ -2166,7 +2171,7 @@ abstract class BaseChartView<T : ChartData, L : LineViewData>(
                     xRefP
                 )
             }
-            return pickerRoundBitmap!!
+            return pickerRoundBitmap
         }
 
         fun invalidate() {

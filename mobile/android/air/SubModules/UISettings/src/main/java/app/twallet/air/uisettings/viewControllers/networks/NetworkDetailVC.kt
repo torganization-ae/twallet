@@ -3,6 +3,7 @@ package app.twallet.air.uisettings.viewControllers.networks
 import android.content.Context
 import android.text.InputType
 import android.util.TypedValue
+import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
@@ -100,6 +101,7 @@ class NetworkDetailVC(
 
     private val contentContainer =
         LinearLayout(context).apply {
+            id = View.generateViewId()
             orientation = LinearLayout.VERTICAL
         }
 

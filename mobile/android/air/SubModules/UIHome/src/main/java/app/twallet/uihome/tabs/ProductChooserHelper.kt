@@ -61,13 +61,14 @@ object ProductChooserHelper {
     }
 
     private fun openProduct(host: WViewController, url: String, title: String) {
+        // Match iOS (showExplore) / web (switchToExplore) before opening the dapp browser.
         (host as? ITabsVC)?.switchToExplore()
 
         val window = host.window ?: return
         val inAppBrowserVC =
             InAppBrowserVC(
                 host.context,
-                host.navigationController?.tabBarController,
+                host as? ITabsVC,
                 InAppBrowserConfig(
                     url = url,
                     title = title,

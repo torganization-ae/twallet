@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name" translatable="false">tWallet</string>
     <string name="app_locale_name_key" translatable="false">tWallet</string>
-    <string name="app_url_scheme" translatable="false">mtw</string>
-    <string name="app_tc_url_scheme" translatable="false">mytonwallet-tc</string>
+    <string name="app_url_scheme" translatable="false">twallet</string>
+    <string name="app_tc_url_scheme" translatable="false">twallet-tc</string>
     <string name="app_website_url" translatable="false">https://mywallet.io</string>
     <string name="app_blog_url" translatable="false">https://mywallet.io/en/blog</string>
     <string name="app_terms_of_use_url" translatable="false">https://mywallet.io/terms-of-use</string>

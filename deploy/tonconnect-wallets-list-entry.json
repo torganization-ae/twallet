@@ -1,0 +1,38 @@
+{
+  "app_name": "twallet",
+  "name": "tWallet",
+  "image": "https://raw.githubusercontent.com/torganization-ae/twallet/master/public/icon-288x288.png",
+  "about_url": "https://mywallet.io",
+  "universal_url": "https://connect.mytonwallet.org",
+  "deepLink": "twallet-tc://",
+  "bridge": [
+    {
+      "type": "js",
+      "key": "twallet"
+    },
+    {
+      "type": "sse",
+      "url": "https://bridge.tonapi.io/bridge/"
+    }
+  ],
+  "platforms": [
+    "ios",
+    "android",
+    "chrome",
+    "firefox",
+    "windows",
+    "macos",
+    "linux"
+  ],
+  "features": [
+    {
+      "name": "SendTransaction",
+      "maxMessages": 255,
+      "extraCurrencySupported": false
+    },
+    {
+      "name": "SignData",
+      "types": ["text", "binary", "cell"]
+    }
+  ]
+}

@@ -24,15 +24,11 @@ struct DeeplinkParserTests {
             expectedRequestLink: walletConnectRequestLink
         ),
         .init(
-            url: "mw://wc?uri=\(walletConnectRequestLink)",
+            url: "twallet://wc?uri=\(walletConnectRequestLink)",
             expectedRequestLink: walletConnectRequestLink
         ),
         .init(
-            url: "mtw://wc?uri=\(walletConnectRequestLink)",
-            expectedRequestLink: walletConnectRequestLink
-        ),
-        .init(
-            url: "mywallet-wc://wc?uri=\(walletConnectRequestLink)",
+            url: "twallet-wc://wc?uri=\(walletConnectRequestLink)",
             expectedRequestLink: walletConnectRequestLink
         ),
         .init(
@@ -52,23 +48,7 @@ struct DeeplinkParserTests {
             expectedRequestLink: walletConnectRequestLink
         ),
         .init(
-            url: "gramwallet://wc?uri=\(walletConnectRequestLink)",
-            expectedRequestLink: walletConnectRequestLink
-        ),
-        .init(
-            url: "gramwallet-wc://wc?uri=\(walletConnectRequestLink)",
-            expectedRequestLink: walletConnectRequestLink
-        ),
-        .init(
-            url: "https://connect.gramwallet.io/wc?uri=\(walletConnectRequestLink)",
-            expectedRequestLink: walletConnectRequestLink
-        ),
-        .init(
-            url: "https://connect.gramwallet.io/wc/wc?uri=\(walletConnectRequestLink)",
-            expectedRequestLink: walletConnectRequestLink
-        ),
-        .init(
-            url: "mw://wc?uri=\(encodedWalletConnectRequestLink)",
+            url: "twallet-wc://wc?uri=\(encodedWalletConnectRequestLink)",
             expectedRequestLink: walletConnectRequestLink
         ),
     ]
@@ -88,10 +68,25 @@ struct DeeplinkParserTests {
 
     @Test
     func rejectsWalletConnectWrappersWithoutWalletConnectUri() throws {
-        let missingUriUrl = try #require(URL(string: "mw://wc"))
+        let missingUriUrl = try #require(URL(string: "twallet-wc://wc"))
         #expect(Deeplink(url: missingUriUrl) == nil)
 
-        let nonWalletConnectUriUrl = try #require(URL(string: "mw://wc?uri=ton://transfer"))
+        let nonWalletConnectUriUrl = try #require(URL(string: "twallet-wc://wc?uri=ton://transfer"))
         #expect(Deeplink(url: nonWalletConnectUriUrl) == nil)
+    }
+
+    @Test
+    func rejectsLegacyMyWalletSchemes() throws {
+        for urlString in [
+            "mtw://portfolio",
+            "mw://wc?uri=\(walletConnectRequestLink)",
+            "mywallet-wc://wc?uri=\(walletConnectRequestLink)",
+            "mytonwallet-tc://connect",
+            "gramwallet://wc?uri=\(walletConnectRequestLink)",
+            "gramwallet-wc://wc?uri=\(walletConnectRequestLink)",
+        ] {
+            let url = try #require(URL(string: urlString))
+            #expect(Deeplink(url: url) == nil)
+        }
     }
 }

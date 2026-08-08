@@ -235,8 +235,8 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
-export const IMAGE_CACHE_NAME = IS_EXPLORER ? 'explorer-image' : 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-328';
+export const IMAGE_CACHE_NAME = IS_EXPLORER ? 'explorer-image' : 'twallet-image';
+export const LANG_CACHE_NAME = 'twallet-lang-328';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -719,7 +719,7 @@ export const ACTIVE_TAB_STORAGE_KEY = IS_CORE_WALLET
   ? 'tw-active-tab'
   : IS_EXPLORER
     ? 'explorer-active-tab'
-    : 'mtw-active-tab';
+    : 'twallet-active-tab';
 
 export const INDEXED_DB_NAME = IS_EXPLORER ? 'explorer-keyval-store' : 'keyval-store';
 export const INDEXED_DB_STORE_NAME = 'keyval';

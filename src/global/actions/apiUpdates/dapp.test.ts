@@ -50,7 +50,7 @@ describe('dapp api updates', () => {
 
   it('should preserve page deeplink source when processing popup updates', () => {
     const handler = getApiUpdateHandler();
-    const url = 'mtw://swap?in=ton&out=usdt';
+    const url = 'twallet://swap?in=ton&out=usdt';
     const update: ApiUpdateProcessDeeplink = {
       type: 'processDeeplink',
       url,

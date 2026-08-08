@@ -62,7 +62,7 @@ object WSecureStorage {
     }
 
     fun setBiometricPasscode(activity: Activity, passcode: String): Boolean {
-        return NativeBiometric(activity).setCredentials("MyTonWallet", passcode)
+        return NativeBiometric(activity).setCredentials("Twallet", passcode)
     }
 
     fun deleteBiometricPasscode(activity: Activity): Boolean {

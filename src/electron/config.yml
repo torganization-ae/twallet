@@ -34,7 +34,7 @@ protocols:
   - name: "TonConnect tWallet"
     schemes: ["twallet-tc"]
   - name: "tWallet"
-    schemes: ["mtw"]
+    schemes: ["twallet"]
   - name: "WalletConnect"
     schemes: ["wc"]
   - name: "WalletConnect tWallet"

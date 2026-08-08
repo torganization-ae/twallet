@@ -351,7 +351,7 @@ object WalletConnectHelper {
 
             if (!window.solana) {
                 window.solana = {
-                    isMyTonWallet: true,
+                    isTwallet: true,
                     publicKey: null,
                     isConnected: false,
                     connect: async (options) => {

@@ -9,9 +9,7 @@ public extension Deeplink {
             switch url.scheme?.lowercased() {
             case "ton":
                 parseTonInvoiceUrl(url)
-            case "tc":
-                parseTonConnectUrl(url)
-            case let scheme? where scheme == TONCONNECT_PROTOCOL_SCHEME:
+            case let scheme? where compatibleTonConnectProtocolSchemes.contains(scheme):
                 parseTonConnectUrl(url)
             case "wc":
                 parseWalletConnectUrl(url)
@@ -50,42 +48,20 @@ public extension Deeplink {
     }
 }
 
-private let gramLegacySelfProtocolScheme = "mtw"
-private let gramLegacySelfUniversalHosts: Set<String> = ["my.tt", "go.mytonwallet.org"]
-private let compatibleWalletConnectSelfProtocolSchemes: Set<String> = ["mtw", "twalletgram"]
-private let compatibleWalletConnectWrapperProtocolSchemes: Set<String> = ["mw", "mywallet-wc", "gramwallet-wc"]
+private var compatibleWalletConnectSelfProtocolSchemes: Set<String> { [SELF_PROTOCOL_SCHEME] }
+private var compatibleWalletConnectWrapperProtocolSchemes: Set<String> {
+    IS_TWALLETGRAM_WALLET ? ["twalletgram-wc"] : ["twallet-wc"]
+}
 private let compatibleWalletConnectUniversalHosts: Set<String> = [
     "connect.mywallet.io",
     "connect.mytonwallet.org",
     "connect.gramwallet.io",
 ]
-
-private var compatibleSelfProtocolSchemes: Set<String> {
-    var schemes: Set<String> = [SELF_PROTOCOL_SCHEME]
-    if IS_TWALLETGRAM_WALLET {
-        schemes.insert(gramLegacySelfProtocolScheme)
-    }
-    return schemes
+private var compatibleTonConnectProtocolSchemes: Set<String> {
+    ["tc", TONCONNECT_PROTOCOL_SCHEME]
 }
-
-private var compatibleSelfUniversalHosts: Set<String> {
-    var hosts = SELF_UNIVERSAL_URL_HOSTS
-    if IS_TWALLETGRAM_WALLET {
-        hosts.formUnion(gramLegacySelfUniversalHosts)
-    }
-    return hosts
-}
-
-private func normalizeSelfProtocolUrl(_ url: URL) -> URL? {
-    guard let scheme = url.scheme?.lowercased(),
-          scheme != SELF_PROTOCOL_SCHEME,
-          compatibleSelfProtocolSchemes.contains(scheme),
-          var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-        return nil
-    }
-    components.scheme = SELF_PROTOCOL_SCHEME
-    return components.url
-}
+private var compatibleSelfProtocolSchemes: Set<String> { [SELF_PROTOCOL_SCHEME] }
+private var compatibleSelfUniversalHosts: Set<String> { SELF_UNIVERSAL_URL_HOSTS }
 
 private func normalizeSelfUniversalUrl(_ url: URL) -> URL? {
     guard let scheme = url.scheme?.lowercased(),
@@ -218,10 +194,6 @@ private func parseTonInvoiceUrl(_ url: URL) -> Deeplink? {
 private func parseMtwUrl(_ url: URL) -> Deeplink? {
 
     var url = url
-
-    if let normalizedUrl = normalizeSelfProtocolUrl(url) {
-        url = normalizedUrl
-    }
 
     if url.scheme == "http", var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
         components.scheme = "https"

@@ -299,8 +299,8 @@ describe('processSelfDeeplink', () => {
   });
 
   describe('Swap command', () => {
-    it('should start swap with default parameters using mtw:// protocol', async () => {
-      const result = await processSelfDeeplink('mtw://swap');
+    it('should start swap with default parameters using twallet:// protocol', async () => {
+      const result = await processSelfDeeplink('twallet://swap');
 
       expect(result).toBe(true);
       expect(mockActions.startSwap).toHaveBeenCalledWith({
@@ -338,7 +338,7 @@ describe('processSelfDeeplink', () => {
         },
       };
 
-      const result = await processSelfDeeplink('mtw://swap?in=unknown-token&out=ton-usdt');
+      const result = await processSelfDeeplink('twallet://swap?in=unknown-token&out=ton-usdt');
 
       expect(result).toBe(true);
       expect(mockActions.showError).toHaveBeenCalledWith({
@@ -359,7 +359,7 @@ describe('processSelfDeeplink', () => {
         },
       };
 
-      const result = await processSelfDeeplink('mtw://swap?in=unknown-token&out=toncoin');
+      const result = await processSelfDeeplink('twallet://swap?in=unknown-token&out=toncoin');
 
       expect(result).toBe(true);
       expect(mockActions.showError).toHaveBeenCalledWith({
@@ -380,7 +380,7 @@ describe('processSelfDeeplink', () => {
         },
       };
 
-      const result = await processSelfDeeplink(`mtw://swap?in=toncoin&out=unknown-token`);
+      const result = await processSelfDeeplink(`twallet://swap?in=toncoin&out=unknown-token`);
 
       expect(result).toBe(true);
       expect(mockActions.showError).toHaveBeenCalledWith({
@@ -401,7 +401,7 @@ describe('processSelfDeeplink', () => {
         },
       };
 
-      const result = await processSelfDeeplink('mtw://swap?in=unknown-in&out=unknown-out');
+      const result = await processSelfDeeplink('twallet://swap?in=unknown-in&out=unknown-out');
 
       expect(result).toBe(true);
       expect(mockActions.showError).toHaveBeenCalledWith({
@@ -417,7 +417,7 @@ describe('processSelfDeeplink', () => {
     it('should show error when swap is requested in testnet', async () => {
       mockGlobal.settings.isTestnet = true;
 
-      const result = await processSelfDeeplink('mtw://swap');
+      const result = await processSelfDeeplink('twallet://swap');
 
       expect(result).toBe(true);
       expect(mockActions.showError).toHaveBeenCalledWith({
@@ -429,7 +429,7 @@ describe('processSelfDeeplink', () => {
     it('should show error when swap is requested with Ledger account', async () => {
       mockGlobal.accounts!.byId['test-account-id'].type = 'hardware';
 
-      const result = await processSelfDeeplink('mtw://swap');
+      const result = await processSelfDeeplink('twallet://swap');
 
       expect(result).toBe(true);
       expect(mockActions.showError).toHaveBeenCalledWith({
@@ -441,7 +441,7 @@ describe('processSelfDeeplink', () => {
 
   describe('Buy with crypto command', () => {
     it('should start swap for buying with default parameters', async () => {
-      const result = await processSelfDeeplink('mtw://buy-with-crypto');
+      const result = await processSelfDeeplink('twallet://buy-with-crypto');
       const { nativeToken, buySwap: defaultBuySwap } = getChainConfig('ton');
 
       expect(result).toBe(true);
@@ -468,7 +468,7 @@ describe('processSelfDeeplink', () => {
     it('should show error when buy-with-crypto is requested in testnet', async () => {
       mockGlobal.settings.isTestnet = true;
 
-      const result = await processSelfDeeplink('mtw://buy-with-crypto');
+      const result = await processSelfDeeplink('twallet://buy-with-crypto');
 
       expect(result).toBe(true);
       expect(mockActions.showError).toHaveBeenCalledWith({
@@ -479,7 +479,7 @@ describe('processSelfDeeplink', () => {
 
   describe('Portfolio command', () => {
     it('should switch to portfolio screen', async () => {
-      const result = await processSelfDeeplink('mtw://portfolio');
+      const result = await processSelfDeeplink('twallet://portfolio');
 
       expect(result).toBe(true);
       expect(mockActions.switchToPortfolio).toHaveBeenCalled();
@@ -488,7 +488,7 @@ describe('processSelfDeeplink', () => {
 
   describe('Checkin command', () => {
     it('should open checkin URL without referral code', async () => {
-      const result = await processSelfDeeplink('mtw://r/');
+      const result = await processSelfDeeplink('twallet://r/');
 
       expect(result).toBe(true);
       expect(openUrl).toHaveBeenCalledWith('https://checkin.mytonwallet.org');
@@ -504,7 +504,7 @@ describe('processSelfDeeplink', () => {
 
   describe('Receive command', () => {
     it('should open receive modal', async () => {
-      const result = await processSelfDeeplink('mtw://receive');
+      const result = await processSelfDeeplink('twallet://receive');
 
       expect(result).toBe(true);
       expect(mockActions.openReceiveModal).toHaveBeenCalled();
@@ -513,7 +513,7 @@ describe('processSelfDeeplink', () => {
 
   describe('Explore command', () => {
     it('should open explore tab', async () => {
-      const result = await processSelfDeeplink('mtw://explore');
+      const result = await processSelfDeeplink('twallet://explore');
 
       expect(result).toBe(true);
       expect(mockActions.closeSettings).toHaveBeenCalled();
@@ -547,7 +547,7 @@ describe('processSelfDeeplink', () => {
 
   describe('View command', () => {
     it('should open temporary view account with single address', async () => {
-      const result = await processSelfDeeplink(`mtw://view/?ton=${TEST_TON_ADDRESS}`);
+      const result = await processSelfDeeplink(`twallet://view/?ton=${TEST_TON_ADDRESS}`);
 
       expect(result).toBe(true);
       expect(mockActions.openTemporaryViewAccount).toHaveBeenCalledWith({
@@ -590,7 +590,7 @@ describe('processSelfDeeplink', () => {
     });
 
     it('should show error when no valid addresses provided', async () => {
-      const result = await processSelfDeeplink('mtw://view/');
+      const result = await processSelfDeeplink('twallet://view/');
 
       expect(result).toBe(false);
       expect(mockActions.showError).toHaveBeenCalledWith({
@@ -599,7 +599,8 @@ describe('processSelfDeeplink', () => {
     });
 
     it('should show error when all provided addresses are invalid', async () => {
-      const result = await processSelfDeeplink('mtw://view/?ton=invalid-address');
+      // Must not match a bare TON/tmail alias (those are accepted by isValidAddressOrDomain).
+      const result = await processSelfDeeplink('twallet://view/?ton=not.a.valid.address');
 
       expect(result).toBe(false);
       expect(mockActions.showError).toHaveBeenCalledWith({
@@ -622,7 +623,7 @@ describe('processSelfDeeplink', () => {
 
   describe('Transfer command', () => {
     it('should process transfer deeplink', async () => {
-      const result = await processSelfDeeplink(`mtw://transfer/${TEST_TON_ADDRESS}?amount=1`);
+      const result = await processSelfDeeplink(`twallet://transfer/${TEST_TON_ADDRESS}?amount=1`);
 
       expect(result).toBe(true);
       expect(mockActions.startTransfer).toHaveBeenCalledWith(
@@ -667,7 +668,7 @@ describe('processSelfDeeplink', () => {
 
   describe('Air command', () => {
     it('should return false because the air command is no longer handled', async () => {
-      const result = await processSelfDeeplink('mtw://air');
+      const result = await processSelfDeeplink('twallet://air');
 
       expect(result).toBe(false);
     });
@@ -675,7 +676,7 @@ describe('processSelfDeeplink', () => {
 
   describe('Invalid deeplinks', () => {
     it('should return false for unknown commands', async () => {
-      const result = await processSelfDeeplink('mtw://unknown-command');
+      const result = await processSelfDeeplink('twallet://unknown-command');
 
       expect(result).toBe(false);
     });
@@ -691,15 +692,15 @@ describe('processSelfDeeplink', () => {
         throw new Error('Test error');
       });
 
-      const result = await processSelfDeeplink('mtw://swap');
+      const result = await processSelfDeeplink('twallet://swap');
 
       expect(result).toBe(false);
     });
   });
 
   describe('Protocol variations', () => {
-    it('should handle mtw:// protocol', async () => {
-      const result = await processSelfDeeplink('mtw://portfolio');
+    it('should handle twallet:// protocol', async () => {
+      const result = await processSelfDeeplink('twallet://portfolio');
 
       expect(result).toBe(true);
       expect(mockActions.switchToPortfolio).toHaveBeenCalled();
@@ -974,7 +975,7 @@ describe('processSelfDeeplink Transaction command', () => {
   describe('TON transaction links', () => {
     it('should open transaction info for valid TON transaction', async () => {
       const txId = '+YqE7Rejq4CIwK+2UyEgdnSdPwyaYV23wFJd9T6cTxw=';
-      const result = await processSelfDeeplink(`mtw://tx/ton/${txId}`);
+      const result = await processSelfDeeplink(`twallet://tx/ton/${txId}`);
 
       expect(result).toBe(true);
       expect(mockActions.openTransactionInfo).toHaveBeenCalledWith({
@@ -999,7 +1000,7 @@ describe('processSelfDeeplink Transaction command', () => {
 
     it('should handle transaction with special characters in ID', async () => {
       const txId = 'CAm70iims+RRf4Xe7r7jIWJd9Jk03AzFmUOntM/aK7U=';
-      const result = await processSelfDeeplink(`mtw://tx/ton/${txId}`);
+      const result = await processSelfDeeplink(`twallet://tx/ton/${txId}`);
 
       expect(result).toBe(true);
       expect(mockActions.openTransactionInfo).toHaveBeenCalledWith({
@@ -1017,7 +1018,7 @@ describe('processSelfDeeplink Transaction command', () => {
         return undefined;
       });
 
-      const result = await processSelfDeeplink('mtw://tx/ton/nonexistent-tx-id');
+      const result = await processSelfDeeplink('twallet://tx/ton/nonexistent-tx-id');
 
       expect(result).toBe(true);
       expect(mockActions.showError).toHaveBeenCalledWith({ error: '$transaction_not_found' });
@@ -1028,7 +1029,7 @@ describe('processSelfDeeplink Transaction command', () => {
   describe('TRON transaction links', () => {
     it('should open transaction info for valid TRON transaction', async () => {
       const txId = 'a73f1e0711d6b75ea547791dda39655de1264c8bd92bc57a2710fc49651a988c';
-      const result = await processSelfDeeplink(`mtw://tx/tron/${txId}`);
+      const result = await processSelfDeeplink(`twallet://tx/tron/${txId}`);
 
       expect(result).toBe(true);
       expect(mockActions.openTransactionInfo).toHaveBeenCalledWith({
@@ -1053,7 +1054,7 @@ describe('processSelfDeeplink Transaction command', () => {
 
   describe('Invalid transaction links', () => {
     it('should return false for invalid chain and show error', async () => {
-      const result = await processSelfDeeplink('mtw://tx/banana/zzz');
+      const result = await processSelfDeeplink('twallet://tx/banana/zzz');
 
       expect(result).toBe(false);
       expect(mockActions.openTransactionInfo).not.toHaveBeenCalled();
@@ -1061,21 +1062,21 @@ describe('processSelfDeeplink Transaction command', () => {
     });
 
     it('should return false for missing txId', async () => {
-      const result = await processSelfDeeplink('mtw://tx/ton');
+      const result = await processSelfDeeplink('twallet://tx/ton');
 
       expect(result).toBe(false);
       expect(mockActions.openTransactionInfo).not.toHaveBeenCalled();
     });
 
     it('should return false for missing chain', async () => {
-      const result = await processSelfDeeplink('mtw://tx');
+      const result = await processSelfDeeplink('twallet://tx');
 
       expect(result).toBe(false);
       expect(mockActions.openTransactionInfo).not.toHaveBeenCalled();
     });
 
     it('should return false for empty txId', async () => {
-      const result = await processSelfDeeplink('mtw://tx/ton/');
+      const result = await processSelfDeeplink('twallet://tx/ton/');
 
       expect(result).toBe(false);
       expect(mockActions.openTransactionInfo).not.toHaveBeenCalled();
@@ -1083,9 +1084,9 @@ describe('processSelfDeeplink Transaction command', () => {
   });
 
   describe('Protocol variations', () => {
-    it('should handle mtw:// protocol', async () => {
+    it('should handle twallet:// protocol', async () => {
       const txId = 'testTxId123';
-      const result = await processSelfDeeplink(`mtw://tx/ton/${txId}`);
+      const result = await processSelfDeeplink(`twallet://tx/ton/${txId}`);
 
       expect(result).toBe(true);
       expect(mockActions.openTransactionInfo).toHaveBeenCalledWith({
@@ -1125,37 +1126,37 @@ describe('getDeeplinkFromLocation', () => {
       name: 'handle swap command with query params',
       pathname: '/swap',
       search: '?in=toncoin&out=ton-usdt&amount=100',
-      expected: 'mtw://swap?in=toncoin&out=ton-usdt&amount=100',
+      expected: 'twallet://swap?in=toncoin&out=ton-usdt&amount=100',
     },
     {
       name: 'handle transfer command with address',
       pathname: `/transfer/${TEST_TON_ADDRESS}`,
       search: '?amount=1&text=Hello',
-      expected: `mtw://transfer/${TEST_TON_ADDRESS}?amount=1&text=Hello`,
+      expected: `twallet://transfer/${TEST_TON_ADDRESS}?amount=1&text=Hello`,
     },
     {
       name: 'handle root path with search params only',
       pathname: '/',
       search: '?foo=bar',
-      expected: 'mtw://?foo=bar',
+      expected: 'twallet://?foo=bar',
     },
     {
       name: 'handle tx command with chain and txId',
       pathname: '/tx/ton/testTxId123',
       search: '',
-      expected: 'mtw://tx/ton/testTxId123',
+      expected: 'twallet://tx/ton/testTxId123',
     },
     {
       name: 'handle view command with addresses',
       pathname: '/view/',
       search: `?ton=${TEST_TON_ADDRESS}`,
-      expected: `mtw://view/?ton=${TEST_TON_ADDRESS}`,
+      expected: `twallet://view/?ton=${TEST_TON_ADDRESS}`,
     },
     {
       name: 'handle receive command',
       pathname: '/receive',
       search: '',
-      expected: 'mtw://receive',
+      expected: 'twallet://receive',
     },
   ])('should $name', ({ pathname, search, expected }) => {
     mockLocation(pathname, search);
@@ -1214,10 +1215,10 @@ describe('View-only mode deeplink blocking', () => {
 
   describe('processSelfDeeplink blocks signing commands', () => {
     it.each([
-      { name: 'Swap', url: 'mtw://swap' },
-      { name: 'BuyWithCrypto', url: 'mtw://buy-with-crypto' },
-      { name: 'Transfer', url: `mtw://transfer/${TEST_TON_ADDRESS}?amount=1` },
-      { name: 'Receive', url: 'mtw://receive' },
+      { name: 'Swap', url: 'twallet://swap' },
+      { name: 'BuyWithCrypto', url: 'twallet://buy-with-crypto' },
+      { name: 'Transfer', url: `twallet://transfer/${TEST_TON_ADDRESS}?amount=1` },
+      { name: 'Receive', url: 'twallet://receive' },
     ])('should block $name in view-only mode', async ({ url }) => {
       const result = await processSelfDeeplink(url);
 
@@ -1228,7 +1229,7 @@ describe('View-only mode deeplink blocking', () => {
     });
 
     it('should not call startSwap in view-only mode', async () => {
-      await processSelfDeeplink('mtw://swap');
+      await processSelfDeeplink('twallet://swap');
       expect(mockActions.startSwap).not.toHaveBeenCalled();
     });
   });

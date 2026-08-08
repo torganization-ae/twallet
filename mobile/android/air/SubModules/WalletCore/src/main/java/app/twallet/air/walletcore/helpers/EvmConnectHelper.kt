@@ -13,10 +13,10 @@ object EvmConnectHelper {
         get() = ApplicationContextHolder.isGramApp
 
     private val installFlag: String
-        get() = if (isGramWallet) "__gramWalletEvmConnectorInstalled" else "__mtwEvmConnectorInstalled"
+        get() = if (isGramWallet) "__twalletGramEvmConnectorInstalled" else "__twalletEvmConnectorInstalled"
 
     private val rdns: String
-        get() = if (isGramWallet) "io.gramwallet" else "app.mytonwallet"
+        get() = if (isGramWallet) "app.twalletgram" else "app.twallet"
 
     private val appName: String
         get() = ApplicationContextHolder.applicationContext.getString(BaseR.string.app_locale_name_key)
@@ -60,7 +60,7 @@ object EvmConnectHelper {
         val appNameJson = jsonString(appName)
         val rdnsJson = jsonString(rdns)
         val defaultCaip2Json = jsonString(defaultCaip2)
-        val isMyTonWalletLiteral = if (isGramWallet) "false" else "true"
+        val isTwalletLiteral = if (isGramWallet) "false" else "true"
         val isGramWalletLiteral = if (isGramWallet) "true" else "false"
         val svgLiteral = jsonString(InjectedWalletIcon.svg(isGramWallet))
 
@@ -228,7 +228,7 @@ object EvmConnectHelper {
                     // (eth_accounts is polled at 100+/s; in-flight dedup alone leaks 60% to the worker).
                     this._silentReconnect = null;
                     this.provider = {
-                        isMyTonWallet: $isMyTonWalletLiteral,
+                        isTwallet: $isTwalletLiteral,
                         isGramWallet: $isGramWalletLiteral,
                         request: (args) => this.request(args || {}),
                         on: (event, handler) => {

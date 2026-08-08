@@ -15,7 +15,7 @@ struct EvmConnectInjectionScript {
         let appName = makeJSONString(APP_NAME)
         let rdns = makeJSONString(IS_TWALLETGRAM_WALLET ? "app.twalletgram" : "app.twallet")
         let defaultCaip2JSON = makeJSONString(defaultCaip2)
-        let installFlag = IS_TWALLETGRAM_WALLET ? "__twalletGramEvmConnectorInstalled" : "__mtwEvmConnectorInstalled"
+        let installFlag = IS_TWALLETGRAM_WALLET ? "__twalletGramEvmConnectorInstalled" : "__twalletEvmConnectorInstalled"
         return #"""
         (function() {
             if (window.\#(installFlag)) return;

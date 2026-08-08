@@ -87,7 +87,8 @@ export type RecordTonConnectEventInput = TonConnectEventFields & {
   trace_id?: string;
 };
 
-const WALLET_APP_NAME = 'tWallet';
+// Must match TONCONNECT_WALLET_JSBRIDGE_KEY / wallets-list app_name
+const WALLET_APP_NAME = 'twallet';
 
 // A fresh per-launch session id; the spec leaves `user_id` empty for wallets, so this only correlates one session.
 // Generated lazily on the first recorded event, so a launch that never enables analytics does no work. Uses

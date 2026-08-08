@@ -3,7 +3,7 @@ import type { DeviceInfo, Feature } from '@tonconnect/protocol';
 import type { ApiAccountWithChain } from '../api/types';
 
 import {
-  APP_NAME, IS_EXTENSION, IS_TELEGRAM_APP, TONCONNECT_PROTOCOL_VERSION,
+  IS_EXTENSION, IS_TELEGRAM_APP, TONCONNECT_PROTOCOL_VERSION, TONCONNECT_WALLET_JSBRIDGE_KEY,
 } from '../config';
 import packageJson from '../../package.json';
 import { W5_MAX_MESSAGES } from '../api/chains/ton/constants';
@@ -14,6 +14,9 @@ type DevicePlatform = DeviceInfo['platform'];
 /*
  This function is called in TonConnect `connect` method (where we know the wallet version)
  and in JS Bridge (where no account is selected, so we show maximum number of messages).
+
+ `appName` must equal `TONCONNECT_WALLET_JSBRIDGE_KEY` and the wallets-list `app_name`
+ (see ton-blockchain/wallets-list). Display name for UI stays in `APP_NAME`.
 */
 export function tonConnectGetDeviceInfo(account?: ApiAccountWithChain<'ton'>): DeviceInfo {
   const features: Feature[] = [
@@ -34,7 +37,7 @@ export function tonConnectGetDeviceInfo(account?: ApiAccountWithChain<'ton'>): D
   // Redefine for backward compatibility
   return {
     platform: getPlatform(),
-    appName: APP_NAME,
+    appName: TONCONNECT_WALLET_JSBRIDGE_KEY,
     appVersion: packageJson.version,
     maxProtocolVersion: TONCONNECT_PROTOCOL_VERSION,
     features,

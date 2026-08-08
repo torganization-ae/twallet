@@ -31,10 +31,9 @@
 			<array>
 				<string>ton</string>
 				<string>tc</string>
-				<string>mytonwallet-tc</string>
-				<string>mtw</string>
-				<string>mw</string>
-				<string>mywallet-wc</string>
+				<string>twallet-tc</string>
+				<string>twallet</string>
+				<string>twallet-wc</string>
 				<string>wc</string>
 			</array>
 		</dict>

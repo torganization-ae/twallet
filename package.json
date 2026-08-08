@@ -113,13 +113,19 @@
       "name": "TonConnect",
       "schemes": [
         "tc",
-        "mytonwallet-tc"
+        "twallet-tc"
       ]
     },
     {
-      "name": "Twallet",
+      "name": "tWallet",
       "schemes": [
-        "mtw"
+        "twallet"
+      ]
+    },
+    {
+      "name": "WalletConnect tWallet",
+      "schemes": [
+        "twallet-wc"
       ]
     }
   ],

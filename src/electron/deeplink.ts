@@ -11,7 +11,7 @@ import {
 const TON_PROTOCOL = 'ton';
 const TONCONNECT_PROTOCOL = 'tc';
 const TONCONNECT_PROTOCOL_SELF = 'twallet-tc';
-const SELF_PROTOCOL = 'mtw';
+const SELF_PROTOCOL = 'twallet';
 const WALLETCONNECT_SCHEME = 'wc';
 const WALLETCONNECT_DEEPLINK_SCHEME = 'twallet-wc';
 const WALLETCONNECT_DEEPLINK = 'twallet-wc://';

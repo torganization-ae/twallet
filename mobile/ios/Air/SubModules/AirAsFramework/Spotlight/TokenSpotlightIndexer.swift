@@ -5,8 +5,11 @@ import WalletCore
 import WalletCoreTypes
 
 private let tokenSpotlightLog = Log("TokenSpotlightIndexer")
-private let tokenSpotlightIndexName = "MyTonWallet_Tokens"
-private let legacyTokenSpotlightIndexName = "MyTonWallet_TokenHoldings"
+private let tokenSpotlightIndexName = "Twallet_Tokens"
+private let legacyTokenSpotlightIndexNames = [
+    "MyTonWallet_Tokens",
+    "MyTonWallet_TokenHoldings",
+]
 
 @MainActor
 @available(iOS 18.4, *)
@@ -21,6 +24,9 @@ final class TokenSpotlightIndexer: WalletCoreData.EventsObserver, @unchecked Sen
     func start() {
         guard !isStarted else { return }
         isStarted = true
+        for name in legacyTokenSpotlightIndexNames {
+            CSSearchableIndex(name: name).deleteAllSearchableItems(completionHandler: { _ in })
+        }
         WalletCoreData.add(eventObserver: self)
     }
 

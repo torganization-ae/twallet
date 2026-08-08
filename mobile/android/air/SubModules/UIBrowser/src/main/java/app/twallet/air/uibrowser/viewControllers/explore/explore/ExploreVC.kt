@@ -218,9 +218,10 @@ class ExploreVC(
                     saveInVisitedHistory = true,
                 )
             )
-        val nav = WNavigationController(window!!)
+        val window = window ?: return
+        val nav = WNavigationController(window)
         nav.setRoot(inAppBrowserVC)
-        window?.present(nav)
+        window.present(nav)
     }
 
     private fun onCategoryTap(category: MExploreCategory) {
@@ -474,6 +475,7 @@ class ExploreVC(
                 }
                 return
             }
+            val window = window ?: return
             val inAppBrowserVC =
                 InAppBrowserVC(
                     context,
@@ -486,9 +488,9 @@ class ExploreVC(
                         saveInVisitedHistory = true,
                     )
                 )
-            val nav = WNavigationController(window!!)
+            val nav = WNavigationController(window)
             nav.setRoot(inAppBrowserVC)
-            window?.present(nav)
+            window.present(nav)
         } ?: run {
             pushConfigure()
         }

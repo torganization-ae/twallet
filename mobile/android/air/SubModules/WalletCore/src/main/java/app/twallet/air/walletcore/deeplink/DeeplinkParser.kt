@@ -120,7 +120,7 @@ interface DeeplinkNavigator {
 class DeeplinkParser {
 
     companion object {
-        private val WC_WRAPPER_SCHEMES = setOf("mw", "mywallet-wc", "gramwallet-wc")
+        private val WC_WRAPPER_SCHEMES = setOf("twallet-wc", "twalletgram-wc")
         private val WC_WRAPPER_UNIVERSAL_HOSTS = setOf(
             "connect.mywallet.io",
             "connect.mytonwallet.org",
@@ -467,7 +467,7 @@ class DeeplinkParser {
         }
 
         private fun handleSend(uri: Uri): Deeplink? {
-            // Format: mtw://send/{chain}:{address}?amount=...&token=...&text=...
+            // Format: twallet://send/{chain}:{address}?amount=...&token=...&text=...
             val target = uri.pathSegments.firstOrNull() ?: return null
             val colonIndex = target.indexOf(':')
             if (colonIndex == -1) return null

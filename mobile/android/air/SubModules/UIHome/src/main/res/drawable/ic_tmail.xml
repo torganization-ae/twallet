@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="216"
+    android:viewportHeight="192">
+    <!-- Brand TMail mark (monochrome, tintable). -->
+    <path
+        android:fillColor="#1C1D21"
+        android:fillType="evenOdd"
+        android:pathData="M96.274,140.074C99.63,143.144 103.768,144.864 108,145.239C112.232,144.864 116.37,143.144 119.726,140.074L135.994,125.192L161.872,191.485H54.128L80.006,125.192L96.274,140.074ZM0,52L72.773,118.575L43.303,191.485H20C8.954,191.485 0,182.53 0,171.485V52ZM216,52L143.227,118.575L172.697,191.485H196C207.046,191.485 216,182.53 216,171.485V52Z" />
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M11.492,49.578H55.142L94.359,125.62L11.492,49.578Z" />
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M204.846,49.578H161.196L121.979,125.62L204.846,49.578Z" />
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M152.33,49.578H64.348L107.657,136.005L152.33,49.578Z" />
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M147.215,41.203H68.099L107.736,0.67L147.215,41.203Z" />
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M207.916,41.203H159.492L118.57,0H171.768L207.916,41.203Z" />
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M8.08,41.203H56.504L97.426,0H44.569L8.08,41.203Z" />
+</vector>

@@ -102,7 +102,7 @@ public var IS_DEBUG_OR_TESTFLIGHT: Bool {
     !DebugProductionMode.isEnabled && IS_DEBUG_OR_TESTFLIGHT_DEFAULT
 }
 
-public var SELF_PROTOCOL_SCHEME: String { IS_TWALLETGRAM_WALLET ? "twalletgram" : "mtw" }
+public var SELF_PROTOCOL_SCHEME: String { IS_TWALLETGRAM_WALLET ? "twalletgram" : "twallet" }
 public var TONCONNECT_PROTOCOL_SCHEME: String { IS_TWALLETGRAM_WALLET ? "twalletgram-tc" : "twallet-tc" }
 public var SELF_PROTOCOL: String { "\(SELF_PROTOCOL_SCHEME)://" }
 public var TONCONNECT_UNIVERSAL_URL: String { IS_TWALLETGRAM_WALLET ? "https://connect.gramwallet.io" : "https://connect.mytonwallet.org" }

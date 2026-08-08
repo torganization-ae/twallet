@@ -1,22 +1,22 @@
 package app.twallet.air.walletcore.helpers
 
 import org.json.JSONObject
-import app.twallet.air.walletbasecontext.R as BaseR
 import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.moshi.DeviceInfo
 import java.security.SecureRandom
 
 object TonConnectHelper {
-    const val TON_CONNECT_WALLET_JS_BRIDGE_INTERFACE = "_mytonwallet"
+    const val TON_CONNECT_WALLET_JS_BRIDGE_INTERFACE = "_twallet"
 
+    // Must match wallets-list app_name / web TONCONNECT_WALLET_JSBRIDGE_KEY
     private val tonConnectWalletJsBridgeKey: String
-        get() = if (ApplicationContextHolder.isGramApp) "gramwallet" else "mytonwallet"
+        get() = if (ApplicationContextHolder.isGramApp) "twalletgram" else "twallet"
 
     val deviceInfo: DeviceInfo
         get() = DeviceInfo(
             platform = "android",
-            appName = ApplicationContextHolder.applicationContext.getString(BaseR.string.app_locale_name_key),
+            appName = tonConnectWalletJsBridgeKey,
             appVersion = ApplicationContextHolder.getAppVersion ?: "",
             maxProtocolVersion = 2,
             features = listOf(

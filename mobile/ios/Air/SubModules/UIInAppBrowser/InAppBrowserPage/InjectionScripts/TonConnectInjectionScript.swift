@@ -43,7 +43,7 @@ struct TonConnectInjectionScript {
                     {
                         deviceInfo: {
                             platform: 'iphone',
-                            appName: '\(appName)',
+                            appName: '\(tonConnectWalletJsBridgeKey)',
                             appVersion: '\(appVersion)',
                             maxProtocolVersion: \(supportedTonConnectVersion),
                             features: [
