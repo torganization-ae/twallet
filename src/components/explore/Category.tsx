@@ -1,13 +1,14 @@
-import React, { memo, useMemo } from '../../lib/teact/teact';
+import React, { memo, useRef } from '../../lib/teact/teact';
 import { getActions } from '../../global';
 
 import type { ApiSite, ApiSiteCategory } from '../../api/types';
 
 import buildClassName from '../../util/buildClassName';
 import { stopEvent } from '../../util/domEvents';
-import { openUrl } from '../../util/openUrl';
-import { getHostnameFromUrl } from '../../util/url';
+import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
+import { openSite } from './helpers/utils';
 
+import useHorizontalScroll from '../../hooks/useHorizontalScroll';
 import useLang from '../../hooks/useLang';
 
 import Image from '../ui/Image';
@@ -23,16 +24,13 @@ function Category({ category, sites }: OwnProps) {
   const { openSiteCategory } = getActions();
 
   const lang = useLang();
-  const [bigSites, smallSites] = useMemo(() => {
-    if (sites.length <= 4) {
-      return [sites, []];
-    }
+  const containerRef = useRef<HTMLDivElement>();
 
-    return [
-      sites.slice(0, 3),
-      sites.slice(3, 7),
-    ];
-  }, [sites]);
+  useHorizontalScroll({
+    containerRef,
+    isDisabled: IS_TOUCH_ENV || sites.length === 0,
+    shouldPreventDefault: true,
+  });
 
   function handleCategoryClick() {
     openSiteCategory({ id: category.id });
@@ -46,46 +44,30 @@ function Category({ category, sites }: OwnProps) {
         tabIndex={0}
         onClick={handleCategoryClick}
       >
-        {lang(category.name)}
+        <span className={styles.headerTitle}>{lang(category.name)}</span>
+        <i className={buildClassName(styles.headerChevron, 'icon-chevron-right')} aria-hidden />
       </h3>
 
-      <div
-        className={buildClassName(styles.folder, smallSites.length > 0 && styles.interactive)}
-        onClick={smallSites.length > 0 ? handleCategoryClick : undefined}
-      >
-        {bigSites.map((site) => (
+      <div className={buildClassName(styles.list, 'no-swipe')} ref={containerRef}>
+        {sites.map((site) => (
           <button
             key={`${site.url}-${site.name}`}
             type="button"
-            className={buildClassName(styles.site, styles.scalable)}
+            className={styles.site}
             onClick={(e: React.MouseEvent) => {
               stopEvent(e);
-
-              void openUrl(
-                site.url, { isExternal: site.isExternal, title: site.name, subtitle: getHostnameFromUrl(site.url) },
-              );
+              openSite(site.url, site.isExternal, site.name);
             }}
           >
             <Image
               url={site.icon}
               alt={site.name}
+              className={styles.iconWrapper}
               imageClassName={styles.icon}
             />
+            <span className={styles.siteName}>{site.name}</span>
           </button>
         ))}
-        {smallSites.length > 0 && (
-          <div className={buildClassName(styles.subfolder, styles.scalable)}>
-            {smallSites.map((site) => (
-              <Image
-                key={`${site.url}-${site.name}`}
-                url={site.icon}
-                alt={site.name}
-                className={buildClassName(styles.site, styles.small)}
-                imageClassName={styles.icon}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

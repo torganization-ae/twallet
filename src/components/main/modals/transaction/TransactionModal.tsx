@@ -8,9 +8,7 @@ import type {
   ApiChain,
   ApiCurrencyRates,
   ApiNft,
-  ApiStakingState,
   ApiTokenWithPrice,
-  ApiToncoinStakingState,
   ApiTransactionActivity,
 } from '../../../../api/types';
 import type { Account, SavedAddress, Theme } from '../../../../global/types';
@@ -19,11 +17,9 @@ import {
   ANIMATION_END_DELAY,
   ANIMATION_LEVEL_MIN,
   TONCOIN,
-  VALIDATION_PERIOD_MS,
 } from '../../../../config';
 import {
   selectAccounts,
-  selectAccountStakingStates,
   selectCurrentAccountId,
   selectCurrentAccountState,
   selectIsCurrentAccountViewMode,
@@ -39,7 +35,6 @@ import { getDoesUsePinPad } from '../../../../util/biometrics';
 import buildClassName from '../../../../util/buildClassName';
 import resolveSlideTransitionName from '../../../../util/resolveSlideTransitionName';
 import { shareUrl } from '../../../../util/share';
-import { getStakingStateStatus } from '../../../../util/staking';
 import { getChainBySlug } from '../../../../util/tokens';
 import { getExplorerTransactionUrl, getViewTransactionUrl } from '../../../../util/url';
 
@@ -67,8 +62,6 @@ type StateProps = {
   isHardwareAccount: boolean;
   isTestnet?: boolean;
   isViewMode: boolean;
-  stakingStates?: ApiStakingState[];
-  isLongUnstakeRequested?: boolean;
   isMediaViewerOpen?: boolean;
   theme: Theme;
   isSensitiveDataHidden?: true;
@@ -92,8 +85,6 @@ function TransactionModal({
   isTestnet,
   isHardwareAccount,
   isViewMode,
-  stakingStates,
-  isLongUnstakeRequested,
   isMediaViewerOpen,
   theme,
   isSensitiveDataHidden,
@@ -107,8 +98,6 @@ function TransactionModal({
   const {
     fetchActivityDetails,
     startTransfer,
-    startStaking,
-    startUnstaking,
     closeActivityInfo,
     setIsPinAccepted,
     clearIsPinAccepted,
@@ -123,7 +112,6 @@ function TransactionModal({
     ? 0
     : (isPortrait ? CLOSE_DURATION_PORTRAIT : CLOSE_DURATION) + ANIMATION_END_DELAY;
   const renderedTransaction = usePrevDuringAnimation(transaction, animationDuration);
-  const [unstakeDate, setUnstakeDate] = useState<number>(Date.now() + VALIDATION_PERIOD_MS);
   const appTheme = useAppTheme(theme);
 
   const {
@@ -156,13 +144,6 @@ function TransactionModal({
     onPinAccepted: setIsPinAccepted,
   });
 
-  const stakingState = stakingStates?.find((staking): staking is ApiToncoinStakingState => {
-    return staking.tokenSlug === TONCOIN.slug && staking.balance > 0n;
-  });
-  const stakingStatus = stakingState && getStakingStateStatus(stakingState);
-  const startOfStakingCycle = stakingState?.start;
-  const endOfStakingCycle = stakingState?.end;
-
   const chain = token?.chain ?? (slug ? getChainBySlug(slug) : undefined);
   const transactionHash = chain && id ? parseTxId(id).hash : undefined;
   const transactionUrl = chain
@@ -183,17 +164,6 @@ function TransactionModal({
     withShouldRender: true,
   });
 
-  const {
-    shouldRender: shouldRenderUnstakeTimer,
-    ref: unstakeTimerRef,
-  } = useShowTransition({
-    isOpen: transaction?.type === 'unstakeRequest'
-      && startOfStakingCycle !== undefined
-      && (stakingStatus === 'unstakeRequested' || isLongUnstakeRequested)
-      && transaction.timestamp >= startOfStakingCycle,
-    withShouldRender: true,
-  });
-
   // Sync slide state with hook's `isPasswordSlideOpen`
   useSyncEffect(() => {
     if (isPasswordSlideOpen && currentSlide !== SLIDES.password) {
@@ -210,12 +180,6 @@ function TransactionModal({
       resetDecryptedComment();
     }
   }, [renderedTransaction, resetDecryptedComment]);
-
-  useSyncEffect(() => {
-    if (endOfStakingCycle) {
-      setUnstakeDate(endOfStakingCycle);
-    }
-  }, [endOfStakingCycle]);
 
   useEffect(() => {
     if (id && shouldLoadDetails) fetchActivityDetails({ id });
@@ -235,16 +199,6 @@ function TransactionModal({
       amount: bigintAbs(amount!),
       comment: !isIncoming ? comment : undefined,
     });
-  });
-
-  const handleStartStakingClick = useLastCallback(() => {
-    closeActivityInfo({ id: id! });
-    startStaking();
-  });
-
-  const handleUnstakeMoreClick = useLastCallback(() => {
-    closeActivityInfo({ id: id! });
-    startUnstaking();
   });
 
   const handleClose = useLastCallback(() => {
@@ -292,20 +246,13 @@ function TransactionModal({
               isOpen={isModalOpen}
               isSensitiveDataHidden={isSensitiveDataHidden}
               isViewMode={isViewMode}
-              stakingStates={stakingStates}
-              isLongUnstakeRequested={isLongUnstakeRequested}
               encryptedComment={encryptedComment}
               decryptedComment={decryptedComment}
               canDecryptComment={canDecryptComment}
               onDecryptComment={openHiddenComment}
-              unstakeDate={unstakeDate}
-              shouldRenderUnstakeTimer={shouldRenderUnstakeTimer}
-              unstakeTimerRef={unstakeTimerRef}
               shouldRenderTransactionId={shouldRenderTransactionId}
               transactionIdRef={transactionIdRef}
               onSendClick={handleSendClick}
-              onStartStakingClick={handleStartStakingClick}
-              onUnstakeMoreClick={handleUnstakeMoreClick}
               onTokenClick={handleTokenClick}
               selectedExplorerIds={selectedExplorerIds}
             />
@@ -362,7 +309,6 @@ export default memo(
     const savedAddresses = accountState?.savedAddresses;
     const { byAddress } = accountState?.nfts || {};
 
-    const stakingStates = selectAccountStakingStates(global, accountId);
     const { isTestnet, theme, isSensitiveDataHidden } = global.settings;
     const accounts = selectAccounts(global);
     const isHardwareAccount = selectIsHardwareAccount(global);
@@ -374,10 +320,8 @@ export default memo(
       isHardwareAccount,
       isTestnet,
       isViewMode: selectIsCurrentAccountViewMode(global),
-      isLongUnstakeRequested: accountState?.isLongUnstakeRequested,
       isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),
       theme,
-      stakingStates,
       isSensitiveDataHidden,
       nftsByAddress: byAddress,
       accounts,

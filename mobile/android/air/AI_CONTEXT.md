@@ -14,7 +14,7 @@
 - Core wallet and blockchain logic run in the JavaScript SDK loaded through `JSWebViewBridge`.
 - Native-to-SDK calls should go through `WalletCore.call(ApiMethod...)` or existing helpers in `walletcore/api`.
 - SDK updates flow into singleton stores and then through `WalletCore.notifyEvent(...)`.
-- Shared state and orchestration already exist in `WalletCore`, `WalletContextManager`, and singleton stores such as `AccountStore`, `ActivityStore`, `BalanceStore`, `TokenStore`, `NftStore`, `StakingStore`, and `ConfigStore`.
+- Shared state and orchestration already exist in `WalletCore`, `WalletContextManager`, and singleton stores such as `AccountStore`, `ActivityStore`, `BalanceStore`, `TokenStore`, `NftStore`, and `ConfigStore`.
 
 ## Native UI Patterns
 - Prefer the existing Android Air stack: `WViewController`, `WViewControllerWithModelStore`, `WNavigationController`, `WWindow`, `WRecyclerViewAdapter`, `WThemedView`, and shared UI from `UIComponents`.
@@ -31,7 +31,7 @@
 ## Verification
 - Use `npm run mobile:build:sdk` after SDK, i18n, or shared bundle changes.
 - For targeted Air validation, use the parent wrapper with a submodule task, for example:
-  - `cd mobile/android && ./gradlew :air:SubModules:WalletCore:assembleDebug`
+  - `cd mobile/android && ./gradlew :SubModules:WalletCore:assembleDebug`
 - For full Android integration validation, use:
   - `cd mobile/android && ./gradlew assembleDebug`
 - Do not rely on the standalone `mobile/android/air` Gradle wrapper for validation until its version-catalog setup is fixed.

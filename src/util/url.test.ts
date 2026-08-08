@@ -252,6 +252,13 @@ describe('isInIframeWhitelist', () => {
     expect(isInIframeWhitelist('https://testnet.tonviewer.com/')).toBe(true);
   });
 
+  it('accepts TMail and Mint app origins', () => {
+    expect(isInIframeWhitelist('https://app.tmail.ae')).toBe(true);
+    expect(isInIframeWhitelist('https://app.tmail.ae/inbox')).toBe(true);
+    expect(isInIframeWhitelist('https://tmarket.ae')).toBe(true);
+    expect(isInIframeWhitelist('https://tmarket.ae/mint')).toBe(true);
+  });
+
   it('accepts localhost on any port', () => {
     expect(isInIframeWhitelist('http://localhost:4321/index.html')).toBe(true);
   });

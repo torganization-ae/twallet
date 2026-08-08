@@ -1,7 +1,6 @@
 package app.twallet.air.uibrowser.viewControllers.search.cells
 
 import android.annotation.SuppressLint
-import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import android.content.Context
 import android.text.TextUtils
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -9,6 +8,7 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.core.net.toUri
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.WFont
+import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import app.twallet.air.uicomponents.image.Content
 import app.twallet.air.uicomponents.image.WCustomImageView
 import app.twallet.air.uicomponents.widgets.WCell
@@ -27,9 +27,8 @@ import java.util.Date
 class SearchMatchedCell(
     context: Context,
     private val onTap: (site: MExploreHistory.VisitedSite) -> Unit
-) :
-    WCell(context, LayoutParams(MATCH_PARENT, 60.dp)), WThemedView {
-
+) : WCell(context, LayoutParams(MATCH_PARENT, 60.dp)),
+    WThemedView {
     private val logoImageView: WCustomImageView by lazy {
         WCustomImageView(context).apply {
             defaultRounding = Content.Rounding.Radius(6f.dp)
@@ -103,5 +102,4 @@ class SearchMatchedCell(
             ViewConstants.BLOCK_RADIUS.dp
         )
     }
-
 }

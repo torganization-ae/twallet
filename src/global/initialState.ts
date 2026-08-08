@@ -9,7 +9,6 @@ import {
   HardwareConnectState,
   SettingsState,
   SignDataState,
-  StakingState,
   SwapState,
   TransactionInfoState,
   TransferState,
@@ -22,7 +21,6 @@ import {
   DEFAULT_AUTOLOCK_OPTION,
   DEFAULT_PRICE_CURRENCY,
   DEFAULT_SLIPPAGE_VALUE,
-  DEFAULT_STAKING_STATE,
   DEFAULT_TRANSFER_TOKEN_SLUG,
   INIT_SWAP_ASSETS,
   IS_EXPLORER,
@@ -35,7 +33,7 @@ import { getTokenInfo } from '../util/chain';
 import { buildCollectionByKey, mapValues } from '../util/iteratees';
 import { USER_AGENT_LANG_CODE } from '../util/windowEnvironment';
 
-export const STATE_VERSION = 59;
+export const STATE_VERSION = 60;
 
 export const INITIAL_STATE: GlobalState = {
   appState: IS_EXPLORER ? AppState.Main : AppState.Auth,
@@ -82,12 +80,6 @@ export const INITIAL_STATE: GlobalState = {
   currentWalletConnectPay: {
     state: WalletConnectPayState.None,
   },
-
-  currentStaking: {
-    state: StakingState.None,
-  },
-
-  stakingDefault: DEFAULT_STAKING_STATE,
 
   tokenInfo: {
     bySlug: getTokenInfo(),

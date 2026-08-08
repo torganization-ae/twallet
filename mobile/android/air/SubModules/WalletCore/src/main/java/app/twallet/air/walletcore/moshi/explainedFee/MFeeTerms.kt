@@ -10,10 +10,4 @@ data class MFeeTerms(
 
     /** The fee part paid in the chain's native token */
     val native: BigInteger?,
-
-    /**
-     * The fee part paid in stars.
-     * The BigInteger assumes the same number of decimal places as the transferred token.
-     */
-    val stars: BigInteger?
 )

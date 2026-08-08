@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiBaseCurrency, ApiPriceHistoryPeriod, ApiStakingState } from '../../api/types';
+import type { ApiBaseCurrency, ApiPriceHistoryPeriod } from '../../api/types';
 import type {
   PortfolioCustomDateRange,
   PortfolioHistoryBundle,
@@ -11,7 +11,6 @@ import type {
 
 import { ANIMATION_LEVEL_MIN } from '../../config';
 import {
-  selectAccountStakingStates,
   selectCurrentAccountId,
   selectCurrentAccountTokens,
   selectPortfolioHistoryBundle,
@@ -20,23 +19,19 @@ import buildClassName from '../../util/buildClassName';
 import { calculateFullBalance } from '../../util/calculateFullBalance';
 import captureEscKeyListener from '../../util/captureEscKeyListener';
 import { formatDateRange } from '../../util/dateFormat';
-import { toBig } from '../../util/decimals';
 import { getShortCurrencySymbol } from '../../util/formatNumber';
 import { DEFAULT_PORTFOLIO_TIME_RANGE, getTimeRangeStartTs } from '../../util/portfolio/timeRange';
-import { getFullStakingBalance } from '../../util/staking';
-import { captureControlledSwipe, SWIPE_DISABLED_CLASS_NAME } from '../../util/swipeController';
+import { captureControlledSwipe } from '../../util/swipeController';
 import useTelegramMiniAppSwipeToClose from '../../util/telegram/hooks/useTelegramMiniAppSwipeToClose';
 import { IS_TOUCH_ENV } from '../../util/windowEnvironment';
-import { buildSegmentsByChain, buildSegmentsByStacked, buildSegmentsByTokenKind } from './helpers/buildStackSegments';
+import { buildSegmentsByChain, buildSegmentsByTokenKind } from './helpers/buildStackSegments';
 
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
-import useScrollButtonsVisibility from '../../hooks/useScrollButtonsVisibility';
 import useScrolledState from '../../hooks/useScrolledState';
 
 import BackHeader from '../common/BackHeader';
-import EdgeScrollButton from '../common/EdgeScrollButton';
 import Balance from './sections/Balance';
 import Charts from './sections/Charts';
 import CustomDateRangeModal from './sections/CustomDateRangeModal';
@@ -58,7 +53,6 @@ interface StateProps {
   isPnlChangeUpdating?: boolean;
   error?: string;
   tokens?: UserToken[];
-  stakingStates?: ApiStakingState[];
   baseCurrency: ApiBaseCurrency;
   currencyRate: string;
   timeRange: ApiPriceHistoryPeriod;
@@ -74,7 +68,6 @@ function Portfolio({
   isPnlChangeUpdating,
   error,
   tokens,
-  stakingStates,
   baseCurrency,
   currencyRate,
   timeRange,
@@ -86,8 +79,6 @@ function Portfolio({
   const lang = useLang();
   const baseCurrencySymbol = getShortCurrencySymbol(baseCurrency);
   const rootRef = useRef<HTMLDivElement>();
-  const railRef = useRef<HTMLDivElement>();
-  const railContainerRef = useRef<HTMLDivElement>();
   const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false);
 
   const { disableSwipeToClose, enableSwipeToClose } = useTelegramMiniAppSwipeToClose(isActive);
@@ -122,13 +113,6 @@ function Portfolio({
 
   const { handleScroll, isScrolled } = useScrolledState();
 
-  const { isLeftButtonVisible, isRightButtonVisible, scrollByOneCell } = useScrollButtonsVisibility({
-    containerRef: railRef,
-    viewportRef: railContainerRef,
-    isDisabled: IS_TOUCH_ENV,
-    noAnimation,
-  });
-
   const handleTimeRangeChange = useLastCallback((range: ApiPriceHistoryPeriod) => {
     loadPortfolioHistory({ range });
   });
@@ -142,30 +126,8 @@ function Portfolio({
   });
 
   const balanceValues = useMemo(() => {
-    return tokens ? calculateFullBalance(tokens, stakingStates, currencyRate) : undefined;
-  }, [tokens, stakingStates, currencyRate]);
-
-  const stakedAmount = useMemo(() => {
-    if (!stakingStates?.length || !tokens?.length) return 0;
-
-    const priceBySlug = new Map<string, number>();
-    const decimalsBySlug = new Map<string, number>();
-    for (const token of tokens) {
-      priceBySlug.set(token.slug, token.price);
-      decimalsBySlug.set(token.slug, token.decimals);
-    }
-
-    let total = 0;
-    for (const state of stakingStates) {
-      const price = priceBySlug.get(state.tokenSlug);
-      const decimals = decimalsBySlug.get(state.tokenSlug);
-      if (price === undefined || decimals === undefined) continue;
-
-      total += toBig(getFullStakingBalance(state), decimals).mul(price).toNumber();
-    }
-
-    return total;
-  }, [stakingStates, tokens]);
+    return tokens ? calculateFullBalance(tokens, currencyRate) : undefined;
+  }, [tokens, currencyRate]);
 
   const totalAmount = balanceValues ? Number(balanceValues.primaryValue) : 0;
 
@@ -198,11 +160,6 @@ function Portfolio({
     [tokens, baseCurrency],
   );
 
-  const segmentsByStacked = useMemo(
-    () => buildSegmentsByStacked(lang, totalAmount, stakedAmount, baseCurrency),
-    [totalAmount, stakedAmount, baseCurrency, lang],
-  );
-
   return (
     <div ref={rootRef} className={styles.root}>
       <BackHeader title={lang('Portfolio')} withNotchOnScroll isScrolled={isScrolled} onBackClick={closePortfolio} />
@@ -220,34 +177,17 @@ function Portfolio({
             />
           </section>
 
-          <div ref={railContainerRef} className={styles.insightsRailContainer}>
-            <div ref={railRef} className={buildClassName(styles.insightsRail, 'no-swipe', SWIPE_DISABLED_CLASS_NAME)}>
-              <div className={styles.insightsCol}>
-                <SectionHeader title={lang('By Chain')} />
+          <div className={styles.insightsStack}>
+            <div className={styles.section}>
+              <SectionHeader title={lang('By Chain')} />
 
-                <InsightCard segments={segmentsByChain} emptyText={lang('No chain balances')} />
-              </div>
-              <div className={styles.insightsCol}>
-                <SectionHeader title={lang('Asset Mix')} />
-
-                <InsightCard segments={segmentsByTokenKind} emptyText={lang('No asset balances')} />
-              </div>
-              <div className={styles.insightsCol}>
-                <SectionHeader title={lang('Staked')} />
-
-                <InsightCard segments={segmentsByStacked} emptyText={lang('No staked assets')} />
-              </div>
+              <InsightCard segments={segmentsByChain} emptyText={lang('No chain balances')} />
             </div>
-            <EdgeScrollButton
-              direction="left"
-              isVisible={isLeftButtonVisible}
-              onClick={scrollByOneCell}
-            />
-            <EdgeScrollButton
-              direction="right"
-              isVisible={isRightButtonVisible}
-              onClick={scrollByOneCell}
-            />
+            <div className={styles.section}>
+              <SectionHeader title={lang('Asset Mix')} />
+
+              <InsightCard segments={segmentsByTokenKind} emptyText={lang('No asset balances')} />
+            </div>
           </div>
 
           <Charts
@@ -303,7 +243,6 @@ export default memo(
       isPnlChangeUpdating,
       error: portfolio?.error,
       tokens: selectCurrentAccountTokens(global),
-      stakingStates: currentAccountId ? selectAccountStakingStates(global, currentAccountId) : undefined,
       baseCurrency,
       currencyRate: global.currencyRates[baseCurrency],
       timeRange,

@@ -63,7 +63,11 @@ export function updateCurrentTransferLoading(global: GlobalState, isLoading: boo
 }
 
 export function setCurrentTransferAddress(global: GlobalState, toAddress: string | undefined) {
-  global = updateCurrentTransfer(global, { toAddress });
+  global = updateCurrentTransfer(global, {
+    toAddress,
+    // Stop the resolving pulse if the recipient changes mid-lookup.
+    isCheckingAddress: false,
+  });
 
   // Unless the user has filled the amount, the token should change to match the "to" address
   if (!global.currentTransfer.amount) {

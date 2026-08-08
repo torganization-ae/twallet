@@ -2,7 +2,6 @@ import type { TonTransport } from '@ton-community/ton-ledger';
 
 import type { ApiTonWalletVersion, ContractInfo, ContractName } from './types';
 
-import { JettonStakingGas } from './contracts/JettonStaking/imports/constants';
 import { getEffectiveApiUrl, getEffectiveRpcUrl } from '../rpcOverrides';
 
 export const TON_BIP39_PATH = `m/44'/607'/{index}'`;
@@ -27,7 +26,6 @@ export const NETWORK_CONFIG = {
   },
 };
 
-export const ONE_TON = 1_000_000_000n;
 export const TOKEN_TRANSFER_AMOUNT = 50000000n; // 0.05 TON
 export const TINY_TOKEN_TRANSFER_AMOUNT = 18000000n; // 0.018 TON
 export const TOKEN_TRANSFER_REAL_AMOUNT = 32100000n; // 0.0321 TON
@@ -49,38 +47,8 @@ export const NFT_TRANSFER_FORWARD_AMOUNT = 1n; // 0.000000001 TON
 export const NFT_PAYLOAD_SAFE_MARGIN = 14 * 8;
 
 export const TON_GAS = {
-  stakeNominators: ONE_TON,
-  unstakeNominators: ONE_TON,
-  stakeLiquid: ONE_TON,
-  unstakeLiquid: ONE_TON,
-  stakeJettonsForward: JettonStakingGas.STAKE_JETTONS,
-  stakeJettons: JettonStakingGas.STAKE_JETTONS + TOKEN_TRANSFER_AMOUNT,
-  unstakeJettons: JettonStakingGas.UNSTAKE_JETTONS,
-  claimJettons: JettonStakingGas.JETTON_TRANSFER + JettonStakingGas.SIMPLE_UPDATE_REQUEST,
   changeDns: 15_000_000n, // 0.015 TON
-  stakeEthena: TOKEN_TRANSFER_AMOUNT + 100_000_000n, // 0.15 TON
-  stakeEthenaForward: 100_000_000n, // 0.1 TON
-  unstakeEthena: TOKEN_TRANSFER_AMOUNT + 100_000_000n, // 0.15 TON
-  unstakeEthenaForward: 100_000_000n, // 0.1 TON
-  unstakeEthenaLocked: 150_000_000n, // 0.15 TON
-  unstakeEthenaLockedForward: 70_000_000n, // 0.07 TON
 } as const;
-
-export const TON_GAS_REAL = {
-  stakeNominators: 1_000_052_853n,
-  unstakeNominators: 148_337_433n,
-  stakeLiquid: 20_251_387n,
-  unstakeLiquid: 18_625_604n,
-  stakeJettons: 74_879_996n,
-  unstakeJettons: 59_971_662n,
-  claimJettons: 57_053_859n,
-  stakeEthena: 116_690_790n,
-  unstakeEthena: 113_210_330n,
-  unstakeEthenaLocked: 37_612_000n,
-};
-
-export const STAKE_COMMENT = 'd';
-export const UNSTAKE_COMMENT = 'w';
 
 export const ATTEMPTS = 5;
 

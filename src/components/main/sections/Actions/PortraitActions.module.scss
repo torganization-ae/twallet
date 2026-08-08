@@ -52,10 +52,6 @@
   :global(html.animation-level-0) & {
     transition: none !important;
   }
-
-  &_purple {
-    color: var(--color-purple-1);
-  }
 }
 
 .buttonActive {
@@ -73,10 +69,6 @@
   font-size: 2rem;
   line-height: 1;
   color: var(--color-accent);
-
-  .button_purple > & {
-    color: unset;
-  }
 
   @include mixins.is-not-mobile() {
     width: 1.875rem;

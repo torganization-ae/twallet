@@ -25,7 +25,7 @@ struct HomeCardContent: View {
     
     var body: some View {
         WithPerceptionTracking {
-            VStack(spacing: 14) {
+            VStack(spacing: 24) {
                 _CenterContent(
                     accountContext: accountContext,
                     layout: layout,

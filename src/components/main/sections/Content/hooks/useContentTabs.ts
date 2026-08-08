@@ -1,19 +1,17 @@
 import { useEffect, useMemo, useRef } from '../../../../../lib/teact/teact';
 import { getActions } from '../../../../../global';
 
-import type { ApiChain, ApiNft, ApiNftCollection, ApiStakingState } from '../../../../../api/types';
+import type { ApiChain, ApiNft, ApiNftCollection } from '../../../../../api/types';
 import type { DropdownItem } from '../../../../ui/Dropdown';
 import type { TabWithProperties } from '../../../../ui/TabList';
 import { type Account, ContentTab, SettingsState } from '../../../../../global/types';
 
 import {
   DEFAULT_CHAIN,
-  STAKING_SLUG_PREFIX,
   TELEGRAM_GIFTS_SUPER_COLLECTION,
 } from '../../../../../config';
 import { getChainsSupportingNft, getOrderedAccountChains } from '../../../../../util/chain';
 import { compact } from '../../../../../util/iteratees';
-import { getIsActiveStakingState } from '../../../../../util/staking';
 import { callApi } from '../../../../../api';
 import useNftCollectionMenuItems, { HIDDEN_NFTS_VALUE } from './useNftCollectionMenuItems';
 
@@ -36,9 +34,7 @@ interface OwnProps {
   activityReturnContentTab?: ContentTab;
   currentCollection?: ApiNftCollection;
   currentTokenSlug?: string;
-  states?: ApiStakingState[];
   hasVesting: boolean;
-  alwaysHiddenSlugs?: string[];
   tokensCount: number;
 }
 
@@ -52,9 +48,7 @@ export default function useContentTabs({
   activityReturnContentTab,
   currentCollection,
   currentTokenSlug,
-  states,
   hasVesting,
-  alwaysHiddenSlugs,
   tokensCount,
 }: OwnProps) {
   const {
@@ -68,16 +62,6 @@ export default function useContentTabs({
 
   const lang = useLang();
   const activeNftKeyRef = useRef(0);
-
-  const numberOfStaking = useMemo(() => {
-    if (!states) return 0;
-
-    const hiddenSlugs = new Set(alwaysHiddenSlugs);
-    return states
-      .filter(getIsActiveStakingState)
-      .filter((state) => !hiddenSlugs.has(`${STAKING_SLUG_PREFIX}${state.tokenSlug}`))
-      .length;
-  }, [states, alwaysHiddenSlugs]);
 
   // Forces the NFT subtree to remount on every collection switch so that
   // virtualization/scroll state from the previous collection is discarded.
@@ -123,7 +107,7 @@ export default function useContentTabs({
     }
   }, [currentCollection, nftCollectionNameByKey, closeNftCollection]);
 
-  const totalTokensAmount = tokensCount + (hasVesting ? 1 : 0) + numberOfStaking;
+  const totalTokensAmount = tokensCount + (hasVesting ? 1 : 0);
 
   const [mainContentTabsCount, tabs] = useMemo(() => {
     const nftChains = getChainsSupportingNft();

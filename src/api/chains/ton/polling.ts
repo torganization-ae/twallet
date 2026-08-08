@@ -2,9 +2,7 @@ import type {
   ApiAccountWithChain,
   ApiActivity,
   ApiActivityTimestamps,
-  ApiBalanceBySlug,
   ApiNftUpdate,
-  ApiStakingState,
   ApiTonWallet,
   ApiVestingInfo,
   ApiWalletWithVersionInfo,
@@ -12,7 +10,7 @@ import type {
   OnUpdatingStatusChange,
 } from '../../types';
 
-import { IS_MY_WALLET_BRAND, IS_STAKING_DISABLED, POPULAR_WALLET_VERSIONS, TONCOIN } from '../../../config';
+import { IS_MY_WALLET_BRAND, POPULAR_WALLET_VERSIONS, TONCOIN } from '../../../config';
 import { parseAccountId } from '../../../util/account';
 import { getActivityTokenSlugs } from '../../../util/activities';
 import { areDeepEqual } from '../../../util/areDeepEqual';
@@ -21,7 +19,7 @@ import { compact, pick } from '../../../util/iteratees';
 import { logDebug, logDebugError } from '../../../util/logs';
 import { pause, throttle } from '../../../util/schedulers';
 import { fetchStoredAccount, fetchStoredWallet, updateStoredWallet } from '../../common/accounts';
-import { getBackendConfigCache, getStakingCommonCache } from '../../common/cache';
+import { getBackendConfigCache } from '../../common/cache';
 import { registerCollectiblesPolling } from '../../common/polling/collectiblesPolling';
 import { getConcurrencyLimiter } from '../../common/polling/setupInactiveChainPolling';
 import {
@@ -44,7 +42,6 @@ import { LEDGER_WALLET_VERSIONS } from './constants';
 import { fetchDomains } from './domains';
 import { getNftUpdates, streamAllAccountNfts } from './nfts';
 import { RichActivityStream } from './richActivityStream';
-import { getBackendStakingState, getStakingStates } from './staking';
 import { importUnknownTokens } from './tokens';
 import { ActivityStream } from './toncenter';
 import { fetchVestings } from './vesting';
@@ -55,8 +52,6 @@ const POLL_MIN_INTERVAL = { focused: 30 * SEC, notFocused: MINUTE };
 /** Domain rarely changes — do not share the balance poll's /walletStates cadence. */
 const DOMAIN_INTERVAL = { focused: 5 * MINUTE, notFocused: 15 * MINUTE };
 const INITIALIZATION_INTERVAL = { focused: 2 * MINUTE, notFocused: 10 * MINUTE };
-/** Staking reads hit toncenter jsonRPC (runMethod); keep well clear of public rate limits. */
-const STAKING_INTERVAL = { focused: 5 * MINUTE, notFocused: 15 * MINUTE };
 const VERSIONS_INTERVAL = { focused: 15 * MINUTE, notFocused: 30 * MINUTE };
 const VESTING_INTERVAL = { focused: 10 * MINUTE, notFocused: 30 * MINUTE };
 const TON_DNS_INTERVAL = { focused: 10 * MINUTE, notFocused: 30 * MINUTE };
@@ -101,7 +96,6 @@ export function setupActivePolling(
   const walletInitializationPolling = setupWalletInitializationPolling(accountId);
   const stopWalletVersionPolling = setupWalletVersionsPolling(accountId, onUpdate);
   const stopTonDnsPolling = setupTonDnsPolling(accountId, onUpdate);
-  const stopStakingPolling = setupStakingPolling(accountId, balancePolling.getBalances, onUpdate);
   const stopVestingPolling = setupVestingPolling(accountId, onUpdate);
 
   async function handleWalletUpdate() {
@@ -123,7 +117,6 @@ export function setupActivePolling(
     stopCollectiblesPolling();
     stopWalletVersionPolling();
     stopTonDnsPolling();
-    stopStakingPolling();
     stopVestingPolling();
   };
 }
@@ -386,43 +379,6 @@ function setupNftPolling(accountId: string, onUpdate: OnApiUpdate) {
       firstFullLoadResolve = undefined;
     },
   };
-}
-
-function setupStakingPolling(accountId: string, getBalances: () => Promise<ApiBalanceBySlug>, onUpdate: OnApiUpdate) {
-  if (IS_STAKING_DISABLED || parseAccountId(accountId).network !== 'mainnet') {
-    return () => {};
-  }
-
-  let lastStates: ApiStakingState[] | undefined;
-
-  return pollingLoop({
-    period: STAKING_INTERVAL,
-    async poll() {
-      try {
-        const [common, balances, backendState] = await Promise.all([
-          getStakingCommonCache(),
-          getBalances(),
-          getBackendStakingState(accountId),
-        ]);
-        const states = await getStakingStates(accountId, common, backendState, balances);
-
-        const { shouldUseNominators, totalProfit } = backendState;
-
-        if (!areDeepEqual(states, lastStates)) {
-          lastStates = states;
-          onUpdate({
-            type: 'updateStaking',
-            accountId,
-            states,
-            totalProfit,
-            shouldUseNominators,
-          });
-        }
-      } catch (err) {
-        logDebugError('setupStakingPolling', err);
-      }
-    },
-  }).stop;
 }
 
 async function loadInitialConfirmedActivities(accountId: string, onUpdate: OnApiUpdate) {

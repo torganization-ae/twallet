@@ -26,12 +26,7 @@ data class SettingsItem(
         MFA,
         SUBWALLETS,
         WALLET_VERSIONS,
-        ASK_A_QUESTION,
-        HELP_CENTER,
-        MTW_FEATURES,
         USE_RESPONSIBILITY,
-        INSTALL_ON_DESKTOP,
-        ABOUT_MTW,
         SWITCH_TO_LEGACY,
         NONE,
     }

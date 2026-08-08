@@ -1054,7 +1054,7 @@ object WGlobalStorage {
         )
     }
 
-    private const val LAST_STATE: Int = 59
+    private const val LAST_STATE: Int = 60
 
     fun migrate() {
         // Lock the storage
@@ -1315,7 +1315,7 @@ object WGlobalStorage {
 
         if (currentState < 52) {
             for (accountId in accountIds()) {
-                val stakingData = WCacheStorage.getStakingData(accountId) ?: continue
+                val stakingData = WCacheStorage.getLegacyStakingData(accountId) ?: continue
                 val pinnedVirtualStakingSlugs = mutableListOf<String>()
                 try {
                     val stakingDataArray = JSONArray(stakingData)
@@ -1433,6 +1433,29 @@ object WGlobalStorage {
         // State 58→59: clear cached activities
         if (currentState < 59) {
             clearActivities()
+        }
+
+        // State 59→60: remove virtual staking rows and clear staking cache
+        if (currentState < 60) {
+            fun stripVirtualStakingSlugs(path: String) {
+                val arr = globalStorageProvider.getArray(path) ?: return
+                val filtered = JSONArray()
+                for (i in 0 until arr.length()) {
+                    val slug = arr.optString(i)
+                    if (!slug.isNullOrBlank() && !slug.startsWith("staking-")) {
+                        filtered.put(slug)
+                    }
+                }
+                globalStorageProvider.set(path, filtered, IGlobalStorageProvider.PERSIST_NO)
+            }
+            for (accountId in accountIds(network = null)) {
+                stripVirtualStakingSlugs("$ASSETS_AND_ACTIVITY.$accountId.pinnedSlugs")
+                stripVirtualStakingSlugs("$ASSETS_AND_ACTIVITY.$accountId.alwaysHiddenSlugs")
+                stripVirtualStakingSlugs("$ASSETS_AND_ACTIVITY.$accountId.alwaysShownSlugs")
+                stripVirtualStakingSlugs("$ASSETS_AND_ACTIVITY.$accountId.deletedSlugs")
+                stripVirtualStakingSlugs("$ASSETS_AND_ACTIVITY.$accountId.importedSlugs")
+            }
+            WCacheStorage.clearAllStakingData()
         }
 
         // Update and unlock the storage

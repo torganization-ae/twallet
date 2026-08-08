@@ -300,7 +300,7 @@ final class AirRuntimeCoordinator: NSObject {
         var tokens: [String: Double] = [:]
 
         for (tokenSlug, balance) in accountContext.balances {
-            let tokenBalance = MTokenBalance(tokenSlug: tokenSlug, balance: balance, isStaking: false)
+            let tokenBalance = MTokenBalance(tokenSlug: tokenSlug, balance: balance)
             guard let baseCurrencyBalance = tokenBalance.toBaseCurrency, baseCurrencyBalance > 0 else { continue }
             maxBalance = max(maxBalance, baseCurrencyBalance)
             tokens[tokenSlug] = baseCurrencyBalance
@@ -391,9 +391,6 @@ extension AirRuntimeCoordinator: DeeplinkNavigator {
             case .swap(from: let from, to: let to, amountIn: let amountIn):
                 AppActions.showSwap(accountContext: accountContext, defaultSellingToken: from, defaultBuyingToken: to, defaultSellingAmount: amountIn, push: nil)
 
-            case .stake:
-                AppActions.showEarn(accountContext: accountContext, tokenSlug: nil)
-
             case .portfolio:
                 AppActions.showPortfolio(accountContext: accountContext)
 
@@ -481,11 +478,6 @@ extension AirRuntimeCoordinator: DeeplinkNavigator {
             } else if let slug = payload.slug {
                 try await AccountStore.activateAccount(accountId: accountId)
                 AppActions.showTokenBySlug(slug)
-            }
-        case .staking:
-            if let stakingId = payload.stakingId {
-                try await AccountStore.activateAccount(accountId: accountId)
-                AppActions.showEarn(accountContext: AccountContext(accountId: accountId), tokenSlug: stakingId)
             }
         case .expiringDns:
             try await AccountStore.activateAccount(accountId: accountId)

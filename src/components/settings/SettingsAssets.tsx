@@ -3,13 +3,11 @@ import React, {
 } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
-import type { ApiBaseCurrency, ApiCurrencyRates, ApiNft, ApiStakingState } from '../../api/types';
+import type { ApiBaseCurrency, ApiCurrencyRates, ApiNft } from '../../api/types';
 import { SettingsState, type UserToken } from '../../global/types';
 
 import { CURRENCIES, TINY_TRANSFER_MAX_COST } from '../../config';
 import {
-  selectAccountStakingStates,
-  selectCurrentAccountId,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
@@ -22,7 +20,6 @@ import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useScrolledState from '../../hooks/useScrolledState';
-import useTokensWithStaking from '../../hooks/useTokensWithStaking';
 
 import Dropdown, { type DropdownItem } from '../ui/Dropdown';
 import IconWithTooltip from '../ui/IconWithTooltip';
@@ -48,7 +45,6 @@ interface StateProps {
   nftsByAddress?: Record<string, ApiNft>;
   blacklistedNftAddresses: string[];
   whitelistedNftAddresses: string[];
-  states?: ApiStakingState[];
   currencyRates?: ApiCurrencyRates;
   spamTokensCount?: number;
 }
@@ -65,7 +61,6 @@ function SettingsAssets({
   nftsByAddress,
   blacklistedNftAddresses,
   whitelistedNftAddresses,
-  states,
   currencyRates,
   spamTokensCount = 0,
   onBackClick,
@@ -80,15 +75,6 @@ function SettingsAssets({
   const lang = useLang();
 
   const scrollContainerRef = useRef<HTMLDivElement>();
-
-  const tokensWithStaking = useTokensWithStaking({
-    tokens,
-    states,
-    baseCurrency,
-    currencyRates,
-    pinnedSlugs,
-    alwaysHiddenSlugs,
-  });
 
   useHistoryBack({ isActive, onBack: onBackClick });
 
@@ -237,7 +223,7 @@ function SettingsAssets({
         <SettingsTokens
           isActive={isActive}
           isSensitiveDataHidden={isSensitiveDataHidden}
-          tokens={tokensWithStaking}
+          tokens={tokens}
           pinnedSlugs={pinnedSlugs}
           baseCurrency={baseCurrency}
         />
@@ -256,7 +242,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
 
   const { pinnedSlugs, alwaysHiddenSlugs } = selectCurrentAccountSettings(global) ?? {};
 
-  const currentAccountId = selectCurrentAccountId(global);
   const {
     blacklistedNftAddresses = MEMO_EMPTY_ARRAY,
     whitelistedNftAddresses = MEMO_EMPTY_ARRAY,
@@ -276,7 +261,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     blacklistedNftAddresses,
     whitelistedNftAddresses,
     isSensitiveDataHidden,
-    states: selectAccountStakingStates(global, currentAccountId!),
     currencyRates: global.currencyRates,
     spamTokensCount: selectHiddenSpamTokens(global).length,
   };

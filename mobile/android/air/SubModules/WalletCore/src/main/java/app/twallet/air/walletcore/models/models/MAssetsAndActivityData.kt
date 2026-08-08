@@ -4,12 +4,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcore.DEFAULT_SHOWN_TOKENS
-import app.twallet.air.walletcore.MYCOIN_SLUG
-import app.twallet.air.walletcore.TONCOIN_SLUG
-import app.twallet.air.walletcore.USDE_SLUG
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.BalanceStore
-import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
 import java.math.BigInteger
 
@@ -71,7 +67,6 @@ data class MAssetsAndActivityData(
 
     fun getAllTokens(
         shouldSort: Boolean = true,
-        addVirtualStakingTokens: Boolean = false,
     ): Array<MTokenBalance> {
         val tokensArray =
             ArrayList(
@@ -110,28 +105,6 @@ data class MAssetsAndActivityData(
             )
         }.toMutableList()
 
-        if (addVirtualStakingTokens) {
-            val stakingState = StakingStore.getStakingState(accountId)
-            stakingState?.let { state ->
-                listOf(
-                    USDE_SLUG to state.totalUSDeBalance,
-                    MYCOIN_SLUG to state.totalMycoinBalance,
-                    TONCOIN_SLUG to state.totalTonBalance
-                ).forEach { (slug, balance) ->
-                    balance?.takeIf { it > BigInteger.ZERO }?.let { nonZeroBalance ->
-                        TokenStore.getToken(slug)?.let { token ->
-                            tokenBalances.add(
-                                MTokenBalance.fromVirtualStakingData(
-                                    baseToken = token,
-                                    amount = nonZeroBalance
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
         if (!shouldSort) {
             return tokenBalances.toTypedArray()
         }
@@ -140,8 +113,8 @@ data class MAssetsAndActivityData(
         val ignorePriorities = account?.isNew != true
 
         val result = tokenBalances.sortedWith { left, right ->
-            val leftSlug = left.virtualStakingToken ?: ""
-            val rightSlug = right.virtualStakingToken ?: ""
+            val leftSlug = left.token ?: ""
+            val rightSlug = right.token ?: ""
             val leftPinnedIndex = pinnedIndexBySlug[leftSlug]
             val rightPinnedIndex = pinnedIndexBySlug[rightSlug]
 
@@ -161,22 +134,8 @@ data class MAssetsAndActivityData(
         return result.toTypedArray()
     }
 
-    fun isTokenRemovable(slug: String, isStaking: Boolean): Boolean {
-        if (isStaking) {
-            return isStakingTokenRemovable(slug)
-        }
+    fun isTokenRemovable(slug: String): Boolean {
         val tokenBalance = BalanceStore.getBalances(accountId)?.get(slug) ?: BigInteger.ZERO
         return tokenBalance == BigInteger.ZERO
-    }
-
-    private fun isStakingTokenRemovable(slug: String?): Boolean {
-        val stakingState = StakingStore.getStakingState(accountId)
-        val stakingBalance = when (slug) {
-            TONCOIN_SLUG -> stakingState?.totalTonBalance
-            MYCOIN_SLUG -> stakingState?.totalMycoinBalance
-            USDE_SLUG -> stakingState?.totalUSDeBalance
-            else -> null
-        } ?: BigInteger.ZERO
-        return stakingBalance == BigInteger.ZERO
     }
 }

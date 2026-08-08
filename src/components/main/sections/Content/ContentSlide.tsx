@@ -18,7 +18,6 @@ interface OwnProps {
   totalTokensAmount: number;
   activeNftKey: number;
   onClickAsset: (slug: string) => void;
-  onStakedTokenClick: NoneToVoidFunction;
   onScroll?: (e: React.UIEvent<HTMLElement>) => void;
 }
 
@@ -30,7 +29,6 @@ function ContentSlide({
   totalTokensAmount,
   activeNftKey,
   onClickAsset,
-  onStakedTokenClick,
   onScroll,
 }: OwnProps) {
   if (currentCollection && activeTabId !== ContentTab.Nft) {
@@ -56,7 +54,6 @@ function ContentSlide({
         <Assets
           isActive={isActive}
           onTokenClick={onClickAsset}
-          onStakedTokenClick={onStakedTokenClick}
           onScroll={onScroll}
         />
       );

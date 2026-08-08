@@ -14,14 +14,12 @@ import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import app.twallet.air.sqscan.screen.QrScannerDialog
 import app.twallet.air.uicomponents.base.ISortableView
 import app.twallet.air.uicomponents.base.WActionBar.TitleAnimationMode
 import app.twallet.air.uicomponents.base.WNavigationController
 import app.twallet.air.uicomponents.base.WViewControllerWithModelStore
-import app.twallet.air.uicomponents.base.executeWithLowPriority
 import app.twallet.air.uicomponents.commonViews.HeaderActionsView
 import app.twallet.air.uicomponents.commonViews.IHeaderActionsView
 import app.twallet.air.uicomponents.commonViews.ReversedCornerView
@@ -37,11 +35,6 @@ import app.twallet.air.uicomponents.widgets.fadeIn
 import app.twallet.air.uireceive.ReceiveVC
 import app.twallet.air.uisend.send.MultisendLauncher
 import app.twallet.air.uisend.send.SendVC
-import app.twallet.air.uistake.earn.EarnRootVC
-import app.twallet.air.uistake.earn.EarnViewModel
-import app.twallet.air.uistake.earn.EarnViewModelFactory
-import app.twallet.air.uistake.staking.StakingVC
-import app.twallet.air.uistake.staking.StakingViewModel
 import app.twallet.air.uiswap.screens.cex.SwapSendAddressOutputVC
 import app.twallet.air.uiswap.screens.swap.SwapVC
 import app.twallet.air.uitonconnect.TonConnectController
@@ -56,8 +49,6 @@ import app.twallet.air.walletcontext.DeeplinkOpenSource
 import app.twallet.air.walletcontext.WalletContextManager
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.models.MWalletSettingsViewMode
-import app.twallet.air.walletcore.MYCOIN_SLUG
-import app.twallet.air.walletcore.TONCOIN_SLUG
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.models.MScreenMode
 import app.twallet.air.walletcore.models.SwapType
@@ -185,18 +176,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
 
     private var rvMode = HomeHeaderView.DEFAULT_MODE
 
-    private val earnToncoinViewModel by lazy {
-        ViewModelProvider(
-            window!!,
-            EarnViewModelFactory(TONCOIN_SLUG)
-        )[EarnViewModel.alias(TONCOIN_SLUG), EarnViewModel::class.java]
-    }
-    private val earnMycoinViewModel by lazy {
-        ViewModelProvider(
-            window!!,
-            EarnViewModelFactory(MYCOIN_SLUG)
-        )[EarnViewModel.alias(MYCOIN_SLUG), EarnViewModel::class.java]
-    }
 
     private val tonConnectController by lazy {
         TonConnectController(window!!)
@@ -362,7 +341,7 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         return if (wide) {
             TabletHeaderActionsView(
                 context,
-                TabletHeaderActionsView.headerTabs(context, true),
+                TabletHeaderActionsView.headerTabs(context),
                 onClick = {
                     if (currentActivityListView.skeletonVisible)
                         return@TabletHeaderActionsView
@@ -374,7 +353,7 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         } else {
             HeaderActionsView(
                 context,
-                HeaderActionsView.headerTabs(context, true),
+                HeaderActionsView.headerTabs(context),
                 onClick = {
                     if (currentActivityListView.skeletonVisible)
                         return@HeaderActionsView
@@ -488,23 +467,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
                 }.show()
             }
 
-            HeaderActionsView.Identifier.EARN -> {
-                val canShowEarn =
-                    homeVM.isGeneralDataAvailable || AccountStore.activeAccount?.isNew == true
-                if (!canShowEarn) return
-
-                val activeStakingTokenSlug = AccountStore.stakingData?.activeStakingTokenSlug()
-                val navVC = WNavigationController(
-                    window!!,
-                    WNavigationController.PresentationConfig.PreferredFullScreen
-                )
-                if (activeStakingTokenSlug != null) {
-                    navVC.setRoot(EarnRootVC(context, tokenSlug = activeStakingTokenSlug))
-                } else {
-                    navVC.setRoot(StakingVC(context, TONCOIN_SLUG, StakingViewModel.Mode.STAKE))
-                }
-                window?.present(navVC)
-            }
 
             HeaderActionsView.Identifier.SCROLL_TO_TOP -> {
                 scrollToTop()
@@ -1146,23 +1108,7 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         }
     }
 
-    override fun loadStakingData() {
-        if (!homeVM.isGeneralDataAvailable) return
 
-        if (homeVM.showingAccount?.isViewOnly == false)
-            executeWithLowPriority {
-                earnToncoinViewModel.loadOrRefreshStakingData()
-                earnMycoinViewModel.loadOrRefreshStakingData()
-            }
-    }
-
-    override fun stakingDataUpdated() {
-        if (isWideHome) {
-            allActivityListViews.forEach { it.updateActionsView() }
-        } else {
-            actionsView.updateActions(headerView.centerAccount ?: homeVM.showingAccount)
-        }
-    }
 
     override fun headerModeChanged() {
         rvMode = phoneHeaderView.mode
@@ -1217,7 +1163,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
             currentActivityListView.updateHeaderHeights()
             moveActionsViewToCell()
         }
-        loadStakingData()
     }
 
     // Nft tabs could be updated, should reload tabs

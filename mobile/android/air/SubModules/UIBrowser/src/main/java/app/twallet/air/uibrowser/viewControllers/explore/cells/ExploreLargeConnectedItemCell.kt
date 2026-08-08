@@ -28,10 +28,8 @@ class ExploreLargeConnectedItemCell(
     context: Context,
     cellWidth: Int,
     private val onDAppTap: (site: ApiDapp?) -> Unit,
-) :
-    WCell(context, LayoutParams(cellWidth, WRAP_CONTENT)),
+) : WCell(context, LayoutParams(cellWidth, WRAP_CONTENT)),
     WThemedView {
-
     private val ripple = WRippleDrawable.create(16f.dp)
 
     init {
@@ -40,16 +38,18 @@ class ExploreLargeConnectedItemCell(
 
     private val imagePadding = 4
 
-    private val imageView = WCustomImageView(context).apply {
-        defaultRounding = Content.Rounding.Radius(16f.dp)
-    }
+    private val imageView =
+        WCustomImageView(context).apply {
+            defaultRounding = Content.Rounding.Radius(16f.dp)
+        }
 
-    private val titleLabel = WLabel(context).apply {
-        setStyle(12f, WFont.Medium)
-        setSingleLine()
-        ellipsize = TextUtils.TruncateAt.END
-        gravity = Gravity.CENTER
-    }
+    private val titleLabel =
+        WLabel(context).apply {
+            setStyle(12f, WFont.Medium)
+            setSingleLine()
+            ellipsize = TextUtils.TruncateAt.END
+            gravity = Gravity.CENTER
+        }
 
     private val imageWidth = cellWidth - 12.dp
 
@@ -85,9 +85,10 @@ class ExploreLargeConnectedItemCell(
         } ?: run {
             imageView.setBackgroundColor(WColor.Background.color, 16f.dp)
             imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
-            val drawable = context.getDrawableCompat(
-                app.twallet.air.icons.R.drawable.ic_details
-            )!!
+            val drawable =
+                context.getDrawableCompat(
+                    app.twallet.air.icons.R.drawable.ic_details
+                )!!
             imageView.setImageDrawable(
                 drawable.resize(context, 30.dp, 30.dp, WColor.SecondaryText.color)
             )

@@ -1,11 +1,9 @@
 import React, { type ElementRef, memo, useRef } from '../../../../lib/teact/teact';
 
-import type { ApiBaseCurrency, ApiStakingState, ApiYieldType } from '../../../../api/types';
+import type { ApiBaseCurrency } from '../../../../api/types';
 import type { AppTheme, UserToken } from '../../../../global/types';
 import type { Layout } from '../../../../hooks/useMenuPosition';
-import type { StakingStateStatus } from '../../../../util/staking';
 
-import { ANIMATED_STICKER_TINY_ICON_PX, IS_FEATURE_LIMITED } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
 import buildClassName from '../../../../util/buildClassName';
 import { DAY, formatFullDay } from '../../../../util/dateFormat';
@@ -13,7 +11,6 @@ import { toDecimal } from '../../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { round } from '../../../../util/round';
 import { getIsRwaStockToken, getTokenName } from '../../../../util/tokens';
-import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useLang from '../../../../hooks/useLang';
@@ -24,7 +21,6 @@ import useTokenContextMenu from './hooks/useTokenContextMenu';
 import TokenIcon from '../../../common/TokenIcon';
 import TokenLabel from '../../../common/TokenLabel';
 import AnimatedCounter from '../../../ui/AnimatedCounter';
-import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import DropdownMenu from '../../../ui/DropdownMenu';
 import MenuBackdrop from '../../../ui/MenuBackdrop';
@@ -35,17 +31,12 @@ import styles from './Token.module.scss';
 interface OwnProps {
   ref?: ElementRef<HTMLButtonElement>;
   token: UserToken;
-  // Undefined means that it's not a staked token
-  stakingStatus?: StakingStateStatus;
-  stakingState?: ApiStakingState;
   vestingStatus?: 'frozen' | 'readyToUnfreeze';
   unfreezeEndDate?: number;
   amount?: string;
   classNames?: string;
   tokenClassName?: string;
   style?: string;
-  annualYield?: number;
-  yieldType?: ApiYieldType;
   isActive?: boolean;
   baseCurrency: ApiBaseCurrency;
   appTheme: AppTheme;
@@ -54,7 +45,6 @@ interface OwnProps {
   withContextMenu?: boolean;
   isSensitiveDataHidden?: true;
   isSwapDisabled?: boolean;
-  isStakingAvailable?: boolean;
   isViewMode?: boolean;
   isPinned?: boolean;
   withPinTransition?: boolean;
@@ -69,27 +59,21 @@ function Token({
   ref,
   token,
   amount,
-  stakingStatus,
-  stakingState,
   vestingStatus,
   unfreezeEndDate,
-  annualYield,
   classNames,
   tokenClassName,
   style,
-  appTheme,
   isActive,
   baseCurrency,
   withChainIcon,
   withChainColorRing,
   withContextMenu,
   isSensitiveDataHidden,
-  isStakingAvailable,
   isSwapDisabled,
   isViewMode,
   isPinned,
   withPinTransition,
-  yieldType,
   onClick,
 }: OwnProps) {
   const {
@@ -111,25 +95,14 @@ function Token({
   const renderedAmount = amount ?? toDecimal(tokenAmount, decimals, true);
   const changeClassName = change > 0 ? styles.change_up : change < 0 ? styles.change_down : undefined;
   const changePercent = Math.abs(round(change * 100, 2));
-  const withYield = !IS_FEATURE_LIMITED && annualYield !== undefined && annualYield > 0;
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const withLabel = Boolean(!isVesting && label);
   const isRwaStock = getIsRwaStockToken(token);
-  const stakingId = stakingState?.id;
   const name = getTokenName(lang, token);
-  const withChainIconRendered = withChainIcon && !stakingId;
   const totalAmount = Big(renderedAmount).mul(price);
-  const canRenderYield = annualYield !== undefined;
   if (ref) {
     buttonRef = ref;
   }
-
-  const {
-    ref: yieldRef,
-  } = useShowTransition<HTMLSpanElement>({
-    isOpen: withYield,
-    withShouldRender: true,
-  });
 
   const {
     shouldRender: shouldRenderPin,
@@ -169,26 +142,10 @@ function Token({
     token,
     isPortrait,
     withContextMenu,
-    isStakingAvailable,
     isSwapDisabled,
     isViewMode,
-    stakingState,
     isPinned,
   });
-
-  function renderYield() {
-    const labelClassName = buildClassName(
-      styles.label,
-      styles.apyLabel,
-      stakingStatus && styles.apyLabel_staked,
-    );
-
-    return (
-      <span ref={yieldRef} className={labelClassName}>
-        {stakingStatus ? '' : `${yieldType} `}{round(annualYield ?? 0, 2)}%
-      </span>
-    );
-  }
 
   function renderChangeIcon() {
     if (change === 0) {
@@ -199,38 +156,6 @@ function Token({
       <i
         className={buildClassName(styles.iconArrow, change > 0 ? 'icon-arrow-up' : 'icon-arrow-down')}
         aria-hidden
-      />
-    );
-  }
-
-  function renderStakingIcon() {
-    if (stakingStatus === 'active') {
-      return (
-        <i
-          className={buildClassName('icon-percent', styles.percent)}
-          aria-hidden
-        />
-      );
-    }
-
-    if (stakingStatus === 'readyToClaim') {
-      return (
-        <i
-          className={buildClassName('icon-check-alt', styles.readyToClaim)}
-          aria-hidden
-        />
-      );
-    }
-
-    return (
-      <AnimatedIconWithPreview
-        play
-        size={ANIMATED_STICKER_TINY_ICON_PX}
-        className={styles.percent}
-        nonInteractive
-        noLoop={false}
-        tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockPurple}
-        previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockPurple}
       />
     );
   }
@@ -260,19 +185,16 @@ function Token({
         <TokenIcon
           token={token}
           size="large"
-          withChainIcon={withChainIconRendered}
+          withChainIcon={withChainIcon}
           withChainColorRing={withChainColorRing}
           className={styles.tokenIcon}
         >
-          <>
-            {stakingStatus && renderStakingIcon()}
-            {vestingStatus && (
-              <i
-                className={buildClassName(vestingStatus === 'frozen' ? 'icon-snow' : 'icon-fire', styles.vestingIcon)}
-                aria-hidden
-              />
-            )}
-          </>
+          {vestingStatus && (
+            <i
+              className={buildClassName(vestingStatus === 'frozen' ? 'icon-snow' : 'icon-fire', styles.vestingIcon)}
+              aria-hidden
+            />
+          )}
         </TokenIcon>
         <div className={styles.primaryCell}>
           <div className={styles.name}>
@@ -288,27 +210,24 @@ function Token({
               />
             )}
             <span className={styles.nameText}>{name}</span>
-            {canRenderYield && renderYield()}
             {withLabel && <TokenLabel label={label!} isRwaStock={isRwaStock} />}
           </div>
           <div className={styles.subtitle}>
             <AnimatedCounter text={formatCurrency(price, shortBaseSymbol, undefined, true)} />
-            {!stakingStatus && (
-              <>
-                <i className={styles.dot} aria-hidden />
-                {unfreezeEndDate ? (
-                  <span className={(unfreezeEndDate - Date.now() < UNFREEZE_DANGER_DURATION) && styles.change_down}>
-                    {lang('Unfreeze')}
-                    {' '}
-                    {lang('until %date%', { date: `${formatFullDay(lang.code!, unfreezeEndDate)}` })}
-                  </span>
-                ) : (
-                  <span className={changeClassName}>
-                    {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
-                  </span>
-                )}
-              </>
-            )}
+            <>
+              <i className={styles.dot} aria-hidden />
+              {unfreezeEndDate ? (
+                <span className={(unfreezeEndDate - Date.now() < UNFREEZE_DANGER_DURATION) && styles.change_down}>
+                  {lang('Unfreeze')}
+                  {' '}
+                  {lang('until %date%', { date: `${formatFullDay(lang.code!, unfreezeEndDate)}` })}
+                </span>
+              ) : (
+                <span className={changeClassName}>
+                  {renderChangeIcon()}<AnimatedCounter text={String(changePercent)} />%
+                </span>
+              )}
+            </>
           </div>
         </div>
         <div className={styles.secondaryCell}>
@@ -322,7 +241,6 @@ function Token({
             align="right"
             className={buildClassName(
               styles.secondaryValue,
-              stakingStatus && styles.secondaryValue_staked,
               isVesting && styles.secondaryValue_vesting,
               isVesting && vestingStatus === 'readyToUnfreeze' && styles.secondaryValue_vestingUnfreeze,
             )}

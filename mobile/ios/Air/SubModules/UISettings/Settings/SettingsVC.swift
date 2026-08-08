@@ -227,19 +227,6 @@ public class SettingsVC: SettingsBaseVC, Sendable, WalletCoreData.EventsObserver
             }
         case .walletVersions:
             navigationController?.pushViewController(WalletVersionsVC(), animated: true)
-        case .tips:
-            AppActions.openTipsChannel()
-        case .helpCenter:
-            let title = lang("Help Center")
-            let url = Language.current == .ru ? HELP_CENTER_URL_RU : HELP_CENTER_URL
-            navigationController?.pushPlainWebView(title: title, url: URL(string: url)!)
-        case .support:
-            UIApplication.shared.open(SupportDiagnostics.supportURL)
-        case .about:
-            let vc = AboutVC(showLegalSection: true)
-            navigationController?.pushViewController(vc, animated: true)
-        case .useResponsibly:
-            navigationController?.pushViewController(UseResponsiblyVC(), animated: true)
         case .portfolio:
             AppActions.showPortfolio(accountContext: AccountContext(source: .current))
         }
@@ -343,21 +330,6 @@ public class SettingsVC: SettingsBaseVC, Sendable, WalletCoreData.EventsObserver
         snapshot.appendItems([.notifications])
         snapshot.appendItems([.language])
         snapshot.appendItems([.networks])
-
-        // Questions and answers
-        snapshot.appendSections([.questionAndAnswers])
-        if ConfigStore.shared.config?.supportAccountsCount ?? 1 > 0 {
-            snapshot.appendItems([.support])
-        }
-        snapshot.appendItems([.helpCenter])
-        if !IS_TWALLETGRAM_WALLET {
-            snapshot.appendItems([.tips])
-        }
-        snapshot.appendItems([.useResponsibly])
-
-        // About
-        snapshot.appendSections([.about])
-        snapshot.appendItems([.about])
                 
         return snapshot
     }
@@ -374,8 +346,6 @@ public class SettingsVC: SettingsBaseVC, Sendable, WalletCoreData.EventsObserver
             return AccountStore.walletVersionsData?.currentVersion
         case .connectedApps:
             return DappsStore.dappsCount != nil ? "\(DappsStore.dappsCount!)" : ""
-        case .support:
-            return "@\(SUPPORT_USERNAME)"
         default:
             return nil
         }
@@ -464,12 +434,6 @@ public class SettingsVC: SettingsBaseVC, Sendable, WalletCoreData.EventsObserver
                 updateHeaderBalance()
                 reloadData(animated: true)
                 
-            case .stakingAccountData(let data):
-                if data.accountId == AccountStore.accountId {
-                    updateHeaderBalance()
-                    reloadData(animated: true)
-                }
-
             case .walletVersionsDataReceived:
                 reloadData(animated: true)
 

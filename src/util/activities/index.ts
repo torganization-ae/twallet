@@ -214,13 +214,9 @@ export function shouldShowTransactionAddress(transaction: ApiTransactionActivity
   return shouldHide ? [] : ['list', 'modal'];
 }
 
-/** "Our" is staking that can be controlled with My Wallet app */
+/** Historical stake/unstake against known pool addresses (for activity UI, not Earn product). */
 export function isOurStakingTransaction({ type, isIncoming, toAddress, fromAddress }: ApiTransaction) {
   return STAKING_TRANSACTION_TYPES.has(type) && ALL_STAKING_POOLS.includes(isIncoming ? fromAddress : toAddress);
-}
-
-export function shouldShowTransactionAnnualYield(transaction: ApiTransaction) {
-  return transaction.type === 'stake' && isOurStakingTransaction(transaction);
 }
 
 export function getIsActivityWithHash(activity: ApiTransactionActivity) {

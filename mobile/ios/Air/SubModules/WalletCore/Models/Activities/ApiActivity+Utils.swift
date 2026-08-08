@@ -183,8 +183,10 @@ public extension ApiActivity {
 public extension ApiActivity {
     var avatarContent: AvatarContent {
         let icon: String = switch self.type {
-        case .stake, .unstake, .unstakeRequest:
-            "ActionStake"
+        case .stake:
+            "ActionSend"
+        case .unstake, .unstakeRequest:
+            "ActionReceive"
         case .nftReceived:
             "ActionReceive"
         case .nftTransferred:
@@ -375,8 +377,7 @@ public extension ApiActivity {
         }
 
         let chain = transaction.nft?.chain ?? getChainBySlug(transaction.slug) ?? FALLBACK_CHAIN
-        let shouldHide = isOurStakingTransaction
-            || (!transaction.isIncoming && transaction.nft != nil && transaction.toAddress == transaction.nft?.address)
+        let shouldHide = (!transaction.isIncoming && transaction.nft != nil && transaction.toAddress == transaction.nft?.address)
             || (transaction.isIncoming && type == .excess && transaction.fromAddress == BURN_ADDRESS)
 
         if shouldHide {
@@ -392,18 +393,6 @@ public extension ApiActivity {
 
     func shouldShowTransactionAddress(in options: TransactionAddressDisplayOptions) -> Bool {
         transactionAddressDisplayOptions.contains(options)
-    }
-    
-    /** "Our" is staking that can be controlled with MyTonWallet app */
-    var isOurStakingTransaction: Bool {
-        if case .transaction(let tx) = self {
-            return isStakingTransaction && ALL_STAKING_POOLS.contains(tx.isIncoming ? tx.fromAddress ?? "" : tx.toAddress ?? "")
-        }
-        return false
-    }
-
-    var shouldShowTransactionAnnualYield: Bool {
-        return type == .stake && isOurStakingTransaction
     }
     
     var timestampDate: Date {

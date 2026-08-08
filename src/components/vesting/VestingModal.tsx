@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo } from '../../lib/teact/teact';
+import React, { memo, useMemo } from '../../lib/teact/teact';
 import { getActions, withGlobal } from '../../global';
 
 import type { ApiTokenWithPrice, ApiVestingInfo } from '../../api/types';
@@ -50,7 +50,7 @@ function VestingModal({
   mycoin,
   theme,
 }: StateProps) {
-  const { fetchStakingHistory, closeVestingModal, startClaimingVesting } = getActions();
+  const { closeVestingModal, startClaimingVesting } = getActions();
 
   const lang = useLang();
   const forceUpdate = useForceUpdate();
@@ -70,12 +70,6 @@ function VestingModal({
   const appTheme = useAppTheme(theme);
 
   useInterval(forceUpdate, isUnfreezeRequested ? UPDATE_UNSTAKE_DATE_INTERVAL_MS : undefined);
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchStakingHistory();
-    }
-  }, [fetchStakingHistory, isOpen]);
 
   const handleStartClaimingVesting = useLastCallback(() => {
     startClaimingVesting();

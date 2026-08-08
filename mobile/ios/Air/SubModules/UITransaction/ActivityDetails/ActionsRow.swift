@@ -16,9 +16,6 @@ struct ActionsRow: View {
         
         switch model.activity {
         case .transaction(let tx):
-            if tx.isStaking {
-                return account.supportsEarn
-            }
             if tx.isIncoming || tx.type != nil || tx.nft != nil {
                 return false
             }

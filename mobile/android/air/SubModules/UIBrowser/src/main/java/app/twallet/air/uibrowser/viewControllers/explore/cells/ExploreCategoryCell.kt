@@ -2,246 +2,212 @@ package app.twallet.air.uibrowser.viewControllers.explore.cells
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.view.ViewGroup
+import android.graphics.Color
+import android.text.TextUtils
+import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import androidx.core.view.isGone
-import androidx.core.view.isInvisible
-import androidx.core.view.setPadding
-import androidx.core.view.updateLayoutParams
+import android.widget.ImageView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import app.twallet.air.uicomponents.base.WRecyclerViewAdapter
+import app.twallet.air.uicomponents.drawable.WRippleDrawable
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.WFont
 import app.twallet.air.uicomponents.image.Content
 import app.twallet.air.uicomponents.image.WCustomImageView
-import app.twallet.air.uicomponents.drawable.WRippleDrawable
 import app.twallet.air.uicomponents.widgets.WCell
 import app.twallet.air.uicomponents.widgets.WLabel
+import app.twallet.air.uicomponents.widgets.WRecyclerView
 import app.twallet.air.uicomponents.widgets.WThemedView
 import app.twallet.air.uicomponents.widgets.WView
-import app.twallet.air.uicomponents.widgets.setBackgroundColor
 import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
+import app.twallet.air.walletbasecontext.utils.getDrawableCompat
+import app.twallet.air.walletcontext.utils.IndexPath
 import app.twallet.air.walletcore.models.MExploreCategory
 import app.twallet.air.walletcore.models.MExploreSite
 import app.twallet.air.walletcore.stores.ConfigStore
-import kotlin.math.roundToInt
+import java.lang.ref.WeakReference
 
 @SuppressLint("ViewConstructor")
 class ExploreCategoryCell(
     context: Context,
-    private val cellWidth: Int,
     private val onSiteTap: (site: MExploreSite) -> Unit,
     private val onOpenCategoryTap: (category: MExploreCategory) -> Unit
-) :
-    WCell(context, LayoutParams(WRAP_CONTENT, WRAP_CONTENT)), WThemedView {
+) : WCell(context, LayoutParams(MATCH_PARENT, WRAP_CONTENT)),
+    WRecyclerViewAdapter.WRecyclerViewDataSource,
+    WThemedView {
+    companion object {
+        private val SITE_CELL = Type(1)
+        private val SITE_CELL_WIDTH = 72
+    }
 
-    private val imagesPadding = 4
+    private val headerRipple = WRippleDrawable.create(0f)
 
-    private val img1Ripple = WRippleDrawable.create(18f.dp)
-    private val img2Ripple = WRippleDrawable.create(18f.dp)
-    private val img3Ripple = WRippleDrawable.create(18f.dp)
-
-    private val img1 = WCustomImageView(context).apply {
-        defaultRounding = Content.Rounding.Radius(18f.dp)
-        setPadding(imagesPadding.dp)
-        background = img1Ripple
-    }
-    private val img2 = WCustomImageView(context).apply {
-        defaultRounding = Content.Rounding.Radius(18f.dp)
-        setPadding(imagesPadding.dp)
-        background = img2Ripple
-    }
-    private val img3 = WCustomImageView(context).apply {
-        defaultRounding = Content.Rounding.Radius(18f.dp)
-        setPadding(imagesPadding.dp)
-        background = img3Ripple
-    }
-    private val otherImg1 = WCustomImageView(context).apply {
-        defaultRounding = Content.Rounding.Radius(7f.dp)
-    }
-    private val otherImg2 = WCustomImageView(context).apply {
-        defaultRounding = Content.Rounding.Radius(7f.dp)
-    }
-    private val otherImg3 = WCustomImageView(context).apply {
-        defaultRounding = Content.Rounding.Radius(7f.dp)
-    }
-    private val otherImg4 = WCustomImageView(context).apply {
-        defaultRounding = Content.Rounding.Radius(7f.dp)
-    }
-    private val imageSize = (cellWidth - 54.dp) / 2 + 2 * imagesPadding.dp
-
-    private val otherSitesView = WView(context).apply {
-        val smallImageSize = ((imageSize - 2 * imagesPadding.dp - 12f.dp) / 2).roundToInt()
-        addView(otherImg1, ViewGroup.LayoutParams(smallImageSize, smallImageSize))
-        addView(otherImg2, ViewGroup.LayoutParams(smallImageSize, smallImageSize))
-        addView(otherImg3, ViewGroup.LayoutParams(smallImageSize, smallImageSize))
-        addView(otherImg4, ViewGroup.LayoutParams(smallImageSize, smallImageSize))
-        setConstraints {
-            toStart(otherImg1, 3.5f)
-            toTop(otherImg1, 3.5f)
-            startToEnd(otherImg2, otherImg1, 5f)
-            toTop(otherImg2, 3.5f)
-            startToStart(otherImg3, otherImg1)
-            topToBottom(otherImg3, otherImg1, 5f)
-            startToStart(otherImg4, otherImg2)
-            topToTop(otherImg4, otherImg3)
+    private val titleLabel =
+        WLabel(context).apply {
+            setStyle(17f, WFont.Bold)
+            setSingleLine()
+            ellipsize = TextUtils.TruncateAt.END
         }
-    }
 
-    private val containerView = WView(context).apply {
-        addView(img1, ViewGroup.LayoutParams(imageSize, imageSize))
-        addView(img2, ViewGroup.LayoutParams(imageSize, imageSize))
-        addView(img3, ViewGroup.LayoutParams(imageSize, imageSize))
-        addView(otherSitesView, ViewGroup.LayoutParams(imageSize, imageSize))
-
-        setConstraints {
-            toStart(img1, 12f - imagesPadding)
-            toTop(img1, 12f - imagesPadding)
-            startToEnd(img2, img1, 14f - 2 * imagesPadding)
-            toTop(img2, 12f - imagesPadding)
-            startToStart(img3, img1)
-            topToBottom(img3, img1, 14f - 2 * imagesPadding)
-            startToStart(otherSitesView, img2, imagesPadding.toFloat())
-            topToTop(otherSitesView, img3, imagesPadding.toFloat())
-            toEnd(img2, 12f - imagesPadding)
-            toBottom(img3, 12f - imagesPadding)
+    private val chevronView =
+        ImageView(context).apply {
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
         }
-    }
 
-    private val titleLabel = WLabel(context).apply {
-        setStyle(14f, WFont.Medium)
-    }
-
-    private val outerContainerView = WView(context).apply {
-        addView(containerView, ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-        addView(titleLabel)
-        setConstraints {
-            toTop(containerView, 16f)
-            toCenterX(containerView, 8f)
-            setDimensionRatio(containerView.id, "1:1")
-            topToBottom(titleLabel, containerView, 8f)
-            toCenterX(titleLabel)
-            toBottom(titleLabel, 4f)
-        }
-    }
-
-    override fun setupViews() {
-        super.setupViews()
-
-        addView(outerContainerView, LayoutParams(MATCH_PARENT, MATCH_PARENT))
-
-        val allImages = listOf(img1, img2, img3)
-        for (i in allImages.indices) {
-            allImages[i].setOnClickListener {
-                allImages.getOrNull(i)
-                category?.sites?.get(i)?.let {
-                    onSiteTap(it)
-                }
+    private val headerView =
+        WView(context).apply {
+            background = headerRipple
+            addView(titleLabel, LayoutParams(0, WRAP_CONTENT))
+            addView(chevronView, LayoutParams(20.dp, 20.dp))
+            setConstraints {
+                toStart(titleLabel, ViewConstants.HORIZONTAL_PADDINGS.toFloat())
+                toCenterY(titleLabel)
+                endToStart(titleLabel, chevronView, 4f)
+                toEnd(chevronView, ViewConstants.HORIZONTAL_PADDINGS.toFloat())
+                toCenterY(chevronView)
+                toTop(titleLabel, 4f)
+                toBottom(titleLabel, 4f)
+            }
+            setOnClickListener {
+                category?.let(onOpenCategoryTap)
             }
         }
-        otherSitesView.setOnClickListener {
-            category?.let {
-                onOpenCategoryTap(it)
-            }
+
+    private val rvAdapter =
+        WRecyclerViewAdapter(
+            WeakReference(this),
+            arrayOf(SITE_CELL)
+        )
+
+    private val recyclerView =
+        WRecyclerView(context).apply {
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            adapter = rvAdapter
+            setPadding(ViewConstants.HORIZONTAL_PADDINGS.dp, 0, ViewConstants.HORIZONTAL_PADDINGS.dp, 0)
+            clipToPadding = false
+            overScrollMode = View.OVER_SCROLL_NEVER
         }
-    }
 
     private var category: MExploreCategory? = null
-    private var isTopLeft: Boolean = false
-    private var isTopRight: Boolean = false
-    private var isBottomLeft: Boolean = false
-    private var isBottomRight: Boolean = false
-    fun configure(
-        category: MExploreCategory?,
-        isLeft: Boolean,
-        isRight: Boolean,
-        isTopLeft: Boolean,
-        isTopRight: Boolean,
-        isBottomLeft: Boolean,
-        isBottomRight: Boolean
-    ) {
+    private var sites: List<MExploreSite> = emptyList()
+
+    init {
+        addView(headerView, LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+        addView(recyclerView, LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+        setConstraints {
+            toTop(headerView, 8f)
+            toStart(headerView)
+            toEnd(headerView)
+            topToBottom(recyclerView, headerView, 8f)
+            toStart(recyclerView)
+            toEnd(recyclerView)
+            toBottom(recyclerView, 8f)
+        }
+        updateTheme()
+    }
+
+    fun configure(category: MExploreCategory?) {
         this.category = category
-        this.isTopLeft = isTopLeft
-        this.isTopRight = isTopRight
-        this.isBottomLeft = isBottomLeft
-        this.isBottomRight = isBottomRight
-
-        setPadding(
-            if (isLeft) ViewConstants.HORIZONTAL_PADDINGS.dp else 0,
-            0,
-            if (isRight) ViewConstants.HORIZONTAL_PADDINGS.dp else 0,
-            0
-        )
-        outerContainerView.setPadding(
-            if (isLeft) 8.dp else 0,
-            0,
-            if (isRight) 8.dp else 0,
-            0,
-        )
-        updateLayoutParams {
-            width =
-                cellWidth +
-                    paddingLeft + paddingRight +
-                    outerContainerView.paddingLeft + outerContainerView.paddingRight
-        }
-        containerView.isInvisible = category == null
-        titleLabel.isInvisible = category == null
-        category?.let {
-            titleLabel.text = category.name
-
-            val sites = category.sites.filter {
-                ConfigStore.isLimited != true || !it.canBeRestricted
-            }
-
-            if (sites.isNotEmpty()) img1.set(
-                Content.ofUrl(
-                    sites.getOrNull(0)!!.iconUrl ?: ""
-                )
-            ) else img1.clear()
-            if (sites.size > 1) img2.set(
-                Content.ofUrl(
-                    sites.getOrNull(1)!!.iconUrl ?: ""
-                )
-            ) else img2.clear()
-            if (sites.size > 2) img3.set(
-                Content.ofUrl(
-                    sites.getOrNull(2)!!.iconUrl ?: ""
-                )
-            ) else img3.clear()
-
-            val otherImages = listOf(otherImg1, otherImg2, otherImg3, otherImg4)
-            for (i in otherImages.indices) {
-                val site = sites.getOrNull(i + 3)
-                if (site != null) {
-                    otherImages[i].set(Content.ofUrl(site.iconUrl!!))
-                    otherImages[i].isGone = false
-                } else {
-                    otherImages[i].clear()
-                    otherImages[i].isGone = true
-                }
-            }
-        }
-
+        sites = category?.sites?.filter {
+            ConfigStore.isLimited != true || !it.canBeRestricted
+        } ?: emptyList()
+        titleLabel.text = category?.name.orEmpty()
+        rvAdapter.reloadData()
         updateTheme()
     }
 
     override fun updateTheme() {
-        arrayOf(img1Ripple, img2Ripple, img3Ripple).forEach {
-            it.backgroundColor = WColor.SecondaryBackground.color
-            it.rippleColor = WColor.BackgroundRipple.color
-        }
-        containerView.setBackgroundColor(
-            WColor.SecondaryBackground.color,
-            26f.dp
-        )
+        headerRipple.backgroundColor = Color.TRANSPARENT
+        headerRipple.rippleColor = WColor.BackgroundRipple.color
         titleLabel.setTextColor(WColor.PrimaryText.color)
-        outerContainerView.setBackgroundColor(
-            WColor.Background.color,
-            if (isTopLeft) ViewConstants.BLOCK_RADIUS.dp else 0f,
-            if (isTopRight) ViewConstants.BLOCK_RADIUS.dp else 0f,
-            if (isBottomRight) ViewConstants.BLOCK_RADIUS.dp else 0f,
-            if (isBottomLeft) ViewConstants.BLOCK_RADIUS.dp else 0f,
-        )
+        val chevron = context.getDrawableCompat(app.twallet.air.icons.R.drawable.ic_arrow_right_16_24)
+        chevronView.setImageDrawable(chevron)
+        chevronView.setColorFilter(WColor.SecondaryText.color)
+    }
+
+    override fun recyclerViewNumberOfSections(rv: RecyclerView): Int = 1
+
+    override fun recyclerViewNumberOfItems(rv: RecyclerView, section: Int): Int = sites.size
+
+    override fun recyclerViewCellType(rv: RecyclerView, indexPath: IndexPath): Type = SITE_CELL
+
+    override fun recyclerViewCellView(rv: RecyclerView, cellType: Type): WCell =
+        CategorySiteItemCell(context, SITE_CELL_WIDTH.dp) { site ->
+            onSiteTap(site)
+        }
+
+    override fun recyclerViewConfigureCell(
+        rv: RecyclerView,
+        cellHolder: WCell.Holder,
+        indexPath: IndexPath
+    ) {
+        (cellHolder.cell as CategorySiteItemCell).configure(sites.getOrNull(indexPath.row))
+    }
+}
+
+@SuppressLint("ViewConstructor")
+private class CategorySiteItemCell(
+    context: Context,
+    cellWidth: Int,
+    private val onSiteTap: (site: MExploreSite) -> Unit,
+) : WCell(context, LayoutParams(cellWidth, WRAP_CONTENT)),
+    WThemedView {
+    private val ripple = WRippleDrawable.create(16f.dp)
+    private val imagePadding = 4
+
+    private val imageView =
+        WCustomImageView(context).apply {
+            defaultRounding = Content.Rounding.Radius(16f.dp)
+        }
+
+    private val titleLabel =
+        WLabel(context).apply {
+            setStyle(12f, WFont.Medium)
+            setSingleLine()
+            ellipsize = TextUtils.TruncateAt.END
+            gravity = Gravity.CENTER
+        }
+
+    private val imageWidth = cellWidth - 12.dp
+
+    init {
+        background = ripple
+        addView(imageView, LayoutParams(imageWidth, imageWidth))
+        addView(titleLabel, LayoutParams(0, WRAP_CONTENT))
+        setConstraints {
+            toCenterX(imageView, imagePadding.toFloat())
+            toTop(imageView, imagePadding.toFloat())
+            topToBottom(titleLabel, imageView, 6f)
+            toBottom(titleLabel, 6f)
+            toCenterX(titleLabel, 1f)
+        }
+        setOnClickListener {
+            site?.let(onSiteTap)
+        }
+    }
+
+    private var site: MExploreSite? = null
+
+    fun configure(site: MExploreSite?) {
+        this.site = site
+        if (site != null) {
+            site.iconUrl?.let { imageView.set(Content.ofUrl(it)) } ?: imageView.clear()
+            titleLabel.text = site.name
+        } else {
+            imageView.clear()
+            titleLabel.text = ""
+        }
+        updateTheme()
+    }
+
+    override fun updateTheme() {
+        ripple.backgroundColor = Color.TRANSPARENT
+        ripple.rippleColor = WColor.BackgroundRipple.color
+        titleLabel.setTextColor(WColor.PrimaryText.color)
     }
 }

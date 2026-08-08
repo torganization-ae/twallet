@@ -1,15 +1,13 @@
 import React, { memo, useRef } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
-import type { ApiNft, ApiNftCollection, ApiStakingState } from '../../../../api/types';
+import type { ApiNft, ApiNftCollection } from '../../../../api/types';
 import { type Account, ContentTab } from '../../../../global/types';
 
 import { requestMutation } from '../../../../lib/fasterdom/fasterdom';
 import {
-  selectAccountStakingStates,
   selectCurrentAccount,
   selectCurrentAccountId,
-  selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectEnabledTokensCountMemoizedFor,
@@ -42,7 +40,6 @@ const INTERSECTION_APPROXIMATION_VALUE_PX = 3 * REM;
 interface OwnProps {
   isActive?: boolean;
   onTabsStuck?: (isStuck: boolean) => void;
-  onStakedTokenClick: NoneToVoidFunction;
 }
 
 interface StateProps {
@@ -55,9 +52,7 @@ interface StateProps {
   currentTokenSlug?: string;
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
-  states?: ApiStakingState[];
   hasVesting: boolean;
-  alwaysHiddenSlugs?: string[];
   activityReturnContentTab?: ContentTab;
   selectedNftsToHide?: {
     addresses: string[];
@@ -77,15 +72,12 @@ function PortraitContent({
   blacklistedNftAddresses,
   whitelistedNftAddresses,
   selectedNftsToHide,
-  states,
   hasVesting,
-  alwaysHiddenSlugs,
   activeContentTab,
   activityReturnContentTab,
   currentSiteCategoryId,
   collectionTabs,
   currentTokenSlug,
-  onStakedTokenClick,
   onTabsStuck,
 }: OwnProps & StateProps) {
   const containerRef = useRef<HTMLDivElement>();
@@ -114,9 +106,7 @@ function PortraitContent({
     activityReturnContentTab,
     currentCollection,
     currentTokenSlug,
-    states,
     hasVesting,
-    alwaysHiddenSlugs,
     tokensCount,
   });
 
@@ -237,7 +227,6 @@ function PortraitContent({
         totalTokensAmount={totalTokensAmount}
         activeNftKey={activeNftKey}
         onClickAsset={handleClickAsset}
-        onStakedTokenClick={onStakedTokenClick}
       />
     );
   }
@@ -294,9 +283,6 @@ export default memo(
       const hasVesting = Boolean(
         vestingInfo?.length && calcVestingAmountByStatus(vestingInfo, ['frozen', 'ready']) !== '0',
       );
-      const states = accountId ? selectAccountStakingStates(global, accountId) : undefined;
-      const alwaysHiddenSlugs = selectCurrentAccountSettings(global)?.alwaysHiddenSlugs;
-
       return {
         byChain: selectCurrentAccount(global)?.byChain,
         nfts,
@@ -309,9 +295,7 @@ export default memo(
         blacklistedNftAddresses,
         whitelistedNftAddresses,
         selectedNftsToHide,
-        states,
         hasVesting,
-        alwaysHiddenSlugs,
         currentSiteCategoryId,
         collectionTabs,
       };

@@ -1,13 +1,11 @@
 package app.twallet.air.uisettings.viewControllers.settings
 
 import android.content.Context
-import android.content.Intent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
-import androidx.core.net.toUri
 import androidx.core.view.doOnLayout
 import androidx.core.view.isGone
 import androidx.core.view.setPadding
@@ -22,7 +20,6 @@ import app.twallet.air.uicomponents.drawable.WRippleDrawable
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.extensions.setConstraints
 import app.twallet.air.uicomponents.extensions.setPaddingLocalized
-import app.twallet.air.uicomponents.extensions.startActivityCatching
 import app.twallet.air.uicomponents.helpers.AccountDialogHelpers
 import app.twallet.air.uicomponents.helpers.LinearLayoutManagerAccurateOffset
 import app.twallet.air.uicomponents.widgets.WCell
@@ -30,13 +27,11 @@ import app.twallet.air.uicomponents.widgets.WImageButton
 import app.twallet.air.uicomponents.widgets.WProtectedView
 import app.twallet.air.uicomponents.widgets.WRecyclerView
 import app.twallet.air.uicomponents.widgets.menu.WMenuPopup
-import app.twallet.air.uiinappbrowser.InAppBrowserVC
 import app.twallet.air.uipasscode.helpers.VaultAccountSwitch
 import app.twallet.air.uipasscode.viewControllers.passcodeConfirm.PasscodeConfirmVC
 import app.twallet.air.uipasscode.viewControllers.passcodeConfirm.PasscodeViewState.Default
 import app.twallet.air.uiportfolio.viewControllers.portfolio.PortfolioVC
 import app.twallet.air.uireceive.ReceiveVC
-import app.twallet.air.uisettings.viewControllers.appInfo.AppInfoVC
 import app.twallet.air.uisettings.viewControllers.appearance.AppearanceVC
 import app.twallet.air.uisettings.viewControllers.assetsAndActivities.AssetsAndActivitiesVC
 import app.twallet.air.uisettings.viewControllers.connectedApps.ConnectedAppsVC
@@ -54,9 +49,7 @@ import app.twallet.air.uisettings.viewControllers.settings.models.SettingsItem
 import app.twallet.air.uisettings.viewControllers.settings.models.SettingsSection
 import app.twallet.air.uisettings.viewControllers.settings.views.SettingsHeaderView
 import app.twallet.air.uisettings.viewControllers.subwallets.SubWalletsVC
-import app.twallet.air.uisettings.viewControllers.userResponsibility.UserResponsibilityVC
 import app.twallet.air.uisettings.viewControllers.walletVersions.WalletVersionsVC
-import app.twallet.air.walletbasecontext.R as BaseR
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.logger.LogMessage
 import app.twallet.air.walletbasecontext.logger.LogMessage.Builder
@@ -74,7 +67,6 @@ import app.twallet.air.walletcontext.utils.IndexPath
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.WalletEvent.AccountChangedInApp
-import app.twallet.air.walletcore.models.InAppBrowserConfig
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.moshi.api.ApiUpdate
@@ -254,7 +246,6 @@ class SettingsVC(context: Context) : WViewController(context),
             updateQrButtonVisibility()
             settingsVM.fillOtherAccounts(async = false)
             settingsVM.updateSettingsSection()
-            settingsVM.updateHelpSection()
             reloadData()
         }
     }
@@ -510,17 +501,6 @@ class SettingsVC(context: Context) : WViewController(context),
                 pushProtectedScreen("Security") { passcode -> SecurityVC(context, passcode) }
             }
 
-            SettingsItem.Identifier.HELP_CENTER -> {
-                val url = context.getString(BaseR.string.app_help_url)
-                if (url.isNotEmpty()) openUrl(item.title.toString(), url)
-            }
-
-            SettingsItem.Identifier.USE_RESPONSIBILITY -> {
-                navigationController?.tabBarController?.mainNavigationController?.push(
-                    UserResponsibilityVC(context)
-                )
-            }
-
             SettingsItem.Identifier.SUBWALLETS -> {
                 pushProtectedScreen("Subwallets") { passcode -> SubWalletsVC(context, passcode) }
             }
@@ -528,31 +508,6 @@ class SettingsVC(context: Context) : WViewController(context),
             SettingsItem.Identifier.WALLET_VERSIONS -> {
                 navigationController?.tabBarController?.mainNavigationController?.push(
                     WalletVersionsVC(context)
-                )
-            }
-
-            SettingsItem.Identifier.ASK_A_QUESTION -> {
-                val url = context.getString(BaseR.string.app_support_telegram_url)
-                if (url.isNotEmpty()) openExternalUrl(url)
-            }
-
-            SettingsItem.Identifier.MTW_FEATURES -> {
-                val lang = LocaleController.activeLanguage.langCode
-                val usernameRes = if (lang == "ru") BaseR.string.app_tips_telegram_username_ru
-                else BaseR.string.app_tips_telegram_username_en
-                val username = context.getString(usernameRes)
-                    .ifEmpty { context.getString(BaseR.string.app_tips_telegram_username_en) }
-                if (username.isNotEmpty()) openExternalUrl("https://t.me/$username")
-            }
-
-            SettingsItem.Identifier.INSTALL_ON_DESKTOP -> {
-                val url = context.getString(BaseR.string.app_desktop_install_url)
-                if (url.isNotEmpty()) openExternalUrl(url)
-            }
-
-            SettingsItem.Identifier.ABOUT_MTW -> {
-                navigationController?.tabBarController?.mainNavigationController?.push(
-                    AppInfoVC(context)
                 )
             }
 
@@ -597,27 +552,6 @@ class SettingsVC(context: Context) : WViewController(context),
                 recyclerViewPaddingBottom
             )
         }
-    }
-
-    private fun openUrl(title: String, url: String) {
-        val nav = WNavigationController(window!!)
-        nav.setRoot(
-            InAppBrowserVC(
-                context,
-                null,
-                InAppBrowserConfig(
-                    url,
-                    injectDappConnect = false,
-                    injectDarkModeStyles = false,
-                    title = title
-                )
-            )
-        )
-        window?.present(nav)
-    }
-
-    private fun openExternalUrl(url: String) {
-        window?.startActivityCatching(Intent(Intent.ACTION_VIEW, url.toUri()))
     }
 
     private fun pushProtectedScreen(
@@ -848,12 +782,6 @@ class SettingsVC(context: Context) : WViewController(context),
                 })
             }
 
-            WalletEvent.StakingDataUpdated -> {
-                headerView.configureDescriptionLabel()
-                settingsVM.fillOtherAccounts(async = true, onComplete = {
-                    reloadData()
-                })
-            }
 
             WalletEvent.DappsCountUpdated -> {
                 settingsVM.updateSettingsSection()
@@ -865,12 +793,6 @@ class SettingsVC(context: Context) : WViewController(context),
                     reloadData()
                 })
                 headerView.configure()
-            }
-
-            WalletEvent.ConfigReceived -> {
-                val itemsChanged = settingsVM.updateHelpSection()
-                if (itemsChanged)
-                    reloadData()
             }
 
             WalletEvent.WideLayoutChanged -> {

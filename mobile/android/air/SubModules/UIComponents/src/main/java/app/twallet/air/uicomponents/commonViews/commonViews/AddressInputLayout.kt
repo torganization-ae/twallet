@@ -1,6 +1,8 @@
 package app.twallet.air.uicomponents.commonViews
 
 import android.R
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import android.annotation.SuppressLint
 import android.os.Build
@@ -9,9 +11,11 @@ import android.text.TextWatcher
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.KeyEvent
+import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputConnectionWrapper
@@ -295,6 +299,9 @@ class AddressInputLayout(
         elevation = 4f.dp
     }
 
+    private var isShowingResolvingOverlay = false
+    private var resolvePulseAnimator: ObjectAnimator? = null
+
     private val overlayLabel = WLabel(context).apply {
         setStyle(adaptiveFontSize(), WFont.Regular)
         gravity = Gravity.CENTER_VERTICAL
@@ -467,8 +474,45 @@ class AddressInputLayout(
     }
 
     fun setText(text: String) {
+        stopResolvingOverlay()
         textField.setText(text)
         hideOverlayViews()
+    }
+
+    /**
+     * Lock the field into the overlay and pulse while DNS / tmail resolution is in flight.
+     */
+    fun showResolvingOverlay(text: String) {
+        if (!autoCompleteConfig.isEnabled) return
+        isShowingResolvingOverlay = true
+        autocompleteResult = null
+        textField.setTextIfDiffer(text)
+        overlayLabel.text = buildSpannedString {
+            inSpans(WTypefaceSpan(WFont.Regular.typeface, WColor.PrimaryText.color)) {
+                append(text)
+            }
+        }
+        showOverlayViews()
+        startResolvePulse()
+    }
+
+    /**
+     * @param hideIfUnresolved when true, collapses a resolving-only overlay back to the text field
+     * (used when lookup finished without a named/resolved result).
+     */
+    fun stopResolvingOverlay(hideIfUnresolved: Boolean = false) {
+        val wasResolving = isShowingResolvingOverlay
+        isShowingResolvingOverlay = false
+        stopResolvePulse()
+        if (hideIfUnresolved && wasResolving && autocompleteResult == null) {
+            overlayLabel.isGone = true
+            textField.isGone = false
+            if (!isEditable) {
+                closeButton.isGone = true
+            } else if (!showCloseOnTextEditing) {
+                closeButton.isGone = true
+            }
+        }
     }
 
     fun setMaxLines(maxLines: Int) {
@@ -488,6 +532,7 @@ class AddressInputLayout(
     }
 
     private fun setAutocompleteResult(autocompleteResult: AutocompleteResult) {
+        stopResolvingOverlay()
         this.autocompleteResult = autocompleteResult
         textField.setTextIfDiffer(autocompleteResult.address(activeChain.name))
         updateOverlayText()
@@ -555,6 +600,7 @@ class AddressInputLayout(
     }
 
     private fun hideOverlayViews() {
+        stopResolvingOverlay()
         overlayLabel.isGone = true
         textField.isGone = false
         if (!isEditable) {
@@ -564,6 +610,23 @@ class AddressInputLayout(
         if (!showCloseOnTextEditing) {
             closeButton.isGone = true
         }
+    }
+
+    private fun startResolvePulse() {
+        stopResolvePulse()
+        resolvePulseAnimator = ObjectAnimator.ofFloat(overlayLabel, View.ALPHA, 1f, 0.35f).apply {
+            duration = 700L
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+            start()
+        }
+    }
+
+    private fun stopResolvePulse() {
+        resolvePulseAnimator?.cancel()
+        resolvePulseAnimator = null
+        overlayLabel.alpha = 1f
     }
 
     private fun updateOverlayText() {

@@ -70,7 +70,7 @@ import SwiftNavigation
         guard let realFee else { return nil }
         return MFee(
             precision: .exact,
-            terms: .init(token: nil, native: realFee, stars: nil),
+            terms: .init(token: nil, native: realFee),
             nativeSum: realFee
         )
     }

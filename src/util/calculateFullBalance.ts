@@ -1,37 +1,18 @@
-import type { ApiStakingState } from '../api/types';
 import type { UserToken } from '../global/types';
 
-import { STAKED_TOKEN_SLUGS } from '../config';
 import { Big } from '../lib/big.js';
 import { calcBigChangeValue } from './calcChangeValue';
 import { toBig } from './decimals';
 import { formatNumber } from './formatNumber';
-import { buildArrayCollectionByKey } from './iteratees';
 import { round } from './math';
-import { getFullStakingBalance } from './staking';
 
 type ChangePrefix = 'up' | 'down' | undefined;
 
 export function calculateFullBalance(
   tokens?: UserToken[],
-  stakingStates?: ApiStakingState[],
   baseCurrencyRate: string = '1',
 ) {
-  const stakingStateBySlug = buildArrayCollectionByKey(stakingStates ?? [], 'tokenSlug');
-
   const primaryValueUsd = (tokens ?? []).reduce((acc, token) => {
-    if (STAKED_TOKEN_SLUGS.has(token.slug)) {
-      // Cost of staked tokens is already taken into account
-      return acc;
-    }
-
-    const stakingStates = stakingStateBySlug[token.slug] ?? [];
-
-    for (const stakingState of stakingStates) {
-      const stakingAmount = toBig(getFullStakingBalance(stakingState), token.decimals);
-      acc = acc.plus(stakingAmount.mul(token.priceUsd));
-    }
-
     return acc.plus(toBig(token.amount, token.decimals).mul(token.priceUsd));
   }, Big(0));
   const primaryValue = primaryValueUsd.mul(baseCurrencyRate);
@@ -56,26 +37,12 @@ export function calculateFullBalance(
 }
 
 /** USD total + per-slug breakdown for the local portfolio diary */
-export function buildPortfolioSnapshotValues(
-  tokens?: UserToken[],
-  stakingStates?: ApiStakingState[],
-) {
-  const stakingStateBySlug = buildArrayCollectionByKey(stakingStates ?? [], 'tokenSlug');
+export function buildPortfolioSnapshotValues(tokens?: UserToken[]) {
   const bySlug: Record<string, number> = {};
   let totalUsd = Big(0);
 
   for (const token of tokens ?? []) {
-    if (STAKED_TOKEN_SLUGS.has(token.slug)) continue;
-
-    let slugUsd = toBig(token.amount, token.decimals).mul(token.priceUsd);
-    const tokenStakingStates = stakingStateBySlug[token.slug] ?? [];
-
-    for (const stakingState of tokenStakingStates) {
-      slugUsd = slugUsd.plus(
-        toBig(getFullStakingBalance(stakingState), token.decimals).mul(token.priceUsd),
-      );
-    }
-
+    const slugUsd = toBig(token.amount, token.decimals).mul(token.priceUsd);
     const value = slugUsd.toNumber();
     if (value <= 0) continue;
 
@@ -90,24 +57,11 @@ export function buildPortfolioSnapshotValues(
 }
 
 /** Human-unit holdings for seeding approximate portfolio history from network prices. */
-export function buildPortfolioBootstrapHoldings(
-  tokens?: UserToken[],
-  stakingStates?: ApiStakingState[],
-) {
-  const stakingStateBySlug = buildArrayCollectionByKey(stakingStates ?? [], 'tokenSlug');
+export function buildPortfolioBootstrapHoldings(tokens?: UserToken[]) {
   const holdings: Array<{ slug: string; amount: number; priceUsd: number }> = [];
 
   for (const token of tokens ?? []) {
-    if (STAKED_TOKEN_SLUGS.has(token.slug)) continue;
-
-    let amount = toBig(token.amount, token.decimals);
-    const tokenStakingStates = stakingStateBySlug[token.slug] ?? [];
-
-    for (const stakingState of tokenStakingStates) {
-      amount = amount.plus(toBig(getFullStakingBalance(stakingState), token.decimals));
-    }
-
-    const amountNumber = amount.toNumber();
+    const amountNumber = toBig(token.amount, token.decimals).toNumber();
     if (!(amountNumber > 0) || !(token.priceUsd > 0)) continue;
 
     holdings.push({

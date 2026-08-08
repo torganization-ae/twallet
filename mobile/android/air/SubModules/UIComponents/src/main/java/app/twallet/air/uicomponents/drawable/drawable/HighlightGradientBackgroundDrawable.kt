@@ -2,8 +2,6 @@ package app.twallet.air.uicomponents.drawable
 
 import android.graphics.drawable.GradientDrawable
 import app.twallet.air.uicomponents.extensions.dp
-import app.twallet.air.walletbasecontext.theme.WColor
-import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletcontext.utils.colorWithAlpha
 
 class HighlightGradientBackgroundDrawable(
@@ -16,19 +14,21 @@ class HighlightGradientBackgroundDrawable(
     init {
         shape = RECTANGLE
         this.cornerRadius = cornerRadius
+        val left = 0xFF41C433.toInt()
+        val right = 0xFF0098EB.toInt()
         colors =
             if (isHighlighted)
                 intArrayOf(
-                    WColor.EarnGradientLeft.color.colorWithAlpha(229),
-                    WColor.EarnGradientRight.color.colorWithAlpha(229)
+                    left.colorWithAlpha(229),
+                    right.colorWithAlpha(229)
                 ).apply {
                     if (reversedColors)
                         reversed()
                 }
             else
                 intArrayOf(
-                    WColor.EarnGradientLeft.color.colorWithAlpha(38),
-                    WColor.EarnGradientRight.color.colorWithAlpha(38)
+                    left.colorWithAlpha(38),
+                    right.colorWithAlpha(38)
                 ).apply {
                     if (reversedColors)
                         reversed()

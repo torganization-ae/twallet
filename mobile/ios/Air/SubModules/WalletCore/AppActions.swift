@@ -43,7 +43,6 @@ import WalletCoreTypes
     static func showCustomizeAppTabs()
     static func showDebugView()
     static func showDeleteAccount(accountId: String)
-    static func showEarn(accountContext: AccountContext, tokenSlug: String?)
     static func showError(error: Error?)
     static func showExplore()
     static func showExploreSite(siteHost: String)
@@ -54,6 +53,7 @@ import WalletCoreTypes
     static func showNft(accountContext: AccountContext, nft: ApiNft, isExpanded: Bool)
     static func showNftByAddress(_ nftAddress: String)
     static func showPortfolio(accountContext: AccountContext)
+    static func showProductChooser(from sourceView: UIView?)
     static func showReceive(accountContext: AccountContext, chain: ApiChain?)
     static func showRenewDomain(accountSource: AccountSource, nftsToRenew: [String])
     static func showRenameAccount(accountId: String)
@@ -171,7 +171,6 @@ private class DummyAppActionProtocolImpl: AppActionsProtocol {
     static func showCustomizeAppTabs() { }
     static func showDebugView() { }
     static func showDeleteAccount(accountId: String) { }
-    static func showEarn(accountContext: AccountContext, tokenSlug: String?) { }
     static func showError(error: Error?) { }
     static func showExplore() { }
     static func showExploreSite(siteHost: String) { }
@@ -182,6 +181,7 @@ private class DummyAppActionProtocolImpl: AppActionsProtocol {
     static func showNft(accountContext: AccountContext, nft: ApiNft, isExpanded: Bool) { }
     static func showNftByAddress(_ nftAddress: String) { }
     static func showPortfolio(accountContext: AccountContext) { }
+    static func showProductChooser(from sourceView: UIView?) { }
     static func showReceive(accountContext: AccountContext, chain: ApiChain?) { }
     static func showRenewDomain(accountSource: AccountSource, nftsToRenew: [String]) { }
     static func showRenameAccount(accountId: String) { }

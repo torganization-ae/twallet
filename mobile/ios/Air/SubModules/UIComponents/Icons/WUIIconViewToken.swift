@@ -7,8 +7,6 @@ import Kingfisher
 public struct WUIIconViewToken: UIViewRepresentable {
     
     public var token: ApiToken?
-    public var isStaking: Bool
-    public var isWalletView: Bool
     public var showldShowChain: Bool
     public var size: CGFloat
     public var chainSize: CGFloat
@@ -16,11 +14,10 @@ public struct WUIIconViewToken: UIViewRepresentable {
     public var chainHorizontalOffset: CGFloat
     public var chainVerticalOffset: CGFloat
     
-    public init(token: ApiToken? = nil, isStaking: Bool = false, isWalletView: Bool, showldShowChain: Bool, size: CGFloat, chainSize: CGFloat,
+    public init(token: ApiToken? = nil, isWalletView: Bool = false, showldShowChain: Bool, size: CGFloat, chainSize: CGFloat,
                 chainBorderWidth: CGFloat, chainHorizontalOffset: CGFloat, chainVerticalOffset: CGFloat) {
+        _ = isWalletView
         self.token = token
-        self.isStaking = isStaking
-        self.isWalletView = isWalletView
         self.showldShowChain = showldShowChain
         self.size = size
         self.chainSize = chainSize
@@ -36,12 +33,12 @@ public struct WUIIconViewToken: UIViewRepresentable {
             uiView.widthAnchor.constraint(equalToConstant: size)
         ])
         uiView.setChainSize(chainSize, borderWidth: chainBorderWidth, horizontalOffset: chainHorizontalOffset, verticalOffset: chainVerticalOffset)
-        uiView.config(with: token, isStaking: isStaking, isWalletView: isWalletView, shouldShowChain: showldShowChain)
+        uiView.config(with: token, shouldShowChain: showldShowChain)
         return uiView
     }
     
     public func updateUIView(_ uiView: UIViewType, context: Context) {
         uiView.setChainSize(chainSize, borderWidth: chainBorderWidth, horizontalOffset: chainHorizontalOffset, verticalOffset: chainVerticalOffset)
-        uiView.config(with: token, isStaking: isStaking, isWalletView: isWalletView, shouldShowChain: showldShowChain)
+        uiView.config(with: token, shouldShowChain: showldShowChain)
     }
 }

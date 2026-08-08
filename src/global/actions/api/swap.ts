@@ -37,6 +37,7 @@ import { pause, waitFor } from '../../../util/schedulers';
 import { isSwapPairValid } from '../../../util/swap/isSwapPairValid';
 import { findNativeToken, getChainBySlug, getIsNativeToken, getNativeToken } from '../../../util/tokens';
 import { callApi } from '../../../api';
+import { normalizeDieselStatus } from '../../../api/common/other';
 import { addActionHandler, getGlobal, setGlobal } from '../..';
 import { resolveSwapAssetId } from '../../helpers';
 import {
@@ -731,7 +732,7 @@ async function estimateSwap(global: GlobalState, shouldStop: () => boolean): Pro
       amountOutMin: currentEstimate.toMinAmount,
       priceImpact: currentEstimate.impact,
       errorType,
-      dieselStatus: dexEstimate.dieselStatus,
+      dieselStatus: normalizeDieselStatus(dexEstimate.dieselStatus),
       estimates,
       currentDexLabel: currentEstimate.dexLabel,
       networkFee: currentEstimate.networkFee,

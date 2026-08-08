@@ -46,7 +46,6 @@ import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.moshi.ApiTransactionType
 import app.twallet.air.walletcore.moshi.MApiTransaction
 import app.twallet.air.walletcore.stores.AccountStore
-import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
 import java.lang.ref.WeakReference
 import kotlin.math.roundToInt
@@ -251,37 +250,6 @@ class TransactionHeaderView(
             addressLabel.movementMethod =
                 ExtraHitLinkMovementMethod(addressLabel.paddingLeft, addressLabel.paddingTop)
             addressLabel.highlightColor = Color.TRANSPARENT
-        } else if (transaction.type == ApiTransactionType.STAKE) {
-            val stakingState =
-                StakingStore.getStakingState(AccountStore.activeAccountId!!)?.states?.firstOrNull {
-                    it?.tokenSlug == transaction.slug
-                }
-            stakingState?.let { stakingState ->
-                val builder = SpannableStringBuilder()
-                builder.append(LocaleController.getString("at"))
-                builder.append(" ")
-                val yieldStart = builder.length
-                builder.append(stakingState.yieldType.toString() + " " + stakingState.annualYield + "%")
-                builder.setSpan(
-                    ForegroundColorSpan(WColor.SecondaryText.color),
-                    0,
-                    builder.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-                builder.setSpan(
-                    WTypefaceSpan(WFont.Medium.typeface, WColor.PrimaryDarkText.color),
-                    yieldStart,
-                    builder.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-                builder.setSpan(
-                    AbsoluteSizeSpan(16, true),
-                    0,
-                    builder.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-                addressLabel.text = builder
-            }
         }
     }
 

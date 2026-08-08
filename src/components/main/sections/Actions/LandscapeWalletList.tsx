@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiBaseCurrency, ApiCurrencyRates, ApiStakingState } from '../../../../api/types';
+import type { ApiBaseCurrency, ApiCurrencyRates } from '../../../../api/types';
 import { type Account, AccountSelectorState, type GlobalState } from '../../../../global/types';
 
 import {
@@ -25,7 +25,6 @@ type StateProps = {
   networkAccounts?: Record<string, Account>;
   byAccountId: GlobalState['byAccountId'];
   tokenInfo: GlobalState['tokenInfo'];
-  stakingDefault: ApiStakingState;
   currencyRates: ApiCurrencyRates;
   currentAccountId?: string;
   baseCurrency: ApiBaseCurrency;
@@ -41,7 +40,6 @@ function LandscapeWalletList({
   networkAccounts,
   byAccountId,
   tokenInfo,
-  stakingDefault,
   currencyRates,
   currentAccountId,
   baseCurrency,
@@ -66,7 +64,6 @@ function LandscapeWalletList({
     areTokensWithNoCostHidden,
     baseCurrency,
     currencyRates,
-    stakingDefault,
   });
 
   const handleSwitchAccount = useLastCallback((accountId: string) => {
@@ -140,7 +137,6 @@ export default memo(withGlobal(
       networkAccounts,
       byAccountId: global.byAccountId,
       tokenInfo: global.tokenInfo,
-      stakingDefault: global.stakingDefault,
       currencyRates: global.currencyRates,
       currentAccountId,
       baseCurrency,

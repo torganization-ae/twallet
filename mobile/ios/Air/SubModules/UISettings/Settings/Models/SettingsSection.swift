@@ -13,8 +13,6 @@ struct SettingsSection: Identifiable {
         case accounts
         case tabsAndModules
         case general
-        case questionAndAnswers
-        case about
     }
     let id: Section
     var children: [SettingsItem]

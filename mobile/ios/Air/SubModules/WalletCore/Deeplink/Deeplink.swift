@@ -7,7 +7,6 @@ public enum Deeplink {
     case invoice(address: String, amount: BigInt?, comment: String?, binaryPayload: String?, token: String?, jetton: String?, stateInit: String?)
     case send(chain: ApiChain, address: String, amount: BigInt?, comment: String?, binaryPayload: String?, tokenSlug: String?, stateInit: String?)
     case swap(from: String?, to: String?, amountIn: Double?)
-    case stake
     case portfolio
     case url(url: URL, title: String?, injectDappConnect: Bool)
     case transfer

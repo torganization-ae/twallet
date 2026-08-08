@@ -1,11 +1,9 @@
-import type { ApiLiquidStakingState, ApiNft, ApiStakingState } from '../../../api/types';
+import type { ApiNft } from '../../../api/types';
 import type { AccountChain } from '../../types';
 
 import {
-  DEFAULT_STAKING_STATE,
   IS_CORE_WALLET,
   IS_FEATURE_LIMITED,
-  STAKING_SLUG_PREFIX,
   SWAP_API_VERSION,
   TELEGRAM_GIFTS_SUPER_COLLECTION,
 } from '../../../config';
@@ -13,7 +11,6 @@ import { parseAccountId } from '../../../util/account';
 import { areDeepEqual } from '../../../util/areDeepEqual';
 import { buildCollectionByKey, unique } from '../../../util/iteratees';
 import { openUrl } from '../../../util/openUrl';
-import { getIsActiveStakingState } from '../../../util/staking';
 import { setHiddenChainsSnapshot } from '../../../api/chains/chainVisibility';
 import { omitAccounts } from '../../helpers/auth';
 import { addActionHandler, setGlobal } from '../../index';
@@ -25,15 +22,12 @@ import {
   removeNft,
   updateAccount,
   updateAccountChain,
-  updateAccountSettings,
-  updateAccountStaking,
   updateAccountState,
   updateBalances,
   updateCurrencyRates,
   updateNft,
   updateRestrictions,
   updateSettings,
-  updateStakingDefault,
   updateSwapTokens,
   updateTokens,
   updateVesting,
@@ -42,7 +36,6 @@ import {
 import {
   selectAccount,
   selectAccountNftByAddress,
-  selectAccountSettings,
   selectAccountState,
   selectVestingPartsReadyToUnfreeze,
 } from '../../selectors';
@@ -53,79 +46,6 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       global = updateBalances(global, update.accountId, update.chain, update.balances);
       setGlobal(global);
       actions.recordPortfolioSnapshot({ accountId: update.accountId });
-      break;
-    }
-
-    case 'updateStaking': {
-      const {
-        accountId,
-        states,
-        totalProfit,
-        shouldUseNominators,
-      } = update;
-
-      const stateById = buildCollectionByKey(states, 'id');
-
-      global = updateStakingDefault(global, {
-        ...stateById[DEFAULT_STAKING_STATE.id] as ApiLiquidStakingState,
-        balance: 0n,
-        unstakeRequestAmount: 0n,
-        tokenBalance: 0n,
-      });
-      const prevStakingStateById = selectAccountState(global, accountId)?.staking?.stateById || {};
-      const prevStakingIds = new Set(Object.keys(prevStakingStateById));
-
-      global = updateAccountStaking(global, accountId, {
-        stateById,
-        shouldUseNominators,
-        totalProfit,
-      });
-
-      const { stakingId } = selectAccountState(global, accountId)?.staking ?? {};
-
-      if (!stakingId) {
-        let stateWithBiggestBalance: ApiStakingState | undefined;
-
-        if (states.length > 0) {
-          stateWithBiggestBalance = states.reduce((max, state) =>
-            state.balance > max.balance ? state : max, states[0],
-          );
-        }
-
-        if (stateWithBiggestBalance && stateWithBiggestBalance.balance > 0n) {
-          global = updateAccountStaking(global, accountId, {
-            stakingId: stateWithBiggestBalance.id,
-          });
-        } else if (shouldUseNominators && stateById.nominators) {
-          global = updateAccountStaking(global, accountId, {
-            stakingId: stateById.nominators.id,
-          });
-        }
-      }
-
-      // Collect all new staking slugs for auto-pinning
-      const newStakingSlugs = states
-        .filter((state) => {
-          const isNewStaking = !prevStakingIds.has(state.id);
-          const isActive = getIsActiveStakingState(state);
-          return isNewStaking && isActive;
-        })
-        .map((state) => `${STAKING_SLUG_PREFIX}${state.tokenSlug}`);
-      const hasNewPins = newStakingSlugs.length > 0;
-
-      if (hasNewPins) {
-        const accountSettings = selectAccountSettings(global, accountId) || {};
-        const { pinnedSlugs = [] } = accountSettings;
-
-        const newPinnedSlugs = unique(newStakingSlugs.concat(pinnedSlugs));
-
-        global = updateAccountSettings(global, accountId, {
-          ...accountSettings,
-          pinnedSlugs: newPinnedSlugs,
-        });
-      }
-
-      setGlobal(global);
       break;
     }
 

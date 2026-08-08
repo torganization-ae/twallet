@@ -32,7 +32,7 @@ public func migrateLegacyAssetsAndActivityDataIfNeeded(global: GlobalStorage, db
         for accountId in missingAccountIds {
             guard let dict = global.getDict(key: "settings.byAccountId.\(accountId)") else { continue }
             let data = MAssetsAndActivityData(dictionary: dict)
-            let row = MAccountAssetsAndActivityData(accountId: accountId, data: data, didAutoPinStaking: false)
+            let row = MAccountAssetsAndActivityData(accountId: accountId, data: data)
             if row.hasData {
                 rowsToUpsert.append(row)
             }

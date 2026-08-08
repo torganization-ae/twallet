@@ -189,26 +189,6 @@ public final class LedgerSignModel: LedgerBaseModel, Sendable {
             } catch {
                 throw error
             }
-            
-        case .staking(isStaking: let isStaking, accountId: let accountId, amount: let amount, stakingState: let stakingState, realFee: let realFee):
-            do {
-                let txId = if isStaking {
-                    try await Api.submitStake(accountId: accountId, password: nil, amount: amount, state: stakingState, realFee: realFee)
-                } else {
-                    try await Api.submitUnstake(accountId: accountId, password: nil, amount: amount, state: stakingState, realFee: realFee)
-                }
-                log.info("\(txId)")
-            } catch {
-                throw error
-            }
-        
-        case let .submitStakingClaimOrUnlock(accountId, state, realFee):
-            do {
-                _ = try await Api.submitStakingClaimOrUnlock(accountId: accountId, password: nil, state: state, realFee: realFee)
-            } catch {
-                log.error("\(error, .public)")
-                throw error
-            }
         }
     }
 

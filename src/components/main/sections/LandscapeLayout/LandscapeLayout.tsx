@@ -14,10 +14,6 @@ import LandscapeContent from '../Content/LandscapeContent';
 
 import styles from './LandscapeLayout.module.scss';
 
-interface OwnProps {
-  onStakedTokenClick: NoneToVoidFunction;
-}
-
 interface StateProps {
   areSettingsOpen?: boolean;
   isExploreOpen?: boolean;
@@ -25,8 +21,8 @@ interface StateProps {
 }
 
 function LandscapeLayout({
-  onStakedTokenClick, areSettingsOpen, isExploreOpen, isPortfolioOpen,
-}: OwnProps & StateProps) {
+  areSettingsOpen, isExploreOpen, isPortfolioOpen,
+}: StateProps) {
   function renderSlide(isActive: boolean, _isFrom: boolean, currentKey: ContentTab) {
     switch (currentKey) {
       case ContentTab.Explore:
@@ -48,7 +44,7 @@ function LandscapeLayout({
           </div>
         );
       default:
-        return <LandscapeContent onStakedTokenClick={onStakedTokenClick} />;
+        return <LandscapeContent />;
     }
   }
 
@@ -75,7 +71,7 @@ function LandscapeLayout({
 }
 
 export default memo(
-  withGlobal<OwnProps>(
+  withGlobal(
     (global): StateProps => {
       const {
         areSettingsOpen, isExploreOpen, isPortfolioOpen,

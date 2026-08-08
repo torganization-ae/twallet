@@ -33,11 +33,8 @@ class MExploreSite(json: JSONObject) : WEquatable<MExploreSite>, IDapp {
     override val iconUrl: String? = json.optString("icon")
     override val url: String? = json.optString("url")
     val uri: Uri? by lazy { url?.toUri() }
-    val isFeatured = json.optBoolean("isFeatured")
     val categoryId = json.optInt("categoryId")
-    val extendedIcon: String = json.optString("extendedIcon")
     val badgeText: String = json.optString("badgeText")
-    val withBorder: Boolean = json.optBoolean("withBorder")
 
     val isTelegram: Boolean
         get() {

@@ -313,7 +313,6 @@ final class PortfolioVM: Sendable {
         }
 
         cards.append(makeAssetClassesCard())
-        cards.append(makeStakedCard())
 
         return cards
     }
@@ -678,43 +677,6 @@ final class PortfolioVM: Sendable {
             title: lang("Asset Mix"),
             segments: segments,
             emptyText: lang("No asset balances")
-        )
-    }
-
-    private func makeStakedCard() -> PortfolioInsightCardModel {
-        let stakedValue = ($account.walletStaked ?? [])
-            .reduce(0) { partialResult, tokenBalance in
-                partialResult + max(0, tokenBalance.toBaseCurrency ?? 0)
-            }
-        let unstakedValue = ($account.walletTokens ?? [])
-            .reduce(0) { partialResult, tokenBalance in
-                partialResult + max(0, tokenBalance.toBaseCurrency ?? 0)
-            }
-
-        let segments = [
-            PortfolioInsightSegment(
-                id: "staked",
-                title: lang("Staked"),
-                value: stakedValue,
-                valueText: formatBaseValue(stakedValue),
-                colorHex: PortfolioPalette.barrelStaked
-            ),
-            PortfolioInsightSegment(
-                id: "unstaked",
-                title: lang("Not staked"),
-                value: unstakedValue,
-                valueText: formatBaseValue(unstakedValue),
-                colorHex: PortfolioPalette.barrelNotStaked
-            ),
-        ]
-        .filter { $0.value > 0 }
-        .sorted { $0.value > $1.value }
-
-        return PortfolioInsightCardModel(
-            id: .staked,
-            title: lang("Staked"),
-            segments: segments,
-            emptyText: lang("No staked assets")
         )
     }
 

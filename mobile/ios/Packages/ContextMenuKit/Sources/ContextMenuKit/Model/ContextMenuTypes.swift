@@ -171,6 +171,8 @@ private extension UIView {
 public enum ContextMenuVerticalPlacementBehavior: Sendable {
     case screenBalanced
     case sourceAttached
+    /// Prefer opening above the source when there is enough space; otherwise below.
+    case preferAbove
 }
 
 public struct ContextMenuStyle: Sendable {

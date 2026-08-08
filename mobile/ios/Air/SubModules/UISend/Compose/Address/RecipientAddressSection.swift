@@ -127,6 +127,7 @@ private struct Cell: View {
 struct ResolvedAddressView: View {
     
     var model: AddressInputModel
+    @State private var pulseDimmed = false
     
     var body: some View {
         WithPerceptionTracking {
@@ -134,6 +135,7 @@ struct ResolvedAddressView: View {
                 EmptyView()
             } else {
                 let display = model.displayComponents()
+                let isResolving = model.isResolvingAlias
                 
                 HStack(spacing: 4) { 
                     if let primary = display.primary, display.secondary == nil {
@@ -152,8 +154,28 @@ struct ResolvedAddressView: View {
                         }
                     }
                 }
+                .opacity(isResolving && pulseDimmed ? 0.35 : 1)
                 .animation(.default, value: display.primary)
                 .animation(.default, value: display.secondary)
+                .onAppear {
+                    updateResolvePulse(isResolving: isResolving)
+                }
+                .onChange(of: isResolving) { _, resolving in
+                    updateResolvePulse(isResolving: resolving)
+                }
+            }
+        }
+    }
+    
+    private func updateResolvePulse(isResolving: Bool) {
+        if isResolving {
+            pulseDimmed = false
+            withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) {
+                pulseDimmed = true
+            }
+        } else {
+            withAnimation(.easeOut(duration: 0.2)) {
+                pulseDimmed = false
             }
         }
     }

@@ -19,8 +19,6 @@ enum PortfolioPalette {
     static let barrelNative = "#0088FF"
     static let barrelStable = "#FF8E00"
     static let barrelAltcoins = "#34C759"
-    static let barrelStaked = "#6875E9"
-    static let barrelNotStaked = "#2C92F0"
 
     static func color(at index: Int) -> String {
         defaultColors[index % defaultColors.count]

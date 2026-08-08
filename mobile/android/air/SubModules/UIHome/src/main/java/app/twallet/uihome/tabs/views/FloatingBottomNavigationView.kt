@@ -86,6 +86,7 @@ class FloatingBottomNavigationView(
         TabDef(ID_HOME, R.drawable.ic_home_thin, R.drawable.ic_home_filled, "Wallet"),
         TabDef(ID_EXPLORE, R.drawable.ic_explore_thin, R.drawable.ic_explore_filled, "Explore"),
         TabDef(ID_SETTINGS, R.drawable.ic_settings_thin, R.drawable.ic_settings_filled, "Settings"),
+        TabDef(ID_TMAIL, R.drawable.ic_tmail, R.drawable.ic_tmail, "TMail"),
     )
 
     private val tabs = linkedMapOf<Int, TabItem>()
@@ -577,4 +578,6 @@ class FloatingBottomNavigationView(
     override fun getMinimizedWidth(): Int = pillW
 
     override fun getSettingsItemView(): View? = tabs[ID_SETTINGS]?.container
+
+    override fun getTabItemView(itemId: Int): View? = tabs[itemId]?.container
 }

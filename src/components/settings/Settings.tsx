@@ -3,7 +3,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { ApiTonWalletVersion } from '../../api/chains/ton/types';
 import type { StoredDappConnection } from '../../api/dappProtocols/storage';
-import type { ApiChain, ApiStakingState, ApiWalletWithVersionInfo } from '../../api/types';
+import type { ApiChain, ApiWalletWithVersionInfo } from '../../api/types';
 import type { AccountChain, AccountType, GlobalState, UserToken } from '../../global/types';
 import type { Wallet } from './wallets/SettingsWalletVariants';
 import { SettingsState } from '../../global/types';
@@ -15,17 +15,13 @@ import {
   IS_EXPLORER,
   IS_EXTENSION,
   IS_FEATURE_LIMITED,
-  IS_MY_WALLET_BRAND,
   LANG_LIST,
   PROXY_HOSTS,
   SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY,
-  SUPPORT_USERNAME,
   TONCOIN,
 } from '../../config';
-import { getHelpCenterUrl } from '../../global/helpers/getHelpCenterUrl';
 import {
   selectAccount,
-  selectAccountStakingStates,
   selectCurrentAccountId,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
@@ -43,7 +39,6 @@ import { openUrl } from '../../util/openUrl';
 import resolveSlideTransitionName from '../../util/resolveSlideTransitionName';
 import { captureControlledSwipe } from '../../util/swipeController';
 import useTelegramMiniAppSwipeToClose from '../../util/telegram/hooks/useTelegramMiniAppSwipeToClose';
-import { getTelegramTipsChannelUrl } from '../../util/url';
 import {
   IS_BIOMETRIC_AUTH_SUPPORTED,
   IS_DAPP_SUPPORTED,
@@ -89,23 +84,17 @@ import SettingsWalletVersions from './wallets/SettingsWalletVersions';
 
 import styles from './Settings.module.scss';
 
-import aboutImg from '../../assets/settings/settings_about.svg';
 import appearanceImg from '../../assets/settings/settings_appearance.svg';
 import assetsActivityImg from '../../assets/settings/settings_assets-activity.svg';
 import connectedDappsImg from '../../assets/settings/settings_connected-dapps.svg';
-import disclaimerImg from '../../assets/settings/settings_disclaimer.svg';
 import exitImg from '../../assets/settings/settings_exit.svg';
-import helpcenterImg from '../../assets/settings/settings_helpcenter.svg';
 import installAppImg from '../../assets/settings/settings_install-app.svg';
-import installMobileImg from '../../assets/settings/settings_install-mobile.svg';
 import languageImg from '../../assets/settings/settings_language.svg';
 import upgradeImg from '../../assets/settings/settings_mywallet.png';
 import networksImg from '../../assets/settings/settings_networks.svg';
 import notifications from '../../assets/settings/settings_notifications.svg';
 import portfolioImg from '../../assets/settings/settings_portfolio.svg';
 import securityImg from '../../assets/settings/settings_security.svg';
-import supportImg from '../../assets/settings/settings_support.svg';
-import tipsImg from '../../assets/settings/settings_tips.svg';
 import tonLinksImg from '../../assets/settings/settings_ton-links.svg';
 import tonProxyImg from '../../assets/settings/settings_ton-proxy.svg';
 import tonWallets from '../../assets/settings/settings_ton-wallets.svg';
@@ -124,18 +113,15 @@ type StateProps = {
   currentVersion?: ApiTonWalletVersion;
   versions?: ApiWalletWithVersionInfo[];
   isCopyStorageEnabled?: boolean;
-  supportAccountsCount?: number;
   arePushNotificationsAvailable?: boolean;
   isViewMode: boolean;
   accountType?: AccountType;
   isMultichain: boolean;
   accountChains?: Partial<Record<ApiChain, AccountChain>>;
-  stakingStates?: ApiStakingState[];
   currencyRates: GlobalState['currencyRates'];
 };
 
 const AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE = 5;
-const SUPPORT_ACCOUNTS_COUNT_DEFAULT = 1;
 
 function Settings({
   settings: {
@@ -156,13 +142,11 @@ function Settings({
   currentVersion,
   versions,
   isCopyStorageEnabled,
-  supportAccountsCount = SUPPORT_ACCOUNTS_COUNT_DEFAULT,
   arePushNotificationsAvailable,
   isViewMode,
   accountType,
   isMultichain,
   accountChains,
-  stakingStates,
   currencyRates,
 }: OwnProps & StateProps) {
   const {
@@ -199,8 +183,8 @@ function Settings({
 
   const isPortfolioAvailable = useMemo(() => {
     if (!tokens) return false;
-    return calculateFullBalance(tokens, stakingStates, currencyRates[baseCurrency]).primaryValue !== '0';
-  }, [tokens, stakingStates, currencyRates, baseCurrency]);
+    return calculateFullBalance(tokens, currencyRates[baseCurrency]).primaryValue !== '0';
+  }, [tokens, currencyRates, baseCurrency]);
 
   const wallets = useMemo(() => {
     return versions
@@ -284,14 +268,6 @@ function Settings({
     setSettingsState({ state: SettingsState.Networks });
   }
 
-  function handleAboutOpen() {
-    setSettingsState({ state: SettingsState.About });
-  }
-
-  function handleDisclaimerOpen() {
-    setSettingsState({ state: SettingsState.Disclaimer });
-  }
-
   function handlePermissionsOpen() {
     setSettingsState({ state: SettingsState.Permissions });
   }
@@ -331,10 +307,6 @@ function Settings({
 
   function handleClickInstallApp() {
     void openUrl(APP_INSTALL_URL, { isExternal: true });
-  }
-
-  function handleClickInstallOnMobile() {
-    void openUrl(`${APP_INSTALL_URL}mobile`, { isExternal: true });
   }
 
   const handleLedgerConnected = useLastCallback(() => {
@@ -612,95 +584,6 @@ function Settings({
             </div>
           </div>
 
-          {!IS_FEATURE_LIMITED && (
-            <p className={buildClassName(styles.blockTitle, styles.blockTitleSmall)}>
-              {lang('Help')}
-            </p>
-          )}
-
-          <div className={styles.block}>
-            {!IS_FEATURE_LIMITED && (
-              <>
-                {supportAccountsCount > 0 && (
-                  <a
-                    href={`https://t.me/${SUPPORT_USERNAME}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={buildClassName(styles.item, styles.itemMenu)}
-                  >
-                    <img className={styles.menuIcon} src={supportImg} alt={lang('Ask a Question')} />
-                    <span className={styles.itemTitle}>{lang('Ask a Question')}</span>
-
-                    <div className={styles.itemInfo}>
-                      @{SUPPORT_USERNAME}
-                      <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-                    </div>
-                  </a>
-                )}
-                <a
-                  href={getHelpCenterUrl(langCode, 'home')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={buildClassName(styles.item, styles.itemMenu)}
-                >
-                  <img className={styles.menuIcon} src={helpcenterImg} alt={lang('Help Center')} />
-                  <span className={styles.itemTitle}>{lang('Help Center')}</span>
-
-                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-                </a>
-                {IS_MY_WALLET_BRAND && (
-                  <a
-                    href={getTelegramTipsChannelUrl(langCode)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={buildClassName(styles.item, styles.itemMenu)}
-                  >
-                    <img className={styles.menuIcon} src={tipsImg} alt={lang('tWallet Features')} />
-                    <span className={styles.itemTitle}>{lang('tWallet Features')}</span>
-
-                    <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-                  </a>
-                )}
-              </>
-            )}
-            <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleDisclaimerOpen}>
-              <img className={styles.menuIcon} src={disclaimerImg} alt={lang('Use Responsibly')} />
-              <span className={styles.itemTitle}>{lang('Use Responsibly')}</span>
-
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-            </div>
-          </div>
-
-          {!IS_FEATURE_LIMITED && (
-            <>
-              <p className={buildClassName(styles.blockTitle, styles.blockTitleSmall)}>{lang('About')}</p>
-              <div className={styles.block}>
-                {IS_EXTENSION && (
-                  <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleClickInstallApp}>
-                    <img className={styles.menuIcon} src={installAppImg} alt={lang('Install App')} />
-                    <span className={styles.itemTitle}>{lang('Install App')}</span>
-
-                    <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-                  </div>
-                )}
-                {IS_ELECTRON && (
-                  <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleClickInstallOnMobile}>
-                    <img className={styles.menuIcon} src={installMobileImg} alt={lang('Install on Mobile')} />
-                    <span className={styles.itemTitle}>{lang('Install on Mobile')}</span>
-
-                    <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-                  </div>
-                )}
-                <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleAboutOpen}>
-                  <img className={styles.menuIcon} src={aboutImg} alt="" />
-                  <span className={styles.itemTitle}>{lang('About %app_name%', { app_name: APP_NAME })}</span>
-
-                  <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-                </div>
-              </div>
-            </>
-          )}
-
           {!isPortrait && (
             <div className={styles.block}>
               <div className={buildClassName(styles.item, styles.itemMenu, styles.item_red)} onClick={openLogOutModal}>
@@ -911,7 +794,7 @@ function Settings({
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
   const isPasswordPresent = selectIsPasswordPresent(global);
-  const { isCopyStorageEnabled, supportAccountsCount = 1 } = global.restrictions;
+  const { isCopyStorageEnabled } = global.restrictions;
 
   const { currentVersion, byId: versionsById } = global.walletVersions ?? {};
   const currentAccountId = selectCurrentAccountId(global);
@@ -929,13 +812,11 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     currentVersion,
     versions,
     isCopyStorageEnabled,
-    supportAccountsCount,
     arePushNotificationsAvailable: global.pushNotifications.isAvailable,
     isViewMode: selectIsCurrentAccountViewMode(global),
     accountType: account?.type,
     isMultichain: Object.keys(account?.byChain ?? {}).length > 1,
     accountChains: account?.byChain,
-    stakingStates: currentAccountId ? selectAccountStakingStates(global, currentAccountId) : undefined,
     currencyRates: global.currencyRates,
   };
 })(Settings));

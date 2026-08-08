@@ -8,7 +8,6 @@ struct PushNotificationPayload {
         case nativeTx
         case swap
         case jettonTx
-        case staking
         case expiringDns
     }
 
@@ -20,7 +19,6 @@ struct PushNotificationPayload {
     let title: String?
     let txId: String?
     let slug: String?
-    let stakingId: String?
     let domainAddress: String?
 
     init(userInfo: [AnyHashable: Any]) {
@@ -32,7 +30,6 @@ struct PushNotificationPayload {
         title = userInfo.string(for: "title")
         txId = userInfo.string(for: "txId")
         slug = userInfo.string(for: "slug")
-        stakingId = userInfo.string(for: "stakingId")
         domainAddress = userInfo.string(for: "domainAddress")
     }
 }

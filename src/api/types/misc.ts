@@ -57,7 +57,6 @@ export interface ApiToken {
   cmcSlug?: string;
   color?: string;
   isGaslessEnabled?: boolean;
-  isStarsEnabled?: boolean;
   isTiny?: boolean;
   customPayloadApiUrl?: string;
   codeHash?: string;
@@ -198,101 +197,6 @@ export interface ApiDomainData {
 
 export type ApiHistoryList = Array<[number, number]>;
 
-export type ApiStakingType = ApiStakingState['type'];
-export type ApiBackendStakingType = 'nominators' | 'liquid';
-
-type BaseStakingState = {
-  id: string;
-  tokenSlug: string;
-  annualYield: number;
-  yieldType: ApiYieldType;
-  balance: bigint;
-  pool: string;
-  tvl?: bigint;
-  totalStakers?: number;
-  unstakeRequestAmount?: bigint;
-};
-
-export type ApiNominatorsStakingState = BaseStakingState & {
-  type: 'nominators';
-  start: number;
-  end: number;
-};
-
-export type ApiLiquidStakingState = BaseStakingState & {
-  type: 'liquid';
-  tokenBalance: bigint;
-  instantAvailable: bigint;
-  start: number;
-  end: number;
-  tvl: bigint;
-  totalStakers: number;
-};
-
-export type ApiJettonStakingState = BaseStakingState & {
-  type: 'jetton';
-  tokenAddress: string;
-  unclaimedRewards: bigint;
-  stakeWalletAddress: string;
-  tokenAmount: bigint;
-  period: number;
-  tvl: bigint;
-  dailyReward: bigint;
-  poolWallets?: string[];
-};
-
-export type ApiEthenaStakingState = BaseStakingState & {
-  type: 'ethena';
-  tokenBalance: bigint;
-  tsUsdeWalletAddress: string;
-  unstakeRequestAmount: bigint;
-  unlockTime?: number;
-  isBoostAvailable?: boolean;
-  annualYieldStandard?: number;
-  annualYieldVerified?: number;
-};
-
-export type ApiYieldType = 'APY' | 'APR';
-export type ApiStakingState = ApiNominatorsStakingState
-  | ApiLiquidStakingState
-  | ApiJettonStakingState
-  | ApiEthenaStakingState;
-export type ApiToncoinStakingState = ApiNominatorsStakingState | ApiLiquidStakingState;
-
-export interface ApiNominatorsPool {
-  address: string;
-  apy: number;
-  start: number;
-  end: number;
-}
-
-export interface ApiBackendStakingState {
-  balance: bigint;
-  totalProfit: bigint;
-  type?: ApiBackendStakingType;
-  nominatorsPool: ApiNominatorsPool;
-  loyaltyType?: ApiLoyaltyType;
-  shouldUseNominators?: boolean;
-  stakedAt?: number;
-  ethena: {
-    /**
-     * - undefined — never passed the verification;
-     * - true — passed the verification and eligible for the boosted APY;
-     * - false — passed the verification and not eligible for the boosted APY;
-     */
-    isVerified?: boolean;
-    isBoostAvailable?: boolean;
-  };
-  liquid?: {
-    unstakeRequestAmount?: string;
-  };
-}
-
-export type ApiStakingHistory = {
-  timestamp: number;
-  profit: string;
-}[];
-
 export interface ApiDappPermissions {
   isAddressRequired?: boolean;
   isPasswordRequired?: boolean;
@@ -356,14 +260,6 @@ export type ApiBaseCurrency = 'USD' | 'EUR' | 'RUB' | 'CNY' | 'BTC' | 'TON';
 
 /** 1 USD equivalent to the amount of the other currency, e.g. 1 USD = 0.00000866 BTC */
 export type ApiCurrencyRates = Record<ApiBaseCurrency, string>;
-
-export enum ApiLiquidUnstakeMode {
-  Default,
-  Instant,
-  BestRate,
-}
-
-export type ApiLoyaltyType = 'black' | 'platinum' | 'gold' | 'silver' | 'standard';
 
 export type ApiBalanceBySlug = Record<string, bigint>;
 

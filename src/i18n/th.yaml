@@ -214,7 +214,6 @@ Testnet Version: เวอร์ชั้น Testnet
 Error reading clipboard: อ่านคลิปบอร์ดผิดพลาด
 $fee_value: ค่าธรรมเนียม %fee%
 $fee_value_with_colon: "ค่าธรรมเนียม: %fee%"
-Pay fee with %stars_symbol%: ชำระด้วย %stars_symbol%
 Loading...: กำลังโหลด...
 Recipient Address: ที่อยู่บัญชีผู้รับ
 Wallet address or domain: ที่อยู่บัญชีวอลเล็ตหรือโดเมน
@@ -268,41 +267,10 @@ Appearance: คุณลักษณะ
 Light: ไลค์
 Dark: ดาร์ค
 System: ระบบ
-$stake_asset: วางเดิมพัน %symbol%
-Add Stake: เพิ่มสเตก
-Earn from your tokens while holding them: รับโทเคนของคุณที่ได้จากการที่ถือมันไว้
-Current APY: APY ปัจจุบัน
-Est. Yearly Earnings: รายได้โดยประมาณต่อปี
-Staking Details: รายละเอียดการ Staking
-Why this is safe: ทำไมสิ่งนี้ถึงปลอดถัย
-$safe_staking_description1: การสเต็กนั้นทำอยู่บน **เครือข่ายกระจายศูนย์** และดำเนินการโดยสมาร์ทคอนแทรคใน **สัญญาของ TON ที่เป็นทางการ**.
-$safe_staking_description2: ทรัพย์สินที่ได้รับจากการสเต็กจะถูกใช้เพื่อเป็นตัวชี้แจงสำหรับการทำรายการในเครือข่ายกระจายศูนย์ของ %chain% สิ่งเป็นส่วนหนึ่งของหลักการ **proof-of-stake**.
-$safe_staking_description3: คุณสามารถถอนการสเต็กได้ **ตลอดเวลา** และเมื่อคุณต้องการถอนทรัพย์สินจากการสเต็ก ทรัพย์สินจะถูกโอนเงินกลับมาที่บัญชีของคุณภายใน **สองวัน**.
-$safe_staking_description_jetton1: การสเตกโทเค็นเป็น **การกระจายอำนาจอย่างสมบูรณ์** และดำเนินการโดยสมาร์ทคอนแทรค **โอเพ่นซอร์ส** ที่พัฒนาโดย %jvault_link% และผ่านการ **ตรวจสอบความปลอดภัย**.
-$safe_staking_description_jetton2: คุณสามารถถอนการสเตกของคุณได้ **ทุกเวลา** และจะถูกฝากกลับเข้าบัญชีของคุณ **ทันที**.
 $min_value: ต่ำที่สุด %value%
-Est. balance in a year: ≈ มูลค่าเมื่อถึงรอบปีถัดไป
-Confirm Staking: ยืนยันการสเต็ก
-Coins have been staked!: ทรัพย์สินได้ถูกสเต็กแล้ว!
 View: ดู
-Stake More: สเต็กเพิ่มเติม
 Staking: สเต็ก
-Currently Staked: ทรัพย์สินที่สเต็กปัจจุบัน
-Total Staked: สเตคทั้งหมด
-Total Stakers: จำนวนผู้สเตคทั้งหมด
-Unstake: ถอนการสเต็ก
-Earning History: ประวัติการได้รับ
 $total: "ทั้งหมด: %value%"
-$unstake_asset: ถอนการสเต็ก %symbol%
-Amount to unstake: จำนวนที่ถอนจากการสเต็ก
-Confirm Unstaking: ยืนยันการถอนการสเต็ก
-Request for unstaking is sent!: คำขอการถอนการสเต็กได้ถูกส่งแล้ว!
-$unstaking_when_receive: คุณจะได้รับทรัพย์สินจากการสเต็กใน %time%.
-$unstaking_when_receive_with_amount: คุณจะได้รับ %amount% ที่ไม่ได้ล็อกในอีก %time%
-$unstaking_when_receive_with_amount_ethena: "%amount% จะสามารถถอนได้ใน %time%."
-$unstake_insufficient_balance: คุณต้องมี %balance% ในบัญชีสำหรับการดำเนินการถอนการสเต็ก.
-at %annual_yield%: ที่ %annual_yield%
-Est. %annual_yield%: ประมาณ %annual_yield%
 Staked: สเต็กแล้ว
 $stake_action: สเต็ก
 Unstaked: ถอนการสเต็กแล้ว
@@ -315,19 +283,13 @@ Invalid address: ที่อยู่บัญชีไม่ถูกต้อ
 Domain is not connected to a wallet: โดเมนไม่ได้เชื่อมต่อกับวอลเล็ต
 Unexpected error: เกิดข้อผิดพลาดที่ไม่คาดคิด
 Unexpected Error: เกิดข้อผิดพลาดที่ไม่คาดคิด
-Earn: ได้รับ
-Earning: กำลังได้รับ
 Unexpected: เกิดข้อผิดพลาดที่ไม่คาดคิด
 You can save this address for quick access while sending.: คุณสามารถบันทึกที่อยู่บัญชีนี้ไว้ได้เพื่อเข้าถึงได้ง่ายขึ้นเมื่อทำการส่ง.
-Stake Again: สเต็กอีกครั้ง
-Earned: ได้รับแล้ว
-$staking_history_earned: ได้รับแล้ว
 Select wallet to use on this app: เลือกกระเป๋าเงินที่จะใช้กับแอปนี้
 Connect: เชื่อมต่อ
 Payload: เปย์โหลด
 $many_transactions: "%1$d การโอน"
 Total Amount: มูลค่าสุทธิ
-$unstaking_short: ถอนการสเต็ก
 Handle ton:// links: รับลิงก์ ton://
 Back up wallet to have full access to it: สำรองวอลเล็ตเพื่อให้เข้าถึงได้อย่างเต็มที่
 Consider More Secure Version: พิจารณาเวอร์ชันที่ปลอดภัยยิ่งขึ้น
@@ -352,7 +314,6 @@ No active connections: ไม่มีการเชื่อมต่อ
 Other: อื่นๆ
 No price data: ไม่มีข้อมูลราคา
 Price Copied: คัดลอกราคาแล้ว
-Not staked: ยังไม่ได้สเตก
 Portfolio: พอร์ตโฟลิโอ
 Performance, insights and P&L: ประสิทธิภาพ ข้อมูลเชิงลึก และ P&L
 Custom Date Range: ช่วงวันที่กำหนดเอง
@@ -377,7 +338,6 @@ Stablecoins: สเตเบิลคอยน์
 Altcoins: อัลต์คอยน์
 Asset Mix: สัดส่วนสินทรัพย์
 No asset balances: ไม่มียอดคงเหลือของสินทรัพย์
-No staked assets: ไม่มีสินทรัพย์ที่สเตก
 Entire Period: ทั้งช่วงเวลา
 "Asset %1$@": "สินทรัพย์ %1$@"
 Error: ข้อผิดพลาด
@@ -563,7 +523,6 @@ Chinese Yuan: หยวนจีน
 Bitcoin: บิทคอยน์
 $max_balance: "สูงสุด: %balance%"
 $available_balance: "ที่ใช้ได้: %balance%"
-$unstake_information_instantly: คุณจะได้รับฝากภายในอีกที่สักครู่
 Select Token: เลือกโทเคน
 MY: ของฉัน
 Popular: เป็นที่นิยม
@@ -595,7 +554,6 @@ Correct: ถูกต้อง
 Confirm Action: ยืนยันการดำเนินการ
 $classic_confirm_actions: ยืนยันการดำเนินการทั้งหมด
 Confirm Swap: ยืนยันการสับเปลี่ยน
-Confirm Rewards Claim: ยืนยันการถอนรางวัล
 "%amount% to %address%": "%amount% ไปที่ %address%"
 "%amount_from% to %amount_to%": "%amount_from% ไปที่ %amount_to%"
 Failed to enable biometrics.: เปิดการใช้งาน Biometrics ไม่สำเร็จ.
@@ -609,14 +567,12 @@ Biometric confirmation failed: การยืนยันข้อมูลช�
 No Activity: ไม่มีกิจกรรม
 Fund: เติมเงิน
 Buy with Crypto: ซื้อด้วยคริปโต
-Explore: สำรวจ
+Explore: เบราว์เซอร์
 $lockdown_mode_enabled_title: เปิดใช้งานโหมดล็อกดาวน์แล้ว
 $lockdown_mode_walletconnect_unavailable: "WalletConnect ไม่พร้อมใช้งานในโหมดล็อกดาวน์ หากต้องการใช้งาน ให้ปิดโหมดล็อกดาวน์สำหรับ %app_name% ใน การตั้งค่า > ความเป็นส่วนตัวและความปลอดภัย > โหมดล็อกดาวน์ > กำหนดค่าการท่องเว็บ"
 No partners yet: ยังไม่มีพาร์ทเนอร์
 Clear: ล้าง
-$unstake_up_to_information: ทันที – ถึง %value%
 $all_balance: "ทั้งหมด: %balance%"
-$unstaking_not_enough_balance: คุณจำเป็นต้องมี %value% ในบัญชีหลักของคุณเพื่อดำเนินการการถอน.
 $ledger_verify_address_on_device: ตรวจสอบที่อยู่บัญชีในอุปกรณ์ Ledger ของคุณ.
 Wallet Versions: วอลเล็ตเวอร์ชัน
 $read_more_about_wallet_version: อ่านเพิ่มเติมเกี่ยวกับประเภทของวอลเล็ตได้ที่ %link%.
@@ -674,14 +630,12 @@ More actions: เพิ่มเติม
 Open on %explorer_name%: เปิดบน %explorer_name%
 Swap is not supported in Testnet.: การสับเปลี่ยนยังไม่รองรับบน Testnet.
 Swap is not yet supported by Ledger.: การสับเปลี่ยนยังไม่รองรับบน Ledger.
-Staking is not supported in Testnet.: การสเต็กยังไม่รองรับบน Testnet.
 Get Support: ขอความช่วยเหลือ
 $transfer_link_expired: ลิงก์การโอนหมดอายุแล้ว
 $transfer_text_and_bin_exclusive: ไม่สามารถใช้พารามิเตอร์ข้อความและข้อมูลไบนารีร่วมกันได้
 $unsupported_deeplink_parameter: ลิงก์นี้มีพารามิเตอร์ที่ไม่รองรับ.
 $unsupported_chain: บล็อกเชนที่ไม่รองรับ.
 Successfully: สำเร็จแล้ว
-Unstake More: ถอนการสเต็กเพิ่ม
 Are you sure you want to burn this NFT? It will be lost forever.: |
   คุณแน่ใจหรือไม่ว่าต้องการเบิร์น NFT นี้?
   มันจะสูญสลายไปตลอดกาล.
@@ -833,7 +787,6 @@ $fee_details: |
   %chain_name% Blockchain ทำงานแบบนี้
 Got It: เข้าใจแล้ว
 Wallet: กระเป๋าสตางค์
-Trending: มาแรง
 No Data: ไม่มีข้อมูล
 Toggle fullscreen: สลับโหมดเต็มหน้าจอ
 Request is sent!: ส่งคำขอแล้ว!
@@ -930,19 +883,12 @@ $DappurlTrustStatusInvalidHelp: The origin does not match this application's ver
 DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: กรุณาใช้ %app_name% %mobileAppButton% หรือ %browserExtensionButton% เพื่อหลีกเลี่ยงคำเตือนนี้
-$reopen_in_iab_explore: โปรดใช้ส่วน %exploreTab% เมื่อเรียกดูแอปเพื่อหลีกเลี่ยงคำเตือนนี้
+$reopen_in_iab_explore: เพื่อหลีกเลี่ยงคำเตือนนี้ โปรดเปิดแอปผ่านแท็บ %exploreTab%
 tWallet Browser: เบราว์เซอร์ tWallet
 mobile app: แอปมือถือ
 browser extension: ส่วนขยายเบราว์เซอร์
 Exit all wallets: ออกจากกระเป๋าทั้งหมด
 Can't confirm?: เข้าระบบไม่ได้?
-$safe_staking_ethena_description1: การ staking เป็นแบบกระจายศูนย์อย่างสมบูรณ์และดำเนินการโดย **สัญญาอัจฉริยะ** ของ Ethena ที่ผ่านการตรวจสอบแล้ว
-$safe_staking_ethena_description2: USDe ที่ฝากไว้จะถูกใช้ใน **กลยุทธ์การซื้อขายและการลงทุน** ของ Ethena เพื่อสร้างรางวัลโดยอัตโนมัติและโปร่งใส
-$safe_staking_ethena_description3: คุณสามารถ**ถอนเงินฝาก**พร้อมดอกเบี้ยที่ค้างรับได้ทุกเวลา เงินจะถูกโอนกลับเข้าบัญชีหลักของคุณภายใน **7 วัน** ตามระยะเวลาถอนมาตรฐานของ Ethena
-Unstake %amount%: เลิกเดิมพัน %amount%
-Request Unstaking: ขอถอนการวางเดิมพัน
-$unstaking_when_receive_ethena: คุณจะสามารถรับเงินฝากที่ยกเลิกการวางเดิมพันได้ในอีก **7 วัน**
-Coins have been unstaked!: เหรียญถูกถอนแล้ว!
 Confirm Upgrading: ยืนยันการอัปเกรด
 How does it work?: ทำงานอย่างไร?
 Multisend: ส่งหลายรายการ
@@ -952,7 +898,6 @@ Renew Domain: ต่ออายุโดเมน
 Renew Domains: ต่ออายุโดเมน
 Some domains are about to expire: โดเมนบางรายการกำลังจะหมดอายุ
 $domain_expire: "**%domain%** หมดอายุ %days%"
-"%token% Staking": การวางเดิมพัน %token%
 Add Tab: เพิ่มแท็บ
 Customize Tabs: ปรับแต่งแท็บ
 Remove Tab: ลบแท็บ
@@ -970,7 +915,6 @@ $domains_amount %1$d:
   otherValue: "%1$d โดเมน"
 Stake: ลงทุน
 Manage Tokens: จัดการโทเคน
-Claim Rewards: รับรางวัล
 Configure DNS: กำหนดค่า DNS
 Link to Wallet: เชื่อมโยงกับกระเป๋าเงิน
 Change Wallet: เปลี่ยนกระเป๋าเงิน
@@ -994,8 +938,6 @@ $domains_was_expired:
   otherValue: "**%domain%** โดเมนหมดอายุแล้ว"
 Reload: โหลดใหม่
 Copy Link: คัดลอกลิงค์
-Check eligibility for max APY: ตรวจสอบสิทธิ์สำหรับ APY สูงสุด
-Check eligibility: ตรวจสอบสิทธิ์
 $expired_many: หมดอายุแล้ว
 $one_domain_expires %days%: จะหมดอายุ %days%
 $multiple_domains_expire %days%: จะหมดอายุ %days%
@@ -1081,8 +1023,9 @@ Show More: แสดงเพิ่มเติม
 Search app or enter address: ค้นหาแอปหรือป้อนที่อยู่
 Connected Apps: แอปที่เชื่อมต่อ
 Connected Sites: แอปที่เชื่อมต่อ
-Popular Apps: แอปยอดนิยม
-Popular Sites: แอปยอดนิยม
+TMail: TMail
+Mint: Mint
+Recently Viewed: ดูล่าสุด
 $wallets_amount:
   zeroValue: ไม่มีวอลเล็ต
   otherValue: "%1$d วอลเล็ต"
@@ -1347,7 +1290,6 @@ M: 1 เดือน
 Y: 1 ปี
 $amount_K: "%amount%K"
 $amount_M: "%amount%M"
-Happening Now: กำลังเป็นกระแส
 No Dapps Found!: ไม่พบ dApp!
 Edit Wallet Name: แก้ไขชื่อกระเป๋า
 Wallet Name: ชื่อกระเป๋า
@@ -1366,20 +1308,14 @@ Never: ไม่เลย
 "%1$@ minutes": "%1$@ นาที"
 Unstake Request: คำขอถอนสเตก
 History: ประวัติ
-Earn up to %1$@ per year from your tokens: รับผลตอบแทนสูงสุด %1$@ ต่อปีจากโทเคนของคุณ
 Insufficient %1$@ Balance: ยอด %1$@ ไม่เพียงพอ
-Instant Withdrawal: ถอนทันที
 Instantly: ทันที
-Up to %1$@: สูงสุด %1$@
-up to %1$@: สูงสุด %1$@
-Current APR: APR ปัจจุบัน
 in: ใน
 Network Error: ข้อผิดพลาดของเครือข่าย
 Enter Amount: ใส่จำนวน
 "Swap %1$@ to %2$@": "แลก %1$@ เป็น %2$@"
 "%1$@ to %2$@": "%1$@ เป็น %2$@"
 "Max %1$@": "สูงสุด %1$@"
-"Authorize %1$@ fee": "อนุมัติค่าธรรมเนียม %1$@"
 Pending previous fee: รอค่าธรรมเนียมก่อนหน้า
 AML/KYC: AML/KYC
 Receive to: รับที่
@@ -1489,7 +1425,6 @@ $n_wallets_selected:
 add: เพิ่ม
 send: ส่ง
 swap: แลก
-earn: รับผลตอบแทน
 Actions: การทำรายการ
 $actions_description: เข้าถึงการทำรายการที่ใช้บ่อยได้อย่างรวดเร็ว
 Rate: อัตรา
@@ -1536,7 +1471,6 @@ Unexpected error. Please let the support know.: เกิดข้อผิด�
 Unlock it and open the TON App: ปลดล็อกและเปิดแอป TON
 Use 4-digit Passcode: ใช้รหัส 4 หลัก
 Use 6-digit Passcode: ใช้รหัส 6 หลัก
-Authorize %token% Fee: อนุมัติค่าธรรมเนียม %token%
 Awaiting Previous Fee: กำลังรอค่าธรรมเนียมก่อนหน้า
 Lock: ล็อก
 Receive: รับ
@@ -1568,9 +1502,6 @@ push_activity_nft_minted: สร้าง NFT
 push_activity_nft_minted_named: "สร้าง NFT: %name%"
 push_activity_liquidity_deposited: เพิ่มสภาพคล่องแล้ว
 push_activity_liquidity_withdrawn: ถอนสภาพคล่องแล้ว
-push_activity_stake_deposit: นำ %amount% %symbol% ไปสเตกแล้ว
-push_activity_stake_withdrawal: ถอน %amount% %symbol% ออกจากสเตกแล้ว
-push_activity_stake_withdrawal_request: ส่งคำขอถอนจากสเตกแล้ว
 push_activity_auction_bid: วางบิดประมูล %amount% %symbol% แล้ว
 push_activity_dns_changed: อัปเดตระเบียน DNS แล้ว
 push_activity_dns_deleted: ลบระเบียน DNS แล้ว
@@ -1582,8 +1513,6 @@ push_activity_swap_completed: สลับ %from_symbol% -> %to_symbol% สำ�
 push_activity_swap_failed: สลับ %from_symbol% -> %to_symbol% ล้มเหลว
 push_activity_swap_expired: สลับ %from_symbol% -> %to_symbol% หมดอายุ
 push_activity_swap_pending: สลับ %from_symbol% -> %to_symbol% %status%
-push_activity_staking_profit: กำไรจากการสเตก %amount% GRAM
-push_activity_staking_loyalty_profit: กำไรจากความภักดีในการสเตก %amount% GRAM
 push_domain_title_renew: ต่ออายุโดเมนของคุณ
 push_domain_expired_yesterday: โดเมน %domain% ของคุณหมดอายุเมื่อวานนี้ โปรดต่ออายุโดยเร็วที่สุดเพื่อหลีกเลี่ยงการสูญเสียการเข้าถึง
 push_domain_expired_days_ago: โดเมน %domain% ของคุณหมดอายุมาแล้ว %days% วัน โปรดต่ออายุโดยเร็วที่สุดเพื่อหลีกเลี่ยงการสูญเสียการเข้าถึง

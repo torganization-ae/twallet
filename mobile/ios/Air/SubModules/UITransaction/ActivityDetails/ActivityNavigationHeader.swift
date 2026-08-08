@@ -27,7 +27,7 @@ struct ActivityNavigationHeader: View {
                     Text(viewModel.activity.timestamp.dateTimeString)
                 }
 
-            case .sendConfirmation, .sendNftConfirmation, .swapConfirmation, .stakeConfirmation, .unstakeConfirmation, .unstakeRequestConfirmation, .burnNftConfirmation:
+            case .sendConfirmation, .sendNftConfirmation, .swapConfirmation, .burnNftConfirmation:
                 NavigationHeader {
                     if let title = viewModel.context.displayTitle {
                         Text(title)

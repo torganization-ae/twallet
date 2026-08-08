@@ -11,7 +11,6 @@ import type {
   ApiBaseCurrency,
   ApiCurrencyRates,
   ApiNetwork,
-  ApiStakingState,
   ApiTokenWithPrice,
 } from '../../api/types';
 import type { Account, AccountSettings, GlobalState } from '../../global/types';
@@ -71,7 +70,6 @@ interface StateProps {
   currencyRates?: ApiCurrencyRates;
   byAccountId?: GlobalState['byAccountId'];
   tokenInfo?: GlobalState['tokenInfo'];
-  stakingDefault?: ApiStakingState;
   areTokensWithNoCostHidden?: boolean;
   network?: ApiNetwork;
 }
@@ -92,7 +90,6 @@ function WalletConnectPayOptionSelectionModal({
   currencyRates,
   byAccountId,
   tokenInfo,
-  stakingDefault,
   areTokensWithNoCostHidden,
   network,
 }: StateProps) {
@@ -124,7 +121,6 @@ function WalletConnectPayOptionSelectionModal({
     areTokensWithNoCostHidden,
     baseCurrency,
     currencyRates,
-    stakingDefault,
   });
 
   useEffect(() => {
@@ -512,7 +508,6 @@ export default memo(withGlobal((global): StateProps => {
     currencyRates,
     byAccountId,
     tokenInfo,
-    stakingDefault,
   } = global;
 
   return {
@@ -531,7 +526,6 @@ export default memo(withGlobal((global): StateProps => {
     currencyRates,
     byAccountId,
     tokenInfo,
-    stakingDefault,
     areTokensWithNoCostHidden,
     network: selectCurrentNetwork(global),
   };

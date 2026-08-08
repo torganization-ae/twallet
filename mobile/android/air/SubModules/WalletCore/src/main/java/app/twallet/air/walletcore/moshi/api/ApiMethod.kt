@@ -29,7 +29,6 @@ import app.twallet.air.walletcore.moshi.MApiGetAddressInfoResult
 import app.twallet.air.walletcore.moshi.MApiFetchSwapItem
 import app.twallet.air.walletcore.moshi.MApiFetchSwapsResult
 import app.twallet.air.walletcore.moshi.MApiCheckNftDraftOptions
-import app.twallet.air.walletcore.moshi.MApiCheckStakeDraftResult
 import app.twallet.air.walletcore.moshi.MApiCheckTransactionDraftOptions
 import app.twallet.air.walletcore.moshi.MApiCheckTransactionDraftResult
 import app.twallet.air.walletcore.moshi.MApiLedgerAccountInfo
@@ -50,7 +49,6 @@ import app.twallet.air.walletcore.moshi.MSignDataPayload
 import app.twallet.air.walletcore.moshi.MTonPlugin
 import app.twallet.air.walletcore.moshi.MWalletPermission
 import app.twallet.air.walletcore.moshi.ReturnStrategy
-import app.twallet.air.walletcore.moshi.StakingState
 import app.twallet.air.walletcore.moshi.ledger.MLedgerWalletInfo
 import java.lang.reflect.Type
 import java.math.BigInteger
@@ -1062,52 +1060,6 @@ sealed class ApiMethod<T> {
         }
     }
 
-    /* Staking */
-    object Staking {
-        class CheckStakeDraft(
-            accountId: String,
-            amount: BigInteger,
-            state: StakingState
-        ) : ApiMethod<MApiCheckStakeDraftResult>() {
-            override val name: String = "checkStakeDraft"
-            override val type: Type = MApiCheckStakeDraftResult::class.java
-            override val arguments: String = ArgumentsBuilder()
-                .string(accountId)
-                .bigInt(amount)
-                .jsObject(state, StakingState::class.java)
-                .build()
-        }
-
-        class CheckUnstakeDraft(
-            accountId: String,
-            amount: BigInteger,
-            state: StakingState
-        ) : ApiMethod<MApiCheckStakeDraftResult>() {
-            override val name: String = "checkUnstakeDraft"
-            override val type: Type = MApiCheckStakeDraftResult::class.java
-            override val arguments: String = ArgumentsBuilder()
-                .string(accountId)
-                .bigInt(amount)
-                .jsObject(state, StakingState::class.java)
-                .build()
-        }
-
-        class SubmitStakingClaimOrUnlock(
-            accountId: String,
-            password: String,
-            state: StakingState,
-            realFee: BigInteger
-        ) : ApiMethod<ApiSubmitTransferResult>() {
-            override val name: String = "submitStakingClaimOrUnlock"
-            override val type: Type = ApiSubmitTransferResult::class.java
-            override val arguments: String = ArgumentsBuilder()
-                .string(accountId)
-                .string(password)
-                .jsObject(state, StakingState::class.java)
-                .bigInt(realFee)
-                .build()
-        }
-    }
 
     /* Notifications */
     object Notifications {

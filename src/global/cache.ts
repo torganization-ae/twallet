@@ -10,9 +10,6 @@ import type {
   SavedAddress,
   TokenPeriod,
 } from './types';
-import {
-  StakingState,
-} from './types';
 
 import {
   DEBUG,
@@ -27,14 +24,13 @@ import { bigintReviver } from '../util/bigint';
 import { getTokenInfo } from '../util/chain';
 import isEmptyObject from '../util/isEmptyObject';
 import {
-  cloneDeep, extractKey, filterValues, mapValues, omit, pick, pickTruthy, unique,
+  cloneDeep, extractKey, mapValues, omit, pick, pickTruthy, unique,
 } from '../util/iteratees';
 import {
   clearPoisoningCache,
   updatePoisoningCacheFromGlobalState,
 } from '../util/poisoningHash';
 import { onBeforeUnload, throttle } from '../util/schedulers';
-import { getIsActiveStakingState } from '../util/staking';
 import { IS_ELECTRON } from '../util/windowEnvironment';
 import { addActionHandler, getGlobal } from './index';
 import { INITIAL_STATE, STATE_VERSION } from './initialState';
@@ -43,7 +39,6 @@ import { selectAccountState, selectAccountTokens } from './selectors';
 const UPDATE_THROTTLE = 5000;
 const ACTIVITIES_LIMIT = 20;
 const ACTIVITY_TOKENS_LIMIT = 30;
-const STAKING_HISTORY_LIMIT = 30;
 
 const updateCacheThrottled = throttle(() => onFullyIdle(() => updateCache()), UPDATE_THROTTLE, false);
 const updateCacheForced = () => updateCache(true);
@@ -265,10 +260,6 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
 
   if (cached.stateVersion === 4) {
     cached.stateVersion = 5;
-
-    (cached as any).staking = {
-      state: StakingState.None,
-    };
   }
 
   if (cached.stateVersion === 5) {
@@ -582,7 +573,7 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
   if (cached.stateVersion === 51) {
     if (cached.byAccountId && cached.settings?.byAccountId) {
       for (const accountId of Object.keys(cached.byAccountId)) {
-        const accountState = cached.byAccountId[accountId];
+        const accountState = cached.byAccountId[accountId] as any;
         const stateById = accountState.staking?.stateById;
         if (!stateById) continue;
 
@@ -651,6 +642,33 @@ function migrateCache(cached: GlobalState, initialState: GlobalState) {
     clearActivities();
     cached.stateVersion = 59;
   }
+  if (cached.stateVersion === 59) {
+    // Staking product removed — drop persisted staking blobs and synthetic pins.
+    delete (cached as any).currentStaking;
+    delete (cached as any).stakingDefault;
+    delete (cached as any).isStakingInfoModalOpen;
+    delete (cached as any).staking;
+
+    if (cached.byAccountId) {
+      for (const accountId of Object.keys(cached.byAccountId)) {
+        const accountState = cached.byAccountId[accountId] as any;
+        delete accountState.staking;
+        delete accountState.stakingHistory;
+        delete accountState.isLongUnstakeRequested;
+      }
+    }
+
+    if (cached.settings?.byAccountId) {
+      for (const accountSettings of Object.values(cached.settings.byAccountId)) {
+        if (!accountSettings.pinnedSlugs?.length) continue;
+        accountSettings.pinnedSlugs = accountSettings.pinnedSlugs.filter(
+          (slug) => !slug.startsWith('staking-'),
+        );
+      }
+    }
+
+    cached.stateVersion = 60;
+  }
   // When adding migration here, increase `STATE_VERSION`
 }
 
@@ -669,16 +687,13 @@ const getUsedTokenSlugs = (reducedGlobal: GlobalState): string[] => {
   }
 
   Object.values(reducedGlobal.byAccountId).forEach((state) => {
-    const { balances, activities, staking } = state;
+    const { balances, activities } = state;
 
     Object.keys(balances?.bySlug ?? {}).forEach((slug) => usedTokenSlugs.add(slug));
     Object.keys(activities?.byId ?? {}).forEach((transactionId) => {
       getActivityTokenSlugs(activities!.byId[transactionId]).forEach((slug) => usedTokenSlugs.add(slug));
     });
     Object.keys(activities?.idsBySlug ?? {}).forEach((slug) => usedTokenSlugs.add(slug));
-    Object.keys(staking?.stateById ?? {}).forEach((id) => {
-      usedTokenSlugs.add(staking!.stateById![id].tokenSlug);
-    });
   });
 
   return Array.from(usedTokenSlugs);
@@ -720,7 +735,6 @@ function updateCache(force?: boolean) {
       'pushNotifications',
       'isFullscreen',
       'isManualLockActive',
-      'stakingDefault',
       'currencyRates',
       'accountSelectorViewMode',
     ]),
@@ -787,7 +801,6 @@ function reduceByAccountId(global: GlobalState) {
       'currentTokenSlug',
       'currentTokenPeriod',
       'savedAddresses',
-      'staking',
       'activeContentTab',
       'browserHistory',
       'blacklistedNftAddresses',
@@ -806,10 +819,6 @@ function reduceByAccountId(global: GlobalState) {
     const accountTokenSlugs = getAccountTokenSlugs(global, accountId);
     acc[accountId].balances = reduceAccountBalances(state.balances, accountTokenSlugs);
     acc[accountId].activities = reduceAccountActivities(state.activities, accountTokenSlugs);
-    acc[accountId].staking = reduceAccountStaking(state.staking);
-    acc[accountId].stakingHistory = state.stakingHistory?.length
-      ? state.stakingHistory.slice(0, STAKING_HISTORY_LIMIT)
-      : undefined;
 
     return acc;
   }, {} as GlobalState['byAccountId']);
@@ -858,24 +867,6 @@ function reduceAccountActivities(activities?: AccountState['activities'], tokenS
     idsMain: reducedIdsMain,
     idsBySlug: reducedIdsBySlug,
     newestActivitiesBySlug: reducedNewestActivitiesBySlug,
-  };
-}
-
-function reduceAccountStaking(staking?: AccountState['staking']) {
-  let { stakingId, stateById } = staking ?? {};
-
-  if (stateById && !isEmptyObject(stateById)) {
-    stateById = filterValues(stateById, getIsActiveStakingState);
-
-    if (!stakingId || !(stakingId in stateById)) {
-      stakingId = Object.values(stateById)[0]?.id;
-    }
-  }
-
-  return {
-    ...staking,
-    stateById,
-    stakingId,
   };
 }
 

@@ -25,7 +25,6 @@ class DappFeeHelpers {
                     terms = MFeeTerms(
                         token = null,
                         native = fullFee,
-                        stars = null
                     ),
                     nativeSum = fullFee
                 ).toString(nativeToken, appendNonNative = true)
@@ -38,7 +37,6 @@ class DappFeeHelpers {
                     terms = MFeeTerms(
                         native = realFee,
                         token = null,
-                        stars = null
                     ),
                     nativeSum = realFee
                 ).toString(nativeToken, appendNonNative = true)

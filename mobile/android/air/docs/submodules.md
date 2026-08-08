@@ -29,10 +29,6 @@ The UI implementation of the NFT and token screens.
 
 The UI implementation of the receive and send screen pages.
 
-### :dollar: UIStake
-
-The UI implementation of the staking screens.
-
 ### :earth_africa: UIBrowser/UIInAppBrowser
 
 The UI implementation of the Explore tab and in-app browser screens.

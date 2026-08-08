@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import app.twallet.air.uicomponents.commonViews.TokenAmountInputView
 import app.twallet.air.uicomponents.extensions.collectFlow
 import app.twallet.air.uicomponents.extensions.throttle
@@ -207,19 +206,39 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
 
     private val _addressInfoFlow = MutableStateFlow<AddressInfo?>(null)
     val addressInfoFlow = _addressInfoFlow.asStateFlow()
+    private val _isAddressResolvingFlow = MutableStateFlow(false)
+    val isAddressResolvingFlow = _isAddressResolvingFlow.asStateFlow()
     private var addressInfoJob: Job? = null
 
     fun onDestinationEntered(address: String) {
         val destination = address.trim()
         if (destination.isEmpty()) {
+            addressInfoJob?.cancel()
+            _isAddressResolvingFlow.value = false
             _addressInfoFlow.value = null
             return
         }
         val chain = TokenStore.getToken(getTokenSlug())?.mBlockchain ?: MBlockchain.ton
         addressInfoJob?.cancel()
         addressInfoJob = viewModelScope.launch {
-            _addressInfoFlow.emit(fetchAddressInfo(chain, destination))
+            val shouldAnimate = shouldAnimateAddressResolve(chain, destination)
+            if (shouldAnimate) {
+                _isAddressResolvingFlow.value = true
+            }
+            try {
+                _addressInfoFlow.emit(fetchAddressInfo(chain, destination))
+            } finally {
+                _isAddressResolvingFlow.value = false
+            }
         }
+    }
+
+    private fun shouldAnimateAddressResolve(chain: MBlockchain, destination: String): Boolean {
+        return chain == MBlockchain.ton && (
+            DNSHelpers.isDnsDomain(destination)
+                || TmailHelpers.isTmailAlias(destination)
+                || TmailHelpers.isBareTonAlias(destination)
+            )
     }
 
     val memoRequiredFlow = addressInfoFlow
@@ -266,16 +285,14 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
         }
         val network = AccountStore.activeAccount?.network ?: return null
         return try {
-            val result = withTimeoutOrNull(100) {
-                WalletCore.call(
-                    ApiMethod.WalletData.GetAddressInfo(
-                        chain = chain,
-                        network = network,
-                        addressOrDomain = destination
-                    )
+            val result = WalletCore.call(
+                ApiMethod.WalletData.GetAddressInfo(
+                    chain = chain,
+                    network = network,
+                    addressOrDomain = destination
                 )
-            }
-            val resolved = result?.resolvedAddress
+            )
+            val resolved = result.resolvedAddress
             if (!chain.isSendToSelfAllowed && ownAddress != null && resolved == ownAddress) {
                 return null
             }
@@ -283,11 +300,13 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
                 chain = chain,
                 input = destination,
                 resolvedAddress = resolved,
-                addressName = result?.addressName,
-                isMemoRequired = result?.isMemoRequired,
-                isScam = result?.isScam,
-                error = result?.error,
+                addressName = result.addressName,
+                isMemoRequired = result.isMemoRequired,
+                isScam = result.isScam,
+                error = result.error,
             )
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Throwable) {
             AddressInfo(chain, destination)
         }
@@ -565,7 +584,6 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
 
     fun getTransferOptions(data: DraftResult.Result, passcode: String): MApiSubmitTransferOptions {
         val request = data.request
-        val diesel = data.diesel
         return MApiSubmitTransferOptions(
             accountId = request.wallet.accountId,
             toAddress = data.resolvedAddress!!,
@@ -580,8 +598,7 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
             realFee = data.explainedFee?.realFee?.nativeSum,
             isGasless = data.explainedFee?.isGasless,
             dieselAmount = data.dieselAmount,
-            isGaslessWithStars = diesel?.status == MDieselStatus.STARS_FEE,
-            gaslessTransaction = diesel?.transaction,
+            gaslessTransaction = data.diesel?.transaction,
             addressName = data.addressName,
         )
     }
@@ -619,9 +636,7 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
         } else {
             fee != null && (fee + (if (isToncoin) req.amount.amountInteger else BigInteger.ZERO)) <= nativeTokenBalance
         }
-        val isGaslessWithStars = draft.diesel?.status == MDieselStatus.STARS_FEE
-        val isDieselAvailable =
-            draft.diesel?.status == MDieselStatus.AVAILABLE || isGaslessWithStars
+        val isDieselAvailable = draft.diesel?.status == MDieselStatus.AVAILABLE
         val withDiesel = explainedFee?.isGasless == true
         val dieselAmount = draft.diesel?.amount ?: BigInteger.ZERO
         val isEnoughDiesel =
@@ -630,12 +645,8 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
                 (accountBalance ?: BigInteger.ZERO) > BigInteger.ZERO &&
                 dieselAmount > BigInteger.ZERO
             ) {
-                if (isGaslessWithStars) {
-                    true
-                } else {
-                    (accountBalance
-                        ?: BigInteger.ZERO) - req.amount.amountInteger >= dieselAmount
-                }
+                (accountBalance
+                    ?: BigInteger.ZERO) - req.amount.amountInteger >= dieselAmount
             } else {
                 false
             }
@@ -660,12 +671,11 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
         Error,
         NotEnoughNativeToken,
         NotEnoughToken,
-        AuthorizeDiesel,
         PendingPreviousDiesel,
         Ready;
 
         val isEnabled: Boolean
-            get() = this == Ready || this == AuthorizeDiesel
+            get() = this == Ready
 
         val isLoading: Boolean
             get() = this == Loading
@@ -712,10 +722,6 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
     /* * */
 
     private var lastUiState: UiState? = null
-
-    fun shouldAuthorizeDiesel(): Boolean {
-        return lastUiState?.uiButton?.status == ButtonStatus.AuthorizeDiesel
-    }
 
     init {
         WalletCore.registerObserver(this)
@@ -873,14 +879,6 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
 
             if (draft is DraftResult.Error) {
                 if (draft.error?.parsed == MBridgeError.INSUFFICIENT_BALANCE) {
-                    if (draft.dieselStatus == MDieselStatus.NOT_AUTHORIZED) {
-                        return ButtonState(
-                            ButtonStatus.AuthorizeDiesel, LocaleController.getFormattedString(
-                                "Authorize %1$@ fee",
-                                listOf(draft.request.token.symbol ?: "")
-                            )
-                        )
-                    }
                     return ButtonState(
                         ButtonStatus.NotEnoughNativeToken,
                         LocaleController.getFormattedString(
@@ -920,15 +918,6 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
                         LocaleController.getString("Continue")
                     )
                 }
-                if (draft.explainedFee?.isGasless == true)
-                    if (draft.dieselStatus == MDieselStatus.NOT_AUTHORIZED) {
-                        return ButtonState(
-                            ButtonStatus.AuthorizeDiesel, LocaleController.getFormattedString(
-                                "Authorize %1$@ fee",
-                                listOf(draft.request.token.symbol ?: "")
-                            )
-                        )
-                    }
                 if (draft.dieselStatus == MDieselStatus.PENDING_PREVIOUS) {
                     return ButtonState(
                         ButtonStatus.PendingPreviousDiesel,

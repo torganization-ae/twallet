@@ -7,7 +7,6 @@ import type {
   ApiChain,
   ApiCurrencyRates,
   ApiNft,
-  ApiStakingState,
   ApiSwapActivity,
   ApiSwapAsset,
   ApiTokenWithPrice,
@@ -18,7 +17,6 @@ import { TransactionInfoState } from '../../../../global/types';
 import { IS_EXPLORER } from '../../../../config';
 import { resolveSwapAsset } from '../../../../global/helpers';
 import {
-  selectAccountStakingStatesBySlug,
   selectCurrentAccountId,
   selectCurrentAccountState,
   selectIsCurrentAccountViewMode,
@@ -67,7 +65,6 @@ interface StateProps {
   currencyRates: ApiCurrencyRates;
   nftsByAddress?: Record<string, ApiNft>;
   currentAccountId: string;
-  stakingStateBySlug: Record<string, ApiStakingState>;
   savedAddresses?: SavedAddress[];
   accounts?: Record<string, Account>;
   isMediaViewerOpen?: boolean;
@@ -96,7 +93,6 @@ function TransactionInfoModal({
   currencyRates,
   nftsByAddress,
   currentAccountId,
-  stakingStateBySlug,
   savedAddresses,
   accounts,
   isMediaViewerOpen,
@@ -259,7 +255,6 @@ function TransactionInfoModal({
                   appTheme={appTheme}
                   nftsByAddress={nftsByAddress}
                   currentAccountId={currentAccountId}
-                  stakingStateBySlug={stakingStateBySlug}
                   savedAddresses={savedAddresses}
                   accounts={accounts}
                   baseCurrency={baseCurrency}
@@ -420,7 +415,6 @@ export default memo(withGlobal((global): StateProps => {
     currencyRates: global.currencyRates,
     nftsByAddress: accountState?.nfts?.byAddress,
     currentAccountId: accountId,
-    stakingStateBySlug: selectAccountStakingStatesBySlug(global, accountId),
     savedAddresses: accountState?.savedAddresses,
     accounts,
     isMediaViewerOpen: Boolean(global.mediaViewer.mediaId),

@@ -275,9 +275,6 @@ private func parseMtwUrl(_ url: URL) -> Deeplink? {
     case "send":
         return parseSendUrl(url)
 
-    case "stake":
-        return .stake
-
     case "portfolio":
         return .portfolio
 

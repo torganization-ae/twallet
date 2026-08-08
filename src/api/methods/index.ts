@@ -12,7 +12,6 @@ export {
   initPolling,
 } from './polling';
 export * from './accounts';
-export * from './staking';
 export * from './tokens';
 export {
   initDapps,

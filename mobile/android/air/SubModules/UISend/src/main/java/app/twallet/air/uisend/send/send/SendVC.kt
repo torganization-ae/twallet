@@ -45,7 +45,6 @@ import app.twallet.air.uicomponents.extensions.disableInteraction
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.extensions.setPaddingDp
 import app.twallet.air.uicomponents.extensions.setReadOnly
-import app.twallet.air.uicomponents.helpers.DieselAuthorizationHelpers
 import app.twallet.air.uicomponents.helpers.WFont
 import app.twallet.air.uicomponents.helpers.typeface
 import app.twallet.air.uicomponents.viewControllers.SendTokenVC
@@ -78,7 +77,9 @@ import app.twallet.air.walletcontext.utils.CoinUtils
 import app.twallet.air.walletcontext.utils.VerticalImageSpan
 import app.twallet.air.walletcore.JSWebViewBridge
 import app.twallet.air.walletcore.PRICELESS_TOKEN_HASHES
-import app.twallet.air.walletcore.STAKING_SLUGS
+import app.twallet.air.walletcore.STAKE_SLUG
+import app.twallet.air.walletcore.STAKED_MYCOIN_SLUG
+import app.twallet.air.walletcore.STAKED_USDE_SLUG
 import app.twallet.air.walletcore.TONCOIN_SLUG
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
@@ -779,10 +780,6 @@ class SendVC(
         }
 
         continueButton.setOnClickListener {
-            if (viewModel.shouldAuthorizeDiesel()) {
-                DieselAuthorizationHelpers.authorizeDiesel(context)
-                return@setOnClickListener
-            }
             openConfirmIfPossible()
         }
 
@@ -844,6 +841,15 @@ class SendVC(
                 showScamWarningIfRequired()
             }
             suggestionsBoxView.isEnabled = it.uiAddressSearch.enabled
+        }
+
+        collectFlow(viewModel.isAddressResolvingFlow) { isResolving ->
+            val destination = viewModel.inputStateFlow.value.destination.trim()
+            if (isResolving && destination.isNotEmpty()) {
+                addressInputView.showResolvingOverlay(destination)
+            } else if (!isResolving) {
+                addressInputView.stopResolvingOverlay(hideIfUnresolved = true)
+            }
         }
 
         collectFlow(viewModel.addressInfoFlow) { info ->
@@ -1131,6 +1137,7 @@ class SendVC(
         val name = info.addressName
         val isScam = info.isScam == true
         updateContinueButtonType(isScam)
+        addressInputView.stopResolvingOverlay()
         if (isScam) {
             val address = resolved ?: destination
             return addressInputView.setScamAddress(
@@ -1141,19 +1148,18 @@ class SendVC(
                 ),
             )
         }
-        if (!resolved.isNullOrEmpty() && !name.isNullOrEmpty()) {
+        if (!resolved.isNullOrEmpty() && (!name.isNullOrEmpty() || resolved != destination)) {
             return addressInputView.setAddress(
                 MSavedAddress(
                     address = resolved,
-                    name = name,
+                    name = name?.takeIf { it.isNotEmpty() } ?: destination,
                     chain = info.chain.name,
                 ),
             )
         }
 
-        if (addressInputView.getKeyword() != destination) {
-            addressInputView.setText(destination)
-        }
+        // Drop the resolving overlay; keep the typed value visible in the field.
+        addressInputView.setText(destination)
     }
 
     private fun updateContinueButtonType(isScam: Boolean) {
@@ -1325,7 +1331,7 @@ class SendVC(
     private fun showServiceTokenWarningIfRequired() {
         val token = TokenStore.getToken(viewModel.getTokenSlug())
         if (token?.isLpToken == true ||
-            STAKING_SLUGS.contains(viewModel.getTokenSlug()) ||
+            viewModel.getTokenSlug() in setOf(STAKE_SLUG, STAKED_MYCOIN_SLUG, STAKED_USDE_SLUG) ||
             PRICELESS_TOKEN_HASHES.contains(viewModel.inputStateFlow.value.tokenCodeHash)
         )
             showAlert(

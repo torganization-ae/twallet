@@ -1,4 +1,4 @@
-import React, { memo } from '../../../../lib/teact/teact';
+import React, { memo, useRef } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { Theme } from '../../../../global/types';
@@ -18,8 +18,11 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
+import ProductChooserMenu from './ProductChooserMenu';
 
 import styles from './LandscapeNavBar.module.scss';
+
+import tmailLogo from '../../../../assets/tmail-logo.svg';
 
 const ANIMATED_ICON_SIZE_PX = 34;
 const ANIMATED_STICKER_SPEED = 2;
@@ -43,6 +46,8 @@ function LandscapeNavBar({
   const appTheme = useAppTheme(theme);
   const stickerPaths = ANIMATED_STICKERS_PATHS[appTheme];
   const accentColor = accentColorIndex !== undefined ? ACCENT_COLORS[appTheme][accentColorIndex] : undefined;
+  const tmailTriggerRef = useRef<HTMLButtonElement>();
+  const [isProductMenuOpen, openProductMenu, closeProductMenu] = useFlag();
 
   const isWalletActive = !areSettingsOpen && !isExploreOpen;
 
@@ -81,6 +86,24 @@ function LandscapeNavBar({
         accentColor={accentColor}
         onClick={switchToSettings}
       />
+      {!IS_FEATURE_LIMITED && (
+        <>
+          <Button
+            ref={tmailTriggerRef}
+            isSimple
+            className={styles.button}
+            onClick={openProductMenu}
+          >
+            <img src={tmailLogo} alt="" className={styles.tmailLogo} />
+            <span className={styles.label}>{lang('TMail')}</span>
+          </Button>
+          <ProductChooserMenu
+            isOpen={isProductMenuOpen}
+            triggerRef={tmailTriggerRef}
+            onClose={closeProductMenu}
+          />
+        </>
+      )}
     </div>
   );
 }

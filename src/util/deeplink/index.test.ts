@@ -280,7 +280,6 @@ describe('processSelfDeeplink', () => {
     mockActions = {
       startSwap: jest.fn(),
       showError: jest.fn(),
-      startStaking: jest.fn(),
       startTransfer: jest.fn(),
       closeSettings: jest.fn(),
       openExplore: jest.fn(),
@@ -475,27 +474,6 @@ describe('processSelfDeeplink', () => {
       expect(mockActions.showError).toHaveBeenCalledWith({
         error: 'Swap is not supported in Testnet.',
       });
-    });
-  });
-
-  describe('Stake command', () => {
-    it('should start staking', async () => {
-      const result = await processSelfDeeplink('mtw://stake');
-
-      expect(result).toBe(true);
-      expect(mockActions.startStaking).toHaveBeenCalled();
-    });
-
-    it('should show error when staking is requested in testnet', async () => {
-      mockGlobal.settings.isTestnet = true;
-
-      const result = await processSelfDeeplink('https://my.tt/stake');
-
-      expect(result).toBe(true);
-      expect(mockActions.showError).toHaveBeenCalledWith({
-        error: 'Staking is not supported in Testnet.',
-      });
-      expect(mockActions.startStaking).not.toHaveBeenCalled();
     });
   });
 
@@ -721,31 +699,31 @@ describe('processSelfDeeplink', () => {
 
   describe('Protocol variations', () => {
     it('should handle mtw:// protocol', async () => {
-      const result = await processSelfDeeplink('mtw://stake');
+      const result = await processSelfDeeplink('mtw://portfolio');
 
       expect(result).toBe(true);
-      expect(mockActions.startStaking).toHaveBeenCalled();
+      expect(mockActions.switchToPortfolio).toHaveBeenCalled();
     });
 
     it('should handle https://my.tt protocol', async () => {
-      const result = await processSelfDeeplink('https://my.tt/stake');
+      const result = await processSelfDeeplink('https://my.tt/portfolio');
 
       expect(result).toBe(true);
-      expect(mockActions.startStaking).toHaveBeenCalled();
+      expect(mockActions.switchToPortfolio).toHaveBeenCalled();
     });
 
     it('should handle https://go.mytonwallet.org protocol', async () => {
-      const result = await processSelfDeeplink('https://go.mytonwallet.org/stake');
+      const result = await processSelfDeeplink('https://go.mytonwallet.org/portfolio');
 
       expect(result).toBe(true);
-      expect(mockActions.startStaking).toHaveBeenCalled();
+      expect(mockActions.switchToPortfolio).toHaveBeenCalled();
     });
 
     it('should convert http:// to https://', async () => {
-      const result = await processSelfDeeplink('http://my.tt/stake');
+      const result = await processSelfDeeplink('http://my.tt/portfolio');
 
       expect(result).toBe(true);
-      expect(mockActions.startStaking).toHaveBeenCalled();
+      expect(mockActions.switchToPortfolio).toHaveBeenCalled();
     });
   });
 });
@@ -760,7 +738,6 @@ describe('processDeeplink TRON deeplinks', () => {
     mockActions = {
       startSwap: jest.fn(),
       showError: jest.fn(),
-      startStaking: jest.fn(),
       openReceiveModal: jest.fn(),
       closeSettings: jest.fn(),
       openExplore: jest.fn(),
@@ -1199,7 +1176,6 @@ describe('View-only mode deeplink blocking', () => {
     mockActions = {
       startSwap: jest.fn(),
       showError: jest.fn(),
-      startStaking: jest.fn(),
       startTransfer: jest.fn(),
       closeSettings: jest.fn(),
       openExplore: jest.fn(),
@@ -1240,7 +1216,6 @@ describe('View-only mode deeplink blocking', () => {
     it.each([
       { name: 'Swap', url: 'mtw://swap' },
       { name: 'BuyWithCrypto', url: 'mtw://buy-with-crypto' },
-      { name: 'Stake', url: 'mtw://stake' },
       { name: 'Transfer', url: `mtw://transfer/${TEST_TON_ADDRESS}?amount=1` },
       { name: 'Receive', url: 'mtw://receive' },
     ])('should block $name in view-only mode', async ({ url }) => {

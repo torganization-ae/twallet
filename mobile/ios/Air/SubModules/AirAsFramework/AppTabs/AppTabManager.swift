@@ -20,7 +20,7 @@ struct AppTabRegistration {
 @MainActor
 final class AppTabManager {
     static let shared = AppTabManager()
-    static let defaultTabIds: [AppTabId] = [.wallet, .explore, .settings]
+    static let defaultTabIds: [AppTabId] = [.wallet, .explore, .settings, .tmail]
 
     private var registrations: [AppTabId: AppTabRegistration] = [:]
     private var registrationOrder: [AppTabId] = []
@@ -111,6 +111,10 @@ final class AppTabManager {
         for req in Self.defaultTabIds where req.isRequired && !result.contains(req) {
             result.append(req)
         }
+        // Keep newly introduced default action tabs visible for existing saved orders.
+        if isRegistered(.tmail), !result.contains(.tmail) {
+            result.append(.tmail)
+        }
         return result
     }
 
@@ -166,6 +170,17 @@ final class AppTabManager {
                 AppTabLazyNavigationController {
                     PortfolioVC(accountContext: AccountContext(source: .current))
                 }
+            },
+            sidebarEdgeCoverColor: nil
+        ))
+        register(AppTabRegistration(
+            id: .tmail,
+            titleProvider: { lang("TMail") },
+            compactIcon: UIImage(named: "tab_tmail", in: AirBundle, compatibleWith: nil) ?? UIImage(),
+            sidebarIcon: UIImage.airBundle("SidebarTmail"),
+            makeNavigationController: { _ in
+                // Placeholder — selection is intercepted and never shown as content.
+                WNavigationController(rootViewController: UIViewController())
             },
             sidebarEdgeCoverColor: nil
         ))

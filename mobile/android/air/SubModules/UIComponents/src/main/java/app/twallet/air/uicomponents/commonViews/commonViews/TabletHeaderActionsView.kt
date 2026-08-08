@@ -40,9 +40,7 @@ import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.requireDrawableCompat
 import app.twallet.air.walletcontext.utils.AnimUtils.Companion.lerp
 import app.twallet.air.walletcore.models.MAccount
-import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
-import app.twallet.air.walletcore.tokenSlugToStakingSlug
 import androidx.core.view.isVisible
 import kotlin.math.roundToInt
 
@@ -363,34 +361,12 @@ class TabletHeaderActionsView(
             scrollView.resetScroll()
         }
         this.account = account
-        val isMainNet = account?.isMainnet == true
         val isLpToken = TokenStore.getToken(tokenSlug)?.isLpToken == true
         setReceiveVisibility(account?.supportsReceiveScreen == true)
         setSendVisibility(account?.accountType != MAccount.AccountType.VIEW)
-        setEarnVisibility(isMainNet)
         setSwapVisibility(account?.supportsSwap == true && !isLpToken)
-        updateEarnTitle(account, tokenSlug)
     }
 
-    private fun updateEarnTitle(account: MAccount?, tokenSlug: String?) {
-        val label = actionViews[HeaderActionsView.Identifier.EARN]?.label ?: return
-        val hasActiveStaking = account?.let { currentAccount ->
-            val stakingTokenSlug = tokenSlug?.let { tokenSlugToStakingSlug(it) ?: it }
-            StakingStore.getStakingState(currentAccount.accountId)?.let { stakingData ->
-                if (stakingTokenSlug != null) {
-                    stakingData.hasActiveStaking(stakingTokenSlug)
-                } else {
-                    stakingData.hasActiveStaking()
-                }
-            } ?: false
-        } ?: false
-        val title = LocaleController.getString(if (hasActiveStaking) "Earning" else "Earn")
-        if (label.text == title) {
-            return
-        }
-        label.text = title
-        updateTextSizes()
-    }
 
     private fun setReceiveVisibility(visible: Boolean) {
         actionViews[HeaderActionsView.Identifier.RECEIVE]?.visibility =
@@ -405,9 +381,6 @@ class TabletHeaderActionsView(
         actionViews[HeaderActionsView.Identifier.SWAP]?.visibility = if (visible) VISIBLE else GONE
     }
 
-    private fun setEarnVisibility(visible: Boolean) {
-        actionViews[HeaderActionsView.Identifier.EARN]?.visibility = if (visible) VISIBLE else GONE
-    }
 
     private class TabletHeaderActionItem(
         context: Context,
@@ -469,7 +442,7 @@ class TabletHeaderActionsView(
         private const val MIN_ICON_INNER_SIZE = 24
         private const val MAX_ICON_INNER_SIZE = 32
 
-        fun headerTabs(context: Context, showEarn: Boolean): List<Item> {
+        fun headerTabs(context: Context): List<Item> {
             return mutableListOf<Item>().apply {
                 add(
                     Item(
@@ -485,15 +458,6 @@ class TabletHeaderActionsView(
                         LocaleController.getString("Trade")
                     )
                 )
-                if (showEarn) {
-                    add(
-                        Item(
-                            HeaderActionsView.Identifier.EARN,
-                            context.requireDrawableCompat(R.drawable.ic_header_earn_outline),
-                            LocaleController.getString("Earn")
-                        )
-                    )
-                }
                 add(
                     Item(
                         HeaderActionsView.Identifier.SEND,

@@ -52,7 +52,6 @@ dependencies {
     implementation(project("$airSubModulePath:UIInAppBrowser"))
     implementation(project("$airSubModulePath:UISend"))
     implementation(project("$airSubModulePath:UISwap"))
-    implementation(project("$airSubModulePath:UIStake"))
     implementation(project("$airSubModulePath:UIPasscode"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

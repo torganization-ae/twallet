@@ -256,7 +256,7 @@ private func moveAssetsAndActivityData(global: GlobalStorage, db: any DatabaseWr
     for accountId in accountIds {
         guard let dict = global.getDict(key: "settings.byAccountId.\(accountId)") else { continue }
         let data = MAssetsAndActivityData(dictionary: dict)
-        let row = MAccountAssetsAndActivityData(accountId: accountId, data: data, didAutoPinStaking: false)
+        let row = MAccountAssetsAndActivityData(accountId: accountId, data: data)
         if row.hasData {
             rows.append(row)
         }

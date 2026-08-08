@@ -96,7 +96,7 @@ function ModalHeader<T extends string>({
           <i className="icon-link" aria-hidden />
         </Button>
       )}
-      {leftContent && !onBackButtonClick && (
+      {Boolean(leftContent) && !onBackButtonClick && (
         <div className={modalStyles.header_left}>
           {leftContent}
         </div>

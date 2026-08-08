@@ -185,8 +185,6 @@ public final class SwapVC: WViewController, WSensitiveDataProtocol {
                 secondaryButtonPressed: nil,
                 preferPrimary: true,
             )
-        case .authorizeDiesel:
-            authorizeDiesel()
         case .confirmSwap(let presentCrosschainResult):
             startSwapFlow(presentCrosschain: presentCrosschainResult)
         case .crosschainFromWallet(let confirmation):
@@ -334,13 +332,6 @@ public final class SwapVC: WViewController, WSensitiveDataProtocol {
         }
     }
 
-    func authorizeDiesel() {
-        if let telegramURL = account.dieselAuthLink {
-            if UIApplication.shared.canOpenURL(telegramURL) {
-                UIApplication.shared.open(telegramURL, options: [:], completionHandler: nil)
-            }
-        }
-    }
 }
 
 extension SwapVC: WKeyboardObserverDelegate {

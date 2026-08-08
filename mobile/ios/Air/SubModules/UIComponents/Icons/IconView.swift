@@ -384,7 +384,7 @@ public class IconView: UIView {
         })
     }
 
-    public func config(with token: ApiToken?, isStaking: Bool = false, isWalletView: Bool = false, shouldShowChain: Bool) {
+    public func config(with token: ApiToken?, shouldShowChain: Bool) {
         defer {
             updateChainAccessoryMask()
         }
@@ -420,15 +420,8 @@ public class IconView: UIView {
             return
         }
         imageView.contentMode = .scaleAspectFill
-        guard token.slug != STAKED_TON_SLUG else {
-            configAsStakedToken(inWalletTokensList: isWalletView, token: token, shouldShowChain: shouldShowChain)
-            return
-        }
         configureTokenImage(token: token, tokenChanged: tokenChanged, imageChanged: imageChanged)
-        if isStaking {
-            chainAccessoryView.configurePercentBadge()
-            chainAccessoryView.isHidden = false
-        } else if shouldShowChain && !token.isNative {
+        if shouldShowChain && !token.isNative {
             let chain = token.chain
             chainAccessoryView.configureChain(chain)
             chainAccessoryView.isHidden = false
@@ -486,23 +479,6 @@ public class IconView: UIView {
         }
     }
     
-    public func config(with earnHistoryItem: MStakingHistoryItem) {
-        applyIconShape(.circle)
-        resetAccountAvatarState()
-        cachedTokenSlug = nil
-        cachedTokenImageURL = nil
-        tokenImageState = .none
-        hideTokenLoadingPlaceholder()
-        hideTokenPlaceholder()
-        imageView.contentMode = .scaleAspectFill
-        imageView.tintColor = nil
-        largeLabel.text = nil
-        smallLabelTop.text = nil
-        smallLabelBottom.text = nil
-        gradientLayer.isHidden = true
-        imageView.image = earnHistoryItem.type.image
-    }
-    
     public func config(with image: UIImage?, tintColor: UIColor? = nil) {
         applyIconShape(.rectangle)
         resetAccountAvatarState()
@@ -523,29 +499,6 @@ public class IconView: UIView {
         chainAccessoryView.isHidden = true
     }
     
-    private func configAsStakedToken(inWalletTokensList: Bool, token: ApiToken, shouldShowChain: Bool) {
-        var forceShowPercent = false
-        if inWalletTokensList {
-            imageView.kf.cancelDownloadTask()
-            imageView.image = UIImage(named: "chain_ton", in: AirBundle, compatibleWith: nil)!
-            tokenImageState = .loaded
-        } else {
-            configureTokenImage(token: token, tokenChanged: false, imageChanged: false)
-            forceShowPercent = tokenImageState == .failed
-        }
-        if shouldShowChain || inWalletTokensList || forceShowPercent {
-            if inWalletTokensList || forceShowPercent {
-                chainAccessoryView.configurePercentBadge()
-            } else {
-                imageView.kf.cancelDownloadTask()
-                chainAccessoryView.configureChain(.ton)
-            }
-            chainAccessoryView.isHidden = false
-        } else {
-            chainAccessoryView.isHidden = true
-        }
-    }
-
     public func setSize(_ size: CGFloat) {
         self.size = size
         self.bounds = .init(x: 0, y: 0, width: size, height: size)

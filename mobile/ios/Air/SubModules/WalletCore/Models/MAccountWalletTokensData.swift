@@ -5,8 +5,7 @@ public struct MAccountWalletTokensData: Equatable, Hashable, Sendable {
     public let orderedTokenBalancesDict: OrderedDictionary<TokenID, MTokenBalance>
 
     public var orderedTokenBalances: [MTokenBalance] { Array(orderedTokenBalancesDict.values) }
-    public var walletTokens: [MTokenBalance] { orderedTokenBalances.filter { !$0.isStaking } }
-    public var walletStaked: [MTokenBalance] { orderedTokenBalances.filter(\.isStaking) }
+    public var walletTokens: [MTokenBalance] { orderedTokenBalances }
 
     init(orderedTokenBalances: [MTokenBalance]) {
         self.orderedTokenBalancesDict = OrderedDictionary(

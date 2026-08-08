@@ -2,26 +2,19 @@ import React, { memo, useRef } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { Theme } from '../../../../global/types';
-import type { StakingStateStatus } from '../../../../util/staking';
 
 import { ANIMATED_STICKER_ICON_PX } from '../../../../config';
 import {
-  selectAccountStakingState,
-  selectAccountStakingStatesBySlug,
   selectCurrentAccountId,
   selectCurrentAccountSettings,
-  selectCurrentAccountState,
   selectIsCurrentAccountViewMode,
-  selectIsStakingDisabled,
   selectIsSwapDisabled,
 } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/haptics';
-import { getStakingStateStatus } from '../../../../util/staking';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
-import { STAKING_TAB_TEXT_VARIANTS } from './helpers/stakingLabels';
 
 import useAppTheme from '../../../../hooks/useAppTheme';
 import useFlag from '../../../../hooks/useFlag';
@@ -52,8 +45,6 @@ interface OwnProps {
 interface StateProps {
   isViewMode: boolean;
   isSwapDisabled?: boolean;
-  isEarnHidden: boolean;
-  stakingStatus: StakingStateStatus;
   theme: Theme;
   accentColorIndex?: number;
 }
@@ -61,8 +52,6 @@ interface StateProps {
 function LandscapeTopActions({
   isViewMode,
   isSwapDisabled,
-  isEarnHidden,
-  stakingStatus,
   theme,
   accentColorIndex,
   className,
@@ -71,7 +60,6 @@ function LandscapeTopActions({
     startTransfer,
     startSwap,
     openReceiveModal,
-    openStakingInfoOrStart,
   } = getActions();
 
   const lang = useLang();
@@ -90,11 +78,6 @@ function LandscapeTopActions({
   const handleTradeClick = useLastCallback(() => {
     vibrate();
     startSwap();
-  });
-
-  const handleEarnClick = useLastCallback(() => {
-    vibrate();
-    openStakingInfoOrStart();
   });
 
   const handleSendClick = useLastCallback(() => {
@@ -135,16 +118,6 @@ function LandscapeTopActions({
           onClick={handleTradeClick}
         />
       )}
-      {!isEarnHidden && (
-        <ActionButton
-          label={lang(STAKING_TAB_TEXT_VARIANTS[stakingStatus])}
-          className={stakingStatus !== 'inactive' ? styles.button_purple : undefined}
-          tgsUrl={stickerPaths[stakingStatus !== 'inactive' ? 'iconEarnPurple' : 'iconEarn']}
-          previewUrl={stickerPaths.preview[stakingStatus !== 'inactive' ? 'iconEarnPurple' : 'iconEarn']}
-          accentColor={stakingStatus === 'inactive' ? accentColor : undefined}
-          onClick={handleEarnClick}
-        />
-      )}
     </div>
   );
 }
@@ -152,18 +125,9 @@ function LandscapeTopActions({
 export default memo(
   withGlobal<OwnProps>(
     (global): StateProps => {
-      const accountId = selectCurrentAccountId(global);
-      const stakingState = accountId ? selectAccountStakingState(global, accountId) : undefined;
-      const currentTokenSlug = selectCurrentAccountState(global)?.currentTokenSlug;
-      const stakingStatesBySlug = accountId ? selectAccountStakingStatesBySlug(global, accountId) : undefined;
-      const isEarnHidden = selectIsStakingDisabled(global)
-        || (currentTokenSlug !== undefined && !stakingStatesBySlug?.[currentTokenSlug]);
-
       return {
         isViewMode: selectIsCurrentAccountViewMode(global),
         isSwapDisabled: selectIsSwapDisabled(global),
-        isEarnHidden,
-        stakingStatus: stakingState ? getStakingStateStatus(stakingState) : 'inactive',
         theme: global.settings.theme,
         accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,
       };

@@ -18,7 +18,7 @@ interface OwnProps {
   token?: Pick<ApiToken, 'symbol' | 'decimals'>;
   isLoading?: boolean;
   isSensitiveDataHidden?: boolean;
-  /** If true, the label will say "All" instead of "Max" and all the amount digits will be shown (made for unstaking) */
+  /** If true, the label will say "All" instead of "Max" and all the amount digits will be shown */
   isAllMode?: boolean;
   isDisabled?: boolean;
   onAmountClick(maxAmount?: bigint): void;

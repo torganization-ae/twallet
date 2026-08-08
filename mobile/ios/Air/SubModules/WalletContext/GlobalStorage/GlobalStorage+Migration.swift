@@ -1,6 +1,6 @@
 import Foundation
 
-public let STATE_VERSION: Int = 59
+public let STATE_VERSION: Int = 60
 
 private let log = Log("GlobalStorage+Migration")
 private let mainAccountId = "0-ton-mainnet"
@@ -274,6 +274,11 @@ extension GlobalStorage {
         if self.stateVersion == 58 {
             _clearActivities()
             self.stateVersion = 59
+        }
+
+        if self.stateVersion == 59 {
+            _dropLegacyStakingPinnedSlugs()
+            self.stateVersion = 60
         }
 
         assert(self.stateVersion == STATE_VERSION)
@@ -609,37 +614,48 @@ extension GlobalStorage {
     }
 
     private func _migrateStakingPinnedSlugs() {
-        let byAccountId = _nestedDicts("byAccountId")
-        guard !byAccountId.isEmpty else { return }
+        // Legacy: previously pinned dual-identity staking rows as "staking-<slug>".
+        // Kept as a no-op historical step; cleanup runs in `_dropLegacyStakingPinnedSlugs`.
+    }
+
+    private func _dropLegacyStakingPinnedSlugs() {
         var settingsByAccountId = _nestedDicts("settings.byAccountId")
+        guard !settingsByAccountId.isEmpty else { return }
+        var changed = false
 
-        for (accountId, accountState) in byAccountId {
-            guard let staking = accountState["staking"] as? [String: Any],
-                  let stateById = staking["stateById"] as? [String: Any]
-            else {
-                continue
-            }
+        for (accountId, settings) in settingsByAccountId {
+            var next = settings
+            var didChangeSettings = false
 
-            let stakingSlugs = stateById.values.compactMap { state -> String? in
-                guard let state = state as? [String: Any],
-                      let tokenSlug = state["tokenSlug"] as? String
-                else {
-                    return nil
-                }
-                return "staking-\(tokenSlug)"
-            }
-
-            guard !stakingSlugs.isEmpty else { continue }
-
-            var settings = settingsByAccountId[accountId] ?? [:]
-            let pinnedSlugs = settings["pinnedSlugs"] as? [String]
+            let pinnedSlugs = (settings["pinnedSlugs"] as? [String])
                 ?? (settings["pinnedSlugs"] as? [Any])?.compactMap { $0 as? String }
-                ?? []
-            settings["pinnedSlugs"] = _unique(stakingSlugs + pinnedSlugs)
-            settingsByAccountId[accountId] = settings
+            if let pinnedSlugs {
+                let filtered = pinnedSlugs.filter { !$0.hasPrefix("staking-") }
+                if filtered.count != pinnedSlugs.count {
+                    next["pinnedSlugs"] = filtered
+                    didChangeSettings = true
+                }
+            }
+
+            let hiddenSlugs = (settings["alwaysHiddenSlugs"] as? [String])
+                ?? (settings["alwaysHiddenSlugs"] as? [Any])?.compactMap { $0 as? String }
+            if let hiddenSlugs {
+                let filtered = hiddenSlugs.filter { !$0.hasPrefix("staking-") }
+                if filtered.count != hiddenSlugs.count {
+                    next["alwaysHiddenSlugs"] = filtered
+                    didChangeSettings = true
+                }
+            }
+
+            if didChangeSettings {
+                settingsByAccountId[accountId] = next
+                changed = true
+            }
         }
 
-        update { $0["settings.byAccountId"] = settingsByAccountId }
+        if changed {
+            update { $0["settings.byAccountId"] = settingsByAccountId }
+        }
     }
 
     private func _migrateNftCollectionTabs() {

@@ -33,7 +33,6 @@ import app.twallet.air.uicomponents.extensions.exactly
 import app.twallet.air.uicomponents.extensions.setConstraints
 import app.twallet.air.uicomponents.extensions.setTextIfDiffer
 import app.twallet.air.uicomponents.extensions.unspecified
-import app.twallet.air.uicomponents.helpers.DieselAuthorizationHelpers
 import app.twallet.air.uicomponents.helpers.HapticType
 import app.twallet.air.uicomponents.helpers.Haptics
 import app.twallet.air.uicomponents.viewControllers.selector.TokenSelectorVC
@@ -289,10 +288,6 @@ class SwapVC(
         }
 
         continueButton.setOnClickListener {
-            if (swapViewModel.shouldAuthorizeDiesel) {
-                DieselAuthorizationHelpers.authorizeDiesel(context)
-                return@setOnClickListener
-            }
             swapViewModel.openSwapConfirmation(null)
         }
 

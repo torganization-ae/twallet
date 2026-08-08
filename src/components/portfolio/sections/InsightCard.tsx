@@ -6,8 +6,6 @@ import buildClassName from '../../../util/buildClassName';
 
 import useLastCallback from '../../../hooks/useLastCallback';
 
-import StackChart from './StackChart';
-
 import styles from './InsightCard.module.scss';
 
 interface OwnProps {
@@ -36,7 +34,21 @@ function InsightCard({ segments, emptyText }: OwnProps) {
           <div className={styles.empty}>{emptyText}</div>
         ) : (
           <>
-            <StackChart segments={segments} hoveredId={hoveredId} onHover={handleHover} />
+            <div className={styles.bar} role="presentation">
+              {segments.map((segment, index) => (
+                <span
+                  key={segment.id}
+                  className={buildClassName(
+                    styles.barSegment,
+                    hoveredId !== undefined && hoveredId !== segment.id && styles.barSegmentFaded,
+                  )}
+                  style={`width: ${(segment.rawAmount / total) * 100}%; background: ${segment.colorHex}`}
+                  title={`${segment.title} ${percentLabels[index]}`}
+                  onMouseEnter={() => handleHover(segment.id)}
+                  onMouseLeave={() => handleHover(undefined)}
+                />
+              ))}
+            </div>
             <ul className={styles.legend}>
               {segments.map((segment, index) => (
                 <li
@@ -48,9 +60,8 @@ function InsightCard({ segments, emptyText }: OwnProps) {
                   onMouseEnter={() => handleHover(segment.id)}
                   onMouseLeave={() => handleHover(undefined)}
                 >
-                  <span className={styles.legendTitle} style={`color: ${segment.colorHex};`}>
-                    {segment.title}
-                  </span>
+                  <i className={styles.legendDot} style={`background: ${segment.colorHex}`} aria-hidden />
+                  <span className={styles.legendTitle}>{segment.title}</span>
                   <span className={styles.legendValue}>{percentLabels[index]}</span>
                 </li>
               ))}

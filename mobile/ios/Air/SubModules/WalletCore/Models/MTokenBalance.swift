@@ -13,10 +13,9 @@ import WalletCoreTypes
 public struct MTokenBalance: Equatable, Hashable, Sendable {
     public let tokenSlug: String
     public let balance: BigInt
-    public let isStaking: Bool
 
     public var tokenID: TokenID {
-        TokenID(slug: tokenSlug, isStaking: isStaking)
+        TokenID(slug: tokenSlug)
     }
 
     // Improvement: token can not be nil if TokenBalance exists
@@ -28,10 +27,9 @@ public struct MTokenBalance: Equatable, Hashable, Sendable {
     public let toBaseCurrency24h: Double?
     public let toUsd: Double?
 
-    public init(tokenSlug: String, balance: BigInt, isStaking: Bool) {
+    public init(tokenSlug: String, balance: BigInt) {
         self.tokenSlug = tokenSlug
         self.balance = balance
-        self.isStaking = isStaking
         if let token = TokenStore.getToken(slug: tokenSlug), let price = token.price, let priceUsd = token.priceUsd {
             tokenPrice = price
             tokenPriceChange = token.percentChange24h
@@ -51,7 +49,6 @@ public struct MTokenBalance: Equatable, Hashable, Sendable {
 
     init(dictionary: [String: Any]) {
         tokenSlug = (dictionary["token"] as? [String: Any])?["slug"] as? String ?? ""
-        isStaking = dictionary["isStaking"] as? Bool ?? false
         if let amountValue = (dictionary["balance"] as? String)?.components(separatedBy: "bigint:")[1] {
             balance = BigInt(amountValue) ?? 0
         } else {
@@ -131,7 +128,6 @@ extension MTokenBalance {
         )
     }
 
-    /// (TokenID, ApiToken) can represent ApiToken and ephemeral staking MTokenBalance
     public static func sortForUI(apiTokens: inout [(TokenID, ApiToken)],
                                  balances: [String: BigInt],
                                  defaultTokenSlugs: OrderedSet<String>,
@@ -263,7 +259,7 @@ extension MTokenBalance {
         var unpinnedTokens: [MTokenBalance] = []
 
         for token in tokens {
-            switch assetsAndActivityData.isTokenPinned(slug: token.tokenSlug, isStaked: token.isStaking) {
+            switch assetsAndActivityData.isTokenPinned(slug: token.tokenSlug) {
             case .pinned(let index):
                 pinnedTokens.append((token, index))
             case .notPinned:
@@ -285,27 +281,20 @@ extension MTokenBalance: CustomStringConvertible {
 extension MTokenBalance {
     public var displayName: String? {
         guard let apiToken = self.token else { return nil }
-        return Self.displayName(apiToken: apiToken, isStaking: isStaking)
+        return Self.displayName(apiToken: apiToken)
     }
     
-    public static func displayName(apiToken: ApiToken, isStaking: Bool, strippingLabelWhenShown: Bool = false) -> String {
-        let name = apiToken.displayName(strippingLabelWhenShown: strippingLabelWhenShown)
-        if isStaking {
-            return name + " Staking"
-        } else {
-            return name
-        }
+    public static func displayName(apiToken: ApiToken, strippingLabelWhenShown: Bool = false) -> String {
+        apiToken.displayName(strippingLabelWhenShown: strippingLabelWhenShown)
     }
 }
 
 public struct TokenID: Hashable, CustomDebugStringConvertible, Sendable {
     public let slug: String
-    public let isStaking: Bool
     
-    public var debugDescription: String { "slug: \(slug), isStaking: \(isStaking)" }
+    public var debugDescription: String { "slug: \(slug)" }
     
-    public init(slug: String, isStaking: Bool) {
+    public init(slug: String) {
         self.slug = slug
-        self.isStaking = isStaking
     }
 }

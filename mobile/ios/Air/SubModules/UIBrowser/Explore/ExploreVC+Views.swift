@@ -12,8 +12,8 @@ extension ExploreVC {
         let connectedDappDidTap = PassthroughSubject<String, Never>()
         let connectedDappSettingsDidTap = PassthroughSubject<Void, Never>()
 
-        let trendingDappDidTap = PassthroughSubject<ApiSite, Never>()
-        let dappFromFolderDidTap = PassthroughSubject<ApiSite, Never>()
+        let recentlyViewedDidTap = PassthroughSubject<BrowserHistoryItem, Never>()
+        let dappFromCarouselDidTap = PassthroughSubject<ApiSite, Never>()
 
         let dappCategoryDidTap = PassthroughSubject<Int, Never>()
 
@@ -28,26 +28,26 @@ extension ExploreVC {
 
         enum Identity: Hashable {
             case lockdownModeWarning
+            case recentlyViewed
             case connectedDapps
-            case trending
-            case popularDapps
+            case category(Int)
         }
     }
 
     enum ContentItem: Equatable, Identifiable {
         case lockdownModeWarning
         case sectionHeader(title: String, isFirstHeader: Bool)
+        case recentlyViewed(items: [BrowserHistoryItem])
         case connectedDapps(dapps: [ApiDapp], layoutVariant: LayoutSizeVariant)
-        case trendingDapps(sites: [ApiSite])
-        case dappFolders(folders: [ExploreScreenDappFolderVM])
+        case categorySites(vm: ExploreScreenCategoryVM, isFirstItem: Bool)
 
         var id: String {
             switch self {
             case .lockdownModeWarning: "lockdownModeWarning_UniqueSingleGroup"
             case let .sectionHeader(title, _): title
+            case .recentlyViewed: "recentlyViewed_UniqueSingleGroup"
             case .connectedDapps: "connectedDapps_UniqueSingleGroup"
-            case .trendingDapps: "trendingDapps_UniqueSingleGroup"
-            case .dappFolders: "dappFolders_UniqueSingleGroup"
+            case let .categorySites(vm, _): "categorySites_\(vm.category.id)"
             }
         }
     }
@@ -102,9 +102,9 @@ extension ExploreVC {
     }
 
     static func makeBrowsingSections(connectedDapps: [ApiDapp],
-                                     featuredTitle: String?,
                                      exploreSites: [ApiSite],
                                      siteCategories: [ApiSiteCategory],
+                                     recentlyViewed: [BrowserHistoryItem],
                                      shouldRestrictSites: Bool,
                                      isLockdownModeEnabled: Bool) -> [SectionItem] {
         let exploreSites = shouldRestrictSites ? exploreSites.filter { !$0.canBeRestricted } : exploreSites
@@ -115,18 +115,25 @@ extension ExploreVC {
         }
         appendContentItems(to: &sections,
                            connectedDapps: connectedDapps,
-                           featuredTitle: featuredTitle,
                            exploreSites: exploreSites,
-                           siteCategories: siteCategories)
+                           siteCategories: siteCategories,
+                           recentlyViewed: recentlyViewed)
         return sections
     }
 
     private static func appendContentItems(to sections: inout [SectionItem],
                                            connectedDapps: [ApiDapp],
-                                           featuredTitle: String?,
                                            exploreSites: [ApiSite],
-                                           siteCategories: [ApiSiteCategory]) {
+                                           siteCategories: [ApiSiteCategory],
+                                           recentlyViewed: [BrowserHistoryItem]) {
         var isFirstHeader: Bool { sections.isEmpty }
+
+        if !recentlyViewed.isEmpty {
+            sections.append(SectionItem(identity: .recentlyViewed, items: [
+                .sectionHeader(title: lang("Recently Viewed"), isFirstHeader: isFirstHeader),
+                .recentlyViewed(items: recentlyViewed),
+            ]))
+        }
 
         // Connected Dapps Section
         if !connectedDapps.isEmpty {
@@ -137,97 +144,31 @@ extension ExploreVC {
             ]))
         }
 
-        // Trending Section
-        let trending = exploreSites.filter { $0.isFeatured == true }
-        if !trending.isEmpty {
-            let titleText: String = if let featuredTitle = featuredTitle, !featuredTitle.isEmpty {
-                lang(featuredTitle)
-            } else {
-                lang("Trending")
-            }
-            sections.append(SectionItem(identity: .trending, items: [
-                .sectionHeader(title: titleText, isFirstHeader: isFirstHeader),
-                .trendingDapps(sites: trending),
-            ]))
+        // One section per category: header + horizontal site carousel (matches web Category.tsx).
+        let categoryVMs = siteCategories.compactMap { category in
+            ExploreScreenCategoryVM(category: category, sites: exploreSites.filter { $0.categoryId == category.id })
         }
 
-        // Popular Apps (All Dapps) Section
-        if !exploreSites.isEmpty {
-            let dappFolderVMs = siteCategories.compactMap { category in
-                let categorySites: [ApiSite] = exploreSites.filter { $0.categoryId == category.id }
-                return ExploreScreenDappFolderVM(category: category, sites: categorySites)
-            }
-
-            if !dappFolderVMs.isEmpty {
-                sections.append(SectionItem(identity: .popularDapps, items: [
-                    .sectionHeader(title: lang("Popular Sites"), isFirstHeader: isFirstHeader),
-                    .dappFolders(folders: dappFolderVMs),
-                ]))
-            }
+        for categoryVM in categoryVMs {
+            sections.append(SectionItem(identity: .category(categoryVM.category.id), items: [
+                .categorySites(vm: categoryVM, isFirstItem: isFirstHeader),
+            ]))
         }
     }
 }
 
 // MARK: - View Models
 
-struct ExploreScreenDappFolderVM: Equatable {
-    let categoryName: String
-    let categoryId: Int
-    let dapps: Dapps
-
-    /// First 3 dapps in the folder
-    enum Dapps: Equatable {
-        case one(ApiSite)
-        case two(ApiSite, ApiSite)
-        case three(ApiSite, ApiSite, ApiSite)
-        case four(ApiSite, ApiSite, ApiSite, LastItemVariant)
-    }
-
-    /// Last icon in folder, either 1 dapp or more items
-    enum LastItemVariant: Equatable {
-        case singleDapp(ApiSite)
-        case moreDapps(MoreDapps)
-    }
-
-    /// Always 2–4 items, guaranteed at construction
-    struct MoreDapps: Equatable {
-        let first: ApiSite
-        let second: ApiSite
-        let rest: [ApiSite]
-
-        init?(firstSite first: ApiSite, otherSites: [ApiSite]) {
-            guard let second = otherSites.first else { return nil }
-            self.first = first
-            self.second = second
-            rest = Array(otherSites.dropFirst().prefix(2))
-        }
-    }
+struct ExploreScreenCategoryVM: Equatable {
+    let category: ApiSiteCategory
+    let sites: [ApiSite]
 }
 
-extension ExploreScreenDappFolderVM {
+extension ExploreScreenCategoryVM {
     init?(category: ApiSiteCategory, sites: [ApiSite]) {
-        // Folder can contain at least 1 element.
-        guard let first = sites[at: 0] else { return nil }
-
-        guard let second = sites[at: 1] else {
-            self.init(categoryName: category.name, categoryId: category.id, dapps: .one(first)); return
-        }
-
-        guard let third = sites[at: 2] else {
-            self.init(categoryName: category.name, categoryId: category.id, dapps: .two(first, second)); return
-        }
-
-        guard let fourth = sites[at: 3] else {
-            self.init(categoryName: category.name, categoryId: category.id, dapps: .three(first, second, third)); return
-        }
-
-        let lastItemVariant: LastItemVariant
-        if let moreDapps = MoreDapps(firstSite: fourth, otherSites: sites.dropFirst(4).apply(Array.init)) {
-            lastItemVariant = .moreDapps(moreDapps)
-        } else {
-            lastItemVariant = .singleDapp(fourth)
-        }
-        self.init(categoryName: category.name, categoryId: category.id, dapps: .four(first, second, third, lastItemVariant))
+        guard !sites.isEmpty else { return nil }
+        self.category = category
+        self.sites = sites
     }
 }
 
@@ -238,7 +179,6 @@ extension ExploreScreenDappFolderVM {
 #Preview {
     @Previewable @State var showConnectedDapps = true
     @Previewable @State var largeConnectedDapps = false
-    @Previewable @State var showTrending = true
 
     let viewOutput = ExploreVC.ViewOutput()
     let viewState = ExploreVC.ObservedViewState()
@@ -247,8 +187,7 @@ extension ExploreScreenDappFolderVM {
 
     let sections = ExploreVC
         .previewBrowsingSections(showConnectedDapps: showConnectedDapps,
-                                 connectedDappsLayout: connectedDappsLayout,
-                                 showTrending: showTrending)
+                                 connectedDappsLayout: connectedDappsLayout)
 
     viewState.updateBrowsing(sections: sections)
 
@@ -257,7 +196,6 @@ extension ExploreScreenDappFolderVM {
             VStack(spacing: 2) {
                 Toggle(isOn: $showConnectedDapps, label: { Text("Show Connected Dapps") })
                 Toggle(isOn: $largeConnectedDapps, label: { Text("Large Connected Dapps") })
-                Toggle(isOn: $showTrending, label: { Text("Show Trending") })
             }
             .background { Rectangle().fill(.ultraThinMaterial).opacity(0.97) }
             .padding(EdgeInsets(top: 0, leading: 20, bottom: -20, trailing: 20))
@@ -266,8 +204,7 @@ extension ExploreScreenDappFolderVM {
 
 extension ExploreVC {
     static func previewBrowsingSections(showConnectedDapps: Bool,
-                                        connectedDappsLayout: LayoutSizeVariant,
-                                        showTrending: Bool) -> [SectionItem] {
+                                        connectedDappsLayout: LayoutSizeVariant) -> [SectionItem] {
         let connectedDapps: [ApiDapp] = if showConnectedDapps {
             switch connectedDappsLayout {
             case .compact: ApiDapp.sampleList.prefix(2).apply(Array.init)
@@ -281,24 +218,18 @@ extension ExploreVC {
 
         var exploreSites: [ApiSite] = []
         for (categoryIndex, category) in categories.enumerated() {
-            if showTrending, categoryIndex == 0 {
-                exploreSites.append(.sampleFeatured(categoryId: category.id))
-                continue
-            }
-
             let sitesCount = categoryIndex + 1
             for siteIndex in 0 ..< sitesCount {
-                let isFeatured = showTrending && sitesCount == 3 // create 3 trending sites when need to show them
                 // sampleIndex is added to to name, as name is used as uniqueness identity for SwiftUI
                 let sampleIndex = categoryIndex * 50 + siteIndex
-                exploreSites.append(.randomSample(categoryId: category.id, isFeatured: isFeatured, uniquenessIndex: sampleIndex))
+                exploreSites.append(.randomSample(categoryId: category.id, uniquenessIndex: sampleIndex))
             }
         }
 
         return Self.makeBrowsingSections(connectedDapps: connectedDapps,
-                                         featuredTitle: nil,
                                          exploreSites: exploreSites,
                                          siteCategories: categories,
+                                         recentlyViewed: [],
                                          shouldRestrictSites: false,
                                          isLockdownModeEnabled: false)
     }
@@ -310,46 +241,37 @@ extension ExploreVC {
         let viewState: ObservedViewState
         let viewOutput: ViewOutput
 
-        private let backgroundColor = Color.air.groupedBackground
-
-        private let trendingDappsInterItemHSpacing: Double = 16
-
-        @Environment(\.horizontalSizeClass)
-        private var horizontalSizeClass: UserInterfaceSizeClass?
-
         private let screenEdgesHSpacing: Double = 20
 
         private static let screenSafeAreaCoordinateSpaceName = "ExploreScreenCoordinateSpace"
 
         var body: some View {
             WithPerceptionTracking {
-                GeometryReader { screenGeometry in
-                    ScrollViewReader { scrollReader in
-                        WithPerceptionTracking {
-                            ScrollView(showsIndicators: false) {
-                                vScrollContent(viewState: viewState, screenGeometry: screenGeometry)
+                ScrollViewReader { scrollReader in
+                    WithPerceptionTracking {
+                        ScrollView(showsIndicators: false) {
+                            vScrollContent(viewState: viewState)
+                        }
+                        .backportScrollEdgeEffectHidden(viewState.content.isBrowsing, for: .top)
+                        .backportScrollClipDisabled()
+                        .scrollDismissesKeyboard(.immediately)
+                        .safeAreaInset(edge: .leading, spacing: screenEdgesHSpacing) {
+                            Color.clear.frame(width: 0, height: 1)
+                        }
+                        .safeAreaInset(edge: .trailing, spacing: screenEdgesHSpacing) {
+                            Color.clear.frame(width: 0, height: 1)
+                        }
+                        .background(viewState.shouldShowWhiteBackground ? Color.air.background : Color.air.groupedBackground)
+                        .onChange(of: viewState.scrollToTopTrigger) { _ in
+                            let scroll = {
+                                scrollReader.scrollTo(viewState.firstAnchorID, anchor: .top)
                             }
-                            .backportScrollEdgeEffectHidden(viewState.content.isBrowsing, for: .top)
-                            .backportScrollClipDisabled()
-                            .scrollDismissesKeyboard(.immediately)
-                            .safeAreaInset(edge: .leading, spacing: screenEdgesHSpacing) {
-                                Color.clear.frame(width: 0, height: 1)
-                            }
-                            .safeAreaInset(edge: .trailing, spacing: screenEdgesHSpacing) {
-                                Color.clear.frame(width: 0, height: 1)
-                            }
-                            .background(viewState.shouldShowWhiteBackground ? Color.air.background : Color.air.groupedBackground)
-                            .onChange(of: viewState.scrollToTopTrigger) { _ in
-                                let scroll = {
-                                    scrollReader.scrollTo(viewState.firstAnchorID, anchor: .top)
-                                }
-                                if viewState.scrollToTopAnimated {
-                                    withAnimation { scroll() }
-                                } else {
-                                    var transaction = Transaction()
-                                    transaction.disablesAnimations = true
-                                    withTransaction(transaction, scroll)
-                                }
+                            if viewState.scrollToTopAnimated {
+                                withAnimation { scroll() }
+                            } else {
+                                var transaction = Transaction()
+                                transaction.disablesAnimations = true
+                                withTransaction(transaction, scroll)
                             }
                         }
                     }
@@ -358,13 +280,13 @@ extension ExploreVC {
             }
         } 
 
-        private func vScrollContent(viewState: ObservedViewState, screenGeometry: GeometryProxy) -> some View {
+        private func vScrollContent(viewState: ObservedViewState) -> some View {
             @ViewBuilder var content: some View {
                 Group {
                     switch viewState.content {
                     case .browsing(let sections):
                         ForEach(sections) { sectionItem in
-                            viewForSection(sectionItem, screenGeometryProxy: screenGeometry)
+                            viewForSection(sectionItem)
                         }
                     case .search(let result):
                         searchContent(result)
@@ -395,14 +317,14 @@ extension ExploreVC {
             return stack
         }
 
-        @ViewBuilder private func viewForSection(_ sectionItem: SectionItem, screenGeometryProxy: GeometryProxy) -> some View {
+        @ViewBuilder private func viewForSection(_ sectionItem: SectionItem) -> some View {
             ForEach(sectionItem.items) { contentItem in
-                viewForItem(contentItem, screenGeometryProxy: screenGeometryProxy)
+                viewForItem(contentItem)
             }
             .id(sectionItem.id)
         }
 
-        @ViewBuilder private func viewForItem(_ contentItem: ContentItem, screenGeometryProxy: GeometryProxy) -> some View {
+        @ViewBuilder private func viewForItem(_ contentItem: ContentItem) -> some View {
             switch contentItem {
             case .lockdownModeWarning:
                 lockdownModeWarningView()
@@ -410,24 +332,52 @@ extension ExploreVC {
             case let .sectionHeader(title, isFirstHeader):
                 sectionHeaderView(title: title, isFirstHeader: isFirstHeader)
 
+            case let .recentlyViewed(items):
+                recentlyViewedView(items: items)
+
             case let .connectedDapps(dapps, layoutVariant):
                 connectedDappsView(dapps: dapps, layoutVariant: layoutVariant)
 
-            case let .trendingDapps(sites):
-                if #available(iOS 17.0, *) {
-                    trendingDappsView(sites: sites)
-                } else {
-                    trendingDappsView_below_iOS17(sites: sites, screenGeometryProxy: screenGeometryProxy)
-                }
-
-            case let .dappFolders(folderVMs):
-                ExploreScreenDappFoldersView(folders: folderVMs,
-                                             onTapDapp: { site in
-                                                 viewOutput.dappFromFolderDidTap.send(site)
-                                             }, onTapMore: { categoryId in
-                                                 viewOutput.dappCategoryDidTap.send(categoryId)
-                                             })
+            case let .categorySites(vm, isFirstItem):
+                ExploreScreenCategoryCarouselView(vm: vm,
+                                                  isFirstItem: isFirstItem,
+                                                  onTapDapp: { site in
+                                                      viewOutput.dappFromCarouselDidTap.send(site)
+                                                  }, onTapCategory: { categoryId in
+                                                      viewOutput.dappCategoryDidTap.send(categoryId)
+                                                  })
             }
+        }
+
+        private func recentlyViewedView(items: [BrowserHistoryItem]) -> some View {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: 12) {
+                    ForEach(items, id: \.url) { item in
+                        Button {
+                            viewOutput.recentlyViewedDidTap.send(item)
+                        } label: {
+                            VStack(spacing: 8) {
+                                KFImage(URL(string: item.favicon))
+                                    .resizable()
+                                    .placeholder {
+                                        Image(systemName: "globe")
+                                            .foregroundStyle(Color.air.secondaryLabel)
+                                    }
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 60, height: 60)
+                                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                Text(item.title.isEmpty ? (URL(string: item.url)?.host ?? item.url) : item.title)
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(Color.air.primaryLabel)
+                                    .lineLimit(1)
+                                    .frame(width: 72)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .backportScrollClipDisabled()
         }
 
         @ViewBuilder private func searchContent(_ result: ComposedSearchResult) -> some View {
@@ -497,116 +447,6 @@ extension ExploreVC {
             }
         }
 
-        @available(iOS 17.0, *)
-        private func trendingDappsView(sites: [ApiSite]) -> some View {
-            AutoScrollingTrendingView(
-                sites: sites,
-                spacing: trendingDappsInterItemHSpacing,
-                viewOutput: viewOutput,
-                itemWidth: { trendingDappViewWidth(basedOn: $0) }
-            )
-        }
-
-        private func trendingDappsView_below_iOS17(sites: [ApiSite], screenGeometryProxy: GeometryProxy) -> some View {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: trendingDappsInterItemHSpacing) {
-                    ForEach(sites, id: \.url) { site in
-                        trendingDappView_below_iOS17(site: site, screenGeometryProxy: screenGeometryProxy)
-                    }
-                }
-            }
-            // on iOS16 ScrollView is not sized by child views, so make scrollView height via aspectRatio
-            .aspectRatio(horizontalSizeClass == .regular ? 4 : 2, contentMode: .fit)
-            .backportScrollClipDisabled()
-        }
-
-        private func trendingDappView_below_iOS17(site: ApiSite, screenGeometryProxy: GeometryProxy) -> some View {
-            let safeAreaWidth = screenGeometryProxy.size.width
-            let hScrollWidth = safeAreaWidth - screenEdgesHSpacing - screenEdgesHSpacing
-
-            return ExploreScreenFeaturedDappView(site: site, onTap: {
-                viewOutput.trendingDappDidTap.send(site)
-            })
-            .frame(idealWidth: trendingDappViewWidth(basedOn: hScrollWidth))
-        }
-
-        private func trendingDappViewWidth(basedOn hScrollWidth: CGFloat) -> CGFloat {
-            Self.adaptiveWidthFor(availableHorizontalSpace: hScrollWidth,
-                                  itemMinWidth: min(320, hScrollWidth),
-                                  spacing: trendingDappsInterItemHSpacing)
-        }
-
-    }
-}
-
-// MARK: - Auto-Scrolling Trending View
-
-@available(iOS 17.0, *)
-private struct AutoScrollingTrendingView: View {
-    let sites: [ApiSite]
-    let spacing: Double
-    let viewOutput: ExploreVC.ViewOutput
-    let itemWidth: (CGFloat) -> CGFloat
-
-    private static let autoScrollInterval: UInt64 = 5_000_000_000
-    private static let manualScrollPause: UInt64 = 5_000_000_000
-
-    @State private var currentIndex: Int = 0
-    @State private var autoScrollTask: Task<Void, Never>?
-
-    var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: spacing) {
-                    ForEach(Array(sites.enumerated()), id: \.element.url) { index, site in
-                        ExploreScreenFeaturedDappView(site: site, onTap: {
-                            viewOutput.trendingDappDidTap.send(site)
-                        })
-                        .aspectRatio(2, contentMode: .fill)
-                        .containerRelativeFrame(.horizontal) { hScrollWidth, _ in
-                            itemWidth(hScrollWidth)
-                        }
-                        .id(index)
-                    }
-                }
-                .scrollTargetLayout()
-            }
-            .scrollTargetBehavior(.viewAligned)
-            .scrollClipDisabled()
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 2)
-                    .onChanged { _ in cancelAutoScroll() }
-                    .onEnded { _ in startAutoScroll(delay: Self.manualScrollPause, proxy: proxy) }
-            )
-            .onAppear {
-                if sites.count > 1 {
-                    startAutoScroll(delay: Self.autoScrollInterval, proxy: proxy)
-                }
-            }
-            .onDisappear {
-                cancelAutoScroll()
-            }
-        }
-    }
-
-    private func startAutoScroll(delay: UInt64, proxy: ScrollViewProxy) {
-        guard sites.count > 1 else { return }
-        cancelAutoScroll()
-        autoScrollTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: delay)
-            while !Task.isCancelled {
-                currentIndex = (currentIndex + 1) % sites.count
-                withAnimation(.spring(duration: 0.5)) {
-                    proxy.scrollTo(currentIndex, anchor: .leading)
-                }
-                try? await Task.sleep(nanoseconds: Self.autoScrollInterval)
-            }
-        }
-    }
-
-    private func cancelAutoScroll() {
-        autoScrollTask?.cancel()
-        autoScrollTask = nil
     }
 }
 

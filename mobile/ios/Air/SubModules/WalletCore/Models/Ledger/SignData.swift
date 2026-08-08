@@ -51,18 +51,4 @@ public enum SignData: Sendable {
         nfts: [ApiNft],
         realFee: BigInt?
     )
-    
-    case staking(
-        isStaking: Bool,
-        accountId: String,
-        amount: BigInt,
-        stakingState: ApiStakingState,
-        realFee: BigInt?
-    )
-    
-    case submitStakingClaimOrUnlock(
-        accountId: String,
-        state: ApiStakingState,
-        realFee: BigInt?
-    )
 }

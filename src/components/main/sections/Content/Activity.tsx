@@ -5,7 +5,6 @@ import type {
   ApiBaseCurrency,
   ApiCurrencyRates,
   ApiNft,
-  ApiStakingState,
   ApiSwapAsset,
   ApiTokenWithPrice,
 } from '../../../../api/types';
@@ -27,12 +26,10 @@ interface OwnProps {
   appTheme: AppTheme;
   nftsByAddress: Record<string, ApiNft> | undefined;
   currentAccountId: string;
-  stakingStateBySlug: Record<string, ApiStakingState>;
   savedAddresses: SavedAddress[] | undefined;
   accounts: Record<string, Account> | undefined;
   baseCurrency: ApiBaseCurrency;
   currencyRates: ApiCurrencyRates;
-  shouldHideStakingAnnualYield?: boolean;
   onClick?: (id: string) => void;
 }
 
@@ -49,12 +46,10 @@ export default function Activity({
   appTheme,
   nftsByAddress,
   currentAccountId,
-  stakingStateBySlug,
   savedAddresses,
   accounts,
   baseCurrency,
   currencyRates,
-  shouldHideStakingAnnualYield,
   onClick,
 }: OwnProps) {
   if (activity.kind === 'swap') {
@@ -75,8 +70,6 @@ export default function Activity({
     );
   } else {
     const doesNftExist = Boolean(activity.nft && nftsByAddress?.[activity.nft.address]);
-    const { annualYield, yieldType } = stakingStateBySlug[activity.slug] ?? {};
-
     return (
       <Transaction
         currentAccountId={currentAccountId}
@@ -84,8 +77,6 @@ export default function Activity({
         tokensBySlug={tokensBySlug}
         isActive={isActive}
         className={className}
-        annualYield={annualYield}
-        yieldType={yieldType}
         isLast={isLast}
         savedAddresses={savedAddresses}
         withChainIcon={withChainIcon}
@@ -96,7 +87,6 @@ export default function Activity({
         accounts={accounts}
         baseCurrency={baseCurrency}
         currencyRates={currencyRates}
-        shouldHideStakingAnnualYield={shouldHideStakingAnnualYield}
         onClick={onClick}
       />
     );

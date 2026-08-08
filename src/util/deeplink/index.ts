@@ -58,7 +58,6 @@ export const enum DeeplinkCommand {
   CheckinWithR = 'r',
   Swap = 'swap',
   BuyWithCrypto = 'buy-with-crypto',
-  Stake = 'stake',
   Transfer = 'transfer',
   Send = 'send',
   Explore = 'explore',
@@ -748,15 +747,6 @@ export async function processSelfDeeplink(deeplink: string, isFromInAppBrowser =
             tokenOutSlug: searchParams.get('out') || nativeToken.slug,
             amountIn: toNumberOrEmptyString(searchParams.get('amount')) || defaultBuySwap!.amountIn,
           });
-        }
-        return true;
-      }
-
-      case DeeplinkCommand.Stake: {
-        if (isTestnet) {
-          actions.showError({ error: 'Staking is not supported in Testnet.' });
-        } else {
-          actions.startStaking();
         }
         return true;
       }

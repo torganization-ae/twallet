@@ -43,7 +43,7 @@ struct OnchainSwapFeeStatus {
                 switch swapEstimate.dieselStatus {
                 case .pendingPrevious:
                     return .awaitingPreviousFee
-                case .notAuthorized, .available, .starsFee:
+                case .available:
                     return nil
                 case .notAvailable:
                     break
@@ -52,18 +52,6 @@ struct OnchainSwapFeeStatus {
             return sellingToken.isNative ? .insufficientBalance : .notEnoughToken(feeStatus.nativeToken)
         }
         return nil
-    }
-
-    func requiresDieselAuthorization(
-        input: SwapValidationInput,
-        swapEstimate: ApiSwapEstimateResponse?,
-        account: SwapAccountSnapshot
-    ) -> Bool {
-        guard let swapEstimate else {
-            return false
-        }
-        return feeStatus(input: input, swapEstimate: swapEstimate, account: account).explainedFee.isGasless
-            && swapEstimate.dieselStatus == .notAuthorized
     }
 
     func shouldTryDiesel(

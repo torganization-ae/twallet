@@ -116,16 +116,6 @@ export {
   pickWalletByAddress,
 } from './wallet';
 export {
-  checkStakeDraft,
-  checkUnstakeDraft,
-  submitTokenStakingClaim,
-  submitStake,
-  submitUnstake,
-  getStakingStates,
-  getBackendStakingState,
-  submitUnstakeEthenaLocked,
-} from './staking';
-export {
   insertMintlessPayload,
 } from './tokens';
 export {

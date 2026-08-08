@@ -326,7 +326,7 @@ public class TokenSelectionVC: WViewController {
         guard showMyAssets else { return }
         for slug in extraWalletTokenSlugs where walletTokens.contains(where: { $0.tokenSlug == slug }) == false {
             guard TokenStore.getToken(slug: slug) != nil else { continue }
-            walletTokens.append(MTokenBalance(tokenSlug: slug, balance: 0, isStaking: false))
+            walletTokens.append(MTokenBalance(tokenSlug: slug, balance: 0))
         }
     }
     

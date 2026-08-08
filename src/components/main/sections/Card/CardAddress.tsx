@@ -1,14 +1,12 @@
 import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiChain, ApiStakingState } from '../../../../api/types';
+import type { ApiChain } from '../../../../api/types';
 import type { AccountChain, AccountType, UserToken } from '../../../../global/types';
 
-import { STAKED_TOKEN_SLUGS } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
 import {
   selectAccount,
-  selectAccountStakingStates,
   selectCurrentAccountId,
   selectCurrentAccountTokens,
 } from '../../../../global/selectors';
@@ -17,10 +15,8 @@ import { CHAIN_DISPLAY_ORDER, getChainTitle } from '../../../../util/chain';
 import { copyTextToClipboard } from '../../../../util/clipboard';
 import { toBig } from '../../../../util/decimals';
 import { getAddressDisplayByChain } from '../../../../util/formatAccountAddress';
-import { buildArrayCollectionByKey } from '../../../../util/iteratees';
 import { openUrl } from '../../../../util/openUrl';
 import { shortenAddress } from '../../../../util/shortenAddress';
-import { getFullStakingBalance } from '../../../../util/staking';
 import getChainNetworkIcon from '../../../../util/swap/getChainNetworkIcon';
 import { getExplorerAddressUrl, getExplorerName } from '../../../../util/url';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
@@ -44,20 +40,10 @@ const CHAIN_ORDER = new Map<ApiChain, number>(
 function calculateChainBalanceUsd(
   chain: ApiChain,
   tokens?: UserToken[],
-  stakingStates?: ApiStakingState[],
 ) {
-  const stakingStateBySlug = buildArrayCollectionByKey(stakingStates ?? [], 'tokenSlug');
-
   return (tokens ?? []).reduce((acc, token) => {
-    if (token.chain !== chain || STAKED_TOKEN_SLUGS.has(token.slug)) {
+    if (token.chain !== chain) {
       return acc;
-    }
-
-    const tokenStakingStates = stakingStateBySlug[token.slug] ?? [];
-    for (const stakingState of tokenStakingStates) {
-      const stakingAmount = toBig(getFullStakingBalance(stakingState), token.decimals);
-
-      acc = acc.plus(stakingAmount.mul(token.priceUsd));
     }
 
     return acc.plus(toBig(token.amount, token.decimals).mul(token.priceUsd));
@@ -189,12 +175,9 @@ export default memo(withGlobal((global): StateProps => {
   const { type: accountType, byChain, isTemporary } = account || {};
 
   const accountTokens = selectCurrentAccountTokens(global);
-  const stakingStates = accountId ? selectAccountStakingStates(global, accountId) : undefined;
-
   const displayByChain = getAddressDisplayByChain(
     byChain || {},
     accountTokens,
-    stakingStates,
     global.settings.isTestnet ? 'testnet' : 'mainnet',
   );
 
@@ -202,7 +185,7 @@ export default memo(withGlobal((global): StateProps => {
   const byChainWithBalances = new Map(Object.entries(displayByChain).map(([chainKey, account]) => {
     const chain = chainKey as ApiChain;
 
-    const balance = calculateChainBalanceUsd(chain, accountTokens, stakingStates);
+    const balance = calculateChainBalanceUsd(chain, accountTokens);
 
     return [
       chain,

@@ -1274,6 +1274,10 @@ a.item:hover {
   line-height: 0.875rem !important;
 }
 
+.safeDialog {
+  border-radius: var(--border-radius-default) !important;
+}
+
 .account {
   transition: opacity 300ms;
 }

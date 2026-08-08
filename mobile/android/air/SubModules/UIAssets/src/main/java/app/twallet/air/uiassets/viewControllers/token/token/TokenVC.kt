@@ -45,9 +45,6 @@ import app.twallet.air.uicomponents.widgets.fadeOut
 import app.twallet.air.uireceive.ReceiveVC
 import app.twallet.air.uisend.send.MultisendLauncher
 import app.twallet.air.uisend.send.SendVC
-import app.twallet.air.uistake.earn.EarnRootVC
-import app.twallet.air.uistake.staking.StakingVC
-import app.twallet.air.uistake.staking.StakingViewModel
 import app.twallet.air.uiswap.screens.swap.SwapVC
 import app.twallet.air.uitransaction.viewControllers.transaction.TransactionVC
 import app.twallet.air.walletbasecontext.theme.ViewConstants
@@ -440,20 +437,6 @@ class TokenVC(context: Context, private val account: MAccount, var token: MToken
                 MultisendLauncher.launch(this)
             }
 
-            HeaderActionsView.Identifier.EARN -> {
-                val hasActiveStaking =
-                    AccountStore.stakingData?.hasActiveStaking(token.slug) == true
-                val navVC = WNavigationController(
-                    window!!,
-                    WNavigationController.PresentationConfig.PreferredFullScreen
-                )
-                if (hasActiveStaking) {
-                    navVC.setRoot(EarnRootVC(context, token.slug))
-                } else {
-                    navVC.setRoot(StakingVC(context, token.slug, StakingViewModel.Mode.STAKE))
-                }
-                window?.present(navVC)
-            }
 
             HeaderActionsView.Identifier.SWAP -> {
                 val navVC = WNavigationController(
@@ -633,7 +616,7 @@ class TokenVC(context: Context, private val account: MAccount, var token: MToken
             ACTIONS_CELL -> {
                 actionsView = HeaderActionsView(
                     context,
-                    tabs = HeaderActionsView.headerTabs(context, token.isEarnAvailable),
+                    tabs = HeaderActionsView.headerTabs(context),
                     onClick = {
                         onClick(it)
                     },

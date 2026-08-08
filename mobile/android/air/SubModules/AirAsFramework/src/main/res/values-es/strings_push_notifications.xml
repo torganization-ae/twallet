@@ -15,9 +15,6 @@
   <string name="push_activity_nft_minted_named">NFT acuñado: %1$s</string>
   <string name="push_activity_liquidity_deposited">Liquidez aportada</string>
   <string name="push_activity_liquidity_withdrawn">Liquidez retirada</string>
-  <string name="push_activity_stake_deposit">En staking %1$s %2$s</string>
-  <string name="push_activity_stake_withdrawal">Retirado del staking %1$s %2$s</string>
-  <string name="push_activity_stake_withdrawal_request">Solicitud de retiro de staking enviada</string>
   <string name="push_activity_auction_bid">Puja de subasta realizada %1$s %2$s</string>
   <string name="push_activity_dns_changed">Registro DNS actualizado</string>
   <string name="push_activity_dns_deleted">Registro DNS eliminado</string>
@@ -29,8 +26,6 @@
   <string name="push_activity_swap_failed">Intercambio %1$s -> %2$s fallido</string>
   <string name="push_activity_swap_expired">Intercambio %1$s -> %2$s caducado</string>
   <string name="push_activity_swap_pending">Intercambio %1$s -> %2$s %3$s</string>
-  <string name="push_activity_staking_profit">Recompensa de staking %1$s GRAM</string>
-  <string name="push_activity_staking_loyalty_profit">Recompensa de lealtad de staking %1$s GRAM</string>
   <string name="push_domain_title_renew">Renueva tu dominio</string>
   <string name="push_domain_expired_yesterday">Tu dominio %1$s venció ayer. Renuévalo lo antes posible para evitar perder el acceso</string>
   <string name="push_domain_expired_days_ago">Tu dominio %1$s venció hace %2$s días. Renuévalo lo antes posible para evitar perder el acceso</string>

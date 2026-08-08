@@ -11,6 +11,7 @@ abstract class IBottomNavigationView(context: Context) : FrameLayout(context), W
         const val ID_HOME = 1
         const val ID_EXPLORE = 3
         const val ID_SETTINGS = 4
+        const val ID_TMAIL = 5
     }
 
     interface Listener {
@@ -30,6 +31,8 @@ abstract class IBottomNavigationView(context: Context) : FrameLayout(context), W
     abstract fun setTabsEnabled(enabled: Boolean)
 
     open fun getSettingsItemView(): View? = null
+
+    open fun getTabItemView(itemId: Int): View? = null
 
     open fun getMinimizedWidth(): Int? = null
 

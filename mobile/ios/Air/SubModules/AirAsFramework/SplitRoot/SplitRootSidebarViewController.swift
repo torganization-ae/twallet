@@ -382,7 +382,12 @@ final class SplitRootSidebarViewController: WViewController, WalletCoreData.Even
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return false }
         switch item {
         case .tab(let tabId):
-            viewModel.onTabTap(tabId)
+            if tabId.isActionOnly {
+                let source = collectionView.cellForItem(at: indexPath) ?? collectionView
+                AppActions.showProductChooser(from: source)
+            } else {
+                viewModel.onTabTap(tabId)
+            }
         case .account(let accountId):
             selectAccount(accountId)
         case .walletSettings:

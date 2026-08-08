@@ -354,14 +354,6 @@ class SwapViewModel : ViewModel(), WalletCore.EventObserver {
         return _simulatedSwapFlow.value
     }
 
-    val shouldAuthorizeDiesel: Boolean
-        get() {
-            _simulatedSwapFlow.value?.let {
-                return it.request.isDiesel && it.dex?.dieselStatus == MDieselStatus.NOT_AUTHORIZED
-            }
-            return false
-        }
-
     /** Swap Estimate **/
 
     private companion object {
@@ -550,7 +542,6 @@ class SwapViewModel : ViewModel(), WalletCore.EventObserver {
 
         LessThanMinCex,
         MoreThanMaxCex,
-        AuthorizeDiesel,
         PendingPreviousDiesel,
 
         NotEnoughNativeToken,
@@ -559,7 +550,7 @@ class SwapViewModel : ViewModel(), WalletCore.EventObserver {
         Ready;
 
         val isEnabled: Boolean
-            get() = this == Ready || this == AuthorizeDiesel
+            get() = this == Ready
 
         val isLoading: Boolean
             get() = this == Loading
@@ -729,13 +720,6 @@ class SwapViewModel : ViewModel(), WalletCore.EventObserver {
         val nativeFee = estimated.fee ?: BigInteger.ZERO
         if (nativeFee > state.nativeTokenToSendBalance && state.tokenToSendIsSupported) {
             if (estimated.request.isDiesel) {
-                if (shouldAuthorizeDiesel) {
-                    return ButtonState(
-                        ButtonStatus.AuthorizeDiesel, LocaleController.getFormattedString(
-                            "Authorize %1$@ fee", listOf(tokenToSend.symbol ?: "")
-                        )
-                    )
-                }
                 if (_simulatedSwapFlow.value?.dex?.dieselStatus == MDieselStatus.PENDING_PREVIOUS) {
                     return ButtonState(
                         ButtonStatus.PendingPreviousDiesel,

@@ -28,8 +28,6 @@ public final class AccountContext: Sendable {
     @PerceptionIgnored
     @Dependency(\.balancesStore) private var balancesStore
     @PerceptionIgnored
-    @Dependency(\.stakingStore) private var stakingStore
-    @PerceptionIgnored
     @Dependency(\.savedAddresses) private var savedAddressesStore
     @PerceptionIgnored
     @Dependency(\.domains) private var domainsStore
@@ -83,9 +81,6 @@ public final class AccountContext: Sendable {
     public var walletTokens: [MTokenBalance]? {
         walletTokensData?.walletTokens
     }
-    public var walletStaked: [MTokenBalance]? {
-        walletTokensData?.walletStaked
-    }
     public var balanceTotals: MAccountBalanceTotals? {
         balanceDataStore.balanceTotals(accountId: accountId)
     }
@@ -111,19 +106,6 @@ public final class AccountContext: Sendable {
         let index = accountSettings.for(accountId: accountId).accentColorIndex
         let color = getAccentColorByIndex(index)
         return color
-    }
-    public var stakingData: MStakingData? {
-        stakingStore.stakingData(accountId: accountId)
-    }
-    public func getStakingBadgeContent(tokenSlug: String, isStaking: Bool) -> StakingBadgeContent? {
-        guard let stakingState = stakingData?.bySlug(tokenSlug),
-              getHasPositiveStakingYield(state: stakingState) else { return nil }
-        if isStaking, stakingState.balance > 0 {
-            return StakingBadgeContent(isActive: true, yieldType: stakingState.yieldType, yieldValue: stakingState.apy)
-        } else if !isStaking, stakingState.balance == 0 {
-            return StakingBadgeContent(isActive: false, yieldType: stakingState.yieldType, yieldValue: stakingState.apy)
-        }
-        return nil
     }
     public var savedAddresses: SavedAddresses {
         savedAddressesStore.for(accountId: accountId)

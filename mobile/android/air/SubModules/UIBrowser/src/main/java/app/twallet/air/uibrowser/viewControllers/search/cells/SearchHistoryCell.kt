@@ -1,7 +1,6 @@
 package app.twallet.air.uibrowser.viewControllers.search.cells
 
 import android.annotation.SuppressLint
-import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.text.TextUtils
@@ -9,12 +8,11 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.net.toUri
-import androidx.core.view.isGone
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.WFont
+import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import app.twallet.air.uicomponents.image.Content
 import app.twallet.air.uicomponents.image.WCustomImageView
-import app.twallet.air.uicomponents.widgets.WBaseView
 import app.twallet.air.uicomponents.widgets.WCell
 import app.twallet.air.uicomponents.widgets.WLabel
 import app.twallet.air.uicomponents.widgets.WThemedView
@@ -27,13 +25,15 @@ import app.twallet.air.walletcore.models.MExploreHistory
 import java.util.Date
 
 @SuppressLint("ViewConstructor")
-class SearchHistoryCell(context: Context) :
-    WCell(context, LayoutParams(MATCH_PARENT, 60.dp)), WThemedView {
-
-    private val historyDrawable: Drawable? = AppCompatResources.getDrawable(
-        context,
-        app.twallet.air.uicomponents.R.drawable.ic_history
-    )
+class SearchHistoryCell(
+    context: Context
+) : WCell(context, LayoutParams(MATCH_PARENT, 60.dp)),
+    WThemedView {
+    private val historyDrawable: Drawable? =
+        AppCompatResources.getDrawable(
+            context,
+            app.twallet.air.uicomponents.R.drawable.ic_history
+        )
 
     private val historyImageView: WCustomImageView by lazy {
         WCustomImageView(context).apply {
@@ -124,5 +124,4 @@ class SearchHistoryCell(context: Context) :
         )
         historyDrawable?.setTint(WColor.SecondaryText.color)
     }
-
 }

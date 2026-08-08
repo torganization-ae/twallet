@@ -26,8 +26,10 @@ import app.twallet.air.walletcore.models.MExploreCategory
 import app.twallet.air.walletcore.models.MExploreSite
 import java.lang.ref.WeakReference
 
-class ExploreCategoryVC(context: Context, val category: MExploreCategory) :
-    WViewController(context),
+class ExploreCategoryVC(
+    context: Context,
+    val category: MExploreCategory
+) : WViewController(context),
     WRecyclerViewAdapter.WRecyclerViewDataSource {
     override val TAG = "ExploreCategory"
 
@@ -46,20 +48,23 @@ class ExploreCategoryVC(context: Context, val category: MExploreCategory) :
             arrayOf(EXPLORE_SITE_CELL)
         )
 
-    private val scrollListener = object : RecyclerView.OnScrollListener() {
-        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-            super.onScrollStateChanged(recyclerView, newState)
-            if (recyclerView.computeVerticalScrollOffset() == 0)
-                updateBlurViews(recyclerView)
-        }
+    private val scrollListener =
+        object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (recyclerView.computeVerticalScrollOffset() == 0) {
+                    updateBlurViews(recyclerView)
+                }
+            }
 
-        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-            super.onScrolled(recyclerView, dx, dy)
-            if (dx == 0 && dy == 0)
-                return
-            updateBlurViews(recyclerView)
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dx == 0 && dy == 0) {
+                    return
+                }
+                updateBlurViews(recyclerView)
+            }
         }
-    }
 
     private val recyclerView: WRecyclerView by lazy {
         val rv = WRecyclerView(this)
@@ -119,8 +124,9 @@ class ExploreCategoryVC(context: Context, val category: MExploreCategory) :
     }
 
     private fun onSiteTap(app: MExploreSite) {
-        if (app.url.isNullOrEmpty())
+        if (app.url.isNullOrEmpty()) {
             return
+        }
         if (app.isExternal ||
             (!app.url!!.startsWith("http://") && !app.url!!.startsWith("https://")) ||
             app.isTelegram
@@ -133,33 +139,28 @@ class ExploreCategoryVC(context: Context, val category: MExploreCategory) :
             }
             return
         }
-        val inAppBrowserVC = InAppBrowserVC(
-            context,
-            navigationController?.tabBarController,
-            InAppBrowserConfig(
-                url = app.url!!,
-                title = app.name,
-                thumbnail = app.iconUrl,
-                injectDappConnect = true,
-                saveInVisitedHistory = true,
+        val inAppBrowserVC =
+            InAppBrowserVC(
+                context,
+                navigationController?.tabBarController,
+                InAppBrowserConfig(
+                    url = app.url!!,
+                    title = app.name,
+                    thumbnail = app.iconUrl,
+                    injectDappConnect = true,
+                    saveInVisitedHistory = true,
+                )
             )
-        )
         val nav = WNavigationController(window!!)
         nav.setRoot(inAppBrowserVC)
         window!!.present(nav)
     }
 
-    override fun recyclerViewNumberOfSections(rv: RecyclerView): Int {
-        return 1
-    }
+    override fun recyclerViewNumberOfSections(rv: RecyclerView): Int = 1
 
-    override fun recyclerViewNumberOfItems(rv: RecyclerView, section: Int): Int {
-        return category.sites.size
-    }
+    override fun recyclerViewNumberOfItems(rv: RecyclerView, section: Int): Int = category.sites.size
 
-    override fun recyclerViewCellType(rv: RecyclerView, indexPath: IndexPath): WCell.Type {
-        return EXPLORE_SITE_CELL
-    }
+    override fun recyclerViewCellType(rv: RecyclerView, indexPath: IndexPath): WCell.Type = EXPLORE_SITE_CELL
 
     override fun recyclerViewCellView(rv: RecyclerView, cellType: WCell.Type): WCell {
         val weakThis = WeakReference(this)
@@ -184,5 +185,4 @@ class ExploreCategoryVC(context: Context, val category: MExploreCategory) :
         super.onDestroy()
         recyclerView.removeOnScrollListener(scrollListener)
     }
-
 }

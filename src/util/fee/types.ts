@@ -12,11 +12,6 @@ export type FeeTerms<T extends FeeValue = FeeValue> = {
   token?: T;
   /** The fee part paid in the chain's native token */
   native?: T;
-  /**
-   * The fee part paid in stars.
-   * The BigInt assumes 0 decimal places (i.e. the number is equal to the visible number of stars).
-   */
-  stars?: T;
 };
 
 export type FeePrecision = 'exact' | 'approximate' | 'lessThan';

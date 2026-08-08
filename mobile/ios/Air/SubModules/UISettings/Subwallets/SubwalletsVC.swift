@@ -639,7 +639,7 @@ final class SubwalletsListVC: SettingsBaseVC, UICollectionViewDelegate {
             for (slug, raw) in entry.balancesBySlug where raw > .zero {
                 guard let token = TokenStore.getToken(slug: slug) else { continue }
 
-                let tokenBalance = MTokenBalance(tokenSlug: token.slug, balance: raw, isStaking: false)
+                let tokenBalance = MTokenBalance(tokenSlug: token.slug, balance: raw)
                 items.append((
                     fiat: tokenBalance.toBaseCurrency ?? 0,
                     text: TokenAmount(raw, token).formatted(.defaultAdaptive)

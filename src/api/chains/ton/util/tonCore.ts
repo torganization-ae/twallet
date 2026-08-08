@@ -1,6 +1,6 @@
-import type { OpenedContract, StateInit } from '@ton/core';
+import type { StateInit } from '@ton/core';
 import {
-  Address, beginCell, Builder, Cell, Dictionary, loadStateInit,
+  Address, Builder, Cell, loadStateInit,
 } from '@ton/core';
 import { WalletContractV1R1 } from '@ton/ton/dist/wallets/WalletContractV1R1';
 import { WalletContractV1R2 } from '@ton/ton/dist/wallets/WalletContractV1R2';
@@ -19,19 +19,15 @@ import { ApiCommonError } from '../../../types';
 
 import { DEFAULT_TIMEOUT } from '../../../../config';
 import { getDnsZoneByCollection } from '../../../../util/dns';
-import { fromKeyValueArrays, mapValues } from '../../../../util/iteratees';
 import { logDebugError } from '../../../../util/logs';
 import withCacheAsync from '../../../../util/withCacheAsync';
 import { DnsItem } from '../contracts/DnsItem';
 import { JettonMinter } from '../contracts/JettonMaster';
-import { JettonStakingOpCodes } from '../contracts/JettonStaking/imports/constants';
-import { StakeWallet } from '../contracts/JettonStaking/StakeWallet';
-import { StakingPool } from '../contracts/JettonStaking/StakingPool';
 import { JettonWallet } from '../contracts/JettonWallet';
 import { hexToBytes } from '../../../common/utils';
 import { getApiHeadersForUrl, getEnvironment } from '../../../environment';
 import { getEffectiveRpcApiKey, onRpcOverrideChanged } from '../../rpcOverrides';
-import { DEFAULT_IS_BOUNCEABLE, JettonOpCode, LiquidStakingOpCode, NETWORK_CONFIG, OpCode } from '../constants';
+import { DEFAULT_IS_BOUNCEABLE, JettonOpCode, NETWORK_CONFIG, OpCode } from '../constants';
 import { generateQueryId } from './index';
 
 import { TonClient } from './TonClient';
@@ -126,18 +122,6 @@ export const getWalletPublicKey = withCacheAsync(async (network: ApiNetwork, add
   const bigintKey = res.stack.readBigNumber();
   const hex = bigintKey.toString(16).padStart(64, '0');
   return hexToBytes(hex);
-});
-
-export const getJettonPoolStakeWallet = withCacheAsync(async (
-  network: ApiNetwork,
-  poolAddress: string,
-  period: number,
-  address: string,
-): Promise<OpenedContract<StakeWallet>> => {
-  const tonClient = getTonClient(network);
-  const pool = tonClient.open(StakingPool.createFromAddress(Address.parse(poolAddress)));
-  const walletAddress = (await pool.getWalletAddress(Address.parse(address), period))!;
-  return tonClient.open(StakeWallet.createFromAddress(walletAddress));
 });
 
 export async function getJettonMinterData(network: ApiNetwork, address: string) {
@@ -276,43 +260,6 @@ export function packBytesAsSnakeForEncryptedData(data: Uint8Array): Cell {
     .endCell();
 }
 
-export function buildLiquidStakingDepositBody(queryId?: number) {
-  return new Builder()
-    .storeUint(LiquidStakingOpCode.Deposit, 32)
-    .storeUint(queryId || 0, 64)
-    .asCell();
-}
-
-export function buildLiquidStakingWithdrawBody(options: {
-  queryId?: number;
-  amount: bigint;
-  responseAddress: string;
-  waitTillRoundEnd?: boolean; // opposite of request_immediate_withdrawal
-  fillOrKill?: boolean;
-}) {
-  const {
-    queryId, amount, responseAddress, waitTillRoundEnd, fillOrKill,
-  } = options;
-
-  const customPayload = buildLiquidStakingWithdrawCustomPayload(waitTillRoundEnd, fillOrKill);
-
-  return new Builder()
-    .storeUint(JettonOpCode.Burn, 32)
-    .storeUint(queryId ?? 0, 64)
-    .storeCoins(amount)
-    .storeAddress(Address.parse(responseAddress))
-    .storeBit(1)
-    .storeRef(customPayload)
-    .asCell();
-}
-
-export function buildLiquidStakingWithdrawCustomPayload(waitTillRoundEnd?: boolean, fillOrKill?: boolean) {
-  return new Builder()
-    .storeUint(Number(waitTillRoundEnd), 1)
-    .storeUint(Number(fillOrKill), 1)
-    .asCell();
-}
-
 export function getTokenBalance(network: ApiNetwork, walletAddress: string) {
   const tokenWallet = getTonClient(network).open(new JettonWallet(Address.parse(walletAddress)));
   return tokenWallet.getJettonBalance();
@@ -366,53 +313,6 @@ export async function getDnsItemDomain(network: ApiNetwork, address: Address | s
     : await contract.getDomain();
 
   return `${base}.${zone?.suffixes[0]}`;
-}
-
-export function buildJettonUnstakePayload(jettonsToUnstake: bigint, forceUnstake?: boolean, queryId?: bigint) {
-  return beginCell()
-    .storeUint(JettonStakingOpCodes.UNSTAKE_JETTONS, 32)
-    .storeUint(queryId ?? 0, 64)
-    .storeCoins(jettonsToUnstake)
-    .storeBit(forceUnstake ?? false)
-    .endCell();
-}
-
-export function buildJettonClaimPayload(poolWallets: string[], queryId?: bigint) {
-  const rewardsToClaim = Dictionary.empty(Dictionary.Keys.Address(), Dictionary.Values.Bool());
-
-  for (const poolWallet of poolWallets) {
-    rewardsToClaim.set(Address.parse(poolWallet), true);
-  }
-
-  return beginCell()
-    .storeUint(JettonStakingOpCodes.CLAIM_REWARDS, 32)
-    .storeUint(queryId ?? 0, 64)
-    .storeDict(rewardsToClaim, Dictionary.Keys.Address(), Dictionary.Values.Bool())
-    .endCell();
-}
-
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-export function unpackDicts(obj: Record<string, any | Dictionary<any, any>>): AnyLiteral {
-  if (!isSimpleObject(obj)) {
-    return obj;
-  }
-
-  return mapValues(obj, (value) => {
-    if (value instanceof Dictionary) {
-      return unpackDicts(fromKeyValueArrays(value.keys(), value.values()));
-    }
-    if (isSimpleObject(value)) {
-      return unpackDicts(value);
-    }
-    return value;
-  });
-}
-
-function isSimpleObject(obj: any) {
-  // eslint-disable-next-line no-null/no-null
-  return obj !== null
-    && typeof obj === 'object'
-    && Object.getPrototypeOf(obj) === Object.prototype;
 }
 
 export function getOurFeePayload() {

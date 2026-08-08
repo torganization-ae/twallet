@@ -25,11 +25,6 @@ struct SettingsItem: Equatable, Identifiable {
         case networks
         case security
         case walletVersions
-        case tips
-        case helpCenter
-        case support
-        case about
-        case useResponsibly
         case portfolio
     }
     
@@ -167,52 +162,6 @@ extension SettingsItem.Identifier {
                 id: self,
                 icon: UIImage.airBundle("WalletVersionsIcon"),
                 title: lang("Wallet Versions"),
-                hasPrimaryColor: false,
-                hasChild: true,
-                isDangerous: false
-            )
-        case .tips:
-            return SettingsItem(
-                id: self,
-                icon: UIImage.airBundle("TipsIcon30"),
-                title: lang("%app_name% Tips", arg1: APP_NAME),
-                hasPrimaryColor: false,
-                hasChild: true,
-                isDangerous: false
-            )
-        case .helpCenter:
-            return SettingsItem(
-                id: self,
-                icon: UIImage.airBundle("BookIcon"),
-                title: lang("Help Center"),
-                hasPrimaryColor: false,
-                hasChild: true,
-                isDangerous: false
-            )
-        case .support:
-            return SettingsItem(
-                id: self,
-                icon: UIImage.airBundle("SupportIcon30"),
-                title: lang("Get Support"),
-                hasPrimaryColor: false,
-                hasChild: true,
-                isDangerous: false
-            )
-        case .about:
-            return SettingsItem(
-                id: self,
-                icon: UIImage.airBundle("AboutIcon"),
-                title: lang("About %app_name%", arg1: APP_NAME),
-                hasPrimaryColor: false,
-                hasChild: true,
-                isDangerous: false
-            )
-            
-        case .useResponsibly:
-            return SettingsItem(
-                id: self,
-                icon: UIImage.airBundle("ResponsibilityIcon30"),
-                title: lang("Use Responsibly"),
                 hasPrimaryColor: false,
                 hasChild: true,
                 isDangerous: false

@@ -1,7 +1,7 @@
 // The gate reads `IS_TWALLETGRAM_WALLET` from `process.env` at module-eval time (it never changes at runtime),
 // so each build flavor gets a clean env + an isolated re-import - same technique as `config.matrix.test.ts`.
 
-import type { ApiChain, ApiStakingState } from '../api/types';
+import type { ApiChain } from '../api/types';
 import type { Account, UserToken } from '../global/types';
 
 type ChainModule = typeof import('./chain');
@@ -50,8 +50,6 @@ const fundedTronToken = { chain: 'tron', slug: 'trx', amount: 5n } as UserToken;
 const emptyTonToken = { chain: 'ton', slug: 'toncoin', amount: 0n } as UserToken;
 const emptyTronToken = { chain: 'tron', slug: 'trx', amount: 0n } as UserToken;
 const disabledTronToken = { chain: 'tron', slug: 'scam-usdt', amount: 999n, isDisabled: true } as UserToken;
-
-const tonStake = { tokenSlug: 'toncoin', balance: 5n } as ApiStakingState;
 
 describe('getAddressLineChains', () => {
   describe('Gram Wallet build', () => {
@@ -137,7 +135,7 @@ describe('getAddressDisplayByChain', () => {
 
     it('counts a staked-only balance as funds on its chain', async () => {
       await withBuild(true, (_, { getAddressDisplayByChain }) => {
-        const result = getAddressDisplayByChain(multiChainAccount, [emptyTonToken, emptyTronToken], [tonStake]);
+        const result = getAddressDisplayByChain(multiChainAccount, [emptyTonToken, emptyTronToken]);
         expect(Object.keys(result)).toEqual(['ton']);
       });
     });

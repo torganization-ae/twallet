@@ -6,7 +6,7 @@ import type { UserSwapToken, UserToken } from '../../global/types';
 import buildClassName from '../../util/buildClassName';
 import { findChainConfig } from '../../util/chain';
 import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
-import { getIsNativeStakedToken, getIsNativeToken, getIsRwaStockToken } from '../../util/tokens';
+import { getIsNativeToken, getIsRwaStockToken } from '../../util/tokens';
 
 import useFlag from '../../hooks/useFlag';
 
@@ -28,7 +28,6 @@ function TokenIcon({
   const { symbol, image, chain, slug } = token;
   const [isLoadingError, markLoadingError] = useFlag();
   const isNativeToken = getIsNativeToken(slug);
-  const isNativeTokenStaking = getIsNativeStakedToken(slug);
   const shouldRenderImage = Boolean(image) && !isLoadingError;
   const shapeClassName = getIsRwaStockToken(token) ? styles.square : styles.circle;
   const iconFullClassName = buildClassName(styles.icon, size && styles[size], shapeClassName, iconClassName);
@@ -61,7 +60,7 @@ function TokenIcon({
           />
         ) : renderDefaultIcon()
       }
-      {withChainIcon && !isNativeToken && !isNativeTokenStaking && chain && (
+      {withChainIcon && !isNativeToken && chain && (
         <img
           src={getChainNetworkIcon(chain)}
           alt=""

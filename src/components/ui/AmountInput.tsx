@@ -38,7 +38,7 @@ interface OwnProps extends AmountInputStateOutput {
   withChainIcon?: boolean;
   isSensitiveDataHidden?: true;
   isMaxAmountLoading?: boolean;
-  /** If true, the max amount label will say "All" instead of "Max" and all the amount digits will be shown (made for unstaking) */
+  /** If true, the max amount label will say "All" instead of "Max" and all the amount digits will be shown */
   isMaxAmountAllMode?: boolean;
   labelText?: TeactNode;
   renderBottomRight: (className: string) => TeactNode;

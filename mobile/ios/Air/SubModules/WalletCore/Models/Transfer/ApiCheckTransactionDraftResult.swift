@@ -24,10 +24,6 @@ public struct ApiCheckTransactionDraftResult: Equatable, Codable, Sendable {
     /// MTW wallet.
     public let diesel: ApiFetchEstimateDieselResult?
     public let explainedFee: ExplainedTransferFee?
-    
-    // staking extension
-    public var tokenAmount: BigInt?
-    public var type: String?
 }
 
 

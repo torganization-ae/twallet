@@ -104,8 +104,7 @@ public class TokenVC: ActivityListViewController {
         cell.configure(
             token: token,
             sendAvailable: account.supportsSend,
-            swapAvailable: account.supportsSwap && !isLpToken,
-            earnAvailable: account.supportsEarn && token.earnAvailable
+            swapAvailable: account.supportsSwap && !isLpToken
         )
     }
     private func configureChartCustomSection(cell: TokenChartCell) {

@@ -48,7 +48,6 @@ dependencies {
     implementation(libs.blurview)
     implementation(project("$airSubModulePath:UISend"))
     implementation(project("$airSubModulePath:UISwap"))
-    implementation(project("$airSubModulePath:UIStake"))
     implementation(project("$airSubModulePath:UIAssets"))
     implementation(project("$airSubModulePath:UIBrowser"))
     implementation(project("$airSubModulePath:UIInAppBrowser"))

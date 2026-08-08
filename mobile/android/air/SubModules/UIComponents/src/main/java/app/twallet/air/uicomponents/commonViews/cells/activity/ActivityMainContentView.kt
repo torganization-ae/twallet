@@ -45,7 +45,6 @@ import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.moshi.ApiTransactionStatus
 import app.twallet.air.walletcore.moshi.ApiTransactionType
 import app.twallet.air.walletcore.moshi.MApiTransaction
-import app.twallet.air.walletcore.stores.StakingStore
 import java.math.BigInteger
 import kotlin.math.abs
 
@@ -410,37 +409,8 @@ class ActivityMainContentView(context: Context) : WView(context), WProtectedView
             )
             if (addressToShow?.second == false)
                 builder.styleDots(startIndex = addressStart)
-        } else if (transaction.type == ApiTransactionType.STAKE) {
-            val stakingState =
-                StakingStore.getStakingState(accountId)?.states?.firstOrNull {
-                    it?.tokenSlug == transaction.slug
-                }
-            stakingState?.let { stakingState ->
-                val annualYield = LocaleController.getString("at %annual_yield%")
-                val addressStart = builder.length + annualYield.indexOf("%")
-                val yieldString =
-                    stakingState.yieldType.toString() + " " + stakingState.annualYield + "%"
-                builder.append(
-                    annualYield.replace(
-                        "%annual_yield%",
-                        yieldString
-                    )
-                )
-                builder.setSpan(
-                    WTypefaceSpan(WFont.Medium.typeface),
-                    addressStart,
-                    builder.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-                builder.append(" · ")
-                builder.setSpan(
-                    WTypefaceSpan(WFont.Medium.typeface),
-                    builder.length - 3,
-                    builder.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
         }
+
         builder.append(timeStr)
         builder.setSpan(
             ForegroundColorSpan(WColor.PrimaryLightText.color),

@@ -1,4 +1,4 @@
-import type { ApiStakingType, ApiToken } from '../../api/types';
+import type { ApiToken } from '../../api/types';
 
 import { DEFAULT_FEE, TON_USDT_MAINNET, TON_USDT_TESTNET } from '../../config';
 import {
@@ -8,62 +8,7 @@ import {
   TINY_TOKEN_TRANSFER_REAL_AMOUNT,
   TOKEN_TRANSFER_AMOUNT,
   TOKEN_TRANSFER_REAL_AMOUNT,
-  TON_GAS,
-  TON_GAS_REAL,
 } from '../../api/chains/ton/constants';
-
-type TonOperationFees = {
-  gas: bigint;
-  real: bigint;
-};
-
-export default function getTonOperationFees(operation: keyof typeof TON_GAS_REAL): TonOperationFees {
-  return {
-    gas: TON_GAS[operation] + DEFAULT_FEE,
-    real: TON_GAS_REAL[operation],
-  };
-}
-
-export function getTonStakingFees(type?: ApiStakingType): {
-  stake: TonOperationFees;
-  unstake: TonOperationFees;
-  claim?: TonOperationFees;
-} {
-  switch (type) {
-    case 'nominators': {
-      return {
-        stake: getTonOperationFees('stakeNominators'),
-        unstake: getTonOperationFees('unstakeNominators'),
-      };
-    }
-    case 'liquid': {
-      return {
-        stake: getTonOperationFees('stakeLiquid'),
-        unstake: getTonOperationFees('unstakeLiquid'),
-      };
-    }
-    case 'jetton': {
-      return {
-        stake: getTonOperationFees('stakeJettons'),
-        unstake: getTonOperationFees('unstakeJettons'),
-        claim: getTonOperationFees('claimJettons'),
-      };
-    }
-    case 'ethena': {
-      return {
-        stake: getTonOperationFees('stakeEthena'),
-        unstake: getTonOperationFees('unstakeEthena'),
-        claim: getTonOperationFees('unstakeEthenaLocked'),
-      };
-    }
-  }
-
-  return {
-    stake: { gas: 0n, real: 0n },
-    unstake: { gas: 0n, real: 0n },
-    claim: { gas: 0n, real: 0n },
-  };
-}
 
 /**
  * A pure function guessing the "fee" that needs to be attached to the token transfer.

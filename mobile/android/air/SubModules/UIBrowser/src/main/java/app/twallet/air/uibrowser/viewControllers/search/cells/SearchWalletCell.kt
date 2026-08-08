@@ -5,6 +5,7 @@ import android.content.Context
 import android.text.TextUtils
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import app.twallet.air.uibrowser.viewControllers.explore.ExploreVM
 import app.twallet.air.uicomponents.commonViews.AccountIconView
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.WFont
@@ -17,15 +18,14 @@ import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.formatStartEndAddress
-import app.twallet.air.uibrowser.viewControllers.explore.ExploreVM
 
 @SuppressLint("ViewConstructor")
 class SearchWalletCell(
     context: Context,
     private val onTapOwnWallet: (match: ExploreVM.MyWalletMatch) -> Unit,
     private val onTapWalletInfo: (match: ExploreVM.WalletInfoMatch) -> Unit,
-) : WCell(context, LayoutParams(MATCH_PARENT, 60.dp)), WThemedView {
-
+) : WCell(context, LayoutParams(MATCH_PARENT, 60.dp)),
+    WThemedView {
     private val iconView: AccountIconView by lazy {
         AccountIconView(context, AccountIconView.Usage.ViewItem(10f.dp))
     }
@@ -83,12 +83,13 @@ class SearchWalletCell(
         val name = match.name?.takeIf { it.isNotEmpty() }
         iconView.config(null, name, match.address)
         titleLabel.text = name ?: match.address.formatStartEndAddress()
-        subtitleLabel.text = if (name != null) {
-            val shortAddress = match.address.formatStartEndAddress()
-            match.domain?.let { "$it · $shortAddress" } ?: shortAddress
-        } else {
-            match.chain.displayName
-        }
+        subtitleLabel.text =
+            if (name != null) {
+                val shortAddress = match.address.formatStartEndAddress()
+                match.domain?.let { "$it · $shortAddress" } ?: shortAddress
+            } else {
+                match.chain.displayName
+            }
         setOnClickListener { onTapWalletInfo(match) }
         updateTheme()
     }

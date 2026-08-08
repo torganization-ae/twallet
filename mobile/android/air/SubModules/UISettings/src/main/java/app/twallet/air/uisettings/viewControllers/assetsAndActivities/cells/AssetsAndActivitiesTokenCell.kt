@@ -291,7 +291,7 @@ class AssetsAndActivitiesTokenCell(
         onDeleteToken: (() -> Unit)? = null
     ) {
         this.tokenBalance = tokenBalance
-        this.tokenSlug = tokenBalance.virtualStakingToken
+        this.tokenSlug = tokenBalance.token
         this.isLast = isLast
         this.isPinned = isPinned
         this.onDeleteToken = onDeleteToken ?: {
@@ -307,11 +307,11 @@ class AssetsAndActivitiesTokenCell(
         imageView.config(
             tokenBalance,
             AccountStore.activeAccount?.isMultichain == true,
-            tokenBalance.isVirtualStakingRow && tokenBalance.amountValue > java.math.BigInteger.ZERO
+            false
         )
         val tokenName = TokenNameHelper.getTokenName(token, tokenBalance)
         tokenNameLabel.text = tokenName
-        amountLabel.setMaskCols(4 + abs(tokenBalance.virtualStakingToken.hashCode() % 8))
+        amountLabel.setMaskCols(4 + abs(tokenBalance.token.hashCode() % 8))
         amountLabel.contentView.setAmount(
             tokenBalance.toBaseCurrency,
             token.decimals,

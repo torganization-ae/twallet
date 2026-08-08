@@ -30,14 +30,6 @@ class MoshiBuilder {
                 .add(JSONArrayAdapter())
                 .add(JSONObjectAdapter())
                 .add(
-                    PolymorphicJsonAdapterFactory.of(StakingState::class.java, "type")
-                        .withSubtype(StakingState.Liquid::class.java, "liquid")
-                        .withSubtype(StakingState.Jetton::class.java, "jetton")
-                        .withSubtype(StakingState.Ethena::class.java, "ethena")
-                        .withSubtype(StakingState.Nominators::class.java, "nominators")
-                        .withDefaultValue(null)
-                )
-                .add(
                     PolymorphicJsonAdapterFactory.of(MApiTransaction::class.java, "kind")
                         .withSubtype(MApiTransaction.Transaction::class.java, "transaction")
                         .withSubtype(MApiTransaction.Swap::class.java, "swap")

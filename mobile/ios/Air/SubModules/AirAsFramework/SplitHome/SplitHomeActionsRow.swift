@@ -257,7 +257,6 @@ private final class SplitHomeActionsViewModel: WalletCoreData.EventsObserver {
         observeAccount = observe { [weak self] in
             guard let self else { return }
             _ = account.supportsSwap
-            _ = account.supportsEarn
             _ = account.supportsSend
             updateItems()
         }
@@ -284,9 +283,6 @@ private final class SplitHomeActionsViewModel: WalletCoreData.EventsObserver {
             }
             if account.supportsSwap {
                 updatedItems.append(.swap)
-            }
-            if account.supportsEarn {
-                updatedItems.append(.earn)
             }
             updatedItems.append(.scan)
         }

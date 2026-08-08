@@ -1,7 +1,7 @@
 import type { TeactNode } from '../lib/teact/teact';
 import React from '../lib/teact/teact';
 
-import type { ApiChain, ApiNetwork, ApiStakingState } from '../api/types';
+import type { ApiChain, ApiNetwork } from '../api/types';
 import type { Account, UserToken } from '../global/types';
 
 import { IS_TWALLETGRAM_WALLET } from '../config';
@@ -72,7 +72,6 @@ const VARIANT_CONFIG: Record<FormatVariant, VariantConfig> = {
 export function getAddressDisplayByChain(
   byChain: Account['byChain'],
   accountTokens?: UserToken[],
-  stakingStates?: ApiStakingState[],
   network?: ApiNetwork,
 ): Account['byChain'] {
   const allChains = Object.keys(byChain) as ApiChain[];
@@ -84,7 +83,7 @@ export function getAddressDisplayByChain(
   if (!IS_TWALLETGRAM_WALLET || !accountTokens) return visibleByChain;
 
   // Disabled (hidden) tokens must not expand the line - same as the master-side `getHasOnlyTonTokens`
-  const fundedChains = getChainsWithBalance(accountTokens.filter(({ isDisabled }) => !isDisabled), stakingStates);
+  const fundedChains = getChainsWithBalance(accountTokens.filter(({ isDisabled }) => !isDisabled));
   const shownChains = getAddressLineChains(visibleChains, fundedChains);
   if (shownChains.length === visibleChains.length) return visibleByChain;
 

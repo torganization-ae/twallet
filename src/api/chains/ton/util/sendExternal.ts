@@ -51,13 +51,10 @@ export async function sendExternal(
   const bodyMessageHash = message.hash().toString('base64');
   const boc = cell.toBoc().toString('base64');
 
-  let paymentLink;
   if (isW5Gasless) {
-    const result = await dieselW5SendRequest(boc);
-    paymentLink = result.paymentLink;
+    await dieselW5SendRequest(boc);
   } else if (gaslessType === 'diesel') {
-    const result = await dieselSendBoc(boc);
-    paymentLink = result.paymentLink;
+    await dieselSendBoc(boc);
   } else {
     await client.sendFile(boc);
   }
@@ -66,7 +63,6 @@ export async function sendExternal(
     boc,
     msgHash: isW5Gasless ? bodyMessageHash : msgHash,
     msgHashNormalized,
-    paymentLink,
   };
 }
 

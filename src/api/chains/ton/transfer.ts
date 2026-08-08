@@ -1,7 +1,6 @@
 import { Address, beginCell, Cell, internal, SendMode, storeMessageRelaxed } from '@ton/core';
 import { WalletContractV5R1 } from '@ton/ton';
 
-import type { DieselStatus } from '../../../global/types';
 import type { DappProtocolType } from '../../dappProtocols';
 import type {
   ApiAccountWithChain,
@@ -66,7 +65,7 @@ import {
 import { getMfaExtensionSeqno, getMfaFees, resolveMfaExtensionAddress } from './contracts/util';
 import { fetchStoredChainAccount, fetchStoredWallet } from '../../common/accounts';
 import { callBackendGet } from '../../common/backend';
-import { DIESEL_NOT_AVAILABLE } from '../../common/other';
+import { DIESEL_NOT_AVAILABLE, normalizeDieselStatus } from '../../common/other';
 import { withoutTransferConcurrency } from '../../common/preventTransferConcurrency';
 import { getTokenByAddress } from '../../common/tokens';
 import { MINUTE, SEC } from '../../constants';
@@ -429,15 +428,14 @@ function estimateDiesel(
   tokenAddress: string,
   toncoinAmount: string,
   isW5?: boolean,
-  isStars?: boolean,
 ) {
   return callBackendGet<{
-    status: DieselStatus;
-    // The amount is defined only when the status is "available" or "stars-fee": https://github.com/mytonwallet-org/mytonwallet-backend/blob/44c1bf43fb776286152db8901b45fe8341752e35/src/endpoints/diesel.ts#L163
+    status: string;
+    // The amount is defined only when the status is "available"
     amount?: string;
     pendingCreatedAt?: string;
   }>('/diesel/estimate', {
-    address, tokenAddress, toncoinAmount, isW5, isStars,
+    address, tokenAddress, toncoinAmount, isW5,
   });
 }
 
@@ -640,7 +638,6 @@ export async function submitGaslessTransfer(
       forwardAmount,
       noFeeCheck,
       dieselAmount,
-      isGaslessWithStars,
     } = options;
 
     const { network } = parseAccountId(accountId);
@@ -664,22 +661,17 @@ export async function submitGaslessTransfer(
         forwardAmount,
         isLedger: account.type === 'ledger',
       }),
+      await buildTokenTransfer({
+        network,
+        tokenAddress,
+        fromAddress,
+        toAddress: DIESEL_ADDRESS,
+        amount: dieselAmount,
+        shouldSkipMintless: true,
+        payload: getOurFeePayload(),
+        isLedger: account.type === 'ledger',
+      }),
     ];
-
-    if (!isGaslessWithStars) {
-      messages.push(
-        await buildTokenTransfer({
-          network,
-          tokenAddress,
-          fromAddress,
-          toAddress: DIESEL_ADDRESS,
-          amount: dieselAmount,
-          shouldSkipMintless: true,
-          payload: getOurFeePayload(),
-          isLedger: account.type === 'ledger',
-        }),
-      );
-    }
 
     const result = await submitMultiTransfer({
       accountId,
@@ -1072,7 +1064,7 @@ async function submitMultiTransferInternal(
         }
 
         const client = getTonClient(network);
-        const { msgHash, boc, paymentLink, msgHashNormalized } = await sendExternal(
+        const { msgHash, boc, msgHashNormalized } = await sendExternal(
           client,
           wallet,
           transaction,
@@ -1107,7 +1099,6 @@ async function submitMultiTransferInternal(
           boc,
           msgHash,
           msgHashNormalized,
-          paymentLink,
           withW5Gasless,
         };
       } finally {
@@ -1502,7 +1493,7 @@ async function getDiesel({
   const wallet = getTonWallet(storedTonWallet);
 
   const token = getTokenByAddress(tokenAddress)!;
-  if (!token.isGaslessEnabled && !token.isStarsEnabled) return DIESEL_NOT_AVAILABLE;
+  if (!token.isGaslessEnabled) return DIESEL_NOT_AVAILABLE;
 
   const { address, version } = storedTonWallet;
   toncoinBalance ??= await getWalletBalance(network, wallet);
@@ -1516,13 +1507,13 @@ async function getDiesel({
     tokenAddress,
     toDecimal(toncoinNeeded),
     version === 'W5',
-    fee.isStars,
   );
+  const status = normalizeDieselStatus(rawDiesel.status);
   const diesel: ApiFetchEstimateDieselResult = {
-    status: rawDiesel.status,
-    amount: rawDiesel.amount === undefined
+    status,
+    amount: rawDiesel.amount === undefined || status === 'not-available'
       ? undefined
-      : fromDecimal(rawDiesel.amount, rawDiesel.status === 'stars-fee' ? 0 : token.decimals),
+      : fromDecimal(rawDiesel.amount, token.decimals),
     nativeAmount: toncoinNeeded,
     remainingFee: toncoinBalance,
     realFee: fee.realFee,
@@ -1549,25 +1540,21 @@ async function getDiesel({
  * Guesses the total TON fee (including the gas attached to the transaction) that will be spent on a diesel transfer.
  *
  * `amount` is what will be taken from the wallet;
- * `realFee` is approximately what will be actually spent (the rest will return in the excess);
- * `isStars` tells whether the fee is estimated considering that the diesel will be paid in stars.
+ * `realFee` is approximately what will be actually spent (the rest will return in the excess).
  */
 function getDieselToncoinFee(token: ApiToken) {
-  const isStars = !token.isGaslessEnabled && token.isStarsEnabled;
   let { amount, realAmount: realFee } = getToncoinAmountForTransfer(token, false);
 
   // Multiplying by 2 because the diesel transfer has 2 transactions:
   // - for the transfer itself,
-  // - for sending the diesel to the My Wallet.
-  if (!isStars) {
-    amount *= 2n;
-    realFee *= 2n;
-  }
+  // - for sending the diesel to My Wallet.
+  amount *= 2n;
+  realFee *= 2n;
 
   amount += DEFAULT_FEE;
   realFee += DEFAULT_FEE;
 
-  return { amount, realFee, isStars };
+  return { amount, realFee };
 }
 
 export function applyFeeFactorToEmulationResult(

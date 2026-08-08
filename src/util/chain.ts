@@ -2,7 +2,6 @@ import type {
   ApiBuiltinChain,
   ApiChain,
   ApiNetwork,
-  ApiStakingState,
   ApiToken,
   ApiTokenWithPrice,
 } from '../api/types';
@@ -55,7 +54,6 @@ import { TON_BIP39_PATH } from '../api/chains/ton/constants';
 import { TRON_BIP39_PATH } from '../api/chains/tron/constants';
 import formatTonTransferUrl from './ton/formatTransferUrl';
 import { buildCollectionByKey, compact } from './iteratees';
-import { getFullStakingBalance } from './staking';
 import withCache from './withCache';
 
 export type ExplorerLink = {
@@ -1024,23 +1022,14 @@ export function getAddressLineChains(
   return funded.length ? funded : chains;
 }
 
-/** Chains holding a non-zero amount of any token, staked balances included. Mirrors the master-side helper. */
-export function getChainsWithBalance(tokens?: UserToken[], stakingStates?: ApiStakingState[]) {
+/** Chains holding a non-zero amount of any token. */
+export function getChainsWithBalance(tokens?: UserToken[]) {
   const result = new Set<ApiChain>();
   if (!tokens?.length) return result;
-
-  const chainBySlug = new Map(tokens.map((token) => [token.slug, token.chain]));
 
   for (const token of tokens) {
     if (token.amount > 0n) {
       result.add(token.chain);
-    }
-  }
-
-  for (const stakingState of stakingStates ?? []) {
-    const chain = chainBySlug.get(stakingState.tokenSlug);
-    if (chain && getFullStakingBalance(stakingState) > 0n) {
-      result.add(chain);
     }
   }
 

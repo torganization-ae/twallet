@@ -81,7 +81,7 @@ extension WalletVersionCell {
         UICollectionView.CellRegistration<UICollectionViewListCell, String> { cell, _, versionId in
             guard let version = versions.first(where: { $0.version == versionId }) else { return }
             let value: String
-            if let balance = MTokenBalance(tokenSlug: "toncoin", balance: version.balance, isStaking: false).toBaseCurrency {
+            if let balance = MTokenBalance(tokenSlug: "toncoin", balance: version.balance).toBaseCurrency {
                 let baseCurrencyAmount = BaseCurrencyAmount.fromDouble(balance, TokenStore.baseCurrency)
                 value = baseCurrencyAmount.formatted(.baseCurrencyEquivalent, roundHalfUp: true)
             } else {

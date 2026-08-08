@@ -27,7 +27,6 @@ import type {
   ApiDerivation,
   ApiNetwork,
   ApiNft,
-  ApiStakingState,
   ApiTokenWithPrice,
   ApiWalletWithVersionInfo,
 } from './misc';
@@ -116,14 +115,6 @@ export type ApiUpdateCreateSignature = {
 export type ApiUpdateShowError = {
   type: 'showError';
   error?: ApiAnyDisplayError | string;
-};
-
-export type ApiUpdateStaking = {
-  type: 'updateStaking';
-  accountId: string;
-  states: ApiStakingState[];
-  totalProfit: bigint;
-  shouldUseNominators?: boolean;
 };
 
 export type ApiUpdateDappSignData = {
@@ -459,7 +450,6 @@ export type ApiUpdate =
   | ApiUpdateCreateTransaction
   | ApiUpdateCompleteTransaction
   | ApiUpdateCreateSignature
-  | ApiUpdateStaking
   | ApiUpdateDappSendTransactions
   | ApiUpdateTonConnectOnline
   | ApiUpdateDappConnect

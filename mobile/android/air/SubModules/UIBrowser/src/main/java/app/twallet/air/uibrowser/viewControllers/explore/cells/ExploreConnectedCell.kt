@@ -21,11 +21,9 @@ class ExploreConnectedCell(
     context: Context,
     val dAppPressed: (it: ApiDapp?) -> Unit,
     val configurePressed: () -> Unit
-) :
-    WCell(context, LayoutParams(MATCH_PARENT, WRAP_CONTENT)),
+) : WCell(context, LayoutParams(MATCH_PARENT, WRAP_CONTENT)),
     WRecyclerViewAdapter.WRecyclerViewDataSource,
     WThemedView {
-
     companion object {
         val SMALL_CONNECTED_CELL = Type(1)
         val LARGE_CONNECTED_CELL = Type(2)
@@ -40,12 +38,13 @@ class ExploreConnectedCell(
             arrayOf(SMALL_CONNECTED_CELL, LARGE_CONNECTED_CELL, CONFIGURE_CELL)
         )
 
-    private val recyclerView = WRecyclerView(context).apply {
-        layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        adapter = rvAdapter
-        setPadding(4.dp, 0, 4.dp, 8.dp)
-        clipToPadding = false
-    }
+    private val recyclerView =
+        WRecyclerView(context).apply {
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            adapter = rvAdapter
+            setPadding(4.dp, 0, 4.dp, 8.dp)
+            clipToPadding = false
+        }
 
     init {
         addView(recyclerView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
@@ -74,29 +73,30 @@ class ExploreConnectedCell(
             return connectedApps.size > MAX_DAPPS_IN_SMALL_VIEW
         }
 
-    override fun recyclerViewNumberOfSections(rv: RecyclerView): Int {
-        return 2
-    }
+    override fun recyclerViewNumberOfSections(rv: RecyclerView): Int = 2
 
-    override fun recyclerViewNumberOfItems(rv: RecyclerView, section: Int): Int {
-        return when (section) {
+    override fun recyclerViewNumberOfItems(rv: RecyclerView, section: Int): Int =
+        when (section) {
             0 -> connectedApps.size
             else -> 1
         }
-    }
 
     override fun recyclerViewCellType(
         rv: RecyclerView,
         indexPath: IndexPath
-    ): Type {
-        return if (indexPath.section == 0 || showLargeConnectedApps)
-            if (showLargeConnectedApps) LARGE_CONNECTED_CELL else SMALL_CONNECTED_CELL
-        else
+    ): Type =
+        if (indexPath.section == 0 || showLargeConnectedApps) {
+            if (showLargeConnectedApps) {
+                LARGE_CONNECTED_CELL
+            } else {
+                SMALL_CONNECTED_CELL
+            }
+        } else {
             CONFIGURE_CELL
-    }
+        }
 
-    override fun recyclerViewCellView(rv: RecyclerView, cellType: Type): WCell {
-        return when (cellType) {
+    override fun recyclerViewCellView(rv: RecyclerView, cellType: Type): WCell =
+        when (cellType) {
             SMALL_CONNECTED_CELL -> {
                 ExploreConnectedItemCell(context) {
                     dAppPressed(it)
@@ -115,7 +115,6 @@ class ExploreConnectedCell(
                 }
             }
         }
-    }
 
     override fun recyclerViewConfigureCell(
         rv: RecyclerView,
@@ -136,5 +135,4 @@ class ExploreConnectedCell(
             }
         }
     }
-
 }

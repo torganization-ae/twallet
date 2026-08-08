@@ -1,6 +1,6 @@
 import type { ApiInitArgs, OnApiUpdate } from '../types';
 
-import { NO_MFA, NO_STAKING, NO_SWAP } from '../../config';
+import { NO_MFA, NO_SWAP } from '../../config';
 import { initWindowConnector } from '../../util/windowProvider/connector';
 import { getHiddenChainsStateSnapshot, loadChainVisibility } from '../chains/chainVisibility';
 import { loadRpcOverrides } from '../chains/rpcOverrides';
@@ -42,7 +42,6 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
   methods.initPolling(onUpdate);
   methods.initTransfer(onUpdate);
   methods.initTokens(onUpdate);
-  if (!NO_STAKING) methods.initStaking();
   if (!NO_SWAP) methods.initSwap(onUpdate);
   methods.initNfts(onUpdate);
 

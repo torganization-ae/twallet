@@ -1,26 +1,12 @@
 package app.twallet.air.uicomponents.helpers
 
-import app.twallet.air.walletbasecontext.localization.LocaleController
-import app.twallet.air.walletcore.USDE_SLUG
 import app.twallet.air.walletcore.models.MToken
 import app.twallet.air.walletcore.models.MTokenBalance
 
 object TokenNameHelper {
 
     fun getTokenName(token: MToken, tokenBalance: MTokenBalance): String {
-        if (!tokenBalance.isVirtualStakingRow) {
-            return displayName(token)
-        }
-
-        val baseName = when (tokenBalance.token) {
-            USDE_SLUG -> "Ethena"
-            else -> displayName(token)
-        }
-
-        return LocaleController.getStringWithKeyValues(
-            "%token% Staking",
-            listOf(Pair("%token%", baseName))
-        )
+        return displayName(token)
     }
 
     private fun displayName(token: MToken): String {

@@ -41,7 +41,6 @@ import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.moshi.ApiNft
 import app.twallet.air.walletcore.moshi.MApiSwapAsset
 import app.twallet.air.walletcore.moshi.MApiTransaction
-import app.twallet.air.walletcore.moshi.MUpdateStaking
 import app.twallet.air.walletcore.moshi.api.ApiUpdate
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.ActivityStore
@@ -50,7 +49,6 @@ import app.twallet.air.walletcore.stores.ChainVisibilityStore
 import app.twallet.air.walletcore.stores.ConfigStore
 import app.twallet.air.walletcore.stores.EnvironmentStore
 import app.twallet.air.walletcore.stores.NftStore
-import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
 import java.lang.reflect.Type
 import java.math.BigInteger
@@ -498,18 +496,6 @@ class JSWebViewBridge(context: Context) : WebView(context) {
                     }
                 }
 
-                "updateStaking" -> {
-                    val accountId = objectJSONObject.optString("accountId")
-
-                    val stakingAdapter: JsonAdapter<MUpdateStaking> =
-                        WalletCore.moshi.adapter(MUpdateStaking::class.java)
-                    val stakingData = stakingAdapter.fromJson(updateString)
-                    StakingStore.setStakingState(accountId, stakingData)
-
-                    ensureMainThread {
-                        WalletCore.notifyEvent(WalletEvent.StakingDataUpdated)
-                    }
-                }
 
                 "updateNfts" -> {
                     val accountId = objectJSONObject.optString("accountId")

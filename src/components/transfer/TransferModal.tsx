@@ -144,7 +144,6 @@ function TransferModal({
             error={error}
             onSubmit={handleTransferSubmit}
             onCancel={handleClose}
-            isGaslessWithStars={diesel?.status === 'stars-fee'}
           >
             <TransactionBanner
               tokenIn={selectedToken}

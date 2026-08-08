@@ -190,7 +190,6 @@ async function tryAutoImportTestMnemonic(actions: any) {
 
 addActionHandler('afterSignIn', (global, actions) => {
   setGlobal({ ...global, appState: AppState.Main });
-  syncVaultAccountsFromGlobal(global);
 
   setTimeout(() => {
     actions.resetAuth();

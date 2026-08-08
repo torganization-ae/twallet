@@ -326,5 +326,15 @@ func makeMigrator() -> DatabaseMigrator {
         }
     }
 
+    migrator.registerMigration("v22") { db in
+        try db.drop(table: "account_staking")
+    }
+
+    migrator.registerMigration("v23") { db in
+        try db.alter(table: "account_assets_and_activity_data") { t in
+            t.drop(column: "didAutoPinStaking")
+        }
+    }
+
     return migrator
 }

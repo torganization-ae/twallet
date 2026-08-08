@@ -60,6 +60,14 @@ final class AddressInputModel {
     private var resolveObserver: ObserveToken?
     
     var isAddressLoading: Bool = false
+    /// True while a TON DNS / tmail / bare alias lookup is in flight (for the locked-field pulse).
+    var isResolvingAlias: Bool {
+        guard isAddressLoading else { return false }
+        let input = effectiveAddressOrDomain
+        return DNSHelpers.isDnsDomain(input)
+            || TmailHelpers.isTmailAlias(input)
+            || TmailHelpers.isBareTonAlias(input)
+    }
     var addressInfos: [ApiChain: ApiGetAddressInfoResult]?
     
     private var inputObserver: ObserveToken?

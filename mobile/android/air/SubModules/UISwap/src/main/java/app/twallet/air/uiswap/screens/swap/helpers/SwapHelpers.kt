@@ -10,7 +10,6 @@ import app.twallet.air.walletcore.moshi.explainedFee.MFeeTerms
 import app.twallet.air.walletcore.models.SwapType
 import app.twallet.air.walletcore.moshi.explainedFee.ExplainedSwapFee
 import app.twallet.air.walletcore.moshi.IApiToken
-import app.twallet.air.walletcore.moshi.MDieselStatus
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
@@ -140,14 +139,9 @@ class SwapHelpers {
                     .compareTo(BigDecimal.ZERO) == 0
             } ?: false
 
-            val dieselKey = if (dex.dieselStatus == MDieselStatus.STARS_FEE) "stars" else "token"
-            val starsFee = if (dieselKey == "stars") dieselFeeBigInt else null
-            val tokenFee = if (dieselKey == "token") dieselFeeBigInt else null
-
             val fullNetworkTerms = MFeeTerms(
-                token = tokenFee,
+                token = dieselFeeBigInt,
                 native = nativeBalanceBigInt,
-                stars = starsFee
             )
 
             val fullFee = MFee(
@@ -176,8 +170,7 @@ class SwapHelpers {
                 )
 
                 val realNetworkTerms = MFeeTerms(
-                    token = if (dieselKey == "token") dieselRealBigInt else null,
-                    stars = if (dieselKey == "stars") dieselRealBigInt else null,
+                    token = dieselRealBigInt,
                     native = nativeRealBigInt
                 )
 
@@ -233,7 +226,6 @@ class SwapHelpers {
             val networkTerms = MFeeTerms(
                 token = null,
                 native = nativeFeeBigInt,
-                stars = null
             )
 
             val fullTerms = MFeeTerms(
@@ -246,7 +238,6 @@ class SwapHelpers {
                         swapEstimateResponse.request.nativeTokenToSend.decimals
                     ) ?: BigInteger.ZERO)
                 } ?: nativeFeeBigInt else nativeFeeBigInt,
-                stars = null
             )
 
             val fullFee = MFee(
@@ -260,7 +251,6 @@ class SwapHelpers {
                 MFeeTerms(
                     token = fullTerms.token,
                     native = fullTerms.native?.minus(nativeFeeBigInt - it),
-                    stars = null
                 )
             }
 
@@ -268,7 +258,6 @@ class SwapHelpers {
                 MFeeTerms(
                     token = null,
                     native = it,
-                    stars = null
                 )
             }
 

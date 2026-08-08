@@ -23,7 +23,6 @@ public struct ApiSubmitTransferOptions: ApiTransactionCommonOptions, Equatable, 
     public var isGasless: Bool?
     /// Must be set for gasless transfer (this can't be encoded with Swift type system)
     public var dieselAmount: BigInt?
-    public var isGaslessWithStars: Bool?
     public var gaslessTransaction: String?
     
     // ApiSubmitGasfullTransferOptions
@@ -49,7 +48,6 @@ public struct ApiSubmitTransferOptions: ApiTransactionCommonOptions, Equatable, 
         realFee: BigInt?,
         isGasless: Bool?,
         dieselAmount: BigInt?,
-        isGaslessWithStars: Bool?,
         gaslessTransaction: String?,
         password: String?,
         fee: BigInt?,
@@ -65,7 +63,6 @@ public struct ApiSubmitTransferOptions: ApiTransactionCommonOptions, Equatable, 
         self.realFee = realFee
         self.isGasless = isGasless
         self.dieselAmount = dieselAmount
-        self.isGaslessWithStars = isGaslessWithStars
         self.gaslessTransaction = gaslessTransaction
         self.password = password
         self.fee = fee

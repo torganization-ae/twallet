@@ -219,7 +219,6 @@ Testnet Version: Версія Testnet
 Error reading clipboard: Помилка буфера обміну
 $fee_value: Комісія %fee%
 $fee_value_with_colon: "Комісія: %fee%"
-Pay fee with %stars_symbol%: Оплатити з %stars_symbol%
 Loading...: Завантаження...
 Recipient Address: Адреса одержувача
 Wallet address or domain: Адреса гаманця або домен
@@ -272,41 +271,10 @@ Appearance: Зовнішній вигляд
 Light: Світла
 Dark: Темна
 System: Системна
-$stake_asset: Застейкати %symbol%
-Add Stake: Додати до стейкінгу
-Earn from your tokens while holding them: Отримуйте пасивний дохід від зберігання %symbol%
-Current APY: Поточний APY
-Est. Yearly Earnings: Орієнт. дохід за рік
-Staking Details: Деталі стейкінгу
-Why this is safe: Чому це безпечно
-$safe_staking_description1: Стейкінг **повністю децентралізований** і управляється **офіційними смарт-контрактами** TON Liquid Staking.
-$safe_staking_description2: Ваш депозит буде використано для валідації транзакцій у блокчейні %chain% в рамках механізму **proof-of-stake**.
-$safe_staking_description3: Ви можете вивести депозит із заробленими відсотками **в будь-який момент** - кошти переведуться на ваш основний рахунок **протягом двох днів**.
-$safe_staking_description_jetton1: Стейкінг токенів є **повністю децентралізованим** і управляється **відкритими** смарт-контрактами, розробленими %jvault_link% і які пройшли **аудит безпеки**.
-$safe_staking_description_jetton2: Ви можете вивести свої стейкінгові кошти **у будь-який момент**, і вони будуть **миттєво** повернені на ваш рахунок.
 $min_value: Мін. %value%
-Est. balance in a year: Очікуваний баланс через рік
-Confirm Staking: Підтвердити стейкінг
-Coins have been staked!: Депозит відправлено!
 View: Огляд
-Stake More: Додати
 Staking: Стейкінг
-Currently Staked: Поточний депозит
-Total Staked: Усього в стейкінгу
-Total Stakers: Усього стейкерів
-Unstake: Вивести
-Earning History: Історія нарахувань
 $total: "Усього: %value%"
-$unstake_asset: Вивести %symbol%
-Amount to unstake: Сума до виведення
-Confirm Unstaking: Підтвердити виведення
-Request for unstaking is sent!: Запит на виведення відправлено!
-$unstaking_when_receive: Депозит буде виведено через %time%.
-$unstaking_when_receive_with_amount: "%amount% буде виведено через %time%."
-$unstaking_when_receive_with_amount_ethena: "%amount% будуть доступні для виведення через %time%."
-$unstake_insufficient_balance: Вам необхідно мати %balance% на вашому основному балансі, щоб відправити заявку на виведення депозиту.
-at %annual_yield%: при %annual_yield%
-Est. %annual_yield%: Прибутковість %annual_yield%
 Staked: Стейкінг
 $stake_action: Стейкінг
 Unstaked: Стейк виведено
@@ -319,12 +287,7 @@ Invalid address: Некоректна адреса
 Domain is not connected to a wallet: Домен не підключений до гаманця
 Unexpected error: Непередбачена помилка
 Unexpected Error: Непередбачена помилка
-Earn: Стейкінг
-Earning: Стейкінг
 You can save this address for quick access while sending.: Ви можете зберегти цю адресу для швидкого доступу під час надсилання.
-Stake Again: Повторити депозит
-Earned: Зароблено
-$staking_history_earned: Зароблено
 Select wallet to use on this app: Виберіть гаманець для використання в цій програмі
 Connect: Підключити
 Payload: Службові дані
@@ -334,7 +297,6 @@ $many_transactions:
   fewValue: "%1$d перекази"
   manyValue: "%1$d переказів"
 Total Amount: Загальна сума
-$unstaking_short: Зняти
 Handle ton:// links: Обробляти посилання ton://
 Back up wallet to have full access to it: Зробіть резервну копію гаманця, щоб мати до нього повний доступ
 Consider More Secure Version: Підвищіть безпеку гаманця
@@ -360,7 +322,6 @@ No active connections: Немає активних підключень
 Other: Інші
 No price data: Немає даних про ціну
 Price Copied: Ціну скопійовано
-Not staked: Не в стейкінгу
 Portfolio: Портфель
 Performance, insights and P&L: Динаміка, аналітика і P&L
 Custom Date Range: Довільний період
@@ -383,7 +344,6 @@ Stablecoins: Стейблкоїни
 Altcoins: Альткоїни
 Asset Mix: Склад активів
 No asset balances: Немає балансів активів
-No staked assets: Немає активів у стейкінгу
 Entire Period: Весь період
 "Asset %1$@": "Актив %1$@"
 Error: Помилка
@@ -569,7 +529,6 @@ Russian Ruble: Російський рубль
 Chinese Yuan: Китайський юань
 $max_balance: "Максимум: %balance%"
 $available_balance: "Доступно: %balance%"
-$unstake_information_instantly: Ви отримаєте свій депозит миттєво
 Select Token: Вибрати токен
 MY: Мої
 Popular: Популярні
@@ -601,7 +560,6 @@ Correct: Правильно
 Confirm Action: Підтвердити дію
 $classic_confirm_actions: Підтвердити дії
 Confirm Swap: Підтвердити обмін
-Confirm Rewards Claim: Підтвердити виведення нагород
 "%amount% to %address%": "%amount% на %address%"
 "%amount_from% to %amount_to%": "%amount_from% на %amount_to%"
 Failed to enable biometrics.: Не вдалося ввімкнути біометрію.
@@ -615,14 +573,12 @@ Biometric confirmation failed: Помилка авторизації
 No Activity: Немає активності
 Fund: Поповнити
 Buy with Crypto: Купівля за криптовалюту
-Explore: Огляд
+Explore: Браузер
 $lockdown_mode_enabled_title: Режим блокування ввімкнено
 $lockdown_mode_walletconnect_unavailable: "WalletConnect недоступний у режимі блокування. Щоб використовувати його, вимкніть режим блокування для %app_name% у Параметри > Приватність і безпека > Режим блокування > Налаштувати веб-перегляд."
 No partners yet: Ще немає партнерів
 Clear: Очистити
-$unstake_up_to_information: Миттєво - до %value%
 $all_balance: "Все: %balance%"
-$unstaking_not_enough_balance: Вам необхідно мати %value% на вашому основному балансі, щоб продовжити виведення.
 $ledger_verify_address_on_device: Будь ласка, перевірте адресу у вашому Ledger.
 Wallet Versions: Версії гаманців
 $read_more_about_wallet_version: Дізнайтеся більше про типи контрактів гаманців на %link%.
@@ -683,14 +639,12 @@ More actions: Більше дій
 Open on %explorer_name%: Відкрити на %explorer_name%
 Swap is not supported in Testnet.: Обмін не підтримується в Testnet.
 Swap is not yet supported by Ledger.: Обмін ще не підтримується Ledger.
-Staking is not supported in Testnet.: Стейкінг не підтримується в Testnet.
 Get Support: Підтримка
 $transfer_link_expired: Термін дії посилання для переказу закінчився
 $transfer_text_and_bin_exclusive: Не можна використовувати параметри тексту та бінарних даних разом
 $unsupported_deeplink_parameter: Це посилання містить непідтримувані параметри.
 $unsupported_chain: Непідтримуваний блокчейн.
 Successfully: Успішно
-Unstake More: Вивести ще
 Are you sure you want to burn this NFT? It will be lost forever.: Ви впевнені, що хочете спалити цей NFT? Його буде втрачено назавжди.
 $multi_burn_nft_warning: |
   Ви збираєтеся спалити %amount% NFT. Процес може зайняти ~%duration%. Будь ласка, не закривайте застосунок і не перемикайтеся між гаманцями, доки він не завершиться.
@@ -842,7 +796,6 @@ $fee_details: |
   Ось як працює блокчейн %chain_name%.
 Got It: Зрозуміло
 Wallet: Гаманець
-Trending: У тренді
 No Data: Даних немає
 Toggle fullscreen: Перемкнути повноекранний режим
 Request is sent!: Запит відправлено!
@@ -939,19 +892,12 @@ $DappurlTrustStatusInvalidHelp: The origin does not match this application's ver
 DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: Будь ласка, використовуйте %app_name% %mobileAppButton% або %browserExtensionButton%, щоб уникнути цього попередження.
-$reopen_in_iab_explore: Будь ласка, використовуйте розділ %exploreTab% під час перегляду застосунків, щоб уникнути цього попередження.
-tWallet Browser: браузері tWallet
+$reopen_in_iab_explore: Щоб уникнути цього попередження, відкривайте застосунки через вкладку «%exploreTab%».
+tWallet Browser: Браузер tWallet
 mobile app: мобільний додаток
 browser extension: розширення браузера
 Exit all wallets: Вийти з усіх гаманців
 Can't confirm?: Не вдається увійти?
-$safe_staking_ethena_description1: Стейкінг повністю **децентралізований** і керується офіційними, перевіреними аудитом **смарт-контрактами від Ethena**.
-$safe_staking_ethena_description2: Ваш депозит у USDe використовується в **торгових та інвестиційних стратегіях** Ethena, автоматично й прозоро приносячи прибуток.
-$safe_staking_ethena_description3: Ви можете **вивести депозит** разом із нарахованими відсотками у будь-який момент — кошти повернуться на ваш основний рахунок через **7 днів**, згідно зі стандартним періодом виведення Ethena.
-Unstake %amount%: Вивести %amount%
-Request Unstaking: Запросити виведення
-$unstaking_when_receive_ethena: Ви зможете отримати свій депозит через **7 днів**.
-Coins have been unstaked!: Монети виведено!
 Confirm Upgrading: Підтвердити оновлення
 How does it work?: Як це працює?
 Multisend: Мультинадсилання
@@ -961,7 +907,6 @@ Renew Domain: Продовжити домен
 Renew Domains: Продовжити домени
 Some domains are about to expire: Деякі домени скоро закінчуються
 $domain_expire: "**%domain%** закінчується %days%"
-"%token% Staking": Стейкінг %token%
 Add Tab: Додати вкладку
 Customize Tabs: Налаштувати вкладки
 Remove Tab: Видалити вкладку
@@ -982,7 +927,6 @@ $domains_amount %1$d:
   manyValue: "%1$d доменів"
 Stake: Стекінг
 Manage Tokens: Керування токенами
-Claim Rewards: Отримати винагороди
 Configure DNS: Налаштувати DNS
 Link to Wallet: Прив'язати до гаманця
 Change Wallet: Змінити гаманець
@@ -1012,8 +956,6 @@ $domains_was_expired:
   manyValue: "**%domain% доменів** закінчилися"
 Reload: Оновити
 Copy Link: Копіювати посилання
-Check eligibility for max APY: Перевірити доступність макс. APY
-Check eligibility: Перевірити доступність
 $expired_many: Закінчилися
 $one_domain_expires %days%: Закінчується %days%
 $multiple_domains_expire %days%: Закінчуються %days%
@@ -1101,8 +1043,9 @@ Show More: Показати більше
 Search app or enter address: Пошук або адреса
 Connected Apps: Підключені додатки
 Connected Sites: Підключені додатки
-Popular Apps: Популярні додатки
-Popular Sites: Популярні додатки
+TMail: TMail
+Mint: Mint
+Recently Viewed: Нещодавно переглянуті
 $wallets_amount:
   zeroValue: Немає гаманців
   oneValue: "%1$d гаманець"
@@ -1376,7 +1319,6 @@ M: 1 міс
 Y: 1 р
 $amount_K: "%amount%K"
 $amount_M: "%amount%M"
-Happening Now: Актуальне
 No Dapps Found!: dApp не знайдено!
 Edit Wallet Name: Змінити назву гаманця
 Wallet Name: Назва гаманця
@@ -1395,20 +1337,14 @@ Never: Ніколи
 "%1$@ minutes": "%1$@ хв"
 Unstake Request: Запит на вихід зі стейкінгу
 History: Історія
-Earn up to %1$@ per year from your tokens: Заробляйте до %1$@ на рік на своїх токенах
 Insufficient %1$@ Balance: Недостатньо %1$@ на балансі
-Instant Withdrawal: Миттєве виведення
 Instantly: Миттєво
-Up to %1$@: До %1$@
-up to %1$@: до %1$@
-Current APR: Поточний APR
 in: у
 Network Error: Помилка мережі
 Enter Amount: Введіть суму
 "Swap %1$@ to %2$@": "Обміняти %1$@ на %2$@"
 "%1$@ to %2$@": "%1$@ на %2$@"
 "Max %1$@": "Макс. %1$@"
-"Authorize %1$@ fee": "Підтвердити комісію %1$@"
 Pending previous fee: Очікування попередньої комісії
 AML/KYC: AML/KYC
 Receive to: Отримати на
@@ -1523,7 +1459,6 @@ $n_wallets_selected:
 add: додати
 send: надіслати
 swap: обміняти
-earn: заробляти
 Actions: Дії
 $actions_description: Швидкий доступ до найпоширеніших дій.
 Rate: Курс
@@ -1571,7 +1506,6 @@ Unexpected error. Please let the support know.: Неочікувана поми�
 Unlock it and open the TON App: Розблокуйте його та відкрийте застосунок TON
 Use 4-digit Passcode: Використати 4-значний код
 Use 6-digit Passcode: Використати 6-значний код
-Authorize %token% Fee: Підтвердити комісію %token%
 Awaiting Previous Fee: Очікування попередньої комісії
 Lock: Заблокувати
 Receive: Отримати
@@ -1603,9 +1537,6 @@ push_activity_nft_minted: Випущено NFT
 push_activity_nft_minted_named: "Випущено NFT: %name%"
 push_activity_liquidity_deposited: Додано ліквідність
 push_activity_liquidity_withdrawn: Виведено ліквідність
-push_activity_stake_deposit: Застейкано %amount% %symbol%
-push_activity_stake_withdrawal: Виведено зі стейкінгу %amount% %symbol%
-push_activity_stake_withdrawal_request: Запитано виведення зі стейкінгу
 push_activity_auction_bid: Зроблено ставку на аукціоні %amount% %symbol%
 push_activity_dns_changed: DNS-запис оновлено
 push_activity_dns_deleted: DNS-запис видалено
@@ -1617,8 +1548,6 @@ push_activity_swap_completed: Обмін %from_symbol% -> %to_symbol% викон
 push_activity_swap_failed: Обмін %from_symbol% -> %to_symbol% не виконано
 push_activity_swap_expired: Обмін %from_symbol% -> %to_symbol% прострочений
 push_activity_swap_pending: Обмін %from_symbol% -> %to_symbol% %status%
-push_activity_staking_profit: Прибуток від стейкінгу %amount% GRAM
-push_activity_staking_loyalty_profit: Прибуток від лояльності у стейкінгу %amount% GRAM
 push_domain_title_renew: Продовжте ваш домен
 push_domain_expired_yesterday: Термін дії вашого домену %domain% закінчився вчора. Будь ласка, продовжте його якнайшвидше, щоб не втратити доступ
 push_domain_expired_days_ago: Термін дії вашого домену %domain% закінчився %days% днів тому. Будь ласка, продовжте його якнайшвидше, щоб не втратити доступ

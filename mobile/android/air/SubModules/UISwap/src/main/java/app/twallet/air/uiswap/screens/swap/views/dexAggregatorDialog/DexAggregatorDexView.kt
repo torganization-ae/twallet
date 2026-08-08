@@ -123,8 +123,8 @@ class DexAggregatorDexView(
                     0f, 0f,
                     nameLabel.measuredWidth.toFloat(), 0f,
                     intArrayOf(
-                        WColor.EarnGradientLeft.color,
-                        WColor.EarnGradientRight.color
+                        0xFF41C433.toInt(),
+                        0xFF0098EB.toInt()
                     ),
                     null, Shader.TileMode.CLAMP
                 )

@@ -1,7 +1,6 @@
 package app.twallet.air.uibrowser.viewControllers.search.cells
 
 import android.annotation.SuppressLint
-import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.text.TextUtils
@@ -9,10 +8,9 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatImageView
-import androidx.core.view.isGone
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.WFont
-import app.twallet.air.uicomponents.widgets.WBaseView
+import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import app.twallet.air.uicomponents.widgets.WCell
 import app.twallet.air.uicomponents.widgets.WLabel
 import app.twallet.air.uicomponents.widgets.WThemedView
@@ -22,16 +20,19 @@ import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
 
 @SuppressLint("ViewConstructor")
-class SearchItemCell(context: Context, private val onTap: (keyword: String) -> Unit) :
-    WCell(context, LayoutParams(MATCH_PARENT, 50.dp)), WThemedView {
-
+class SearchItemCell(
+    context: Context,
+    private val onTap: (keyword: String) -> Unit
+) : WCell(context, LayoutParams(MATCH_PARENT, 50.dp)),
+    WThemedView {
     private val searchDrawable: Drawable? =
-        AppCompatResources.getDrawable(
-            context,
-            app.twallet.air.icons.R.drawable.ic_search_24
-        )?.apply {
-            setTint(WColor.SecondaryText.color)
-        }
+        AppCompatResources
+            .getDrawable(
+                context,
+                app.twallet.air.icons.R.drawable.ic_search_24
+            )?.apply {
+                setTint(WColor.SecondaryText.color)
+            }
 
     private val searchImageView: AppCompatImageView by lazy {
         AppCompatImageView(context).apply {
@@ -91,5 +92,4 @@ class SearchItemCell(context: Context, private val onTap: (keyword: String) -> U
             if (isLastItem) ViewConstants.BLOCK_RADIUS.dp else 0f
         )
     }
-
 }

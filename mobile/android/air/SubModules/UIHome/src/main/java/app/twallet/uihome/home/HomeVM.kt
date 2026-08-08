@@ -12,7 +12,6 @@ import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.MScreenMode
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.BalanceStore
-import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
 import app.twallet.uihome.home.status.HomeStatusController
 import app.twallet.uihome.home.views.UpdateStatusView
@@ -33,8 +32,6 @@ class HomeVM(
         // animated update transactions
         fun transactionsUpdated(isUpdateEvent: Boolean)
 
-        fun loadStakingData()
-        fun stakingDataUpdated()
 
         fun configureAccountViews(shouldLoadNewWallets: Boolean, skipSkeletonOnCache: Boolean)
         fun reloadTabs()
@@ -63,15 +60,12 @@ class HomeVM(
             }
         }
 
-    // Tokens, Balance and Staking data are loaded or not
+    // Tokens and Balance data are loaded or not
     val isGeneralDataAvailable: Boolean
         get() {
             return TokenStore.swapAssetsLoaded &&
                 TokenStore.loadedAllTokens &&
-                !BalanceStore.getBalances(showingAccountId).isNullOrEmpty() &&
-                (showingAccount?.isMainnet != true ||
-                    StakingStore.getStakingState(showingAccountId ?: "") != null ||
-                    WGlobalStorage.getAccountTonAddress(showingAccountId ?: "") == null)
+                !BalanceStore.getBalances(showingAccountId).isNullOrEmpty()
         }
 
     // Called on bridge ready to setup the observer
@@ -242,10 +236,6 @@ class HomeVM(
                 dataUpdated()
             }
 
-            WalletEvent.StakingDataUpdated -> {
-                delegate.get()?.stakingDataUpdated()
-                dataUpdated()
-            }
 
             WalletEvent.AssetsAndActivityDataUpdated -> {
                 dataUpdated()
@@ -258,7 +248,6 @@ class HomeVM(
             WalletEvent.NetworkConnected -> {
                 if (waitingForNetwork) {
                     waitingForNetwork = false
-                    delegate.get()?.loadStakingData()
                     WalletCore.requestDAppList(showingAccountId)
                 }
             }

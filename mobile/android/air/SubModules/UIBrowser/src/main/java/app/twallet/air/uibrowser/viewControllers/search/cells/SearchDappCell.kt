@@ -1,7 +1,6 @@
 package app.twallet.air.uibrowser.viewControllers.search.cells
 
 import android.annotation.SuppressLint
-import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import android.content.Context
 import android.text.TextUtils
 import android.view.Gravity
@@ -10,6 +9,7 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import app.twallet.air.uicomponents.drawable.WRippleDrawable
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.WFont
+import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import app.twallet.air.uicomponents.image.Content
 import app.twallet.air.uicomponents.image.WCustomImageView
 import app.twallet.air.uicomponents.widgets.WCell
@@ -26,9 +26,11 @@ import app.twallet.air.walletcore.moshi.ApiDapp
 import app.twallet.air.walletcore.moshi.IDapp
 
 @SuppressLint("ViewConstructor")
-class SearchDappCell(context: Context, private val onTap: (site: IDapp) -> Unit) :
-    WCell(context, LayoutParams(MATCH_PARENT, 60.dp)), WThemedView {
-
+class SearchDappCell(
+    context: Context,
+    private val onTap: (site: IDapp) -> Unit
+) : WCell(context, LayoutParams(MATCH_PARENT, 60.dp)),
+    WThemedView {
     private val openButtonRipple = WRippleDrawable.create(16f.dp)
     private val ripple = WRippleDrawable.create(0f)
     private val rippleLastItem =
@@ -61,20 +63,21 @@ class SearchDappCell(context: Context, private val onTap: (site: IDapp) -> Unit)
         }
     }
 
-    private val openButton = WLabel(context).apply {
-        setStyle(14f, WFont.Medium)
-        text =
-            LocaleController.getString("Open")
-        gravity = Gravity.CENTER
-        setTextColor(WColor.Tint)
-        setPadding(10.dp, 0, 10.dp, 0)
-        background = openButtonRipple
-        setOnClickListener {
-            site?.let {
-                onTap(it)
+    private val openButton =
+        WLabel(context).apply {
+            setStyle(14f, WFont.Medium)
+            text =
+                LocaleController.getString("Open")
+            gravity = Gravity.CENTER
+            setTextColor(WColor.Tint)
+            setPadding(10.dp, 0, 10.dp, 0)
+            background = openButtonRipple
+            setOnClickListener {
+                site?.let {
+                    onTap(it)
+                }
             }
         }
-    }
 
     override fun setupViews() {
         super.setupViews()
@@ -112,19 +115,20 @@ class SearchDappCell(context: Context, private val onTap: (site: IDapp) -> Unit)
         dappImageView.set(Content.ofUrl(site.iconUrl ?: ""))
         titleLabel.text = site.name
         titleLabel.isSelected = false
-        subtitleLabel.text = when (site) {
-            is MExploreSite -> {
-                site.description
-            }
+        subtitleLabel.text =
+            when (site) {
+                is MExploreSite -> {
+                    site.description
+                }
 
-            is ApiDapp -> {
-                LocaleController.getString("Connected Dapp")
-            }
+                is ApiDapp -> {
+                    LocaleController.getString("Connected Dapp")
+                }
 
-            else -> {
-                ""
+                else -> {
+                    ""
+                }
             }
-        }
 
         updateTheme()
     }
@@ -133,9 +137,10 @@ class SearchDappCell(context: Context, private val onTap: (site: IDapp) -> Unit)
         openButtonRipple.backgroundColor = WColor.SecondaryBackground.color
         openButtonRipple.rippleColor = WColor.BackgroundRipple.color
         if ((site as? MExploreSite)?.isTelegram == true) {
-            val telegramIcon = context.getDrawableCompat(
-                app.twallet.air.icons.R.drawable.ic_telegram
-            )
+            val telegramIcon =
+                context.getDrawableCompat(
+                    app.twallet.air.icons.R.drawable.ic_telegram
+                )
             telegramIcon?.let { drawable ->
                 drawable.setTint(WColor.PrimaryText.color.colorWithAlpha(50))
                 drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
@@ -153,5 +158,4 @@ class SearchDappCell(context: Context, private val onTap: (site: IDapp) -> Unit)
         currentRipple.backgroundColor = WColor.Background.color
         currentRipple.rippleColor = WColor.BackgroundRipple.color
     }
-
 }

@@ -78,9 +78,9 @@ struct ExploreCategoryRow: View {
 @available(iOS 18, *)
 #Preview {
     VStack(spacing: 0) {
-        ExploreCategoryRow(site: .sampleFeatured(), openAction: {})
+        ExploreCategoryRow(site: .sample(), openAction: {})
         Rectangle().fill(Color.gray).frame(height: 1)
-        ExploreCategoryRow(site: .sampleFeaturedTelegram, openAction: {})
+        ExploreCategoryRow(site: .sampleTelegram, openAction: {})
         Spacer()
     }
     .padding(.horizontal, 20)

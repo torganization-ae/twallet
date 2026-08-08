@@ -6,18 +6,23 @@ import type { LangFn } from './langProvider';
 import {
   PRICELESS_TOKEN_HASHES,
   PRIORITY_TOKENS,
-  STAKED_TOKEN_SLUGS,
+  STAKED_MYCOIN_SLUG,
   STAKED_TON_SLUG,
-  STAKING_SLUG_PREFIX,
-  TON_USDE,
+  TON_TSUSDE,
 } from '../config';
 import { findChainConfig, getChainConfig, getSupportedChains } from './chain';
 import { pick } from './iteratees';
 
-const ETHENA_STAKING_SLUG = `${STAKING_SLUG_PREFIX}${TON_USDE.slug}`;
 const RWA_STOCK_KEYWORD = 'rwa';
 const XSTOCKS_NAME_REGEX = /\s+xStock$/;
 const SHIFT_NAME_REGEX = /^Shift\s+/;
+
+/** Liquid / historical staked jettons treated as ordinary tokens for service-token heuristics */
+const SERVICE_STAKED_TOKEN_SLUGS = new Set([
+  STAKED_TON_SLUG,
+  STAKED_MYCOIN_SLUG,
+  TON_TSUSDE.slug,
+]);
 
 const chainByNativeSlug = Object.fromEntries(
   getSupportedChains().map((chain) => [getNativeToken(chain).slug, chain]),
@@ -29,15 +34,6 @@ export function getIsNativeToken(slug?: string) {
 
   const chain = getChainBySlug(slug);
   return findChainConfig(chain)?.nativeToken.slug === slug;
-}
-
-export function getIsNativeStakedToken(slug?: string) {
-  if (!slug) return false;
-  if (slug === STAKED_TON_SLUG) return true;
-  if (slug.startsWith(STAKING_SLUG_PREFIX)) {
-    return getIsNativeToken(slug.slice(STAKING_SLUG_PREFIX.length));
-  }
-  return false;
 }
 
 export function getNativeToken(chain: ApiChain): ApiToken {
@@ -57,20 +53,11 @@ export function getTokenName(lang: LangFn, token?: UserSwapToken | ApiSwapAsset 
 export function getTokenName(lang: LangFn, token?: UserSwapToken | ApiSwapAsset | ApiToken) {
   if (!token) return undefined;
 
-  if (!('isStaking' in token) || !token.isStaking) {
-    if (getIsRwaStockToken(token)) {
-      return token.name.replace(XSTOCKS_NAME_REGEX, '').replace(SHIFT_NAME_REGEX, '');
-    }
-
-    return token.name;
+  if (getIsRwaStockToken(token)) {
+    return token.name.replace(XSTOCKS_NAME_REGEX, '').replace(SHIFT_NAME_REGEX, '');
   }
 
-  switch (token.slug) {
-    case ETHENA_STAKING_SLUG:
-      return lang('%token% Staking', { token: 'Ethena' })[0] as string;
-    default:
-      return lang('%token% Staking', { token: token.name })[0] as string;
-  }
+  return token.name;
 }
 
 export function getChainBySlug(slug: string) {
@@ -82,7 +69,7 @@ export function getIsServiceToken(token?: ApiToken) {
   const { type, codeHash = '', slug = '' } = token ?? {};
 
   return type === 'lp_token'
-    || STAKED_TOKEN_SLUGS.has(slug)
+    || SERVICE_STAKED_TOKEN_SLUGS.has(slug)
     || PRICELESS_TOKEN_HASHES.has(codeHash);
 }
 

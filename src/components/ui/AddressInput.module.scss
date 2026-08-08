@@ -109,6 +109,20 @@
   }
 }
 
+.addressResolving {
+  animation: address-resolve-pulse 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes address-resolve-pulse {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.35;
+  }
+}
+
 .addressValue {
   color: var(--color-gray-3);
 

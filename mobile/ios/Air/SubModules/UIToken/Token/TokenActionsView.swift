@@ -11,7 +11,7 @@ import WalletContext
 import WalletCore
 
 class TokenActionsView: WTouchPassStackView {
-    private static let splitStyleActionCount: CGFloat = 4
+    private static let splitStyleActionCount: CGFloat = 3
     private static let splitStyleSpacing: CGFloat = 16
     private static let splitStyleHorizontalPadding: CGFloat = 16
     private static var splitStyleMinimumWidth: CGFloat {
@@ -48,7 +48,6 @@ class TokenActionsView: WTouchPassStackView {
 
     private var addButton: UIView!
     private var swapButton: UIView!
-    private var earnButton: UIView!
     private var sendButton: UIView!
     private var heightConstraint: NSLayoutConstraint!
     
@@ -87,13 +86,6 @@ class TokenActionsView: WTouchPassStackView {
             onTap: { [weak self] in self?.swapPressed() },
         )
         buttons += swapButton
-
-        earnButton = makeButton(
-            title: lang("Earn"),
-            image: .airBundle(usesSplitHomeActionStyle ? "EarnIconLarge" : "EarnIconBold"),
-            onTap: { [weak self] in self?.earnPressed() },
-        )
-        buttons += earnButton
 
         if usesSplitHomeActionStyle {
             for button in buttons {
@@ -161,18 +153,9 @@ class TokenActionsView: WTouchPassStackView {
             updateSpacing()
         }
     }
-    var earnAvailable: Bool {
-        get {
-            return !earnButton.isHidden
-        }
-        set {
-            earnButton.isHidden = !newValue
-            updateSpacing()
-        }
-    }
 
     var hasVisibleActions: Bool {
-        fundAvailable || sendAvailable || swapAvailable || earnAvailable
+        fundAvailable || sendAvailable || swapAvailable
     }
     
     func addPressed() {
@@ -193,9 +176,5 @@ class TokenActionsView: WTouchPassStackView {
             defaultSellingAmount: nil,
             push: nil
         )
-    }
-
-    func earnPressed() {
-        AppActions.showEarn(accountContext: accountContext, tokenSlug: token?.slug)
     }
 }

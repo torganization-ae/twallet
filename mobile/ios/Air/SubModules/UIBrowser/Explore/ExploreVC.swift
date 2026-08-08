@@ -110,8 +110,13 @@ public final class ExploreVC: WViewController {
                 AppActions.showConnectedDapps(push: false)
             },
 
-            viewOutput.trendingDappDidTap
-                .merge(with: viewOutput.dappFromFolderDidTap)
+            viewOutput.recentlyViewedDidTap.sink(withUnretained: self) { uSelf, item in
+                uSelf.commitSelection()
+                guard let url = URL(string: item.url) else { return }
+                AppActions.openInBrowser(url, title: item.title, injectDappConnect: true, historyTag: exploreHistoryTag)
+            },
+
+            viewOutput.dappFromCarouselDidTap
                 .sink(withUnretained: self) { uSelf, apiSite in
                     uSelf.commitSelection()
                     
@@ -155,11 +160,15 @@ public final class ExploreVC: WViewController {
         lastSearchQuery = nil
         currentSearchResult = nil
         
+        let recentlyViewed = BrowserHistoryStore.shared.items
+            .filter { $0.tag == exploreHistoryTag && !$0.isGoogleSearchResult }
+            .prefix(10)
+            .map { $0 }
         let sections = Self.makeBrowsingSections(
             connectedDapps: Array(exploreVM.connectedDapps.values.apply(Array.init)),
-            featuredTitle: exploreVM.featuredTitle,
             exploreSites: exploreVM.exploreSites.values.apply(Array.init),
             siteCategories: exploreVM.exploreCategories.values.apply(Array.init),
+            recentlyViewed: recentlyViewed,
             shouldRestrictSites: shouldRestrictSites,
             isLockdownModeEnabled: WalletCoreData.isLockdownModeEnabled
         )

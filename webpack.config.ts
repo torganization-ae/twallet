@@ -360,13 +360,9 @@ export default function createConfig(
         TEST_SESSION: '',
         BRILLIANT_API_BASE_URL: '',
         PROXY_HOSTS: '',
-        STAKING_POOLS: '',
-        LIQUID_POOL: '',
-        LIQUID_JETTON: '',
         IS_PACKAGED_ELECTRON: 'false',
         IS_ANDROID_DIRECT: 'false',
         BASE_URL,
-        BOT_USERNAME: '',
         IS_EXTENSION: '', // It's necessary to use an empty string, because it's used in bundle-time conditions
         IS_FIREFOX_EXTENSION: 'false',
         IS_AIR_APP: 'false',

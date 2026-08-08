@@ -136,7 +136,6 @@ export async function submitTransfer(
     realFee,
     isGasless,
     dieselAmount = 0n,
-    isGaslessWithStars,
     gaslessTransaction,
     addressName,
     ...commonOptions
@@ -163,7 +162,6 @@ export async function submitTransfer(
       ...commonOptions,
       tokenAddress,
       dieselAmount,
-      isGaslessWithStars,
       gaslessTransaction,
     });
   } else {
@@ -208,10 +206,6 @@ export async function submitTransfer(
     slug,
     ...(localMetadata && { metadata: localMetadata }),
   }]);
-
-  if ('paymentLink' in result && result.paymentLink) {
-    onUpdate({ type: 'openUrl', url: result.paymentLink, isExternal: true });
-  }
 
   return {
     activityId: localActivity.id,

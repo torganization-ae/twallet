@@ -9,7 +9,6 @@ import type {
   ApiDappTransfer,
   ApiEmulationResult,
   ApiNft,
-  ApiStakingState,
   ApiSwapAsset,
   ApiTokenWithPrice,
 } from '../../api/types';
@@ -18,7 +17,6 @@ import type { Account, SavedAddress, Theme } from '../../global/types';
 import { DEFAULT_CHAIN, TONCOIN, UNKNOWN_TOKEN } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import {
-  selectAccountStakingStatesBySlug,
   selectCurrentAccountId,
   selectCurrentAccountState,
   selectCurrentDappTransferTotals,
@@ -71,7 +69,6 @@ interface StateProps {
   currencyRates: ApiCurrencyRates;
   nftsByAddress?: Record<string, ApiNft>;
   currentAccountId: string;
-  stakingStateBySlug: Record<string, ApiStakingState>;
   savedAddresses?: SavedAddress[];
   accounts?: Record<string, Account>;
   insufficientTokens?: string;
@@ -111,7 +108,6 @@ function DappTransferInitial({
   currencyRates,
   nftsByAddress,
   currentAccountId,
-  stakingStateBySlug,
   savedAddresses,
   accounts,
   insufficientTokens,
@@ -282,7 +278,6 @@ function DappTransferInitial({
         appTheme={appTheme}
         nftsByAddress={nftsByAddress}
         currentAccountId={currentAccountId}
-        stakingStateBySlug={stakingStateBySlug}
         savedAddresses={savedAddresses}
         accounts={accounts}
         baseCurrency={baseCurrency}
@@ -340,7 +335,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     currencyRates: global.currencyRates,
     nftsByAddress: accountState?.nfts?.byAddress,
     currentAccountId: accountId,
-    stakingStateBySlug: selectAccountStakingStatesBySlug(global, accountId),
     savedAddresses: accountState?.savedAddresses,
     accounts,
     insufficientTokens: selectDappTransferInsufficientTokens(global),

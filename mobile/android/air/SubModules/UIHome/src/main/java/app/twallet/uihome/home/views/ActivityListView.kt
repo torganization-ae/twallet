@@ -47,7 +47,6 @@ import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.helpers.IActivityLoader
 import app.twallet.air.walletcore.moshi.MApiTransaction
 import app.twallet.air.walletcore.stores.BalanceStore
-import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
 import app.twallet.uihome.home.cells.HomeAssetsVCPool
 import app.twallet.air.uiassets.viewControllers.assetsTab.AssetsTabVC
@@ -336,12 +335,7 @@ class ActivityListView<T>(
                 return true
             return TokenStore.swapAssetsLoaded &&
                 TokenStore.loadedAllTokens &&
-                !BalanceStore.getBalances(showingAccountId).isNullOrEmpty() &&
-                (
-                    !isMainnetAccount ||
-                        StakingStore.getStakingState(showingAccountId ?: "") != null ||
-                        WGlobalStorage.getAccountTonAddress(showingAccountId ?: "") == null
-                    )
+                !BalanceStore.getBalances(showingAccountId).isNullOrEmpty()
         }
 
     val showingTransactions: List<MApiTransaction>?
@@ -566,7 +560,7 @@ class ActivityListView<T>(
     private fun mountTabletActionsView() {
         val view = tabletActionsView ?: TabletHeaderActionsView(
             context,
-            TabletHeaderActionsView.headerTabs(context, true),
+            TabletHeaderActionsView.headerTabs(context),
             onClick = onClick@{ identifier ->
                 if (skeletonVisible)
                     return@onClick

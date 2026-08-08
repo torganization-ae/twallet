@@ -76,7 +76,7 @@ function NativeBiometricsToggle({ isBiometricAuthEnabled, onEnable }: OwnProps &
         isOpen={isWarningModalOpen}
         title={lang(warningTitle)}
         onClose={closeWarningModal}
-        dialogClassName={styles.stakingSafeDialog}
+        dialogClassName={styles.safeDialog}
       >
         <p className={modalStyles.text}>
           {renderText(lang(warningDescription))}

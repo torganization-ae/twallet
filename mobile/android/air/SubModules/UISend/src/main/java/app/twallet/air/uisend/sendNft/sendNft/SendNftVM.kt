@@ -16,8 +16,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletcontext.helpers.DNSHelpers
 import app.twallet.air.walletcontext.helpers.TmailHelpers
@@ -42,6 +42,7 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
         fun showError(error: MBridgeError?)
         fun feeUpdated(fee: BigInteger?, err: MBridgeError?)
         fun addressInfoUpdated(info: AddressInfo?)
+        fun addressResolvingChanged(isResolving: Boolean)
         fun addressSearchCandidatesChanged(enabled: Boolean)
     }
 
@@ -140,13 +141,26 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
             addressName = null
             isScam = false
             addressInfoJob?.cancel()
+            delegate.get()?.addressResolvingChanged(false)
             delegate.get()?.addressInfoUpdated(null)
             return
         }
 
         addressInfoJob?.cancel()
         addressInfoJob = vmScope.launch {
-            applyAddressInfo(fetchAddressInfo(chain, destination))
+            val shouldAnimate = chain == MBlockchain.ton && (
+                DNSHelpers.isDnsDomain(destination)
+                    || TmailHelpers.isTmailAlias(destination)
+                    || TmailHelpers.isBareTonAlias(destination)
+                )
+            if (shouldAnimate) {
+                delegate.get()?.addressResolvingChanged(true)
+            }
+            try {
+                applyAddressInfo(fetchAddressInfo(chain, destination))
+            } finally {
+                delegate.get()?.addressResolvingChanged(false)
+            }
         }
     }
 
@@ -196,16 +210,14 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
         )
 
         return try {
-            val result = withTimeoutOrNull(100) {
-                WalletCore.call(
-                    ApiMethod.WalletData.GetAddressInfo(
-                        chain = chain,
-                        network = network,
-                        addressOrDomain = destination
-                    )
+            val result = WalletCore.call(
+                ApiMethod.WalletData.GetAddressInfo(
+                    chain = chain,
+                    network = network,
+                    addressOrDomain = destination
                 )
-            }
-            val resolved = result?.resolvedAddress
+            )
+            val resolved = result.resolvedAddress
             val ownAddressAfterResolve = AccountStore.activeAccount?.byChain?.get(chain.name)?.address
             if (!chain.isSendToSelfAllowed &&
                 ownAddressAfterResolve != null &&
@@ -217,10 +229,12 @@ class SendNftVM(delegate: Delegate, val nfts: List<ApiNft>) {
                 chain = chain,
                 input = destination,
                 resolvedAddress = resolved,
-                addressName = result?.addressName,
-                isScam = result?.isScam,
-                error = result?.error,
+                addressName = result.addressName,
+                isScam = result.isScam,
+                error = result.error,
             )
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Throwable) {
             AddressInfo(chain, destination)
         }

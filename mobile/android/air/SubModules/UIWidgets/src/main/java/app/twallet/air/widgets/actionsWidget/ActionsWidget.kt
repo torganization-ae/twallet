@@ -214,8 +214,6 @@ class ActionsWidget : AppWidgetProvider() {
         val addString = LocaleController.getString("Add")
         val sendString = LocaleController.getString("Send")
         val swapString = LocaleController.getString("Swap")
-        val earnString = LocaleController.getString("Earn")
-
         var iconColor = Color.WHITE
         if (config.style == Config.Style.NEUTRAL) {
             iconColor = ContextCompat.getColor(context, R.color.widget_tint)
@@ -225,10 +223,10 @@ class ActionsWidget : AppWidgetProvider() {
                 R.drawable.bg_widget_background_rounded
             )
             remoteViews.setViewVisibility(R.id.img_background, View.GONE)
-            arrayOf(R.id.img_add, R.id.img_send, R.id.img_swap, R.id.img_earn).forEach {
+            arrayOf(R.id.img_add, R.id.img_send, R.id.img_swap).forEach {
                 remoteViews.setInt(it, "setColorFilter", iconColor)
             }
-            arrayOf(R.id.action_add, R.id.action_send, R.id.action_swap, R.id.action_earn).forEach {
+            arrayOf(R.id.action_add, R.id.action_send, R.id.action_swap).forEach {
                 remoteViews.setInt(
                     it,
                     "setBackgroundResource",
@@ -245,12 +243,10 @@ class ActionsWidget : AppWidgetProvider() {
                 "$APP_SCHEME://transfer"
             )
             DeeplinkUtils.setOnClickDeeplink(context, remoteViews, R.id.action_swap, "$APP_SCHEME://swap")
-            DeeplinkUtils.setOnClickDeeplink(context, remoteViews, R.id.action_earn, "$APP_SCHEME://stake")
         }
         remoteViews.setContentDescription(R.id.action_add, addString)
         remoteViews.setContentDescription(R.id.action_send, sendString)
         remoteViews.setContentDescription(R.id.action_swap, swapString)
-        remoteViews.setContentDescription(R.id.action_earn, earnString)
         if (renderTexts) {
             val typeface = FontUtils.medium(context)
             val textSize =
@@ -282,17 +278,6 @@ class ActionsWidget : AppWidgetProvider() {
                 TextUtils.textToBitmap(
                     context, TextUtils.DrawableText(
                         swapString,
-                        textSize,
-                        iconColor,
-                        typeface
-                    )
-                )
-            )
-            remoteViews.setImageViewBitmap(
-                R.id.text_earn,
-                TextUtils.textToBitmap(
-                    context, TextUtils.DrawableText(
-                        earnString,
                         textSize,
                         iconColor,
                         typeface

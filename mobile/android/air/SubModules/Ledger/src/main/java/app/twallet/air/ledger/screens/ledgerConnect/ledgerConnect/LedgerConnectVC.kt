@@ -68,8 +68,6 @@ import app.twallet.air.walletcontext.utils.VerticalImageSpan
 import app.twallet.air.walletcore.JSWebViewBridge
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
-import app.twallet.air.walletcore.api.submitStake
-import app.twallet.air.walletcore.api.submitUnstake
 import app.twallet.air.walletcore.helpers.ActivityHelpers
 import app.twallet.air.walletcore.models.MBridgeError
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
@@ -78,7 +76,6 @@ import app.twallet.air.walletcore.moshi.ApiTonConnectProof
 import app.twallet.air.walletcore.moshi.LocalActivityParams
 import app.twallet.air.walletcore.moshi.MApiSubmitTransferOptions
 import app.twallet.air.walletcore.moshi.MApiTransaction
-import app.twallet.air.walletcore.moshi.StakingState
 import app.twallet.air.walletcore.moshi.api.ApiMethod
 import app.twallet.air.walletcore.moshi.api.ApiMethod.DApp.ConfirmDappRequestConnect
 import app.twallet.air.walletcore.moshi.api.ApiMethod.DApp.ConfirmDappRequestConnect.Request
@@ -89,7 +86,6 @@ import app.twallet.air.walletcore.moshi.api.ApiMethod.DApp.SignDappProof
 import app.twallet.air.walletcore.moshi.api.ApiMethod.Domains.SubmitDnsChangeWallet
 import app.twallet.air.walletcore.moshi.api.ApiMethod.Domains.SubmitDnsRenewal
 import app.twallet.air.walletcore.moshi.api.ApiMethod.Nft.SubmitNftTransfer
-import app.twallet.air.walletcore.moshi.api.ApiMethod.Staking.SubmitStakingClaimOrUnlock
 import app.twallet.air.walletcore.moshi.api.ApiMethod.Transfer.SignDappTransfers
 import app.twallet.air.walletcore.moshi.api.ApiMethod.Transfer.SignDappTransfers.Options
 import app.twallet.air.walletcore.moshi.api.ApiUpdate
@@ -177,19 +173,6 @@ class LedgerConnectVC(
             val isNftBurn: Boolean
         ) : SignData()
 
-        data class Staking(
-            val isStaking: Boolean,
-            override val accountId: String,
-            val amount: BigInteger,
-            val stakingState: StakingState,
-            val realFee: BigInteger,
-        ) : SignData()
-
-        data class ClaimRewards(
-            override val accountId: String,
-            val stakingState: StakingState,
-            val realFee: BigInteger
-        ) : SignData()
 
         data class RenewNfts(
             override val accountId: String,
@@ -865,59 +848,6 @@ class LedgerConnectVC(
                     }
                 }
 
-                is SignData.Staking -> {
-                    try {
-                        val result = if (signData.isStaking)
-                            WalletCore.submitStake(
-                                accountId = signData.accountId,
-                                passcode = "",
-                                amount = signData.amount,
-                                stakingState = signData.stakingState,
-                                realFee = signData.realFee,
-                            )
-                        else
-                            WalletCore.submitUnstake(
-                                accountId = signData.accountId,
-                                passcode = "",
-                                amount = signData.amount,
-                                stakingState = signData.stakingState,
-                                realFee = signData.realFee,
-                            )
-                        signedActivityId =
-                            result.activityId?.let { ActivityHelpers.getTxIdFromId(it) }
-                        Handler(Looper.getMainLooper()).post {
-                            mode.onDone()
-                            receivedLocalActivities?.firstOrNull { it.getTxHash() == signedActivityId }
-                                ?.let {
-                                    checkReceivedActivity(it)
-                                }
-                        }
-                    } catch (e: Throwable) {
-                        Handler(Looper.getMainLooper()).post {
-                            signFailed(e as? JSWebViewBridge.ApiError)
-                        }
-                    }
-                }
-
-                is SignData.ClaimRewards -> {
-                    try {
-                        WalletCore.call(
-                            SubmitStakingClaimOrUnlock(
-                                accountId = signData.accountId,
-                                password = "",
-                                state = signData.stakingState,
-                                realFee = signData.realFee
-                            )
-                        )
-                        Handler(Looper.getMainLooper()).post {
-                            mode.onDone()
-                        }
-                    } catch (e: Throwable) {
-                        Handler(Looper.getMainLooper()).post {
-                            signFailed(e as? JSWebViewBridge.ApiError)
-                        }
-                    }
-                }
 
                 is SignData.RenewNfts -> {
                     try {
@@ -1186,14 +1116,10 @@ class LedgerConnectVC(
         }
         if ((window?.navigationControllers?.size ?: 0) > 1) {
             window?.dismissLastNav {
-                if ((mode as? Mode.ConnectToSubmitTransfer)?.signData is SignData.Staking)
-                    return@dismissLastNav
                 WalletCore.notifyEvent(WalletEvent.OpenActivity(mode.accountId!!, receivedActivity))
             }
         } else {
             navigationController?.popToRoot {
-                if ((mode as? Mode.ConnectToSubmitTransfer)?.signData is SignData.Staking)
-                    return@popToRoot
                 WalletCore.notifyEvent(WalletEvent.OpenActivity(mode.accountId!!, receivedActivity))
             }
         }

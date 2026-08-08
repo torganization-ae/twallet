@@ -23,7 +23,6 @@ class MFee(
 
     val isNativeOnly: Boolean
         get() = (terms.token ?: BigInteger.ZERO) == BigInteger.ZERO
-            && (terms.stars ?: BigInteger.ZERO) == BigInteger.ZERO
 
     fun toString(token: IApiToken, appendNonNative: Boolean): String {
         var result = ""
@@ -62,18 +61,6 @@ class MFee(
                     tokenAmount.smartDecimalsCount(token.decimals),
                     false,
                     zeroCountSubscriptMinCount = ZERO_COUNT_SUBSCRIPT_MIN_COUNT
-                ) + result
-            }
-
-            terms.stars?.takeIf { it > BigInteger.ZERO }?.let { stars ->
-                if (result.isNotEmpty()) {
-                    result = " + $result"
-                }
-                result = stars.toString(
-                    1,
-                    "⭐️",
-                    stars.smartDecimalsCount(1),
-                    false
                 ) + result
             }
         }

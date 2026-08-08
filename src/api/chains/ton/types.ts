@@ -127,7 +127,6 @@ export type ApiSubmitSingleFATransferResult = {
   boc: string;
   msgHash: string;
   msgHashNormalized: string;
-  paymentLink?: string;
   withW5Gasless?: boolean;
 };
 

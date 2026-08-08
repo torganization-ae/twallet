@@ -98,46 +98,6 @@ public final class BadgeView: UIView {
         labelGradient.frame = label.bounds
     }
     
-    public func configureStakingActive(yieldType: ApiYieldType, apy: Double) {
-        
-        backgroundColor = .white
-        label.textColor = UIColor.white
-        
-        label.text = "\(apy.formatted(.number.precision(.fractionLength(2)).locale(.forNumberFormatters)))%"
-        
-        backgroundGradient.colors = [
-            UIColor.airBundle("EarnGradientColorLeft").cgColor,
-            UIColor.airBundle("EarnGradientColorRight").cgColor,
-        ]
-        backgroundGradient.isHidden = false
-        labelGradient.isHidden = true
-        
-        self.isHidden = false
-        invalidateIntrinsicContentSize()
-    }
-    
-    public func configureStakingInactive(yieldType: ApiYieldType, apy: Double) {
-        
-        backgroundColor = .white.withAlphaComponent(0.15)
-        label.textColor = UIColor.white
-        
-        label.text = "\(yieldType.rawValue) \(apy)%"
-        
-        backgroundGradient.colors = [
-            UIColor.airBundle("EarnGradientColorLeft").cgColor,
-            UIColor.airBundle("EarnGradientColorRight").cgColor,
-        ]
-        backgroundGradient.isHidden = false
-        labelGradient.colors = [
-            UIColor.airBundle("EarnGradientColorLeft").cgColor,
-            UIColor.airBundle("EarnGradientColorRight").cgColor,
-        ]
-        labelGradient.isHidden = false
-        
-        self.isHidden = false
-        invalidateIntrinsicContentSize()
-    }
-
     public func configureChain(chain: ApiChain) {
         configureTokenLabel(text: chain.usdtBadgeText, style: .regular)
     }

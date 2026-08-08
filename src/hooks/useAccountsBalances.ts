@@ -1,6 +1,6 @@
 import { useMemo } from '../lib/teact/teact';
 
-import type { ApiBaseCurrency, ApiCurrencyRates, ApiStakingState } from '../api/types';
+import type { ApiBaseCurrency, ApiCurrencyRates } from '../api/types';
 import type { Account, UserToken } from '../global/types';
 
 import { Big } from '../lib/big.js';
@@ -17,7 +17,6 @@ export interface AccountBalance {
 export function useAccountsBalances(
   filteredAccounts: Array<[string, Account]> | undefined,
   allAccountsTokens: Record<string, UserToken[] | undefined> | undefined,
-  allAccountsStakingStates: Record<string, ApiStakingState[] | undefined> | undefined,
   baseCurrency?: ApiBaseCurrency,
   currencyRates?: ApiCurrencyRates,
 ) {
@@ -27,7 +26,7 @@ export function useAccountsBalances(
   );
 
   const { balancesByAccountId, totalBalance } = useMemo(() => {
-    if (!allAccountsTokens || !allAccountsStakingStates || !currencyRates || !baseCurrency || !filteredAccounts) {
+    if (!allAccountsTokens || !currencyRates || !baseCurrency || !filteredAccounts) {
       const balancesByAccountId: Record<string, AccountBalance> = {};
       return { balancesByAccountId, totalBalance: undefined };
     }
@@ -38,7 +37,6 @@ export function useAccountsBalances(
 
     for (const [accountId] of filteredAccounts) {
       const accountTokens = allAccountsTokens[accountId];
-      const accountStakingStates = allAccountsStakingStates[accountId];
 
       const {
         primaryValue: value,
@@ -46,7 +44,6 @@ export function useAccountsBalances(
         primaryFractionPart: fractionPart,
       } = calculateFullBalance(
         accountTokens,
-        accountStakingStates,
         baseCurrencyRate,
       );
 
@@ -66,7 +63,6 @@ export function useAccountsBalances(
   }, [
     filteredAccounts,
     allAccountsTokens,
-    allAccountsStakingStates,
     currencyRates,
     baseCurrency,
     shortBaseSymbol,

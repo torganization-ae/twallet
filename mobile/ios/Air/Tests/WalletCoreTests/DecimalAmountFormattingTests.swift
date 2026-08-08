@@ -195,7 +195,7 @@ struct DecimalAmountFormattingTests {
     func `fee string uses fee formatting preset`() {
         let fee = MFee(
             precision: .approximate,
-            terms: .init(token: nil, native: BigInt(560), stars: nil),
+            terms: .init(token: nil, native: BigInt(560)),
             nativeSum: nil
         )
 

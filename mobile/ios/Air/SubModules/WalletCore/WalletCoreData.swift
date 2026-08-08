@@ -61,7 +61,6 @@ public struct WalletCoreData {
         case accountNameChanged
         case accountDeleted(accountId: String)
         case accountsReset
-        case stakingAccountData(MStakingData)
         case rawBalancesChanged(accountId: String)
         case assetsAndActivityDataUpdated
         case hideTinyTransfersChanged
@@ -108,7 +107,6 @@ public struct WalletCoreData {
         case updateAccountDomainData(ApiUpdate.UpdateAccountDomainData)
         case updateBalances(ApiUpdate.UpdateBalances)
         case updateCurrencyRates(ApiUpdate.UpdateCurrencyRates)
-        case updateStaking(ApiUpdate.UpdateStaking)
         case updateSwapTokens(ApiUpdate.UpdateSwapTokens)
         case updateTokens([String: Any])
         case updateNfts(ApiUpdate.UpdateNfts)
@@ -249,9 +247,6 @@ public struct WalletCoreData {
         await runDeferredStartupStep("assetsAndActivity") {
             await AssetsAndActivityDataStore.use(db: db)
         }
-        await runDeferredStartupStep("staking") {
-            await StakingStore.use(db: db)
-        }
         await runDeferredStartupStep("balances") {
             await BalancesStore.use(db: db)
         }
@@ -283,7 +278,6 @@ public struct WalletCoreData {
     @MainActor public static func clean() async {
         await ActivityStore.clean()
         await AssetsAndActivityDataStore.clean()
-        await StakingStore.clean()
         await BalancesStore.clean()
         await BalanceDataStore.clean()
         TokenStore.clean()

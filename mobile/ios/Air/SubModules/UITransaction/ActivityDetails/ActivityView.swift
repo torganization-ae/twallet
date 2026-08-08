@@ -379,7 +379,7 @@ struct ActivityView: View {
             if fee > 0 {
                 return MFee(
                     precision: getIsActivityPendingForUser(activity) ? .approximate : .exact,
-                    terms: .init(token: nil, native: fee, stars: nil),
+                    terms: .init(token: nil, native: fee),
                     nativeSum: nil
                 )
             }
@@ -395,8 +395,7 @@ struct ActivityView: View {
                 let fromNative = token.isNative
                 let terms: MFee.FeeTerms = .init(
                     token: fromNative ? nil : ourFee,
-                    native: fromNative ? native + (ourFee ?? 0) : native,
-                    stars: nil
+                    native: fromNative ? native + (ourFee ?? 0) : native
                 )
 
                 let fee = MFee(

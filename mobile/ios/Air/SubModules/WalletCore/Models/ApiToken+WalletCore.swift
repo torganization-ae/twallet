@@ -10,10 +10,6 @@ extension ApiToken {
     public var isOnChain: Bool {
         AccountStore.account?.supports(chain: chain) ?? false
     }
-    
-    public var earnAvailable: Bool {
-        return AccountStore.activeNetwork == .mainnet && EARN_AVAILABLE_SLUGS.contains(slug)
-    }
 
     public func displayName(strippingLabelWhenShown: Bool) -> String {
         guard strippingLabelWhenShown,

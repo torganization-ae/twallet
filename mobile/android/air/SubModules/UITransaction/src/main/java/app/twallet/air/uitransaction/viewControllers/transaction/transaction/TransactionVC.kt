@@ -63,9 +63,6 @@ import app.twallet.air.uiinappbrowser.InAppBrowserVC
 import app.twallet.air.uipasscode.viewControllers.passcodeConfirm.PasscodeConfirmVC
 import app.twallet.air.uipasscode.viewControllers.passcodeConfirm.PasscodeViewState
 import app.twallet.air.uisend.send.SendVC
-import app.twallet.air.uistake.earn.EarnRootVC
-import app.twallet.air.uistake.staking.StakingVC
-import app.twallet.air.uistake.staking.StakingViewModel
 import app.twallet.air.uiswap.screens.swap.SwapVC
 import app.twallet.air.uitransaction.R
 import app.twallet.air.walletbasecontext.localization.LocaleController
@@ -1246,7 +1243,6 @@ class TransactionVC(
                         (transaction.networkFee?.absoluteValue ?: 0.0) +
                             (if (!isOurFeeIncluded && isNative && transaction.ourFee?.isFinite() == true) transaction.ourFee!! else 0.0)
                         ).toBigInteger(nativeDecimals),
-                    stars = null
                 )
                 return MFee(
                     if (transaction.status.uiStatus == MApiTransaction.UIStatus.PENDING) MFeePrecision.APPROXIMATE else MFeePrecision.EXACT,
@@ -1568,31 +1564,21 @@ class TransactionVC(
             is MApiTransaction.Transaction -> {
                 val token = TokenStore.getToken(transaction.slug) ?: return
                 if (transaction.isStaking) {
-                    navVC.setRoot(EarnRootVC(context))
-                    if (transaction.type != ApiTransactionType.UNSTAKE_REQUEST)
-                        navVC.push(
-                            StakingVC(
-                                context,
-                                transaction.slug,
-                                if (transaction.type == ApiTransactionType.STAKE) StakingViewModel.Mode.STAKE else StakingViewModel.Mode.UNSTAKE
-                            ),
-                            animated = false
-                        )
-                } else {
-                    navVC.setRoot(
-                        SendVC(
-                            context, transaction.slug,
-                            SendVC.InitialValues(
-                                transaction.toAddress,
-                                CoinUtils.toBigDecimal(
-                                    transaction.amount.abs(),
-                                    token.decimals
-                                ).toPlainString(),
-                                comment = transaction.comment
-                            )
+                    return
+                }
+                navVC.setRoot(
+                    SendVC(
+                        context, transaction.slug,
+                        SendVC.InitialValues(
+                            transaction.toAddress,
+                            CoinUtils.toBigDecimal(
+                                transaction.amount.abs(),
+                                token.decimals
+                            ).toPlainString(),
+                            comment = transaction.comment
                         )
                     )
-                }
+                )
             }
 
             is MApiTransaction.Swap -> {

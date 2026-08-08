@@ -3,6 +3,8 @@ import type { ErrorTransferResult } from '../../helpers/transfer';
 import type { GlobalState } from '../../types';
 import { DomainLinkingState, DomainRenewalState } from '../../types';
 
+import { isTonChainDns } from '../../../util/dns';
+import { isBareTonAlias, isTmailAlias } from '../../../util/tmail';
 import { callApi } from '../../../api';
 import { isErrorTransferResult } from '../../helpers/transfer';
 import { handleTransferResults, prepareTransfer } from '../../helpers/transfer';
@@ -166,22 +168,45 @@ addActionHandler('submitDomainLinking', async (global, actions, { password } = {
 
 addActionHandler('checkLinkingAddress', async (global, actions, { address }) => {
   if (!address) {
-    global = updateCurrentDomainLinking(global, { walletAddressName: undefined, resolvedWalletAddress: undefined });
+    global = updateCurrentDomainLinking(global, {
+      walletAddressName: undefined,
+      resolvedWalletAddress: undefined,
+      isCheckingAddress: false,
+    });
     setGlobal(global);
 
     return;
   }
 
+  const shouldAnimateResolve = isTonChainDns(address) || isTmailAlias(address) || isBareTonAlias(address);
+
+  global = updateCurrentDomainLinking(global, {
+    walletAddressName: undefined,
+    resolvedWalletAddress: undefined,
+    isCheckingAddress: shouldAnimateResolve,
+  });
+  setGlobal(global);
+
   const network = selectCurrentNetwork(global);
   const result = await callApi('getAddressInfo', 'ton', network, address);
 
   global = getGlobal();
+  // Compare case-insensitively: blur may lowercase DNS/tmail while the request is in flight.
+  if (global.currentDomainLinking.walletAddress?.trim().toLowerCase() !== address.trim().toLowerCase()) {
+    return;
+  }
+
   if (isErrorTransferResult(result)) {
-    global = updateCurrentDomainLinking(global, { walletAddressName: undefined, resolvedWalletAddress: undefined });
+    global = updateCurrentDomainLinking(global, {
+      walletAddressName: undefined,
+      resolvedWalletAddress: undefined,
+      isCheckingAddress: false,
+    });
   } else {
     global = updateCurrentDomainLinking(global, {
       walletAddressName: result.addressName,
       resolvedWalletAddress: result.resolvedAddress,
+      isCheckingAddress: false,
     });
   }
   setGlobal(global);

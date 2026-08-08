@@ -212,7 +212,6 @@ Testnet Version: 测试网版本
 Error reading clipboard: 读取剪切板时出现错误
 $fee_value: 手续费 %fee%
 $fee_value_with_colon: "手续费: %fee%"
-Pay fee with %stars_symbol%: 使用 %stars_symbol% 支付
 Loading...: 读取中...
 Recipient Address: 收款人地址
 Wallet address or domain: 钱包地址或域名
@@ -266,41 +265,10 @@ Appearance: 外观
 Light: 白天模式
 Dark: 黑夜模式
 System: 系统
-$stake_asset: 质押 %symbol%
-Add Stake: 添加质押
-Earn from your tokens while holding them: 从您持有的代币身上赚一笔。
-Current APY: 当前年化收益率
-Est. Yearly Earnings: 预计年收益
-Staking Details: 质押详情
-Why this is safe: 为什么这很安全
-$safe_staking_description1: GRAM 质押是**完全去中心化的**，由官方 TON Liquid Staking 智能合约运营。
-$safe_staking_description2: 作为其 **权益证明** 的一部分，您存入的 GRAM 将用于 %chain% 区块网络验证。
-$safe_staking_description3: 您可以在 **任何时候** 解除您 GRAM 的质押，它会在 **36小时** 内存入您的账户。
-$safe_staking_description_jetton1: 代币质押是 **完全去中心化的**，由 %jvault_link% 开发的 **开源** 智能合约操作，并已通过 **安全审计**。
-$safe_staking_description_jetton2: 您可以在 **任何时候** 提取您的质押，并会 **立即** 存入您的账户。
 $min_value: 最小 %value%
-Est. balance in a year: 年平均预期回报
-Confirm Staking: 确认质押
-Coins have been staked!: 代币已质押！
 View: 查看
-Stake More: 质押更多
 Staking: 质押中
-Currently Staked: 当前质押
-Total Staked: 总质押量
-Total Stakers: 总质押人数
-Unstake: 解除质押
-Earning History: 质押奖励历史
 $total: "总计: %value%"
-$unstake_asset: 解除 %symbol% 质押
-Amount to unstake: 解除质押的数量
-Confirm Unstaking: 确认解除质押
-Request for unstaking is sent!: 解除质押请求已发送!
-$unstaking_when_receive: 您将在 %time% 内收到解除质押的代币。
-$unstaking_when_receive_with_amount: 您将于 %time% 后收到未质押的 %amount%。
-$unstaking_when_receive_with_amount_ethena: "%amount% 将在 %time% 后可用于提款。"
-$unstake_insufficient_balance: 您需要有 %balance% 在您的主账户中以进行解除质押的操作。
-at %annual_yield%: 在%annual_yield%
-Est. %annual_yield%: 预估 %annual_yield%
 Staked: 已质押
 $stake_action: 质押
 Unstaked: 已解除质押
@@ -313,18 +281,12 @@ Invalid address: 非法地址
 Domain is not connected to a wallet: 此域名没有链接至任何钱包地址
 Unexpected error: 预期外的错误
 Unexpected Error: 预期外的错误
-Earn: 赚取
-Earning: 赚取中
 You can save this address for quick access while sending.: 您可以保存此地址以便在发送时快速访问。
-Stake Again: 再次质押
-Earned: 获得
-$staking_history_earned: 获得
 Select wallet to use on this app: 选择在此应用上使用的钱包
 Connect: 连接
 Payload: 有效载荷
 $many_transactions: "%1$d 笔转账"
 Total Amount: 总金额
-$unstaking_short: 解除质押
 Handle ton:// links: 处理 ton:// 链接
 Back up wallet to have full access to it: 备份钱包以完全访问它
 Consider More Secure Version: 提高钱包安全性
@@ -350,7 +312,6 @@ No active connections: 没有活动连接
 Other: 其他的
 No price data: 暂无价格数据
 Price Copied: 价格已复制
-Not staked: 未质押
 Portfolio: 投资组合
 Performance, insights and P&L: 动态、洞察与盈亏
 Custom Date Range: 自定义日期范围
@@ -375,7 +336,6 @@ Stablecoins: 稳定币
 Altcoins: 替代币
 Asset Mix: 资产构成
 No asset balances: 暂无资产余额
-No staked assets: 暂无质押资产
 Entire Period: 全部时间
 "Asset %1$@": "资产 %1$@"
 Error: 错误
@@ -559,7 +519,6 @@ Russian Ruble: 俄罗斯卢布
 Chinese Yuan: 人民币
 $max_balance: "最大: %balance%"
 $available_balance: "可用: %balance%"
-$unstake_information_instantly: 您将立即获得存款
 Select Token: 选择代币
 MY: 我的
 Popular: 流行
@@ -591,7 +550,6 @@ Correct: 正确
 Confirm Action: 确认操作
 $classic_confirm_actions: 确认所有操作
 Confirm Swap: 确认兑换
-Confirm Rewards Claim: 确认奖励提取
 "%amount% to %address%": "%amount% 至 %address%"
 "%amount_from% to %amount_to%": "%amount_from% 至 %amount_to%"
 Failed to enable biometrics.: 无法启用生物识别。
@@ -605,14 +563,12 @@ Biometric confirmation failed: 生物识别确认失败
 No Activity: 无活动
 Fund: 充值
 Buy with Crypto: 用加密货币购买
-Explore: 探索
+Explore: 浏览器
 $lockdown_mode_enabled_title: 锁定模式已启用
 $lockdown_mode_walletconnect_unavailable: "WalletConnect 在锁定模式下不可用。若要使用它，请在 设置 > 隐私与安全性 > 锁定模式 > 配置网页浏览 中为 %app_name% 关闭锁定模式。"
 No partners yet: 还没有伴侣
 Clear: 清除
-$unstake_up_to_information: 立即 – 高达 %value%
 $all_balance: "全部: %balance%"
-$unstaking_not_enough_balance: 您需要在主要余额中有 %value% 才能继续解押。
 $ledger_verify_address_on_device: 请验证您的 Ledger 上的地址。
 Wallet Versions: 钱包版本
 $read_more_about_wallet_version: 在%link%上阅读更多关于钱包合约类型的信息。
@@ -671,14 +627,12 @@ More actions: 更多操作
 Open on %explorer_name%: 在 %explorer_name% 上打开
 Swap is not supported in Testnet.: 测试网不支持共享。
 Swap is not yet supported by Ledger.: Ledger 尚不支持该交易所。
-Staking is not supported in Testnet.: 测试网不支持质押。
 Get Support: 得到支持
 $transfer_link_expired: 转账链接已过期
 $transfer_text_and_bin_exclusive: 不能同时使用文本和二进制数据参数
 $unsupported_deeplink_parameter: 此深度链接包含不支持的参数。
 $unsupported_chain: 不支持的区块链。
 Successfully: 成功地
-Unstake More: 解除质押更多
 Are you sure you want to burn this NFT? It will be lost forever.: 您确定要烧毁这个 NFT 吗？ 它将永远失去。
 $multi_burn_nft_warning: |
   您即将销毁 %amount% 个 NFT。该过程可能需要 ~%duration%。请勿关闭应用程序或切换钱包，直到完成。
@@ -828,7 +782,6 @@ $fee_details: |
   这就是 %chain_name% 区块链的工作方式。
 Got It: 知道了
 Wallet: 钱包
-Trending: 热门
 No Data: 无数据
 Toggle fullscreen: 切换全屏模式
 Request is sent!: 请求已发送！
@@ -925,19 +878,12 @@ $DappurlTrustStatusInvalidHelp: The origin does not match this application's ver
 DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: 请使用 %app_name% %mobileAppButton% 或 %browserExtensionButton% 以避免此警告。
-$reopen_in_iab_explore: 浏览应用时，请使用 %exploreTab% 栏目以避免此警告。
+$reopen_in_iab_explore: 为避免此警告，请通过“%exploreTab%”标签页打开应用。
 tWallet Browser: tWallet 浏览器
 mobile app: 移动应用
 browser extension: 浏览器扩展
 Exit all wallets: 退出所有钱包
 Can't confirm?: 无法登录？
-$safe_staking_ethena_description1: 质押完全去中心化，由**Ethena官方**审计的流动性质押**智能合约**运营。
-$safe_staking_ethena_description2: 质押的USDe将用于Ethena的**交易和投资策略**，自动透明地产生收益。
-$safe_staking_ethena_description3: 您可随时**提取存款**及累计利息——根据Ethena标准提款周期，资金将在**7天**后返还至您的主账户。
-Unstake %amount%: 解除质押 %amount%
-Request Unstaking: 申请取消质押
-$unstaking_when_receive_ethena: 您将在 **7 天** 后收到已解除质押的存款。
-Coins have been unstaked!: 代币已解锁！
 Confirm Upgrading: 确认升级
 How does it work?: 它是如何运作的？
 Multisend: 批量发送
@@ -947,7 +893,6 @@ Renew Domain: 续费域名
 Renew Domains: 续费域名
 Some domains are about to expire: 部分域名即将到期
 $domain_expire: "**%domain%** 将于%days%到期"
-"%token% Staking": "%token% 质押"
 Add Tab: 添加标签页
 Customize Tabs: 自定义标签页
 Remove Tab: 移除标签页
@@ -965,7 +910,6 @@ $domains_amount %1$d:
   otherValue: "%1$d个域名"
 Stake: 质押
 Manage Tokens: 管理代币
-Claim Rewards: 领取奖励
 Configure DNS: 配置DNS
 Link to Wallet: 链接到钱包
 Change Wallet: 更改钱包
@@ -992,8 +936,6 @@ $domains_was_expired:
   otherValue: "**%domain%个域名** 已过期"
 Reload: 重新加载
 Copy Link: 复制链接
-Check eligibility for max APY: 检查最大 APY 资格
-Check eligibility: 检查资格
 $expired_many: 已过期
 $one_domain_expires %days%: 将于%days%到期
 $multiple_domains_expire %days%: 将于%days%到期
@@ -1080,8 +1022,9 @@ Show More: 显示更多
 Search app or enter address: 搜索应用或输入地址
 Connected Apps: 已连接的应用
 Connected Sites: 已连接的应用
-Popular Apps: 热门应用
-Popular Sites: 热门应用
+TMail: TMail
+Mint: Mint
+Recently Viewed: 最近浏览
 $wallets_amount:
   zeroValue: 没有钱包
   oneValue: "%1$d 个钱包"
@@ -1348,7 +1291,6 @@ M: 1个月
 Y: 1年
 $amount_K: "%amount%万"
 $amount_M: "%amount%亿"
-Happening Now: 正在流行
 No Dapps Found!: 没有找到 dApp！
 Edit Wallet Name: 编辑钱包名称
 Wallet Name: 钱包名称
@@ -1367,20 +1309,14 @@ Never: 从不
 "%1$@ minutes": "%1$@ 分钟"
 Unstake Request: 解锁质押申请
 History: 历史记录
-Earn up to %1$@ per year from your tokens: 你的代币每年最高可赚取 %1$@
 Insufficient %1$@ Balance: "%1$@ 余额不足"
-Instant Withdrawal: 立刻提币
 Instantly: 立即
-Up to %1$@: 最高 %1$@
-up to %1$@: 最高 %1$@
-Current APR: 当前 APR
 in: 于
 Network Error: 网络错误
 Enter Amount: 输入金额
 "Swap %1$@ to %2$@": "将 %1$@ 兑换为 %2$@"
 "%1$@ to %2$@": "%1$@ → %2$@"
 "Max %1$@": "最大 %1$@"
-"Authorize %1$@ fee": "授权 %1$@ 手续费"
 Pending previous fee: 上一笔手续费待处理
 AML/KYC: AML/KYC
 Receive to: 接收至
@@ -1490,7 +1426,6 @@ $n_wallets_selected:
 add: 添加
 send: 发送
 swap: 兑换
-earn: 质押
 Actions: 操作
 $actions_description: 快速访问最常用的操作。
 Rate: 汇率
@@ -1537,7 +1472,6 @@ Unexpected error. Please let the support know.: 出现意外错误，请告知�
 Unlock it and open the TON App: 请解锁并打开 TON 应用
 Use 4-digit Passcode: 使用 4 位 PIN 码
 Use 6-digit Passcode: 使用 6 位 PIN 码
-Authorize %token% Fee: 授权 %token% 手续费
 Awaiting Previous Fee: 等待上一笔手续费
 Lock: 锁定
 Receive: 接收
@@ -1569,9 +1503,6 @@ push_activity_nft_minted: 已铸造 NFT
 push_activity_nft_minted_named: "已铸造 NFT: %name%"
 push_activity_liquidity_deposited: 已提供流动性
 push_activity_liquidity_withdrawn: 已提取流动性
-push_activity_stake_deposit: 已质押 %amount% %symbol%
-push_activity_stake_withdrawal: 已解除质押 %amount% %symbol%
-push_activity_stake_withdrawal_request: 已提交质押提现请求
 push_activity_auction_bid: 已出价竞拍 %amount% %symbol%
 push_activity_dns_changed: 已更新 DNS 记录
 push_activity_dns_deleted: 已删除 DNS 记录
@@ -1583,8 +1514,6 @@ push_activity_swap_completed: 兑换 %from_symbol% -> %to_symbol% 已完成
 push_activity_swap_failed: 兑换 %from_symbol% -> %to_symbol% 失败
 push_activity_swap_expired: 兑换 %from_symbol% -> %to_symbol% 已过期
 push_activity_swap_pending: 兑换 %from_symbol% -> %to_symbol% %status%
-push_activity_staking_profit: 质押收益 %amount% GRAM
-push_activity_staking_loyalty_profit: 质押忠诚度收益 %amount% GRAM
 push_domain_title_renew: 续订您的域名
 push_domain_expired_yesterday: 您的域名 %domain% 昨天已过期。请尽快续订，以免失去访问权限
 push_domain_expired_days_ago: 您的域名 %domain% 已于 %days% 天前过期。请尽快续订，以免失去访问权限

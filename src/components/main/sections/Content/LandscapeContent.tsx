@@ -1,15 +1,13 @@
 import React, { memo, useRef } from '../../../../lib/teact/teact';
 import { withGlobal } from '../../../../global';
 
-import type { ApiNft, ApiNftCollection, ApiStakingState } from '../../../../api/types';
+import type { ApiNft, ApiNftCollection } from '../../../../api/types';
 import { type Account, ContentTab } from '../../../../global/types';
 
 import { requestMeasure } from '../../../../lib/fasterdom/fasterdom';
 import {
-  selectAccountStakingStates,
   selectCurrentAccount,
   selectCurrentAccountId,
-  selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectEnabledTokensCountMemoizedFor,
@@ -34,10 +32,6 @@ import NftSelectionHeader from './NftSelectionHeader';
 
 import styles from './Content.module.scss';
 
-interface OwnProps {
-  onStakedTokenClick: NoneToVoidFunction;
-}
-
 interface StateProps {
   byChain?: Account['byChain'];
   tokensCount: number;
@@ -48,9 +42,7 @@ interface StateProps {
   currentTokenSlug?: string;
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
-  states?: ApiStakingState[];
   hasVesting: boolean;
-  alwaysHiddenSlugs?: string[];
   activityReturnContentTab?: ContentTab;
   selectedNftsToHide?: {
     addresses: string[];
@@ -69,16 +61,13 @@ function LandscapeContent({
   blacklistedNftAddresses,
   whitelistedNftAddresses,
   selectedNftsToHide,
-  states,
   hasVesting,
-  alwaysHiddenSlugs,
   activeContentTab,
   activityReturnContentTab,
   currentSiteCategoryId,
   collectionTabs,
   currentTokenSlug,
-  onStakedTokenClick,
-}: OwnProps & StateProps) {
+}: StateProps) {
   const transitionRef = useRef<HTMLDivElement>();
   const tabsRef = useRef<HTMLDivElement>();
 
@@ -104,9 +93,7 @@ function LandscapeContent({
     activityReturnContentTab,
     currentCollection,
     currentTokenSlug,
-    states,
     hasVesting,
-    alwaysHiddenSlugs,
     tokensCount,
   });
 
@@ -227,7 +214,6 @@ function LandscapeContent({
           totalTokensAmount={totalTokensAmount}
           activeNftKey={activeNftKey}
           onClickAsset={handleClickAsset}
-          onStakedTokenClick={onStakedTokenClick}
           onScroll={handleContentScroll}
         />
       </div>
@@ -261,7 +247,7 @@ function LandscapeContent({
 }
 
 export default memo(
-  withGlobal<OwnProps>(
+  withGlobal(
     (global): StateProps => {
       const accountId = selectCurrentAccountId(global);
       const {
@@ -287,9 +273,6 @@ export default memo(
       const hasVesting = Boolean(
         vestingInfo?.length && calcVestingAmountByStatus(vestingInfo, ['frozen', 'ready']) !== '0',
       );
-      const states = accountId ? selectAccountStakingStates(global, accountId) : undefined;
-      const alwaysHiddenSlugs = selectCurrentAccountSettings(global)?.alwaysHiddenSlugs;
-
       return {
         byChain: selectCurrentAccount(global)?.byChain,
         nfts,
@@ -302,9 +285,7 @@ export default memo(
         blacklistedNftAddresses,
         whitelistedNftAddresses,
         selectedNftsToHide,
-        states,
         hasVesting,
-        alwaysHiddenSlugs,
         currentSiteCategoryId,
         collectionTabs,
       };

@@ -68,6 +68,8 @@ interface OwnProps {
   shouldValidateAllChains?: boolean;
   address: string;
   addressName: string;
+  /** Pulse the fixed (unfocused) overlay while DNS / tmail resolution is in flight */
+  isResolving?: boolean;
   addressBookChain?: ApiChain;
   savedAddresses?: SavedAddress[];
   validateAddress?: ({ address }: { address?: string; chain?: ApiChain }) => void;
@@ -105,6 +107,7 @@ function AddressInput({
   shouldValidateAllChains,
   address,
   addressName,
+  isResolving,
   addressBookChain,
   accounts,
   currentAccountId = '',
@@ -127,6 +130,16 @@ function AddressInput({
 
   const addressBookTimeoutRef = useRef<number>();
   const isAddressBookSelectionRef = useRef<boolean>(false);
+  // Tracks the latest intended address even when React state lags (paste + immediate blur).
+  const addressValueRef = useRef(value);
+  const pendingAddressCommitRef = useRef<string | undefined>();
+  if (
+    pendingAddressCommitRef.current === undefined
+    || pendingAddressCommitRef.current === value
+  ) {
+    pendingAddressCommitRef.current = undefined;
+    addressValueRef.current = value;
+  }
 
   const [addressForDeletion, setAddressForDeletion] = useState<string | undefined>();
   const [chainForDeletion, setChainForDeletion] = useState<ApiChain | undefined>();
@@ -177,6 +190,8 @@ function AddressInput({
 
   const handleAddressBookItemSelect = useLastCallback((address: string) => {
     isAddressBookSelectionRef.current = true;
+    pendingAddressCommitRef.current = address;
+    addressValueRef.current = address;
     onInput(address, true);
     onPaste?.(address);
     closeAddressBook();
@@ -227,14 +242,32 @@ function AddressInput({
       : address;
 
     return (
-      <>
+      <span className={buildClassName(isResolving && styles.addressResolving)}>
         {renderedAddressName && <span className={styles.addressName}>{renderedAddressName}</span>}
         <span className={buildClassName(styles.addressValue, !renderedAddressName && styles.addressValueSingle)}>
           {renderedAddressName ? shortenAddress(address, SHORT_ADDRESS_SHIFT) : addressShort}
         </span>
-      </>
+      </span>
     );
-  }, [address, localAddressName, addressName]);
+  }, [address, localAddressName, addressName, isResolving]);
+
+  function isResolvableAlias(addressValue: string) {
+    return isTonChainDns(addressValue) || isTmailAlias(addressValue) || isBareTonAlias(addressValue);
+  }
+
+  function blurAfterAliasPaste(addressValue: string) {
+    // Match native: lock the field into the overlay so the resolving pulse is visible.
+    if (!isResolvableAlias(addressValue)) return;
+    requestAnimationFrame(() => {
+      (ref?.current ?? document.getElementById(inputId))?.blur();
+    });
+  }
+
+  function commitAddressValue(nextValue: string, isValueReplaced?: boolean) {
+    pendingAddressCommitRef.current = nextValue;
+    addressValueRef.current = nextValue;
+    onInput(nextValue, isValueReplaced);
+  }
 
   function changeError(errorMessage: string | undefined) {
     setLocalError(errorMessage);
@@ -247,11 +280,12 @@ function AddressInput({
 
       if (type === 'text/plain') {
         const newValue = cleanTonsiteAddress((text ?? '').trim());
-        onInput(newValue, true);
+        commitAddressValue(newValue, true);
         onPaste?.(newValue);
 
         handleAddressValidate(newValue);
         handleAddressErrorCheck(newValue);
+        blurAfterAliasPaste(newValue);
       }
     } catch (err: any) {
       showToast({ message: lang('Error reading clipboard') });
@@ -326,24 +360,27 @@ function AddressInput({
   const handleAddressBlur = useLastCallback((e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     unmarkFocused();
 
+    // Prefer the ref: after paste we blur immediately, before React state has caught up.
+    const currentValue = addressValueRef.current;
+
     if (e.relatedTarget?.id === INPUT_CLEAR_BUTTON_ID) {
       handleAddressBookClose();
-      handleAddressValidate(value);
-      handleAddressErrorCheck(value);
+      handleAddressValidate(currentValue);
+      handleAddressErrorCheck(currentValue);
 
       return;
     }
 
-    let addressToCheck = cleanTonsiteAddress(value);
+    let addressToCheck = cleanTonsiteAddress(currentValue);
     if (
-      (isTonChainDns(value) || isTmailAlias(value) || isBareTonAlias(value))
-      && value !== value.toLowerCase()
+      (isTonChainDns(currentValue) || isTmailAlias(currentValue) || isBareTonAlias(currentValue))
+      && currentValue !== currentValue.toLowerCase()
     ) {
-      addressToCheck = value.toLowerCase().trim();
-      onInput(addressToCheck);
-    } else if (value !== value.trim()) {
-      addressToCheck = value.trim();
-      onInput(addressToCheck);
+      addressToCheck = currentValue.toLowerCase().trim();
+      commitAddressValue(addressToCheck);
+    } else if (currentValue !== currentValue.trim()) {
+      addressToCheck = currentValue.trim();
+      commitAddressValue(addressToCheck);
     }
 
     requestAnimationFrame(() => {
@@ -354,7 +391,7 @@ function AddressInput({
   });
 
   function hanldeInputChange(newValue: string) {
-    onInput(newValue);
+    commitAddressValue(newValue);
     changeError(undefined);
   }
 
@@ -362,13 +399,15 @@ function AddressInput({
     event.preventDefault();
     let pastedValue = event.clipboardData.getData('text').trim();
     pastedValue = cleanTonsiteAddress(pastedValue);
-    onInput(pastedValue, false);
+    commitAddressValue(pastedValue, true);
     onPaste?.(pastedValue);
+    handleAddressValidate(pastedValue);
     handleAddressErrorCheck(pastedValue);
+    blurAfterAliasPaste(pastedValue);
   });
 
   const handleAddressClear = useLastCallback(() => {
-    onInput('');
+    commitAddressValue('');
     handleAddressValidate();
     changeError(undefined);
   });

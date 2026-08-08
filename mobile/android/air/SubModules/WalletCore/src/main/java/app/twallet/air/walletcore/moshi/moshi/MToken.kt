@@ -71,7 +71,6 @@ data class ApiTokenWithPrice(
     val cmcSlug: String? = null,
     val color: String? = null,
     val isGaslessEnabled: Boolean? = null,
-    val isStarsEnabled: Boolean? = null,
     val isTiny: Boolean? = null,
     val customPayloadApiUrl: String? = null,
     val codeHash: String? = null,

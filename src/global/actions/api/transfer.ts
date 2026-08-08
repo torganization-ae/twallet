@@ -17,7 +17,9 @@ import { toDecimal } from '../../../util/decimals';
 import { getDieselTokenAmount } from '../../../util/fee/transferFee';
 import { split } from '../../../util/iteratees';
 import { getTranslation } from '../../../util/langProvider';
+import { isTonChainDns } from '../../../util/dns';
 import { shouldShowDomainScamWarning, shouldShowSeedPhraseScamWarning } from '../../../util/scamDetection';
+import { isBareTonAlias, isTmailAlias } from '../../../util/tmail';
 import { callApi } from '../../../api';
 import { handleTransferResult, isErrorTransferResult, prepareTransfer } from '../../helpers/transfer';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
@@ -25,13 +27,11 @@ import {
   clearCurrentTransfer,
   clearIsPinAccepted,
   preserveMaxTransferAmount,
-  updateAccountState,
   updateCurrentTransfer,
   updateCurrentTransferByCheckResult,
   updateCurrentTransferLoading,
 } from '../../reducers';
 import {
-  selectAccountState,
   selectCurrentAccount,
   selectCurrentAccountId,
   selectCurrentAccountTokens,
@@ -50,7 +50,6 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     nfts,
     isGasless,
     stateInit,
-    isGaslessWithStars,
     binPayload,
     isNftBurn,
   } = payload;
@@ -115,7 +114,6 @@ addActionHandler('submitTransferInitial', async (global, actions, payload) => {
     tokenSlug,
     isToNewAddress: result.isToAddressNew,
     isGasless,
-    isGaslessWithStars,
     isNftBurn,
   }));
 });
@@ -238,7 +236,6 @@ addActionHandler('submitTransfer', async (global, actions, { password } = {}) =>
     isGasless,
     diesel,
     stateInit,
-    isGaslessWithStars,
     isNftBurn,
   } = global.currentTransfer;
 
@@ -308,7 +305,6 @@ addActionHandler('submitTransfer', async (global, actions, { password } = {}) =>
       isGasless,
       dieselAmount: diesel && getDieselTokenAmount(diesel),
       stateInit,
-      isGaslessWithStars,
       noFeeCheck: true,
       gaslessTransaction: diesel?.transaction,
       addressName: toAddressName,
@@ -366,33 +362,54 @@ addActionHandler('fetchTransferDieselState', async (global, actions, { tokenSlug
     return;
   }
 
-  const currentAccountId = selectCurrentAccountId(global)!;
-  const accountState = selectAccountState(global, currentAccountId);
   global = preserveMaxTransferAmount(global, updateCurrentTransfer(global, { diesel }));
-  if (accountState?.isDieselAuthorizationStarted && diesel.status !== 'not-authorized') {
-    global = updateAccountState(global, currentAccountId, { isDieselAuthorizationStarted: undefined });
-  }
   setGlobal(global);
 });
 
 addActionHandler('checkTransferAddress', async (global, actions, { address, chain }) => {
   if (!address || !chain) {
-    global = updateCurrentTransfer(global, { toAddressName: undefined, resolvedAddress: undefined });
+    global = updateCurrentTransfer(global, {
+      toAddressName: undefined,
+      resolvedAddress: undefined,
+      isCheckingAddress: false,
+    });
     setGlobal(global);
 
     return;
   }
 
+  const shouldAnimateResolve = chain === 'ton' && (
+    isTonChainDns(address) || isTmailAlias(address) || isBareTonAlias(address)
+  );
+
+  global = updateCurrentTransfer(global, {
+    toAddressName: undefined,
+    resolvedAddress: undefined,
+    isCheckingAddress: shouldAnimateResolve,
+  });
+  setGlobal(global);
+
   const network = selectCurrentNetwork(global);
   const result = await callApi('getAddressInfo', chain, network, address);
 
   global = getGlobal();
+  // Ignore stale responses after the user changed the recipient.
+  // Compare case-insensitively: blur may lowercase DNS/tmail while the request is in flight.
+  if (global.currentTransfer.toAddress?.trim().toLowerCase() !== address.trim().toLowerCase()) {
+    return;
+  }
+
   if (isErrorTransferResult(result)) {
-    global = updateCurrentTransfer(global, { toAddressName: undefined, resolvedAddress: undefined });
+    global = updateCurrentTransfer(global, {
+      toAddressName: undefined,
+      resolvedAddress: undefined,
+      isCheckingAddress: false,
+    });
   } else {
     global = updateCurrentTransfer(global, {
       toAddressName: result.addressName,
       resolvedAddress: result.resolvedAddress,
+      isCheckingAddress: false,
     });
   }
   setGlobal(global);

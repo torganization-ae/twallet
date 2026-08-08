@@ -38,8 +38,6 @@ enum class WColor {
     Purple,
     Orange,
     StockBadge,
-    EarnGradientLeft,
-    EarnGradientRight,
     IncomingComment,
     OutgoingComment,
     SearchFieldBackground,

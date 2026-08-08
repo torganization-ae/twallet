@@ -3,9 +3,7 @@ import type { ApiTonWalletVersion } from './api/chains/ton/types';
 import type {
   ApiBaseCurrency,
   ApiChain,
-  ApiLiquidStakingState,
   ApiNftMarketplace,
-  ApiNominatorsStakingState,
   ApiSwapAsset,
   ApiSwapDexLabel,
   ApiToken,
@@ -79,8 +77,6 @@ export const APP_ICON_URL = IS_TWALLETGRAM_WALLET
 
 // GitHub workflow uses an empty string as the default value if it's not in repository variables, so we cannot define a default value here
 export const BASE_URL = process.env.BASE_URL || PRODUCTION_URL;
-
-export const BOT_USERNAME = process.env.BOT_USERNAME || 'MyTonWalletBot';
 
 export const SWAP_FEE_ADDRESS = process.env.SWAP_FEE_ADDRESS || 'UQDUkQbpTVIgt7v66-JTFR-3-eXRFz_4V66F-Ufn6vOg0GOp';
 export const DIESEL_ADDRESS = process.env.DIESEL_ADDRESS || 'UQC9lQOaEHC6YASiJJ2NrKEOlITMMQmc8j0_iZEHy-4sl3tG';
@@ -219,12 +215,17 @@ export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
 export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
 export const EMPTY_HASH_VALUE = 'NOHASH';
 
+export const TMAIL_APP_URL = 'https://app.tmail.ae';
+export const MINT_APP_URL = 'https://tmarket.ae';
+
 export const IFRAME_WHITELIST = [
   'http://localhost:*',
   'https://tonscan.org',
   'https://testnet.tonscan.org',
   'https://tonviewer.com',
   'https://testnet.tonviewer.com',
+  'https://app.tmail.ae',
+  'https://tmarket.ae',
 ];
 export const SUBPROJECT_URL_MASK = 'https://*.mywallet.io';
 
@@ -235,7 +236,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = IS_EXPLORER ? 'explorer-image' : 'mtw-image';
-export const LANG_CACHE_NAME = 'mtw-lang-324';
+export const LANG_CACHE_NAME = 'mtw-lang-328';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -289,8 +290,6 @@ export const LANG_LIST: LangItem[] = [{
   rtl: false,
 }];
 
-export const IS_STAKING_DISABLED = IS_FEATURE_LIMITED;
-
 // Blacklist-style feature flags (default unset = feature ON). Each is substituted at build time by
 // `EnvironmentPlugin`, so it both drives Webpack dead-code elimination (drops code + npm deps) and is
 // readable at runtime to silence behaviour/network for anything still bundled.
@@ -300,7 +299,6 @@ export const NO_SOLANA = process.env.NO_SOLANA === '1';
 export const NO_EVM = process.env.NO_EVM === '1';
 export const NO_WALLETCONNECT = process.env.NO_WALLETCONNECT === '1';
 export const NO_SWAP = process.env.NO_SWAP === '1';
-export const NO_STAKING = process.env.NO_STAKING === '1';
 export const NO_PORTFOLIO = process.env.NO_PORTFOLIO === '1';
 export const NO_MFA = process.env.NO_MFA === '1';
 export const NO_LEDGER = process.env.NO_LEDGER === '1';
@@ -308,16 +306,17 @@ export const NO_NOTIFICATIONS = process.env.NO_NOTIFICATIONS === '1';
 export const VALIDATION_PERIOD_MS = 65_536_000; // 18.2 h.
 export const ONE_TON = 1_000_000_000n;
 export const DEFAULT_FEE = 15_000_000n; // 0.015 TON
-export const UNSTAKE_TON_GRACE_PERIOD = 20 * 60 * 1000; // 20 m.
+
+/** Kept for activity decode / historical transaction classification */
+export const LIQUID_POOL = 'EQD2_4d91M4TVbEBVyBF8J1UwpMJc361LKVCz6bBlffMW05o';
+/** Kept for payload decode in metadata */
+export const LIQUID_JETTON = 'EQCqC6EhRJ_tpWngKxL6dV0k6DSnRUrs9GSVkLbfdCqsj6TE';
 
 const LEGACY_NOMINATORS_STAKING_POOL = 'Ef8dgIOIRyCLU0NEvF8TD6Me3wrbrkS1z3Gpjk3ppd8m8-s_';
 const DEFAULT_NOMINATORS_STAKING_POOL = 'Ef84o4VJRnlp1wsqSHov1QttqSTQda2Z1vGK-b7EaPQoeJMx';
 
-// Must include every pool the backend can return in `nominatorsPool.address`, decommissioned ones
-// included (accounts with a legacy stake still need to see and unstake it): builds without the
-// STAKING_POOLS env var (e.g. the wallet.ton.org deploy) rely solely on this list, and an unknown
-// address makes `fetchBackendStakingState` throw, silently killing staking polling for the account.
-const DEFAULT_STAKING_POOLS = [
+/** Historical staking pool addresses used only for activity classification */
+const HISTORICAL_STAKING_POOLS = [
   LEGACY_NOMINATORS_STAKING_POOL,
   'Ef-WMmizoLk4CvqTKs-mDrGJwW4fiH5zVd4SaHih7PObxP_0',
   'Ef9KkdMtAom9qYE64A_3ZA5sOP3OduRYPdavxGO3DH12fF5g',
@@ -326,18 +325,6 @@ const DEFAULT_STAKING_POOLS = [
   'Ef_CbvHoa5imR1x_ESkUT_6NJQoONbSGp8MkrAu1xtM6NOxE',
   'Ef-j7wmnLdy54kZC0gtbVbCrdPA4cFLr3rxLOoDcpzR_SyBX',
 ];
-
-export const STAKING_POOLS = [
-  ...(process.env.STAKING_POOLS ? process.env.STAKING_POOLS.split(' ') : []),
-  ...DEFAULT_STAKING_POOLS,
-].filter(Boolean);
-export const LIQUID_POOL = process.env.LIQUID_POOL || 'EQD2_4d91M4TVbEBVyBF8J1UwpMJc361LKVCz6bBlffMW05o';
-export const LIQUID_JETTON = process.env.LIQUID_JETTON || 'EQCqC6EhRJ_tpWngKxL6dV0k6DSnRUrs9GSVkLbfdCqsj6TE';
-export const STAKING_MIN_AMOUNT = ONE_TON;
-export const NOMINATORS_STAKING_MIN_AMOUNT = 10_000n * ONE_TON;
-export const MIN_ACTIVE_STAKING_REWARDS = 100_000_000n; // 0.1 MY
-// Staked tokens now showing with all other tokens, so we need to add a prefix to avoid collisions
-export const STAKING_SLUG_PREFIX = 'staking-';
 
 export const TONCONNECT_PROTOCOL_VERSION = 2;
 export const TONCONNECT_WALLET_JSBRIDGE_KEY = IS_CORE_WALLET ? 'tonwallet' : 'twallet';
@@ -466,11 +453,10 @@ export const MYCOIN_TESTNET = {
 
 export const STAKED_TON_SLUG = 'ton-eqcqc6ehrj';
 export const STAKED_MYCOIN_SLUG = 'ton-eqcbzvsfwq';
+/** Historical pool address used only for activity classification */
 export const MYCOIN_STAKING_POOL = 'EQC3roTiRRsoLzfYVK7yVVoIZjTEqAjQU3ju7aQ7HWTVL5o5';
-
+/** Historical vault address used only for activity classification */
 export const ETHENA_STAKING_VAULT = 'EQChGuD1u0e7KUWHH5FaYh_ygcLXhsdG2nSHPXHW8qqnpZXW';
-export const ETHENA_STAKING_MIN_AMOUNT = 1_000_000; // 1 USDe
-export const ETHENA_ELIGIBILITY_CHECK_URL = 'https://t.me/id_app/start?startapp=cQeewNnc3pVphUcwY63WruKMQDpgePd1E7eMVoqphMZAdGoU9jwS4qRqrM1kSeaqrAiiDiC3EYAJPwZDGWqxZpw5vtGxmHma59XEt';
 
 export const STON_PTON_ADDRESS = 'EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez';
 export const STON_PTON_SLUG = 'ton-eqcm3b12qk';
@@ -683,9 +669,10 @@ export const TOKEN_CUSTOM_STYLES: Partial<Record<string, {
   },
 };
 
+/** Historical staking counterparty addresses for activity classification */
 export const ALL_STAKING_POOLS = [
   LIQUID_POOL,
-  ...DEFAULT_STAKING_POOLS,
+  ...HISTORICAL_STAKING_POOLS,
   MYCOIN_STAKING_POOL,
   ETHENA_STAKING_VAULT,
   TON_TSUSDE.tokenAddress,
@@ -830,8 +817,6 @@ export const RE_LINK_TEMPLATE = /((ftp|https?):\/\/)?(?<host>(www\\.)?[-a-zA-Z0-
 
 export const RE_TG_BOT_MENTION = /(telegram|tg)[:\s-]*@[a-z0-9_]+|(https?:\/\/)?(t\.me|telegram\.me|telegram\.dog)\/[a-z0-9_]+/mi;
 
-export const STARS_SYMBOL = '⭐️';
-
 export const AUTOLOCK_OPTIONS_LIST = [
   {
     value: 'never',
@@ -876,43 +861,8 @@ export const PRICELESS_TOKEN_HASHES = new Set([
   'bca42dbdcbc0d885aaffb1eeeb027d9f338c2dd68701a05641c1d1c3171a7400', // Affluent TON Multiply Vault EQDtxQqkgIRQQR5hWlrQxiJMtLwjR3rEYNUBbEcvPDwCs1Ng
 ]);
 
-export const STAKED_TOKEN_SLUGS = new Set([
-  STAKED_TON_SLUG,
-  STAKED_MYCOIN_SLUG,
-  TON_TSUSDE.slug,
-]);
-
 export const DEFAULT_OUR_SWAP_FEE = 0.875;
 export const MW_AGGREGATOR_QUERY_ID = '4246015164496276000';
-
-export const DEFAULT_STAKING_STATE: ApiLiquidStakingState = {
-  type: 'liquid',
-  id: 'liquid',
-  tokenSlug: TONCOIN.slug,
-  annualYield: 14.09,
-  yieldType: 'APY',
-  balance: 0n,
-  pool: LIQUID_POOL,
-  tokenBalance: 0n,
-  unstakeRequestAmount: 0n,
-  instantAvailable: 0n,
-  start: 0,
-  end: 0,
-  tvl: 0n,
-  totalStakers: 0,
-};
-
-export const DEFAULT_NOMINATORS_STAKING_STATE: ApiNominatorsStakingState = {
-  type: 'nominators',
-  id: 'nominators',
-  tokenSlug: TONCOIN.slug,
-  annualYield: 10.37,
-  yieldType: 'APY',
-  balance: 0n,
-  pool: LEGACY_NOMINATORS_STAKING_POOL,
-  start: 0,
-  end: 0,
-};
 
 export const SWAP_API_VERSION = 3;
 export const TONCENTER_ACTIONS_VERSION = 'v1';
@@ -931,10 +881,6 @@ export const HELP_CENTER_URL = {
   seedScam: {
     en: 'https://help.mywallet.io/intro/scams/leaked-seed-phrases',
     ru: 'https://help.mywallet.io/ru/baza-znanii/moshennichestvo-i-skamy/slitye-sid-frazy',
-  },
-  ethenaStaking: {
-    en: 'https://help.mywallet.io/intro/staking/what-is-usde-how-does-usde-staking-work',
-    ru: 'https://help.mywallet.io/ru/baza-znanii/steiking/chto-takoe-usde-kak-rabotaet-steiking-usde',
   },
 };
 

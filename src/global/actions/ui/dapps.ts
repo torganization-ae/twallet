@@ -62,6 +62,9 @@ addActionHandler('clearDappTransferError', (global) => {
 });
 
 addActionHandler('openBrowser', (global, actions, { url, title, subtitle }) => {
+  actions.addSiteToBrowserHistory({ url });
+
+  global = getGlobal();
   global = {
     ...global,
     currentBrowserOptions: {

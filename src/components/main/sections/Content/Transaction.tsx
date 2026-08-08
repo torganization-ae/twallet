@@ -9,7 +9,6 @@ import type {
   ApiTokenWithPrice,
   ApiTransactionActivity,
   ApiTransactionType,
-  ApiYieldType,
 } from '../../../../api/types';
 import type { Account, AppTheme, SavedAddress } from '../../../../global/types';
 import type { Layout } from '../../../../hooks/useMenuPosition';
@@ -31,7 +30,6 @@ import {
   getTransactionTitle,
   isScamTransaction,
   shouldShowTransactionAddress,
-  shouldShowTransactionAnnualYield,
   shouldShowTransactionComment,
   STAKING_TRANSACTION_TYPES,
 } from '../../../../util/activities';
@@ -70,8 +68,6 @@ type OwnProps = {
   isActive?: boolean;
   withChainIcon?: boolean;
   className?: string;
-  annualYield: number | undefined;
-  yieldType: ApiYieldType | undefined;
   appTheme: AppTheme;
   savedAddresses: SavedAddress[] | undefined;
   doesNftExist?: boolean;
@@ -81,7 +77,6 @@ type OwnProps = {
   currentAccountId: string;
   baseCurrency: ApiBaseCurrency;
   currencyRates: ApiCurrencyRates;
-  shouldHideStakingAnnualYield?: boolean;
   onClick?: (id: string) => void;
 };
 
@@ -106,8 +101,6 @@ function Transaction({
   transaction,
   isActive,
   className,
-  annualYield,
-  yieldType,
   savedAddresses,
   isLast,
   appTheme,
@@ -119,7 +112,6 @@ function Transaction({
   currentAccountId,
   baseCurrency,
   currencyRates,
-  shouldHideStakingAnnualYield,
   onClick,
 }: OwnProps) {
   const { openNftAttributesModal, addNftsToBlacklist } = getActions();
@@ -166,14 +158,8 @@ function Transaction({
   }, [accounts, address, chain, currentAccountId, savedAddresses]);
   const addressName = localAddressName || metadata?.name;
   const dnsIconText = useMemo(() => isDnsOperation ? getDnsIconText(nft) : '', [isDnsOperation, nft]);
-  const shouldRenderAnnualYield = Boolean(
-    !shouldHideStakingAnnualYield
-    && shouldShowTransactionAnnualYield(transaction)
-    && yieldType
-    && annualYield !== undefined,
-  );
-  const attachmentsTakeSubheader = shouldAttachmentTakeSubheader(transaction, isFuture, shouldRenderAnnualYield);
-  const isNoSubheaderLeft = getIsNoSubheaderLeft(transaction, isFuture, shouldRenderAnnualYield);
+  const attachmentsTakeSubheader = shouldAttachmentTakeSubheader(transaction, isFuture);
+  const isNoSubheaderLeft = getIsNoSubheaderLeft(transaction, isFuture);
   const titleTense = isFuture || status === 'failed' ? 'future' : 'past';
 
   let operationColorClass: string | undefined;
@@ -404,12 +390,6 @@ function Transaction({
       ));
     }
 
-    if (shouldRenderAnnualYield) {
-      children.push(delimiter, lang('at %annual_yield%', {
-        annual_yield: <span className={styles.subheaderHighlight}>{yieldType} {annualYield}%</span>,
-      }));
-    }
-
     if (!isFuture) {
       children.push(delimiter, formatTime(timestamp));
     }
@@ -501,13 +481,12 @@ export function getTransactionHeight(transaction: ApiTransactionActivity, isFutu
 function shouldAttachmentTakeSubheader(
   transaction: ApiTransactionActivity,
   isFuture?: boolean,
-  shouldRenderAnnualYield = shouldShowTransactionAnnualYield(transaction),
 ): 'none' | 'left' | 'full' {
   if (!transaction.nft && !shouldShowTransactionComment(transaction)) {
     return 'none';
   }
 
-  if (!getIsNoSubheaderLeft(transaction, isFuture, shouldRenderAnnualYield)) {
+  if (!getIsNoSubheaderLeft(transaction, isFuture)) {
     return 'none'; // The attachment won't fit in the right slot, because the left subheader is too wide
   }
 
@@ -522,12 +501,10 @@ function shouldAttachmentTakeSubheader(
 function getIsNoSubheaderLeft(
   transaction: ApiTransactionActivity,
   isFuture: boolean | undefined,
-  shouldRenderAnnualYield: boolean,
 ) {
   return isFuture
     && transaction.status !== 'failed'
-    && !shouldShowTransactionAddress(transaction).includes('list')
-    && !shouldRenderAnnualYield;
+    && !shouldShowTransactionAddress(transaction).includes('list');
 }
 
 function getIsNoSubheaderRight(transaction: ApiTransactionActivity) {

@@ -1,7 +1,5 @@
-import type { DieselStatus } from '../../global/types';
-import type { StakingPoolConfig } from '../chains/ton/contracts/JettonStaking/StakingPool';
 import type { ApiTonWalletVersion } from '../chains/ton/types';
-import type { ApiChain, ApiLoyaltyType, ApiTokenWithPrice } from './misc';
+import type { ApiChain, ApiTokenWithPrice } from './misc';
 
 export type ApiTokenDetails = Pick<ApiTokenWithPrice, 'slug' | 'type' | 'priceUsd' | 'percentChange24h'>;
 
@@ -76,7 +74,8 @@ export type ApiSwapDexEstimateResponse = {
   toMinAmount: string;
   impact: number;
   dexLabel: ApiSwapDexLabel;
-  dieselStatus: DieselStatus;
+  /** May include legacy backend values (`stars-fee`, `not-authorized`); normalize before storing in UI state. */
+  dieselStatus: string;
   other?: ApiSwapEstimateVariant[]; // Only in V2
   routes?: ApiSwapRoute[][]; // Only in V3
   // Fees
@@ -279,60 +278,6 @@ export type ApiSwapCexCreateTransactionResponse = {
   swap: ApiSwapHistoryItem;
 };
 
-// Staking
-export type ApiStakingJettonPool = {
-  pool: string;
-  poolConfig: StakingPoolConfig;
-  token: string;
-  periods: {
-    period: number;
-    unstakeCommission: number;
-    token: string;
-  }[];
-};
-
-/** Note: all the timestamps are in Unix seconds */
-export type ApiStakingCommonResponse = {
-  liquid: {
-    currentRate: number;
-    nextRoundRate: number;
-    collection?: string;
-    apy: number;
-    /** The string is a floating point number */
-    available: string;
-    /** The string is a floating point number */
-    tvl: string;
-    totalStakers: number;
-    loyaltyApy: Record<ApiLoyaltyType, number>;
-  };
-  round: {
-    start: number;
-    end: number;
-    unlock: number;
-  };
-  prevRound: {
-    start: number;
-    end: number;
-    unlock: number;
-  };
-  jettonPools: Omit<ApiStakingJettonPool, 'poolConfig'>[];
-  ethena: {
-    apy: number;
-    apyVerified?: number;
-    rate: number;
-    isDisabled?: boolean;
-  };
-};
-
-/** Note: all timestamps are in Unix milliseconds */
-export type ApiStakingCommonData = Override<ApiStakingCommonResponse, {
-  liquid: Override<ApiStakingCommonResponse['liquid'], {
-    available: bigint;
-    tvl: bigint;
-  }>;
-  jettonPools: ApiStakingJettonPool[];
-}>;
-
 export type ApiSite = {
   url: string;
   name: string;
@@ -341,14 +286,9 @@ export type ApiSite = {
   description: string;
   canBeRestricted: boolean;
   isExternal: boolean;
-  isFeatured?: boolean;
   isVerified?: boolean;
   categoryId?: number;
-
-  extendedIcon?: string;
   badgeText?: string;
-  withBorder?: boolean;
-  borderColor?: [string, string?];
 };
 
 export type ApiSiteCategory = {

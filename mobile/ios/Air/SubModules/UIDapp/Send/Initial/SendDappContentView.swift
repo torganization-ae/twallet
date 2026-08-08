@@ -131,7 +131,7 @@ private struct SendDappContentView: View {
                             nativeToken: operationChain.nativeToken,
                             fee: .init(
                                 precision: .approximate,
-                                terms: .init(token: nil, native: emulation.realFee, stars: nil),
+                                terms: .init(token: nil, native: emulation.realFee),
                                 nativeSum: emulation.realFee
                             ),
                             explainedTransferFee: nil,

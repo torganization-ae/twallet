@@ -41,7 +41,6 @@ enum SwapCexSupport {
                 realFee: nil,
                 isGasless: false,
                 dieselAmount: nil,
-                isGaslessWithStars: nil,
                 gaslessTransaction: nil,
                 password: passcode,
                 fee: fee,

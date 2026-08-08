@@ -13,7 +13,6 @@ import app.twallet.air.walletcore.TON_USDT_TESTNET_SLUG
 import app.twallet.air.walletcore.TRON_SLUG
 import app.twallet.air.walletcore.TRON_USDT_SLUG
 import app.twallet.air.walletcore.TRON_USDT_TESTNET_SLUG
-import app.twallet.air.walletcore.buildVirtualStakingSlug
 import app.twallet.air.walletcore.stores.TokenStore
 import java.math.BigInteger
 
@@ -23,14 +22,7 @@ data class MTokenBalance(
     var toBaseCurrency: Double?,
     var toBaseCurrency24h: Double?,
     val toUsdBaseCurrency: Double?,
-    val isVirtualStakingRow: Boolean = false,
 ) {
-    val virtualStakingToken: String? = if (isVirtualStakingRow && token != null) {
-        buildVirtualStakingSlug(token)
-    } else {
-        token
-    }
-
     private val priorityOrder: Int get() = PRIORITY_ORDER.indexOf(token)
 
     fun compareByDisplayOrder(
@@ -46,11 +38,7 @@ data class MTokenBalance(
             if (thisOrder != -1 && otherOrder != -1) {
                 if (thisValue == otherValue) {
                     val orderCompare = thisOrder.compareTo(otherOrder)
-                    return when {
-                        orderCompare != 0 -> orderCompare
-                        this.isVirtualStakingRow == other.isVirtualStakingRow -> 0
-                        else -> if (this.isVirtualStakingRow) -1 else 1
-                    }
+                    return orderCompare
                 }
             } else if (thisOrder != -1) {
                 return -1
@@ -147,13 +135,6 @@ data class MTokenBalance(
                 toBaseCurrency,
                 toBaseCurrency24h,
                 toUsdBaseCurrency
-            )
-        }
-
-        fun fromVirtualStakingData(baseToken: MToken, amount: BigInteger): MTokenBalance {
-            return fromParameters(baseToken, amount).copy(
-                token = baseToken.slug,
-                isVirtualStakingRow = true
             )
         }
     }

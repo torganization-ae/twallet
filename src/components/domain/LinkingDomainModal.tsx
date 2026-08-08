@@ -57,6 +57,7 @@ function LinkingDomainModal({
     state,
     error,
     isLoading,
+    isCheckingAddress,
     realFee,
     walletAddress = '',
     walletAddressName = '',
@@ -156,6 +157,7 @@ function LinkingDomainModal({
               label={currentLinkedWalletAddress ? lang('Linked Wallet') : lang('Wallet')}
               address={resolvedWalletAddress || walletAddress}
               addressName={walletAddressName}
+              isResolving={isCheckingAddress}
               onInput={handleWalletAddressInput}
               onClose={cancelDomainLinking}
             />

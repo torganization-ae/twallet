@@ -22,17 +22,10 @@ public struct MFee: Equatable, Hashable, Codable, Sendable {
 
         /** The fee part paid in the chain's native token */
         let native: BigInt?
-
-        /**
-         * The fee part paid in stars.
-         * The BigInt assumes the same number of decimal places as the transferred token.
-         */
-        let stars: BigInt?
         
-        public init(token: BigInt?, native: BigInt?, stars: BigInt?) {
+        public init(token: BigInt?, native: BigInt?) {
             self.token = token
             self.native = native
-            self.stars = stars
         }
     }
 
@@ -45,7 +38,7 @@ public struct MFee: Equatable, Hashable, Codable, Sendable {
     }
     
     public var isNativeOnly: Bool {
-        (terms.token ?? 0) == 0 && (terms.stars ?? 0) == 0
+        (terms.token ?? 0) == 0
     }
     
     public func toString(
@@ -63,13 +56,6 @@ public struct MFee: Equatable, Hashable, Codable, Sendable {
             }
             let tokenAmount = TokenAmount(tokenAmount, token)
             result += tokenAmount.formatted(.fee)
-        }
-        if let stars = terms.stars, stars > 0 {
-            if !result.isEmpty {
-                result += " + "
-            }
-            let starsAmount = AnyDecimalAmount(stars, decimals: 0, symbol: "⭐️", forceCurrencyToRight: true)
-            result += starsAmount.formatted(.none)
         }
         if result.isEmpty {
             let zero = AnyDecimalAmount(0, decimals: 0, symbol: nativeToken.symbol, forceCurrencyToRight: true)

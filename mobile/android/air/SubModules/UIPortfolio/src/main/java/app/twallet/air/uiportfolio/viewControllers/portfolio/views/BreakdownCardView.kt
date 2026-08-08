@@ -3,7 +3,6 @@ package app.twallet.air.uiportfolio.viewControllers.portfolio.views
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.Gravity
-import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
@@ -30,41 +29,45 @@ class BreakdownCardView(
     private val showLegend: Boolean,
     private val legendRowCount: Int = 10,
     private val emptyText: String? = null,
-) : WView(context), WThemedView {
-
-    private val titleLabel = WLabel(context).apply {
-        id = generateViewId()
-        text = titleText
-        setStyle(14f, WFont.Medium)
-        setTextColor(WColor.Tint)
-    }
-    private val cylinder = CylinderStackView(context).apply {
-        id = generateViewId()
-    }
-    private val legend = LinearLayout(context).apply {
-        id = generateViewId()
-        orientation = LinearLayout.VERTICAL
-    }
-    private val emptyLabel = WLabel(context).apply {
-        id = generateViewId()
-        text = emptyText
-        setStyle(14f, WFont.Regular)
-        setTextColor(WColor.SecondaryText)
-        gravity = Gravity.CENTER
-        maxLines = 2
-        visibility = GONE
-    }
-    val cardSkeletonPlaceholder = WBaseView(context).apply {
-        id = generateViewId()
-        alpha = 0f
-        visibility = GONE
-    }
+) : WView(context),
+    WThemedView {
+    private val titleLabel =
+        WLabel(context).apply {
+            id = generateViewId()
+            text = titleText
+            setStyle(14f, WFont.Medium)
+            setTextColor(WColor.Tint)
+        }
+    private val bar =
+        HorizontalBreakdownBarView(context).apply {
+            id = generateViewId()
+        }
+    private val legend =
+        LinearLayout(context).apply {
+            id = generateViewId()
+            orientation = LinearLayout.VERTICAL
+        }
+    private val emptyLabel =
+        WLabel(context).apply {
+            id = generateViewId()
+            text = emptyText
+            setStyle(14f, WFont.Regular)
+            setTextColor(WColor.SecondaryText)
+            gravity = Gravity.CENTER
+            maxLines = 2
+            visibility = GONE
+        }
+    val cardSkeletonPlaceholder =
+        WBaseView(context).apply {
+            id = generateViewId()
+            alpha = 0f
+            visibility = GONE
+        }
 
     init {
         setPadding(16.dp, 16.dp, 16.dp, 14.dp)
         addView(titleLabel, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-        val cylH = BreakdownSectionView.CYLINDER_HEIGHT_DP.dp
-        addView(cylinder, LayoutParams(80.dp, cylH))
+        addView(bar, LayoutParams(MATCH_CONSTRAINT, HorizontalBreakdownBarView.BAR_HEIGHT_DP.dp))
         if (showLegend) {
             addView(legend, LayoutParams(MATCH_CONSTRAINT, WRAP_CONTENT))
         }
@@ -74,21 +77,22 @@ class BreakdownCardView(
         addView(cardSkeletonPlaceholder, LayoutParams(MATCH_CONSTRAINT, MATCH_CONSTRAINT))
         setConstraints {
             toTop(titleLabel)
-            if (showLegend) toStart(titleLabel, 4f) else toCenterX(titleLabel)
-            topToBottom(cylinder, titleLabel, 15f)
-            if (showLegend) toStart(cylinder, 8f) else toCenterX(cylinder)
-            toBottom(cylinder)
+            toStart(titleLabel)
+            topToBottom(bar, titleLabel, 12f)
+            toStart(bar)
+            toEnd(bar)
             if (showLegend) {
-                toStart(legend, 112f)
-                toEnd(legend, 8f)
-                setHorizontalBias(legend.id, 0f)
-                topToTop(legend, cylinder)
-                bottomToBottom(legend, cylinder)
+                topToBottom(legend, bar, 12f)
+                toStart(legend)
+                toEnd(legend)
+                toBottom(legend)
+            } else {
+                toBottom(bar)
             }
             if (emptyText != null) {
-                toStart(emptyLabel, 16f)
-                toEnd(emptyLabel, 16f)
-                topToBottom(emptyLabel, titleLabel, 15f)
+                toStart(emptyLabel)
+                toEnd(emptyLabel)
+                topToBottom(emptyLabel, titleLabel, 12f)
                 toBottom(emptyLabel)
             }
             toTop(cardSkeletonPlaceholder, 36f)
@@ -99,14 +103,14 @@ class BreakdownCardView(
 
     fun render(slices: List<PortfolioBreakdownSlice>) {
         if (slices.isEmpty()) {
-            cylinder.visibility = INVISIBLE
+            bar.visibility = INVISIBLE
             if (showLegend) legend.visibility = INVISIBLE
             if (emptyText != null) emptyLabel.visibility = VISIBLE
             return
         }
         if (emptyText != null) emptyLabel.visibility = GONE
-        cylinder.visibility = VISIBLE
-        cylinder.setSlices(slices)
+        bar.visibility = VISIBLE
+        bar.setSlices(slices)
         if (showLegend) {
             legend.visibility = VISIBLE
             renderLegend(slices)
@@ -123,10 +127,10 @@ class BreakdownCardView(
         cardSkeletonPlaceholder to ViewConstants.BLOCK_RADIUS.dp
 
     fun crossFadeTargets(): List<android.view.View> =
-        if (showLegend) listOf(cylinder, legend) else listOf(cylinder)
+        if (showLegend) listOf(bar, legend) else listOf(bar)
 
     fun showPlaceholders(animated: Boolean = false) {
-        cylinder.visibility = VISIBLE
+        bar.visibility = VISIBLE
         if (showLegend) legend.visibility = VISIBLE
         cardSkeletonPlaceholder.visibility = VISIBLE
         if (animated) {
@@ -142,7 +146,7 @@ class BreakdownCardView(
 
     override fun updateTheme() {
         setBackgroundColor(WColor.Background.color, ViewConstants.BLOCK_RADIUS.dp)
-        cylinder.updateTheme()
+        bar.updateTheme()
         cardSkeletonPlaceholder.setBackgroundColor(
             WColor.SecondaryBackground.color,
             ViewConstants.BLOCK_RADIUS.dp,
@@ -153,26 +157,39 @@ class BreakdownCardView(
     private fun renderLegend(slices: List<PortfolioBreakdownSlice>) {
         legend.removeAllViews()
         slices.take(legendRowCount).forEachIndexed { index, slice ->
-            val rowView = LinearLayout(context).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-            }
-            val label = WLabel(context).apply {
-                text = slice.label
-                setStyle(14f, WFont.Medium)
-                setTextColor(slice.color)
-            }
-            val pct = WLabel(context).apply {
-                text = "${(slice.ratio * 100).roundToInt()}%"
-                setStyle(14f, WFont.Regular)
-                setTextColor(WColor.SecondaryText)
-            }
+            val rowView =
+                LinearLayout(context).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                }
+            val dot =
+                WBaseView(context).apply {
+                    setBackgroundColor(slice.color, 4f.dp)
+                }
+            val label =
+                WLabel(context).apply {
+                    text = slice.label
+                    setStyle(14f, WFont.Medium)
+                    setTextColor(WColor.PrimaryText)
+                }
+            val pct =
+                WLabel(context).apply {
+                    text = "${(slice.ratio * 100).roundToInt()}%"
+                    setStyle(14f, WFont.Regular)
+                    setTextColor(WColor.SecondaryText)
+                }
+            rowView.addView(
+                dot,
+                LinearLayout.LayoutParams(8.dp, 8.dp).apply {
+                    marginEnd = 8.dp
+                }
+            )
             rowView.addView(label, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
             rowView.addView(pct, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
             legend.addView(
                 rowView,
                 LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-                    if (index > 0) topMargin = 4.dp
+                    if (index > 0) topMargin = 8.dp
                 }
             )
         }

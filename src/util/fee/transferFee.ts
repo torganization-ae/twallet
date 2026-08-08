@@ -132,7 +132,7 @@ export function isDieselAvailable(diesel: ApiFetchEstimateDieselResult): diesel 
 }
 
 export function getDieselTokenAmount(diesel: ApiFetchEstimateDieselResult) {
-  return diesel.status === 'stars-fee' ? 0n : (diesel.amount ?? 0n);
+  return diesel.amount ?? 0n;
 }
 
 function shouldUseDiesel(input: ApiFee): input is ApiFeeWithDiesel {
@@ -177,8 +177,6 @@ function explainGasfullTransferFee(input: ApiFee) {
  * Converts the diesel of semi-diesel transfer data
  */
 function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
-  const isStarsDiesel = diesel.status === 'stars-fee';
-  const dieselKey = isStarsDiesel ? 'stars' : 'token';
   const realFeeInDiesel = convertFee(diesel.realFee, diesel.nativeAmount, diesel.amount);
   // Cover as much displayed real fee as possible with diesel, because in the excess it will return as the native token.
   const dieselRealFee = bigintMin(diesel.amount, realFeeInDiesel);
@@ -191,7 +189,7 @@ function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
     fullFee: {
       precision: 'lessThan',
       terms: {
-        [dieselKey]: diesel.amount,
+        token: diesel.amount,
         native: diesel.remainingFee,
       },
       nativeSum: diesel.nativeAmount + diesel.remainingFee,
@@ -199,7 +197,7 @@ function explainGaslessTransferFee({ diesel }: ApiFeeWithDiesel) {
     realFee: {
       precision: 'approximate',
       terms: {
-        [dieselKey]: dieselRealFee,
+        token: dieselRealFee,
         native: nativeRealFee,
       },
       nativeSum: diesel.realFee,

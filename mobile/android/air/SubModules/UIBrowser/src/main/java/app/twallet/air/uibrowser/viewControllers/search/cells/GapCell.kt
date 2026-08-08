@@ -7,4 +7,6 @@ import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.widgets.WCell
 
 @SuppressLint("ViewConstructor")
-class GapCell(context: Context) : WCell(context, LayoutParams(MATCH_PARENT, 16.dp))
+class GapCell(
+    context: Context
+) : WCell(context, LayoutParams(MATCH_PARENT, 16.dp))

@@ -6,18 +6,11 @@ import type {
   ApiChain,
   ApiCurrencyRates,
   ApiNft,
-  ApiStakingState,
   ApiTokenWithPrice,
-  ApiToncoinStakingState,
   ApiTransactionActivity,
 } from '../../../../api/types';
 import type { Account, SavedAddress, Theme } from '../../../../global/types';
 
-import {
-  ANIMATED_STICKER_TINY_ICON_PX,
-  IS_FEATURE_LIMITED,
-  TONCOIN,
-} from '../../../../config';
 import {
   getIsActivityPendingForUser,
   isOurStakingTransaction,
@@ -26,20 +19,15 @@ import {
 } from '../../../../util/activities';
 import buildClassName from '../../../../util/buildClassName';
 import { getChainTitle } from '../../../../util/chain';
-import { formatRelativeHumanDateTime } from '../../../../util/dateFormat';
 import { getLocalAddressName } from '../../../../util/getLocalAddressName';
 import { getIsTransactionWithPoisoning } from '../../../../util/poisoningHash';
-import { getStakingStateStatus } from '../../../../util/staking';
-import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
-import useAppTheme from '../../../../hooks/useAppTheme';
 import useLang from '../../../../hooks/useLang';
 import useTransactionDetails from '../../../../hooks/useTransactionDetails';
 
 import TransactionAmount from '../../../common/TransactionAmount';
 import TransactionFee from '../../../common/TransactionFee';
 import NftInfo from '../../../transfer/NftInfo';
-import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import InteractiveTextField from '../../../ui/InteractiveTextField';
 
@@ -61,23 +49,16 @@ interface OwnProps {
   isOpen?: boolean;
   isSensitiveDataHidden?: true;
   isViewMode?: boolean;
-  stakingStates?: ApiStakingState[];
-  isLongUnstakeRequested?: boolean;
   encryptedComment?: string;
   decryptedComment?: string;
   canDecryptComment?: boolean;
   onDecryptComment?: NoneToVoidFunction;
-  unstakeDate?: number;
-  shouldRenderUnstakeTimer?: boolean;
-  unstakeTimerRef?: ElementRef<HTMLDivElement>;
   shouldRenderTransactionId?: boolean;
   transactionIdRef?: ElementRef<HTMLDivElement>;
   forceShowAddress?: boolean;
   showBothAddresses?: boolean;
   className?: string;
   onSendClick?: NoneToVoidFunction;
-  onStartStakingClick?: NoneToVoidFunction;
-  onUnstakeMoreClick?: NoneToVoidFunction;
   onTokenClick?: (slug: string) => void;
   selectedExplorerIds?: Partial<Record<ApiChain, string>>;
 }
@@ -96,28 +77,20 @@ function TransactionInfo({
   isOpen,
   isSensitiveDataHidden,
   isViewMode,
-  stakingStates,
-  isLongUnstakeRequested,
   encryptedComment,
   decryptedComment,
   canDecryptComment,
   onDecryptComment,
-  unstakeDate,
-  shouldRenderUnstakeTimer: shouldRenderUnstakeTimerProp,
-  unstakeTimerRef,
   shouldRenderTransactionId: shouldRenderTransactionIdProp,
   transactionIdRef,
   forceShowAddress,
   showBothAddresses,
   className,
   onSendClick,
-  onStartStakingClick,
-  onUnstakeMoreClick,
   onTokenClick,
   selectedExplorerIds,
 }: OwnProps) {
   const lang = useLang();
-  const appTheme = useAppTheme(theme);
 
   const {
     comment,
@@ -195,19 +168,7 @@ function TransactionInfo({
   const isScam = Boolean(transaction) && isScamTransaction(transaction);
   const shouldLoadDetails = transaction?.shouldLoadDetails;
 
-  const stakingState = stakingStates?.find((staking): staking is ApiToncoinStakingState => {
-    return staking.tokenSlug === TONCOIN.slug && staking.balance > 0n;
-  });
-  const stakingStatus = stakingState && getStakingStateStatus(stakingState);
   const shouldRenderTransactionId = shouldRenderTransactionIdProp ?? (isActivityWithHash && Boolean(transactionUrl));
-
-  const startOfStakingCycle = stakingState?.start;
-  const shouldRenderUnstakeTimer = shouldRenderUnstakeTimerProp ?? (
-    transaction?.type === 'unstakeRequest'
-    && startOfStakingCycle !== undefined
-    && (stakingStatus === 'unstakeRequested' || isLongUnstakeRequested)
-    && (transaction.timestamp ?? 0) >= startOfStakingCycle
-  );
 
   function renderTransactionWithPoisoningWarning() {
     return (
@@ -279,61 +240,15 @@ function TransactionInfo({
     );
   }
 
-  function renderUnstakeTimer() {
-    if (!unstakeDate) return undefined;
-
-    return (
-      <div ref={unstakeTimerRef} className={styles.unstakeTime}>
-        <AnimatedIconWithPreview
-          play={isOpen}
-          size={ANIMATED_STICKER_TINY_ICON_PX}
-          className={styles.unstakeTimeIcon}
-          nonInteractive
-          noLoop={false}
-          tgsUrl={ANIMATED_STICKERS_PATHS[appTheme].iconClockGray}
-          previewUrl={ANIMATED_STICKERS_PATHS[appTheme].preview.iconClockGray}
-        />
-        <div>
-          {lang('$unstaking_when_receive', {
-            time: (
-              <strong>
-                {formatRelativeHumanDateTime(lang.code, unstakeDate)}
-              </strong>
-            ),
-          })}
-        </div>
-      </div>
-    );
-  }
-
   function renderFooter() {
     if (isViewMode) return undefined;
 
-    const canUnstake = isOurStaking && (isOurUnstaking || transaction?.type === 'unstakeRequest')
-      && stakingStatus === 'active';
     const buttons: TeactNode[] = [];
 
     if (!isOurStaking && !isIncoming && !isNftTransfer && onSendClick) {
       buttons.push(
         <Button onClick={onSendClick} className={styles.button}>
           {lang('Repeat')}
-        </Button>,
-      );
-    }
-    if (!IS_FEATURE_LIMITED && isOurStaking && onStartStakingClick) {
-      buttons.push(
-        <Button
-          onClick={onStartStakingClick}
-          className={buildClassName(styles.button, canUnstake && styles.buttonWide)}
-        >
-          {lang('Stake Again')}
-        </Button>,
-      );
-    }
-    if (canUnstake && onUnstakeMoreClick) {
-      buttons.push(
-        <Button onClick={onUnstakeMoreClick} className={buildClassName(styles.button, styles.buttonWide)}>
-          {lang('Unstake More')}
         </Button>,
       );
     }
@@ -351,7 +266,7 @@ function TransactionInfo({
           isFailed={status === 'failed'}
           amount={amount ?? 0n}
           token={token}
-          status={isOurUnstaking && !shouldRenderUnstakeTimer ? lang('Successfully') : undefined}
+          status={isOurUnstaking ? lang('Successfully') : undefined}
           noSign={amountDisplayMode === 'noSign'}
           baseCurrency={baseCurrency}
           currencyRates={currencyRates}
@@ -412,7 +327,6 @@ function TransactionInfo({
       {renderFee()}
       {renderComment()}
       {shouldRenderTransactionId && renderTransactionId()}
-      {shouldRenderUnstakeTimer && renderUnstakeTimer()}
       {renderFooter()}
     </div>
   );

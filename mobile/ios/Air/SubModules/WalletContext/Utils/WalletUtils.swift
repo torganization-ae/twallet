@@ -50,8 +50,6 @@ public let STAKED_MYCOIN_SLUG = "ton-eqcbzvsfwq"
 public let TON_USDE_SLUG = "ton-eqaib6kmdf"
 public let TON_TSUSDE_SLUG = "ton-eqdq5uuyph"
 
-public let EARN_AVAILABLE_SLUGS = [TONCOIN_SLUG, MYCOIN_SLUG]
-
 public let DIESEL_TOKENS = [
     "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT", // NOT
     "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs", // USDT

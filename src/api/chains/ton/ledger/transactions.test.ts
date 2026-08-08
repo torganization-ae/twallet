@@ -5,16 +5,11 @@ import nacl from 'tweetnacl';
 
 import type { ApiTonWalletVersion, PreparedTransactionToSign, TokenTransferBodyParams } from '../types';
 
-import { DEFAULT_WALLET_VERSION, TON_TSUSDE } from '../../../../config';
+import { DEFAULT_WALLET_VERSION } from '../../../../config';
 import { logDebug, logDebugError } from '../../../../util/logs';
 import { randomBytes } from '../../../../util/random';
 import { encryptMessageComment } from '../util/encryption';
 import {
-  buildJettonClaimPayload,
-  buildJettonUnstakePayload,
-  buildLiquidStakingDepositBody,
-  buildLiquidStakingWithdrawBody,
-  buildLiquidStakingWithdrawCustomPayload,
   buildTokenTransferBody,
   commentToBytes,
   packBytesAsSnakeCell,
@@ -22,10 +17,9 @@ import {
   resolveTokenAddress,
 } from '../util/tonCore';
 import { DnsItem } from '../contracts/DnsItem';
-import { TsUSDeWallet } from '../contracts/Ethena/TsUSDeWallet';
 import { mockTonAddresses, mockTonBounceableAddresses } from '../../../../../tests/mocks';
 import { expectAddress, expectCell } from '../../../../../tests/util/matchers';
-import { NFT_TRANSFER_FORWARD_AMOUNT, TON_GAS } from '../constants';
+import { NFT_TRANSFER_FORWARD_AMOUNT } from '../constants';
 import { buildNftTransferPayload } from '../nfts';
 import {
   lacksBlindSigningError,
@@ -217,7 +211,11 @@ describe('tonTransactionToLedgerTransaction', () => {
 
     'payload not supported by the Ledger version': {
       tonTransaction: makeMockTonTransaction({}, {
-        body: buildLiquidStakingDepositBody(),
+        body: buildNftTransferPayload({
+          fromAddress: mockTonAddresses[0],
+          toAddress: mockTonAddresses[1],
+          isLedger: true,
+        }),
       }),
       ledgerTonVersion: '2.0.0',
       ledgerTransaction: unsupportedError,
@@ -436,69 +434,6 @@ describe('tonPayloadToLedgerPayload', () => {
       };
     },
 
-    'liquid stake': {
-      tonPayload: buildLiquidStakingDepositBody(),
-      ledgerPayload: {
-        type: 'tonstakers-deposit',
-        queryId: null, // eslint-disable-line no-null/no-null
-        appId: null, // eslint-disable-line no-null/no-null
-      },
-    },
-
-    'liquid stake with query id': () => {
-      const queryId = 278492;
-      return {
-        tonPayload: buildLiquidStakingDepositBody(queryId),
-        ledgerPayload: {
-          type: 'tonstakers-deposit',
-          queryId: BigInt(queryId),
-          appId: null, // eslint-disable-line no-null/no-null
-        },
-      };
-    },
-
-    'liquid unstake': () => {
-      const amount = 37_000n;
-      const fromAddress = mockTonAddresses[0];
-      const fillOrKill = Math.random() < 0.5;
-      const waitTillRoundEnd = Math.random() < 0.5;
-      return {
-        tonPayload: buildLiquidStakingWithdrawBody({
-          amount,
-          responseAddress: fromAddress,
-          fillOrKill,
-          waitTillRoundEnd,
-        }),
-        ledgerPayload: {
-          type: 'jetton-burn',
-          queryId: null, // eslint-disable-line no-null/no-null
-          amount,
-          responseDestination: expectAddress(Address.parse(fromAddress)),
-          customPayload: expectCell(buildLiquidStakingWithdrawCustomPayload(waitTillRoundEnd, fillOrKill)),
-        },
-      };
-    },
-
-    'jetton unstake': {
-      tonPayload: buildJettonUnstakePayload(123_000n, true),
-      ledgerPayload: 'unsafe',
-    },
-
-    'jetton claim': {
-      tonPayload: buildJettonClaimPayload(mockTonAddresses.slice(0, 2)),
-      ledgerPayload: 'unsafe',
-    },
-
-    'Ethena staking unlock': {
-      tonPayload: TsUSDeWallet.transferTimelockedMessage({
-        jettonAmount: 123_000n,
-        to: Address.parse(TON_TSUSDE.tokenAddress),
-        responseAddress: Address.parse(mockTonAddresses[0]),
-        forwardTonAmount: TON_GAS.unstakeEthenaLockedForward,
-      }),
-      ledgerPayload: 'unsafe',
-    },
-
     'TON DNS fill-up': {
       tonPayload: DnsItem.buildFillUpMessage(),
       ledgerPayload: {
@@ -531,7 +466,11 @@ describe('tonPayloadToLedgerPayload', () => {
     },
 
     'payload not supported by the Ledger version': {
-      tonPayload: buildLiquidStakingDepositBody(),
+      tonPayload: buildNftTransferPayload({
+        fromAddress: mockTonAddresses[0],
+        toAddress: mockTonAddresses[1],
+        isLedger: true,
+      }),
       ledgerTonVersion: '2.0.0',
       ledgerPayload: 'unsupported',
     },

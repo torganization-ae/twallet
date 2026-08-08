@@ -27,7 +27,6 @@ private let log = Log("ExploreVM")
     private(set) var exploreSites: OrderedDictionary<String, ApiSite> = [:]
     private(set) var exploreCategories: OrderedDictionary<Int, ApiSiteCategory> = [:]
     private(set) var connectedDapps: OrderedDictionary<String, ApiDapp> = [:]
-    private(set) var featuredTitle: String?
 
     private var loadExploreSitesTask: Task<Void, Never>?
     private var waitingForNetwork = false
@@ -83,7 +82,6 @@ private let log = Log("ExploreVM")
     // MARK: - Update Data Model
 
     func updateExploreSites(_ result: ApiExploreSitesResult) {
-        featuredTitle = result.featuredTitle
         exploreSites = OrderedDictionary(result.sites.map { ($0.url, $0) }, uniquingKeysWith: { $1 })
         exploreCategories = OrderedDictionary(result.categories.map { ($0.id, $0) }, uniquingKeysWith: { $1 })
         delegate?.didUpdateViewModelData()
@@ -104,22 +102,20 @@ private let log = Log("ExploreVM")
         guard loadExploreSitesTask == nil || loadExploreSitesTask?.isCancelled == true else { return }
 
         loadExploreSitesTask = Task { [weak self] in
-            do {
-                let result = try await Api.loadExploreSites(langCode: LocalizationSupport.shared.langCode)
-                self?.updateExploreSites(result)
-            } catch {
-                log.error("failed to fetch explore sites \(error, .public)")
-                if let self, !waitingForNetwork { // Improvement: retry logic should not depend on reachability
-                    try? await Task.sleep(for: .seconds(3))
-                    if !Task.isCancelled {
-                        if exploreSites.isEmpty {
-                            refresh()
-                        }
+            defer { self?.loadExploreSitesTask = nil }
+
+            for attempt in 0 ..< 3 {
+                guard !Task.isCancelled else { return }
+                do {
+                    let result = try await Api.loadExploreSites(langCode: LocalizationSupport.shared.langCode)
+                    self?.updateExploreSites(result)
+                    return
+                } catch {
+                    log.error("failed to fetch explore sites \(error, .public)")
+                    if attempt < 2 {
+                        try? await Task.sleep(for: .seconds(1))
                     }
                 }
-            }
-            if !Task.isCancelled {
-                self?.loadExploreSitesTask = nil
             }
         }
     }

@@ -6,7 +6,6 @@ import WalletCore
 enum SwapButtonTitle {
     case swap(ApiToken, ApiToken)
     case `continue`
-    case authorizeDiesel(ApiToken)
     case issue(SwapIssue)
 }
 
@@ -26,8 +25,6 @@ extension SwapButtonTitle {
             )
         case .continue:
             .text(lang("Continue"))
-        case .authorizeDiesel(let token):
-            .text(lang("Authorize %token% Fee", arg1: token.symbol))
         case .issue(let issue):
             .text(issue.buttonTitle)
         }
@@ -40,7 +37,6 @@ enum SwapButtonState: Equatable {
     case estimating(showContinue: Bool)
     case waitingForEstimate
     case blocked(SwapIssue)
-    case authorizeDiesel
     case readyToContinue
     case readyToSwap
 }
@@ -70,8 +66,6 @@ struct SwapButtonConfiguration {
             button.configureTitle(sellingToken: sellingToken, buyingToken: buyingToken)
         case .continue:
             button.configureTitleContinue()
-        case .authorizeDiesel(let token):
-            button.configureTitleAuthorizeDiesel(sellingToken: token)
         case .issue(let issue):
             button.configureTitle(issue: issue)
         }
@@ -92,8 +86,6 @@ struct SwapButtonConfiguration {
             return SwapButtonConfiguration(title: title, isEnabled: false, showLoading: true)
         case .blocked(let issue):
             return SwapButtonConfiguration(title: .issue(issue), isEnabled: false, showLoading: false)
-        case .authorizeDiesel:
-            return SwapButtonConfiguration(title: .authorizeDiesel(sellingToken), isEnabled: true, showLoading: false)
         case .readyToContinue:
             return SwapButtonConfiguration(title: .continue, isEnabled: true, showLoading: false)
         case .readyToSwap:
@@ -130,12 +122,6 @@ extension WButton {
     
     func configureTitleContinue() {
         let attr = NSMutableAttributedString(string: lang("Continue"))
-        attr.addAttribute(.font, value: WButton.font, range: NSRange(location: 0, length: attr.length))
-        setAttributedTitle(attr, for: .normal)
-    }
-    
-    func configureTitleAuthorizeDiesel(sellingToken: ApiToken) {
-        let attr = NSMutableAttributedString(string: lang("Authorize %token% Fee", arg1: sellingToken.symbol))
         attr.addAttribute(.font, value: WButton.font, range: NSRange(location: 0, length: attr.length))
         setAttributedTitle(attr, for: .normal)
     }

@@ -20,13 +20,13 @@ import app.twallet.air.uicomponents.base.WNavigationController
 import app.twallet.air.uicomponents.base.WRecyclerViewAdapter
 import app.twallet.air.uicomponents.base.WViewController
 import app.twallet.air.uicomponents.commonViews.cells.HeaderCell
+import app.twallet.air.uicomponents.drawable.WRippleDrawable
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.WFont
 import app.twallet.air.uicomponents.widgets.WButton
 import app.twallet.air.uicomponents.widgets.WCell
 import app.twallet.air.uicomponents.widgets.WLabel
 import app.twallet.air.uicomponents.widgets.WRecyclerView
-import app.twallet.air.uicomponents.drawable.WRippleDrawable
 import app.twallet.air.uiinappbrowser.InAppBrowserVC
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.theme.ViewConstants
@@ -35,15 +35,17 @@ import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletcontext.WalletContextManager
 import app.twallet.air.walletcontext.utils.IndexPath
 import app.twallet.air.walletcore.WalletCore
-import app.twallet.air.walletcore.deeplink.DeeplinkParser
 import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.api.activateAccount
+import app.twallet.air.walletcore.deeplink.DeeplinkParser
 import app.twallet.air.walletcore.models.InAppBrowserConfig
 import app.twallet.air.walletcore.models.MExploreSite
 import app.twallet.air.walletcore.stores.ExploreHistoryStore
 import java.lang.ref.WeakReference
 
-class SearchVC(context: Context) : WViewController(context),
+class SearchVC(
+    context: Context
+) : WViewController(context),
     WRecyclerViewAdapter.WRecyclerViewDataSource {
     override val TAG = "Search"
 
@@ -102,20 +104,24 @@ class SearchVC(context: Context) : WViewController(context),
         val rv = WRecyclerView(this)
         rv.adapter = rvAdapter
         rv.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-        rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                if (recyclerView.computeVerticalScrollOffset() == 0)
-                    updateBlurViews(recyclerView)
-            }
+        rv.addOnScrollListener(
+            object : RecyclerView.OnScrollListener() {
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    super.onScrollStateChanged(recyclerView, newState)
+                    if (recyclerView.computeVerticalScrollOffset() == 0) {
+                        updateBlurViews(recyclerView)
+                    }
+                }
 
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                if (dx == 0 && dy == 0)
-                    return
-                updateBlurViews(recyclerView)
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                    if (dx == 0 && dy == 0) {
+                        return
+                    }
+                    updateBlurViews(recyclerView)
+                }
             }
-        })
+        )
         rv.clipToPadding = false
         rv
     }
@@ -176,8 +182,9 @@ class SearchVC(context: Context) : WViewController(context),
             notifySDK = true,
             willPopTemporaryPushedWallets = true
         ) { res, err ->
-            if (res == null || err != null)
+            if (res == null || err != null) {
                 return@activateAccount
+            }
             WalletCore.notifyEvent(
                 WalletEvent.AccountChangedInApp(persistedAccountsModified = false)
             )
@@ -196,25 +203,24 @@ class SearchVC(context: Context) : WViewController(context),
     }
 
     private fun openInAppBrowser(config: InAppBrowserConfig) {
-        val inAppBrowserVC = InAppBrowserVC(
-            context,
-            navigationController?.tabBarController,
-            config
-        )
+        val inAppBrowserVC =
+            InAppBrowserVC(
+                context,
+                navigationController?.tabBarController,
+                config
+            )
         val nav = WNavigationController(window!!)
         nav.setRoot(inAppBrowserVC)
         window!!.present(nav)
     }
 
-    override fun recyclerViewNumberOfSections(rv: RecyclerView): Int {
-        return 7
-    }
+    override fun recyclerViewNumberOfSections(rv: RecyclerView): Int = 7
 
     override fun recyclerViewNumberOfItems(
         rv: RecyclerView,
         section: Int
-    ): Int {
-        return when (section) {
+    ): Int =
+        when (section) {
             SECTION_MY_WALLETS -> {
                 if (searchResult?.myWallets.isNullOrEmpty()) 0 else 2 + searchResult!!.myWallets!!.size
             }
@@ -230,7 +236,11 @@ class SearchVC(context: Context) : WViewController(context),
             SECTION_RECENT_QUERIES -> {
                 if ((searchResult?.keyword.isNullOrEmpty() && !searchResult?.recentSearches.isNullOrEmpty()) ||
                     (!searchResult?.keyword.isNullOrEmpty() && searchResult?.noResultsFound == true)
-                ) 2 + searchResult?.recentSearches!!.size else 0
+                ) {
+                    2 + searchResult?.recentSearches!!.size
+                } else {
+                    0
+                }
             }
 
             SECTION_SUGGESTIONS -> {
@@ -238,7 +248,11 @@ class SearchVC(context: Context) : WViewController(context),
                     !searchResult?.keyword.isNullOrEmpty() &&
                     !searchResult?.recentSearches.isNullOrEmpty() &&
                     searchResult?.noResultsFound != true
-                ) 2 + searchResult?.recentSearches!!.size else 0
+                ) {
+                    2 + searchResult?.recentSearches!!.size
+                } else {
+                    0
+                }
             }
 
             SECTION_DAPPS -> {
@@ -253,13 +267,12 @@ class SearchVC(context: Context) : WViewController(context),
                 throw Exception()
             }
         }
-    }
 
     override fun recyclerViewCellType(
         rv: RecyclerView,
         indexPath: IndexPath
     ): WCell.Type {
-        if (indexPath.row == 0)
+        if (indexPath.row == 0) {
             return when (indexPath.section) {
                 SECTION_WALLET -> {
                     SEARCH_WALLET_CELL
@@ -277,6 +290,7 @@ class SearchVC(context: Context) : WViewController(context),
                     SEARCH_TITLE_CELL
                 }
             }
+        }
         if (indexPath.row == recyclerViewNumberOfItems(rv, indexPath.section) - 1) {
             return GAP_CELL
         }
@@ -340,29 +354,30 @@ class SearchVC(context: Context) : WViewController(context),
             RECENT_SEARCH_TITLE_CELL -> {
                 HeaderCell(context).apply {
                     titleLabel.setStyle(14f, WFont.Medium)
-                    val clearAllButton = object : WLabel(context) {
-                        private val ripple = WRippleDrawable.create(20f.dp)
+                    val clearAllButton =
+                        object : WLabel(context) {
+                            private val ripple = WRippleDrawable.create(20f.dp)
 
-                        init {
-                            background = ripple
-                        }
+                            init {
+                                background = ripple
+                            }
 
-                        override fun updateTheme() {
-                            super.updateTheme()
-                            ripple.rippleColor = WColor.TintRipple.color
+                            override fun updateTheme() {
+                                super.updateTheme()
+                                ripple.rippleColor = WColor.TintRipple.color
+                            }
+                        }.apply {
+                            text = LocaleController.getString("Clear All")
+                            setStyle(14f, WFont.Regular)
+                            setTextColor(WColor.Tint)
+                            setPadding(12.dp, 4.dp, 12.dp, 4.dp)
+                            setOnClickListener {
+                                ExploreHistoryStore.clearAccountHistory()
+                                navigationController?.pop()
+                            }
+                            tag = CLEAR_ALL_BUTTON_TAG
+                            updateTheme()
                         }
-                    }.apply {
-                        text = LocaleController.getString("Clear All")
-                        setStyle(14f, WFont.Regular)
-                        setTextColor(WColor.Tint)
-                        setPadding(12.dp, 4.dp, 12.dp, 4.dp)
-                        setOnClickListener {
-                            ExploreHistoryStore.clearAccountHistory()
-                            navigationController?.pop()
-                        }
-                        tag = CLEAR_ALL_BUTTON_TAG
-                        updateTheme()
-                    }
                     addView(clearAllButton)
                     setConstraints {
                         toEnd(clearAllButton, 8f)
@@ -377,8 +392,9 @@ class SearchVC(context: Context) : WViewController(context),
 
             SEARCH_SEARCHED_CELL -> {
                 SearchItemCell(context, onTap = { history ->
-                    if (WalletContextManager.delegate?.get()?.handleDeeplink(history) == true)
+                    if (WalletContextManager.delegate?.get()?.handleDeeplink(history) == true) {
                         return@SearchItemCell
+                    }
                     val (isValidUrl, uri) = InAppBrowserVC.convertToUri(history)
                     openInAppBrowser(
                         InAppBrowserConfig(
@@ -387,17 +403,20 @@ class SearchVC(context: Context) : WViewController(context),
                             saveInVisitedHistory = isValidUrl
                         )
                     )
-                    if (!isValidUrl)
+                    if (!isValidUrl) {
                         ExploreHistoryStore.saveSearchHistory(history)
+                    }
                 })
             }
 
             SEARCH_DAPP_CELL -> {
                 SearchDappCell(context, onTap = { app ->
                     if (app !is MExploreSite ||
-                        (app.isExternal ||
-                            (!app.url!!.startsWith("http://") && !app.url!!.startsWith("https://")) ||
-                            app.isTelegram)
+                        (
+                            app.isExternal ||
+                                (!app.url!!.startsWith("http://") && !app.url!!.startsWith("https://")) ||
+                                app.isTelegram
+                        )
                     ) {
                         val intent = Intent(Intent.ACTION_VIEW)
                         intent.setData(app.url?.toUri())
@@ -434,8 +453,9 @@ class SearchVC(context: Context) : WViewController(context),
         cellHolder: WCell.Holder,
         indexPath: IndexPath
     ) {
-        if (cellHolder.cell is GapCell)
+        if (cellHolder.cell is GapCell) {
             return
+        }
 
         when (indexPath.section) {
             SECTION_MY_WALLETS -> {
@@ -466,21 +486,26 @@ class SearchVC(context: Context) : WViewController(context),
 
             SECTION_RECENT_QUERIES -> {
                 if (indexPath.row == 0) {
-                    val isValidDeeplink = searchResult?.keyword?.takeIf { it.isNotBlank() }
-                        ?.let { DeeplinkParser.parse(it.toUri()) } != null
-                    (cellHolder.cell as HeaderCell).apply {
-                        findViewWithTag<WButton>(CLEAR_ALL_BUTTON_TAG).isGone =
-                            searchResult?.noResultsFound == true
-                    }.configure(
-                        LocaleController.getString(
-                            if (searchResult?.noResultsFound == true)
-                                (if (isValidDeeplink) "Open in App" else "Search in Google")
-                            else
-                                "Recent Searches"
-                        ),
-                        titleColor = WColor.Tint,
-                        topRounding = if (rvAdapter.indexPathToPosition(indexPath) == 0) HeaderCell.TopRounding.FIRST_ITEM else HeaderCell.TopRounding.NORMAL
-                    )
+                    val isValidDeeplink =
+                        searchResult
+                            ?.keyword
+                            ?.takeIf { it.isNotBlank() }
+                            ?.let { DeeplinkParser.parse(it.toUri()) } != null
+                    (cellHolder.cell as HeaderCell)
+                        .apply {
+                            findViewWithTag<WButton>(CLEAR_ALL_BUTTON_TAG).isGone =
+                                searchResult?.noResultsFound == true
+                        }.configure(
+                            LocaleController.getString(
+                                if (searchResult?.noResultsFound == true) {
+                                    (if (isValidDeeplink) "Open in App" else "Search in Google")
+                                } else {
+                                    "Recent Searches"
+                                }
+                            ),
+                            titleColor = WColor.Tint,
+                            topRounding = if (rvAdapter.indexPathToPosition(indexPath) == 0) HeaderCell.TopRounding.FIRST_ITEM else HeaderCell.TopRounding.NORMAL
+                        )
                 } else {
                     (cellHolder.cell as SearchItemCell).configure(
                         searchResult?.recentSearches!![indexPath.row - 1].title,
@@ -556,5 +581,4 @@ class SearchVC(context: Context) : WViewController(context),
             }
         }
     }
-
 }

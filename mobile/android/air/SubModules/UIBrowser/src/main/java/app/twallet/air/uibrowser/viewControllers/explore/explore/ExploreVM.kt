@@ -23,7 +23,9 @@ import app.twallet.air.walletcore.stores.DappsStore
 import app.twallet.air.walletcore.stores.ExploreHistoryStore
 import java.lang.ref.WeakReference
 
-class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
+class ExploreVM(
+    delegate: Delegate
+) : WalletCore.EventObserver {
     interface Delegate {
         fun updateEmptyView()
         fun sitesUpdated()
@@ -40,7 +42,6 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
     private var allExploreCategories: List<MExploreCategory>? = null
 
     internal var showingExploreCategories: List<MExploreCategory>? = null
-    internal var showingTrendingSites = listOf<MExploreSite>()
 
     fun delegateIsReady() {
         WalletCore.registerObserver(this)
@@ -50,15 +51,33 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
         refresh()
     }
 
+    private var loadAttempt = 0
+
     private fun refresh() {
+        loadAttempt = 0
+        loadExploreSitesWithRetry()
+    }
+
+    private fun loadExploreSitesWithRetry() {
         WalletCore.loadExploreSites { categories, sites, error ->
-            if (error != null) {
-                if (!waitingForNetwork) {
+            if (error != null || categories == null || sites == null) {
+                // Keep a previously loaded catalog on transient failures.
+                if (showingExploreCategories != null) {
+                    return@loadExploreSites
+                }
+                if (!waitingForNetwork && loadAttempt < 2) {
+                    loadAttempt += 1
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        loadExploreSitesWithRetry()
+                    }, 1000)
+                } else if (!waitingForNetwork) {
                     Handler(Looper.getMainLooper()).postDelayed({
                         refresh()
                     }, 3000)
                 }
             } else {
+                loadAttempt = 0
+                waitingForNetwork = false
                 updateSites(categories, sites)
             }
         }
@@ -71,11 +90,10 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
     }
 
     private fun filterAndShowSites() {
-        showingExploreCategories = allExploreCategories?.filter {
-            it.sites.any { it.canBeShown }
-        }
-        showingTrendingSites =
-            allSites?.filter { it.isFeatured && it.canBeShown } ?: emptyList()
+        showingExploreCategories =
+            allExploreCategories?.filter {
+                it.sites.any { it.canBeShown }
+            }
         delegate.get()?.updateEmptyView()
         delegate.get()?.sitesUpdated()
     }
@@ -144,19 +162,24 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
         val recentVisitedSites = visitedSites(keyword)
         val dapps = filterDapps(keyword)
         val myWallets = matchOwnWallets(keyword)
-        val noResultsFound = !keyword.isEmpty() &&
-            matchedVisitedSite == null &&
-            recentSearches.isNullOrEmpty() &&
-            recentVisitedSites.isNullOrEmpty() &&
-            recentVisitedSites.isNullOrEmpty() &&
-            myWallets.isEmpty() &&
-            dapps.isEmpty()
+        val noResultsFound =
+            !keyword.isEmpty() &&
+                matchedVisitedSite == null &&
+                recentSearches.isNullOrEmpty() &&
+                recentVisitedSites.isNullOrEmpty() &&
+                recentVisitedSites.isNullOrEmpty() &&
+                myWallets.isEmpty() &&
+                dapps.isEmpty()
         return SearchResult(
             keyword,
             matchedVisitedSite,
-            if (noResultsFound) listOf(
-                MExploreHistory.HistoryItem(keyword, null)
-            ) else recentSearches,
+            if (noResultsFound) {
+                listOf(
+                    MExploreHistory.HistoryItem(keyword, null)
+                )
+            } else {
+                recentSearches
+            },
             recentVisitedSites,
             dapps,
             myWallets,
@@ -167,8 +190,9 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
 
     private fun matchOwnWallets(query: String): List<MyWalletMatch> {
         val keyword = query.lowercase()
-        if (keyword.isEmpty())
+        if (keyword.isEmpty()) {
             return emptyList()
+        }
 
         val minimalAcceptableAddressMatchCount = 4
         val minimalAcceptableDomainMatchCount = 1
@@ -206,10 +230,12 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
                         return@chains
                     }
 
-                    val addressMatched = addressLower.contains(keyword) &&
-                        keyword.length >= minimalAcceptableAddressMatchCount
-                    val domainMatched = (domainLower?.contains(keyword) ?: false) &&
-                        keyword.length >= minimalAcceptableDomainMatchCount
+                    val addressMatched =
+                        addressLower.contains(keyword) &&
+                            keyword.length >= minimalAcceptableAddressMatchCount
+                    val domainMatched =
+                        (domainLower?.contains(keyword) ?: false) &&
+                            keyword.length >= minimalAcceptableDomainMatchCount
                     if (addressMatched || domainMatched) {
                         isPartial = true
                         if (matchedChain == null) {
@@ -220,8 +246,9 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
                 }
             }
 
-            if (!isPartial)
+            if (!isPartial) {
                 return@forEach
+            }
 
             // Matched only by name: fall back to the account's primary chain for display.
             val chain = matchedChain ?: account.firstChain
@@ -240,50 +267,57 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
         val keyword = result.keyword
         currentSearchKeyword = keyword
 
-        if (keyword.isEmpty() || result.myWallets?.any { it.isFullMatch } == true)
+        if (keyword.isEmpty() || result.myWallets?.any { it.isFullMatch } == true) {
             return
+        }
 
         val account = AccountStore.activeAccount ?: return
         val network = account.network
-        val compatibleChains = MBlockchain.supportedChains.filter {
-            it.isValidAddress(keyword)
-                || it.isValidDNS(keyword)
-                || (it == MBlockchain.ton && TmailHelpers.isBareTonAlias(keyword))
-        }
-        if (compatibleChains.isEmpty())
+        val compatibleChains =
+            MBlockchain.supportedChains.filter {
+                it.isValidAddress(keyword) ||
+                    it.isValidDNS(keyword) ||
+                    (it == MBlockchain.ton && TmailHelpers.isBareTonAlias(keyword))
+            }
+        if (compatibleChains.isEmpty()) {
             return
+        }
 
         var didEmit = false
         compatibleChains.forEach { chain ->
             WalletCore.call(
                 ApiMethod.WalletData.GetAddressInfo(chain, network, keyword)
             ) { info, err ->
-                if (currentSearchKeyword != keyword || didEmit)
+                if (currentSearchKeyword != keyword || didEmit) {
                     return@call
-                if (info == null || err != null || info.error != null)
+                }
+                if (info == null || err != null || info.error != null) {
                     return@call
+                }
 
                 val isDomain = chain.isValidDNS(keyword)
                 val resolved = info.resolvedAddress?.takeIf { it.isNotEmpty() }
-                val address = when {
-                    resolved != null -> resolved
-                    !isDomain -> keyword
-                    else -> return@call
-                }
+                val address =
+                    when {
+                        resolved != null -> resolved
+                        !isDomain -> keyword
+                        else -> return@call
+                    }
 
                 didEmit = true
                 onResult(
                     result.copy(
                         recentSearches = if (result.noResultsFound) emptyList() else result.recentSearches,
                         noResultsFound = false,
-                        walletInfo = WalletInfoMatch(
-                            network = network,
-                            chain = chain,
-                            inputAddressOrDomain = keyword,
-                            address = address,
-                            name = info.addressName?.takeIf { it.isNotEmpty() },
-                            domain = if (isDomain) keyword else null,
-                        )
+                        walletInfo =
+                            WalletInfoMatch(
+                                network = network,
+                                chain = chain,
+                                inputAddressOrDomain = keyword,
+                                address = address,
+                                name = info.addressName?.takeIf { it.isNotEmpty() },
+                                domain = if (isDomain) keyword else null,
+                            )
                     )
                 )
             }
@@ -291,55 +325,64 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
     }
 
     private fun exactMatch(keyword: String): MExploreHistory.VisitedSite? {
-        if (keyword.isEmpty())
+        if (keyword.isEmpty()) {
             return null
-        val exactMatchItem = ExploreHistoryStore.exploreHistory?.visitedSites?.firstOrNull {
-            it.url.toUri().host?.startsWith(keyword) == true ||
-                it.url.startsWith(keyword)
         }
-        return exactMatchItem?.copy(favicon = allSites?.find { site ->
-            site.url?.toUri()?.host == exactMatchItem.url.toUri().host
-        }?.iconUrl ?: exactMatchItem.favicon)
+        val exactMatchItem =
+            ExploreHistoryStore.exploreHistory?.visitedSites?.firstOrNull {
+                it.url
+                    .toUri()
+                    .host
+                    ?.startsWith(keyword) == true ||
+                    it.url.startsWith(keyword)
+            }
+        return exactMatchItem?.copy(
+            favicon =
+                allSites
+                    ?.find { site ->
+                        site.url?.toUri()?.host == exactMatchItem.url.toUri().host
+                    }?.iconUrl ?: exactMatchItem.favicon
+        )
     }
 
-    private fun recentSearches(keyword: String): List<MExploreHistory.HistoryItem>? {
-        return ExploreHistoryStore.exploreHistory?.searchHistory
+    private fun recentSearches(keyword: String): List<MExploreHistory.HistoryItem>? =
+        ExploreHistoryStore.exploreHistory
+            ?.searchHistory
             ?.filter { it.title.lowercase().contains(keyword) }
             ?.sortedWith(
                 compareByDescending {
                     it.title.lowercase().startsWith(keyword)
                 }
-            )
-            ?.take(10)
-    }
+            )?.take(10)
 
-    private fun visitedSites(keyword: String): List<MExploreHistory.VisitedSite>? {
-        return ExploreHistoryStore.exploreHistory?.visitedSites
+    private fun visitedSites(keyword: String): List<MExploreHistory.VisitedSite>? =
+        ExploreHistoryStore.exploreHistory
+            ?.visitedSites
             ?.filter {
                 it.title.lowercase().contains(keyword) ||
                     it.url.lowercase().contains(keyword)
-            }
-            ?.sortedWith(
+            }?.sortedWith(
                 compareByDescending {
                     it.title.lowercase().startsWith(keyword) ||
                         it.url.lowercase().startsWith(keyword)
                 }
-            )
-            ?.take(5)
+            )?.take(5)
             ?.map { visitedSite ->
                 visitedSite.copy(
-                    favicon = allSites?.find { site ->
-                        site.url?.toUri()?.host == visitedSite.url.toUri().host
-                    }?.iconUrl ?: visitedSite.favicon
+                    favicon =
+                        allSites
+                            ?.find { site ->
+                                site.url?.toUri()?.host == visitedSite.url.toUri().host
+                            }?.iconUrl ?: visitedSite.favicon
                 )
             }
-    }
 
     private fun filterDapps(query: String): List<IDapp> {
         val query = query.lowercase()
-        val connectedSites = DappsStore.dApps[AccountStore.activeAccountId]?.filter { dapp ->
-            allSites?.find { site -> site.url?.toUri()?.host == dapp.url?.toUri()?.host } == null
-        } ?: emptyList()
+        val connectedSites =
+            DappsStore.dApps[AccountStore.activeAccountId]?.filter { dapp ->
+                allSites?.find { site -> site.url?.toUri()?.host == dapp.url?.toUri()?.host } == null
+            } ?: emptyList()
 
         val allSites: List<IDapp> = (allSites?.toList() ?: emptyList()) + connectedSites
 
@@ -348,19 +391,25 @@ class ExploreVM(delegate: Delegate) : WalletCore.EventObserver {
                 (ConfigStore.isLimited != true || (it is MExploreSite && !it.canBeRestricted) || it is ApiDapp) &&
                     (
                         it.name?.lowercase()?.contains(query) == true ||
-                            (it is MExploreSite && it.description?.lowercase()
-                                ?.contains(query) == true) ||
+                            (
+                                it is MExploreSite &&
+                                    it.description
+                                        ?.lowercase()
+                                        ?.contains(query) == true
+                            ) ||
                             it.url?.lowercase()?.contains(query) == true
-                        )
-            }
-            .sortedWith(
+                    )
+            }.sortedWith(
                 compareByDescending {
                     it.name?.lowercase()?.startsWith(query) == true ||
-                        (it is MExploreSite && it.description?.lowercase()
-                            ?.startsWith(query) == true) ||
+                        (
+                            it is MExploreSite &&
+                                it.description
+                                    ?.lowercase()
+                                    ?.startsWith(query) == true
+                        ) ||
                         it.url?.lowercase()?.startsWith(query) == true
                 }
-            )
-            .take(5)
+            ).take(5)
     }
 }

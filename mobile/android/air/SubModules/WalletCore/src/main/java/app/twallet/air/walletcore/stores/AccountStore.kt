@@ -22,7 +22,6 @@ import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.models.blockchain.MultiWalletSupport
 import app.twallet.air.walletcore.models.MAssetsAndActivityData
 import app.twallet.air.walletcore.models.MBridgeError
-import app.twallet.air.walletcore.moshi.MUpdateStaking
 import app.twallet.air.walletcore.moshi.adapter.AccountDomainUpdate
 import app.twallet.air.walletcore.moshi.adapter.MfaUpdate
 import app.twallet.air.walletcore.moshi.api.ApiUpdate
@@ -73,14 +72,6 @@ object AccountStore : IStore {
 
     val isCurrentVersionW5: Boolean
         get() = walletVersionsData?.currentVersion == "W5"
-
-    val stakingData: MUpdateStaking?
-        get() {
-            activeAccountId?.let {
-                return StakingStore.getStakingState(it)
-            }
-            return null
-        }
 
     fun chainSupportsSubWallets(chain: MBlockchain): Boolean {
         if (activeAccount?.byChain?.containsKey(chain.name) != true) return false
@@ -248,7 +239,6 @@ object AccountStore : IStore {
             ) {
                 WCacheStorage.setInitialScreen(WCacheStorage.InitialScreen.HOME)
             }
-            StakingStore.setStakingState(removingAccountId, null)
             BalanceStore.removeBalances(removingAccountId)
             PortfolioStore.removeAccount(removingAccountId)
             WCacheStorage.clean(removingAccountId)

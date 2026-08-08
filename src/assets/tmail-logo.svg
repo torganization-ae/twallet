@@ -1,0 +1,35 @@
+<svg viewBox="0 0 216 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M96.2736 140.074C99.63 143.144 103.768 144.864 108 145.239C112.232 144.864 116.37 143.144 119.726 140.074L135.994 125.192L161.872 191.485H108H54.1284L80.0059 125.192L96.2736 140.074ZM0 52L72.7734 118.575L43.3032 191.485H27.0642H20C8.95429 191.485 0 182.53 0 171.485V52ZM216 52L143.227 118.575L172.697 191.485H188.936H196C207.046 191.485 216 182.53 216 171.485V52Z" fill="#263945"/>
+  <path d="M11.4922 49.5781H55.1422L94.359 125.62L11.4922 49.5781Z" fill="url(#tmail_paint0)"/>
+  <path d="M204.846 49.5781H161.196L121.979 125.62L204.846 49.5781Z" fill="url(#tmail_paint1)"/>
+  <path d="M152.33 49.5781H64.348L107.657 136.005L152.33 49.5781Z" fill="url(#tmail_paint2)"/>
+  <path d="M147.215 41.2031H68.0992L107.736 0.669635L147.215 41.2031Z" fill="url(#tmail_paint3)"/>
+  <path d="M207.916 41.2031H159.492L118.57 -0.000336438H171.768L207.916 41.2031Z" fill="url(#tmail_paint4)"/>
+  <path d="M8.08008 41.2031H56.5043L97.4262 -0.000336438H44.5687L8.08008 41.2031Z" fill="url(#tmail_paint5)"/>
+  <defs>
+    <linearGradient id="tmail_paint0" x1="52.9256" y1="49.5781" x2="52.9256" y2="125.62" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00BFFF"/>
+      <stop offset="1" stop-color="#00A6FF"/>
+    </linearGradient>
+    <linearGradient id="tmail_paint1" x1="163.412" y1="49.5781" x2="163.412" y2="125.62" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00BFFF"/>
+      <stop offset="1" stop-color="#00A6FF"/>
+    </linearGradient>
+    <linearGradient id="tmail_paint2" x1="108.339" y1="49.5781" x2="108.339" y2="136.005" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00BFFF"/>
+      <stop offset="1" stop-color="#00A6FF"/>
+    </linearGradient>
+    <linearGradient id="tmail_paint3" x1="107.657" y1="41.2031" x2="107.657" y2="0.669636" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00BFFF"/>
+      <stop offset="1" stop-color="#00A6FF"/>
+    </linearGradient>
+    <linearGradient id="tmail_paint4" x1="163.243" y1="41.2031" x2="163.243" y2="-0.000335693" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00BFFF"/>
+      <stop offset="1" stop-color="#00A6FF"/>
+    </linearGradient>
+    <linearGradient id="tmail_paint5" x1="52.7531" y1="41.2031" x2="52.7531" y2="-0.000335693" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00BFFF"/>
+      <stop offset="1" stop-color="#00A6FF"/>
+    </linearGradient>
+  </defs>
+</svg>

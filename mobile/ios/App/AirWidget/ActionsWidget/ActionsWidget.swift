@@ -68,14 +68,6 @@ struct ActionsWidgetView: View {
                     usesUnevenCorners: usesUnevenCorners,
                     rotationIndex: 3,
                 )
-                ActionButton(
-                    label: localized("earn"),
-                    image: "EarnIcon",
-                    link: "\(SELF_PROTOCOL)stake",
-                    style: entry.style,
-                    usesUnevenCorners: usesUnevenCorners,
-                    rotationIndex: 2,
-                )
             }
         }
     }

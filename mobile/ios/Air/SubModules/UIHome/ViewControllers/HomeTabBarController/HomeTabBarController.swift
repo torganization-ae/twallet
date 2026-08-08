@@ -441,10 +441,23 @@ extension HomeTabBarController: UITabBarControllerDelegate {
         if self.isSwitchAccountMenuPresented {
             return false
         }
+        if let tabId = navControllersByTabId.first(where: { $0.value === viewController })?.key, tabId.isActionOnly {
+            AppActions.showProductChooser(from: tabBarButton(for: viewController) ?? tabBar)
+            return false
+        }
         if viewController === selectedViewController {
             scrollToTop(tabVC: viewController)
         }
         return true
+    }
+
+    private func tabBarButton(for viewController: UIViewController) -> UIView? {
+        guard let index = viewControllers?.firstIndex(of: viewController) else { return nil }
+        let controls = tabBar.subviews
+            .filter { $0 is UIControl && $0.frame.width > 0 }
+            .sorted { $0.frame.minX < $1.frame.minX }
+        guard controls.indices.contains(index) else { return nil }
+        return controls[index]
     }
 }
 

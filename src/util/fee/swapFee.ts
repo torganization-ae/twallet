@@ -275,11 +275,9 @@ function explainGaslessSwapFee(input: ExplainSwapFeeInput): ExplainedSwapFee {
   }
 
   const isExact = result.excessFee === '0';
-  const isStarsDiesel = input.dieselStatus === 'stars-fee';
-  const dieselKey = isStarsDiesel ? 'stars' : 'token';
 
   const networkTerms = {
-    [dieselKey]: input.dieselFee,
+    token: input.dieselFee,
     native: nativeTokenBalance.toString(),
   };
   result.fullFee = {
@@ -300,7 +298,7 @@ function explainGaslessSwapFee(input: ExplainSwapFeeInput): ExplainedSwapFee {
     const nativeRealFee = bigMax(0, Big(input.realNetworkFee).sub(networkFeeCoveredByDiesel));
 
     const realNetworkTerms = {
-      [dieselKey]: dieselRealFee.toString(),
+      token: dieselRealFee.toString(),
       native: nativeRealFee.toString(),
     };
     result.realFee = {

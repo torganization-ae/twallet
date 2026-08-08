@@ -172,7 +172,6 @@ public final class _TokenStore: Sendable {
             cmcSlug: incoming.cmcSlug?.nilIfEmpty ?? cached.cmcSlug,
             color: incoming.color?.nilIfEmpty ?? cached.color,
             isGaslessEnabled: incoming.isGaslessEnabled ?? cached.isGaslessEnabled,
-            isStarsEnabled: incoming.isStarsEnabled ?? cached.isStarsEnabled,
             isTiny: incoming.isTiny ?? cached.isTiny,
             customPayloadApiUrl: incoming.customPayloadApiUrl?.nilIfEmpty ?? cached.customPayloadApiUrl,
             codeHash: incoming.codeHash?.nilIfEmpty ?? cached.codeHash,

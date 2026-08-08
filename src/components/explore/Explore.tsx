@@ -18,26 +18,30 @@ import { SEC } from '../../api/constants';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
 import { processSites } from './helpers/utils';
 
-import useAutoScroll from '../../hooks/useAutoScroll';
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
-import useDragScroll from '../../hooks/useDragScroll';
+import useFlag from '../../hooks/useFlag';
 import useHistoryBack from '../../hooks/useHistoryBack';
 import useLang from '../../hooks/useLang';
 import useLastCallback from '../../hooks/useLastCallback';
 import useModalTransitionKeys from '../../hooks/useModalTransitionKeys';
 import usePrevious2 from '../../hooks/usePrevious2';
 import { useStateRef } from '../../hooks/useStateRef';
+import useTimeout from '../../hooks/useTimeout';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import Button from '../ui/Button';
 import Spinner from '../ui/Spinner';
 import Transition from '../ui/Transition';
 import Category from './Category';
 import DappFeed from './DappFeed';
 import ExploreSearch from './ExploreSearch';
-import SiteFeatured from './SiteFeatured';
+import RecentlyViewed from './RecentlyViewed';
 import SiteList from './SiteList';
 
 import styles from './Explore.module.scss';
+
+// Retries in `loadExploreSites` take ~3s; surface failure soon after they finish.
+const LOAD_TIMEOUT_MS = 5 * SEC;
 
 interface OwnProps {
   isActive?: boolean;
@@ -46,8 +50,8 @@ interface OwnProps {
 interface StateProps {
   categories?: ApiSiteCategory[];
   sites?: ApiSite[];
-  featuredTitle?: string;
   currentSiteCategoryId?: number;
+  browserHistory?: string[];
 }
 
 const enum SLIDES {
@@ -55,14 +59,12 @@ const enum SLIDES {
   category,
 }
 
-const SLIDE_DURATION = 4 * SEC;
-
 function Explore({
   isActive,
   categories,
   sites: originalSites,
-  featuredTitle,
   currentSiteCategoryId,
+  browserHistory,
 }: OwnProps & StateProps) {
   const {
     loadExploreSites,
@@ -73,10 +75,10 @@ function Explore({
   } = getActions();
 
   const transitionRef = useRef<HTMLDivElement>();
-  const featuredContainerRef = useRef<HTMLDivElement>();
 
   const lang = useLang();
   const { isLandscape, isPortrait } = useDeviceScreen();
+  const [hasLoadTimedOut, markLoadTimedOut, unmarkLoadTimedOut] = useFlag(false);
 
   const handleBack = useLastCallback(() => {
     if (currentSiteCategoryId) {
@@ -108,7 +110,7 @@ function Explore({
     [closeSiteCategory, renderingKey],
   );
 
-  const { featuredSites, allSites } = useMemo(() => processSites(originalSites), [originalSites]);
+  const allSites = useMemo(() => processSites(originalSites), [originalSites]);
 
   useEffect(() => {
     if (!IS_TOUCH_ENV || !originalSites?.length) {
@@ -129,18 +131,6 @@ function Explore({
     });
   }, [disableSwipeToClose, enableSwipeToClose, originalSites?.length, prevSiteCategoryIdRef]);
 
-  useAutoScroll({
-    containerRef: featuredContainerRef,
-    itemSelector: `.${styles.featuredItem}`,
-    interval: SLIDE_DURATION,
-    isDisabled: !isActive || featuredSites.length <= 1,
-  });
-
-  useDragScroll({
-    containerRef: featuredContainerRef,
-    isDisabled: !isActive || IS_TOUCH_ENV || featuredSites.length <= 1,
-  });
-
   const filteredCategories = useMemo(() => {
     return categories?.filter((category) => allSites[category.id]?.length > 0);
   }, [categories, allSites]);
@@ -152,20 +142,22 @@ function Explore({
     loadExploreSites({ isLandscape, langCode: lang.code });
   }, [isActive, isLandscape, lang.code]);
 
-  function renderFeatured() {
-    return (
-      <div className={styles.featuredSection}>
-        <h2 className={buildClassName(styles.sectionHeader, styles.sectionHeaderFeatured)}>
-          {lang(featuredTitle || 'Trending')}
-        </h2>
-        <div className={buildClassName(styles.featuredList, 'no-swipe')} ref={featuredContainerRef}>
-          {featuredSites.map((site) => (
-            <SiteFeatured key={`${site.url}-${site.name}`} site={site} className={styles.featuredItem} />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (originalSites !== undefined) {
+      unmarkLoadTimedOut();
+    }
+  }, [originalSites, unmarkLoadTimedOut]);
+
+  useTimeout(
+    markLoadTimedOut,
+    isActive && originalSites === undefined && !hasLoadTimedOut ? LOAD_TIMEOUT_MS : undefined,
+    [isActive, originalSites, hasLoadTimedOut],
+  );
+
+  const handleRetryLoad = useLastCallback(() => {
+    unmarkLoadTimedOut();
+    loadExploreSites({ isLandscape, langCode: lang.code });
+  });
 
   function renderContent(isContentActive: boolean, isFrom: boolean, currentKey: SLIDES) {
     switch (currentKey) {
@@ -180,17 +172,14 @@ function Explore({
               )}
               <DappFeed />
 
-              {Boolean(featuredSites.length) && renderFeatured()}
+              <RecentlyViewed browserHistory={browserHistory} sites={originalSites} />
 
               {Boolean(filteredCategories?.length) && (
-                <>
-                  <h2 className={styles.sectionHeader}>{lang('Popular Apps')}</h2>
-                  <div className={buildClassName(styles.list, isLandscape && styles.landscapeList)}>
-                    {filteredCategories.map((category) => (
-                      <Category key={category.id} category={category} sites={allSites[category.id]} />
-                    ))}
-                  </div>
-                </>
+                <div className={buildClassName(styles.categories, isLandscape && styles.landscapeCategories)}>
+                  {filteredCategories.map((category) => (
+                    <Category key={category.id} category={category} sites={allSites[category.id]} />
+                  ))}
+                </div>
               )}
             </div>
             {isPortrait && <ExploreSearch sites={originalSites} />}
@@ -214,6 +203,17 @@ function Explore({
   }
 
   if (originalSites === undefined) {
+    if (hasLoadTimedOut) {
+      return (
+        <div className={styles.emptyList}>
+          <p className={styles.emptyListTitle}>{lang('Something went wrong')}</p>
+          <Button isPrimary className={styles.retryButton} onClick={handleRetryLoad}>
+            {lang('Try Again')}
+          </Button>
+        </div>
+      );
+    }
+
     return (
       <div className={buildClassName(styles.emptyList, styles.emptyListLoading)}>
         <Spinner />
@@ -252,13 +252,13 @@ function Explore({
 }
 
 export default memo(withGlobal<OwnProps>((global): StateProps => {
-  const { currentSiteCategoryId } = selectCurrentAccountState(global) || {};
-  const { categories, sites, featuredTitle } = global.exploreData || {};
+  const { currentSiteCategoryId, browserHistory } = selectCurrentAccountState(global) || {};
+  const { categories, sites } = global.exploreData || {};
 
   return {
     sites,
     categories,
-    featuredTitle,
     currentSiteCategoryId,
+    browserHistory,
   };
 })(Explore));

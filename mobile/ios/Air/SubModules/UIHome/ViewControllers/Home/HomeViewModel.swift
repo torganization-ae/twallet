@@ -10,7 +10,6 @@ import UIKit
 import WalletContext
 import WalletCore
 import WReachability
-import UIEarn
 import Perception
 import Dependencies
 
@@ -154,18 +153,8 @@ private let UPDATING_DELAY = 2
         !$account.balances.isEmpty
     }
     
-    // MARK: - Init wallet info
-    func initWalletInfo() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            EarnVM.sharedTon.preload()
-//            EarnVM.sharedMycoin.preload()
-        }
-    }
-    
     // called on pull to refresh / selected slug change / after network reconnection / when retrying failed tries
     func refreshTransactions(slugChanged: Bool = false) {
-        // init requests
-        initWalletInfo()
     }
 
     func dataUpdated(transactions: Bool = true) {

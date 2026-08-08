@@ -47,7 +47,9 @@ fun WalletCore.loadExploreSites(
                     }
                 } catch (_: Throwable) {
                     withContext(Dispatchers.Main) {
-                        callback(null, null, null)
+                        // Surface parse failures as errors so ExploreVM can retry
+                        // (null/null/null was treated as success and left Explore empty).
+                        callback(null, null, MBridgeError.UNKNOWN)
                     }
                 }
             }

@@ -7,6 +7,8 @@ import java.util.concurrent.Executors
 
 object ExploreHistoryStore : IStore {
 
+    private const val VISITED_SITES_LIMIT = 10
+
     private val adapter by lazy { WalletCore.moshi.adapter(MExploreHistory::class.java) }
     private var accountId = AccountStore.activeAccountId
 
@@ -20,10 +22,12 @@ object ExploreHistoryStore : IStore {
         exploreHistory = null
         cacheExecutor.execute {
             val exploreHistoryString = WCacheStorage.getExploreHistory(accountId)
-            exploreHistory = exploreHistoryString?.let {
+            val loaded = exploreHistoryString?.let {
                 val adapter = WalletCore.moshi.adapter(MExploreHistory::class.java)
                 adapter.fromJson(exploreHistoryString)
             } ?: MExploreHistory()
+            trimVisitedSites(loaded)
+            exploreHistory = loaded
         }
     }
 
@@ -42,7 +46,15 @@ object ExploreHistoryStore : IStore {
             it.url.lowercase() == visitedSite.url.lowercase()
         }
         exploreHistory?.visitedSites?.add(0, visitedSite)
+        trimVisitedSites(exploreHistory)
         saveBrowserHistory(accountId, exploreHistory)
+    }
+
+    private fun trimVisitedSites(history: MExploreHistory?) {
+        val visitedSites = history?.visitedSites ?: return
+        while (visitedSites.size > VISITED_SITES_LIMIT) {
+            visitedSites.removeAt(visitedSites.lastIndex)
+        }
     }
 
     fun clearAccountHistory() {

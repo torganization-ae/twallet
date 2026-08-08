@@ -33,10 +33,6 @@ import thumbUp from '../../../assets/lottie/duck_thumb.tgs';
 import holdTon from '../../../assets/lottie/duck_ton.tgs';
 import wait from '../../../assets/lottie/duck_wait.tgs';
 import yeee from '../../../assets/lottie/duck_yeee.tgs';
-import iconEarnDark from '../../../assets/lottie/earn_dark.tgs';
-import iconEarnDarkPurple from '../../../assets/lottie/earn_dark_purple.tgs';
-import iconEarnLight from '../../../assets/lottie/earn_light.tgs';
-import iconEarnLightPurple from '../../../assets/lottie/earn_light_purple.tgs';
 import iconExploreDark from '../../../assets/lottie/explore_dark.tgs';
 import iconExploreLight from '../../../assets/lottie/explore_light.tgs';
 import iconExploreSolidDark from '../../../assets/lottie/explore_solid_dark.tgs';
@@ -88,10 +84,6 @@ import thumbUpPreview from '../../../assets/lottiePreview/duck_thumb.png';
 import holdTonPreview from '../../../assets/lottiePreview/duck_ton.png';
 import waitPreview from '../../../assets/lottiePreview/duck_wait.png';
 import yeeePreview from '../../../assets/lottiePreview/duck_yeee.png';
-import iconEarnPreviewDark from '../../../assets/lottiePreview/earn_dark.png';
-import iconEarnPreviewDarkPurple from '../../../assets/lottiePreview/earn_dark_purple.png';
-import iconEarnPreviewLight from '../../../assets/lottiePreview/earn_light.png';
-import iconEarnPreviewLightPurple from '../../../assets/lottiePreview/earn_light_purple.png';
 import iconExplorePreviewDark from '../../../assets/lottiePreview/explore_dark.png';
 import iconExplorePreviewLight from '../../../assets/lottiePreview/explore_light.png';
 import iconExploreSolidPreviewDark from '../../../assets/lottiePreview/explore_solid_dark.png';
@@ -151,8 +143,6 @@ export const ANIMATED_STICKERS_PATHS = {
     iconClockPurple: iconClockLightPurple,
     iconClockPurpleWhite: iconClockLightPurpleWhite,
     iconClockRed: iconClockLightRed,
-    iconEarn: iconEarnLight,
-    iconEarnPurple: iconEarnLightPurple,
     iconExplore: iconExploreLight,
     iconExploreSolid: iconExploreSolidLight,
     iconSell: iconSellLight,
@@ -173,8 +163,6 @@ export const ANIMATED_STICKERS_PATHS = {
       iconClockPurple: iconClockPreviewLightPurple,
       iconClockPurpleWhite: iconClockPreviewLightPurpleWhite,
       iconClockRed: iconClockPreviewLightRed,
-      iconEarn: iconEarnPreviewLight,
-      iconEarnPurple: iconEarnPreviewLightPurple,
       iconExplore: iconExplorePreviewLight,
       iconExploreSolid: iconExploreSolidPreviewLight,
       iconSell: iconSellPreviewLight,
@@ -197,8 +185,6 @@ export const ANIMATED_STICKERS_PATHS = {
     iconClockPurple: iconClockDarkPurple,
     iconClockPurpleWhite: iconClockDarkPurpleWhite,
     iconClockRed: iconClockDarkRed,
-    iconEarn: iconEarnDark,
-    iconEarnPurple: iconEarnDarkPurple,
     iconExplore: iconExploreDark,
     iconExploreSolid: iconExploreSolidDark,
     iconSell: iconSellDark,
@@ -219,8 +205,6 @@ export const ANIMATED_STICKERS_PATHS = {
       iconClockPurple: iconClockPreviewDarkPurple,
       iconClockPurpleWhite: iconClockPreviewDarkPurpleWhite,
       iconClockRed: iconClockPreviewDarkRed,
-      iconEarn: iconEarnPreviewDark,
-      iconEarnPurple: iconEarnPreviewDarkPurple,
       iconExplore: iconExplorePreviewDark,
       iconExploreSolid: iconExploreSolidPreviewDark,
       iconSell: iconSellPreviewDark,

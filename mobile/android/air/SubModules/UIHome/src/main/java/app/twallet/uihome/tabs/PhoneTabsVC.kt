@@ -159,6 +159,12 @@ class PhoneTabsVC(context: Context) : BaseTabsVC(context), WThemedView, WProtect
 
     private val tabListener = object : IBottomNavigationView.Listener {
         override fun onTabSelected(itemId: Int, isReselect: Boolean): Boolean {
+            if (itemId == IBottomNavigationView.ID_TMAIL) {
+                val anchor = bottomNavigationView.getTabItemView(IBottomNavigationView.ID_TMAIL)
+                    ?: bottomNavigationView
+                ProductChooserHelper.present(anchor, this@PhoneTabsVC)
+                return false
+            }
             if (isReselect) {
                 navForOrNull(itemId)?.apply {
                     if (viewControllers.size == 1) scrollToTop() else popToRoot()

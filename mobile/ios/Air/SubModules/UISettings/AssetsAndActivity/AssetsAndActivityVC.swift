@@ -55,24 +55,15 @@ public class AssetsAndActivityVC: WViewController {
         let balances = $account.balances
 
         let tokenIDs = mutate(value: Set<TokenID>()) { ids in
-            let balanceIDs = balances.keys.lazy.map { TokenID(slug: $0, isStaking: false) }
+            let balanceIDs = balances.keys.lazy.map { TokenID(slug: $0) }
             ids.formUnion(balanceIDs)
 
-            if let walletTokenIDs = $account.walletTokens?.map({ TokenID(slug: $0.tokenSlug, isStaking: false) }) {
+            if let walletTokenIDs = $account.walletTokens?.map({ TokenID(slug: $0.tokenSlug) }) {
                 ids.formUnion(walletTokenIDs)
             }
 
-            let stakings = StakingStore.stakingData(accountId: account.id)?.stateById.values.lazy
-                .filter { stakingState in getFullStakingBalance(state: stakingState) > 0 }
-                .map { stakingState in stakingState.tokenSlug }
-
-            if let stakings {
-                let walletTokenBalanceIDs = stakings.map { TokenID(slug: $0, isStaking: true) }
-                ids.formUnion(walletTokenBalanceIDs)
-            }
-
             assetsAndActivityData.importedSlugs.forEach {
-                ids.insert(TokenID(slug: $0, isStaking: false))
+                ids.insert(TokenID(slug: $0))
             }
         }
 
@@ -181,15 +172,13 @@ public class AssetsAndActivityVC: WViewController {
             let token = wrappedToken.wrappedValue
             let accountId = self.account.id
             let tokenSlug = tokenID.slug
-            let isStaking = tokenID.isStaking
-            let isHidden = assetsAndActivityData.isTokenHidden(slug: tokenSlug, isStaking: isStaking)
+            let isHidden = assetsAndActivityData.isTokenHidden(slug: tokenSlug)
             cell.configure(with: token,
-                           isStaking: isStaking,
                            balance: $account.balances[token.slug] ?? 0,
                            importedSlug: assetsAndActivityData.importedSlugs.contains(token.slug),
                            isHidden: isHidden) { tokenSlug, isVisible in
                 AssetsAndActivityDataStore.update(accountId: accountId, update: { settings in
-                    settings.saveTokenHidden(slug: tokenSlug, isStaking: isStaking, isHidden: !isVisible)
+                    settings.saveTokenHidden(slug: tokenSlug, isHidden: !isVisible)
                 })
             }
         }

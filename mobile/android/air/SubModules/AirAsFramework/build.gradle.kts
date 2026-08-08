@@ -54,7 +54,6 @@ dependencies {
     implementation(project("$airSubModulePath:UIPortfolio"))
     implementation(project("$airSubModulePath:UISend"))
     implementation(project("$airSubModulePath:UIReceive"))
-    implementation(project("$airSubModulePath:UIStake"))
     implementation(project("$airSubModulePath:UIAssets"))
     implementation(project("$airSubModulePath:UIBrowser"))
     implementation(project("$airSubModulePath:UISettings"))

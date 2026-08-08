@@ -1,6 +1,6 @@
 //
 //  WButtonConfig.swift
-//  UIEarn
+//  UIComponents
 //
 //  Created by nikstar on 28.07.2025.
 //

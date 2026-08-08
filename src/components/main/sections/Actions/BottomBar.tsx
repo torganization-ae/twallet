@@ -1,5 +1,6 @@
+import type { ElementRef } from '../../../../lib/teact/teact';
 import React, {
-  memo, useState,
+  memo, useRef, useState,
 } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
@@ -23,8 +24,11 @@ import useDraggablePill from './hooks/useDraggablePill';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import Pill from './Pill';
+import ProductChooserMenu from './ProductChooserMenu';
 
 import styles from './BottomBar.module.scss';
+
+import tmailLogo from '../../../../assets/tmail-logo.svg';
 
 interface StateProps {
   theme: Theme;
@@ -38,8 +42,10 @@ type IconKey = 'iconWallet' | 'iconExplore' | 'iconSettings';
 interface TabConfig {
   index: number;
   label: string;
-  iconKey: IconKey;
+  iconKey?: IconKey;
+  logoSrc?: string;
   onClick: NoneToVoidFunction;
+  buttonRef?: ElementRef<HTMLButtonElement>;
 }
 
 const ICON_SIZE_PX = 38;
@@ -48,8 +54,9 @@ const ANIMATED_STICKER_SPEED = 2;
 const TAB_WALLET = 0;
 const TAB_EXPLORE = 1;
 const TAB_SETTINGS_FULL = 2;
+const TAB_TMAIL = 3;
 
-const TAB_COUNT = IS_FEATURE_LIMITED ? 2 : 3;
+const TAB_COUNT = IS_FEATURE_LIMITED ? 2 : 4;
 const SETTINGS_INDEX = IS_FEATURE_LIMITED ? 1 : TAB_SETTINGS_FULL;
 
 function BottomBar({
@@ -62,6 +69,8 @@ function BottomBar({
   const appTheme = useAppTheme(theme);
   const stickerPaths = ANIMATED_STICKERS_PATHS[appTheme];
   const accentColor = accentColorIndex !== undefined ? ACCENT_COLORS[appTheme][accentColorIndex] : undefined;
+  const tmailTriggerRef = useRef<HTMLButtonElement>();
+  const [isProductMenuOpen, openProductMenu, closeProductMenu] = useFlag();
 
   useEffectOnce(() => {
     return subscribeToBottomBarVisibility(() => {
@@ -80,6 +89,13 @@ function BottomBar({
       { index: TAB_WALLET, label: 'Wallet', iconKey: 'iconWallet', onClick: switchToWallet },
       { index: TAB_EXPLORE, label: 'Explore', iconKey: 'iconExplore', onClick: switchToExplore },
       { index: SETTINGS_INDEX, label: 'Settings', iconKey: 'iconSettings', onClick: switchToSettings },
+      {
+        index: TAB_TMAIL,
+        label: 'TMail',
+        logoSrc: tmailLogo,
+        onClick: openProductMenu,
+        buttonRef: tmailTriggerRef,
+      },
     ];
 
   const switchToTabByIndex = useLastCallback((index: number) => {
@@ -114,9 +130,23 @@ function BottomBar({
         {...pointerHandlers}
       >
         <Pill isDragging={isDragging} squeeze={squeeze} />
-        {tabs.map(({ index, label, iconKey, onClick }) => {
+        {tabs.map(({ index, label, iconKey, logoSrc, onClick, buttonRef }) => {
           const isActive = renderedActiveIndex === index;
-          const variant = isActive ? `${iconKey}Solid` as const : iconKey;
+
+          if (logoSrc) {
+            return (
+              <TabButton
+                key={index}
+                buttonRef={buttonRef}
+                isActive={isActive}
+                label={lang(label)}
+                logoSrc={logoSrc}
+                onClick={onClick}
+              />
+            );
+          }
+
+          const variant = isActive ? `${iconKey!}Solid` as const : iconKey!;
 
           return (
             <TabButton
@@ -131,6 +161,13 @@ function BottomBar({
           );
         })}
       </div>
+      {!IS_FEATURE_LIMITED && (
+        <ProductChooserMenu
+          isOpen={isProductMenuOpen}
+          triggerRef={tmailTriggerRef}
+          onClose={closeProductMenu}
+        />
+      )}
     </div>
   );
 }
@@ -147,12 +184,14 @@ export default memo(withGlobal((global): StateProps => {
 })(BottomBar));
 
 const TabButton = memo(({
-  isActive, label, tgsUrl, previewUrl, accentColor, onClick,
+  buttonRef, isActive, label, tgsUrl, previewUrl, logoSrc, accentColor, onClick,
 }: {
+  buttonRef?: ElementRef<HTMLButtonElement>;
   isActive?: boolean;
   label: string;
-  tgsUrl: string;
-  previewUrl: string;
+  tgsUrl?: string;
+  previewUrl?: string;
+  logoSrc?: string;
   accentColor?: string;
   onClick: NoneToVoidFunction;
 }) => {
@@ -165,22 +204,27 @@ const TabButton = memo(({
 
   return (
     <Button
+      ref={buttonRef}
       isSimple
       className={buildClassName(styles.button, isActive && styles.active)}
       onClick={handleClick}
     >
-      <AnimatedIconWithPreview
-        play={isAnimating}
-        size={ICON_SIZE_PX}
-        speed={ANIMATED_STICKER_SPEED}
-        nonInteractive
-        forceOnHeavyAnimation
-        className={styles.icon}
-        color={accentColor}
-        tgsUrl={tgsUrl}
-        previewUrl={previewUrl}
-        onEnded={stopAnimation}
-      />
+      {logoSrc ? (
+        <img src={logoSrc} alt="" className={styles.tmailLogo} />
+      ) : (
+        <AnimatedIconWithPreview
+          play={isAnimating}
+          size={ICON_SIZE_PX}
+          speed={ANIMATED_STICKER_SPEED}
+          nonInteractive
+          forceOnHeavyAnimation
+          className={styles.icon}
+          color={accentColor}
+          tgsUrl={tgsUrl}
+          previewUrl={previewUrl}
+          onEnded={stopAnimation}
+        />
+      )}
       <span className={styles.label}>{label}</span>
     </Button>
   );

@@ -41,7 +41,6 @@ extension Api {
 // MARK: - Types
 
 public struct ApiExploreSitesResult: Codable, Sendable {
-    public var featuredTitle: String?
     public var categories: [ApiSiteCategory]
     public var sites: [ApiSite]
 }

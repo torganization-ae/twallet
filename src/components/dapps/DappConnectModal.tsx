@@ -3,7 +3,7 @@ import { getActions, withGlobal } from '../../global';
 
 import type { TonConnectProof } from '../../api/dappProtocols/adapters';
 import type { StoredDappConnection } from '../../api/dappProtocols/storage';
-import type { ApiBaseCurrency, ApiCurrencyRates, ApiDappPermissions, ApiStakingState } from '../../api/types';
+import type { ApiBaseCurrency, ApiCurrencyRates, ApiDappPermissions } from '../../api/types';
 import type { Account, AccountSettings, GlobalState } from '../../global/types';
 import { DappConnectState } from '../../global/types';
 
@@ -56,7 +56,6 @@ interface DappConnectOpenProps {
   currencyRates: ApiCurrencyRates;
   byAccountId: GlobalState['byAccountId'];
   tokenInfo: GlobalState['tokenInfo'];
-  stakingDefault: ApiStakingState;
   areTokensWithNoCostHidden?: boolean;
 }
 
@@ -79,7 +78,6 @@ function DappConnectModal({
   currencyRates,
   byAccountId,
   tokenInfo,
-  stakingDefault,
   areTokensWithNoCostHidden,
 }: StateProps) {
   const {
@@ -110,7 +108,6 @@ function DappConnectModal({
     areTokensWithNoCostHidden,
     baseCurrency,
     currencyRates,
-    stakingDefault,
   });
 
   useEffect(() => {
@@ -434,7 +431,6 @@ export default memo(withGlobal((global): StateProps => {
     currencyRates,
     byAccountId,
     tokenInfo,
-    stakingDefault,
   } = global;
 
   return {
@@ -453,7 +449,6 @@ export default memo(withGlobal((global): StateProps => {
     currencyRates,
     byAccountId,
     tokenInfo,
-    stakingDefault,
     areTokensWithNoCostHidden,
   };
 })(DappConnectModal));

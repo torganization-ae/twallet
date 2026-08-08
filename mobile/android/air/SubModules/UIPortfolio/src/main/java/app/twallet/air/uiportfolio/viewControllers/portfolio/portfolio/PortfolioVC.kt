@@ -507,7 +507,6 @@ class PortfolioVC(context: Context) : WViewControllerWithModelStore(context) {
         breakdownSection.render(
             chainSlices = state.chainBreakdown,
             assetSlices = state.assetBreakdown,
-            stakedSlices = state.stakedBreakdown,
             animated = animateDateAndHeightOnLoad,
         )
         breakdownSection.hidePlaceholders()

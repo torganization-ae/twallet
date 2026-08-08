@@ -9,6 +9,7 @@ final class SplitRootViewModel {
     var onCurrentTabTap: (AppTabId) -> Void = { _ in }
 
     func onTabTap(_ tab: AppTabId) {
+        guard !tab.isActionOnly else { return }
         if tab != selectedTab {
             selectedTab = tab
         } else {

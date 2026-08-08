@@ -35,8 +35,6 @@ import type {
   ApiPriceHistoryPeriod,
   ApiSite,
   ApiSiteCategory,
-  ApiStakingHistory,
-  ApiStakingState,
   ApiSwapAsset,
   ApiSwapCexLabel,
   ApiSwapDexLabel,
@@ -159,8 +157,6 @@ export interface LangString {
 }
 
 export type LangPack = Record<string, string | LangString>;
-
-export type StakingStatus = 'active' | 'unstakeRequested';
 
 export type AuthMethod = 'createAccount' | 'importMnemonic' | 'importHardwareWallet';
 
@@ -362,30 +358,6 @@ export enum HardwareConnectState {
   WaitingForRemoteTab,
 }
 
-export enum StakingState {
-  None,
-
-  StakeInitial,
-  StakePassword,
-  StakeConnectHardware,
-  StakeConfirmHardware,
-  StakeConfirmMfa,
-  StakeComplete,
-
-  UnstakeInitial,
-  UnstakePassword,
-  UnstakeConnectHardware,
-  UnstakeConfirmHardware,
-  UnstakeConfirmMfa,
-  UnstakeComplete,
-
-  ClaimPassword,
-  ClaimConnectHardware,
-  ClaimConfirmHardware,
-  ClaimConfirmMfa,
-  ClaimComplete,
-}
-
 export enum VestingUnfreezeState {
   Password,
   ConnectHardware,
@@ -451,9 +423,6 @@ export type UserToken = {
   codeHash?: string;
   /** A small dim label to show in the UI right after the token name */
   label?: string;
-  /** True if this is a staking token (created from ApiStakingState) */
-  isStaking?: boolean;
-  stakingId?: string;
   isVerified?: boolean;
   isSpam?: boolean;
 };
@@ -469,7 +438,7 @@ export type TokenChartMode = 'price' | 'netWorth';
 
 export type PriceHistoryPeriods = Partial<Record<ApiPriceHistoryPeriod, ApiHistoryList>>;
 
-export type DieselStatus = 'not-available' | 'not-authorized' | 'pending-previous' | 'available' | 'stars-fee';
+export type DieselStatus = 'not-available' | 'pending-previous' | 'available';
 
 /** Architectural hook for EVM/Solana gas abstraction (pay gas in USDT/TON via a relay). */
 export type PaymasterStatus = 'not-available' | 'not-authorized' | 'pending' | 'available';
@@ -582,14 +551,6 @@ export interface AccountState {
   activitiesUpdateStartedAt?: number;
   balanceUpdateStartedAt?: number;
 
-  // Staking
-  staking?: {
-    stakingId?: string;
-    stateById?: Record<string, ApiStakingState>;
-    totalProfit?: bigint;
-    shouldUseNominators?: boolean;
-  };
-
   vesting?: {
     info: ApiVestingInfo[];
     isLoading?: boolean;
@@ -599,11 +560,8 @@ export interface AccountState {
     unfreezeState?: VestingUnfreezeState;
   };
 
-  stakingHistory?: ApiStakingHistory;
   browserHistory?: string[];
 
-  isDieselAuthorizationStarted?: boolean;
-  isLongUnstakeRequested?: boolean;
   receiveModalChain?: ApiChain;
   invoiceTokenSlug?: string;
 
@@ -706,6 +664,8 @@ export type GlobalState = {
   currentTransfer: {
     state: TransferState;
     isLoading?: boolean;
+    /** True while DNS / tmail / bare alias is being resolved for the recipient field */
+    isCheckingAddress?: boolean;
     // Should be ignored when `nfts` is defined and not empty
     tokenSlug: string;
     toAddress?: string;
@@ -729,7 +689,6 @@ export type GlobalState = {
     // Every time this field value changes, the `amount` value should be actualized using `preserveMaxTransferAmount`
     diesel?: ApiFetchEstimateDieselResult;
     isGasless?: boolean;
-    isGaslessWithStars?: boolean;
     scamWarningType?: ScamWarningType;
     isTransferReadonly?: boolean;
     isNftBurn?: boolean;
@@ -806,7 +765,6 @@ export type GlobalState = {
   };
 
   exploreData?: {
-    featuredTitle?: string;
     categories: ApiSiteCategory[];
     sites: ApiSite[];
   };
@@ -904,6 +862,8 @@ export type GlobalState = {
     address?: string;
     state: DomainLinkingState;
     isLoading?: boolean;
+    /** True while the linked-wallet address / DNS / tmail is being resolved */
+    isCheckingAddress?: boolean;
     error?: string;
     realFee?: bigint;
     walletAddress?: string;
@@ -926,19 +886,6 @@ export type GlobalState = {
     mfaRequestHash?: string;
     error?: string;
   };
-
-  currentStaking: {
-    state: StakingState;
-    isLoading?: boolean;
-    isUnstaking?: boolean;
-    amount?: bigint;
-    tokenAmount?: bigint;
-    fee?: bigint;
-    error?: string;
-    mfaRequestHash?: string;
-  };
-
-  stakingDefault: ApiStakingState;
 
   accounts?: {
     byId: Record<string, Account>;
@@ -1030,7 +977,6 @@ export type GlobalState = {
   accountSelectorViewMode?: 'cards' | 'list';
   isBackupWalletModalOpen?: boolean;
   isHardwareModalOpen?: boolean;
-  isStakingInfoModalOpen?: boolean;
   areSettingsOpen?: boolean;
   isExploreOpen?: boolean;
   isPortfolioOpen?: boolean;
@@ -1203,7 +1149,6 @@ export interface ActionPayloads {
     isGasless?: boolean;
     isBase64Data?: boolean;
     binPayload?: string;
-    isGaslessWithStars?: boolean;
     stateInit?: string;
     isNftBurn?: boolean;
   };
@@ -1233,7 +1178,6 @@ export interface ActionPayloads {
   clearAccountLoading: undefined;
   setIsAccountLoading: { isLoading: true | undefined };
   verifyHardwareAddress: { chain: ApiChain };
-  authorizeDiesel: undefined;
   fetchTransferDieselState: { tokenSlug: string };
   setIsAuthLoading: { isLoading: true | undefined };
 
@@ -1327,26 +1271,6 @@ export interface ActionPayloads {
 
   requestOpenQrScanner: undefined;
   handleQrCode: { data: string };
-
-  // Staking
-  startStaking: { tokenSlug: string } | undefined;
-  startUnstaking: { stakingId: string } | undefined;
-  setStakingScreen: { state: StakingState };
-  submitStakingInitial: { amount?: bigint; isUnstaking?: boolean } | undefined;
-  submitStaking: { password?: string; isUnstaking?: boolean } | undefined;
-  clearStakingError: undefined;
-  cancelStaking: undefined;
-  fetchStakingHistory: undefined;
-  fetchStakingFee: { amount: bigint };
-  openStakingInfo: undefined;
-  openAnyAccountStakingInfo: { accountId: string; network: ApiNetwork; stakingId: string };
-  closeStakingInfo: undefined;
-  changeCurrentStaking: { stakingId: string; shouldReopenModal?: boolean };
-  startStakingClaim: { stakingId: string } | undefined;
-  submitStakingClaim: { password?: string } | undefined;
-  cancelStakingClaim: undefined;
-  openStakingInfoOrStart: undefined;
-  updateStakingMfaRequestStatus: undefined;
 
   // Settings
   openSettings: undefined;

@@ -91,5 +91,8 @@ addActionHandler('cancelDomainLinking', (global) => {
 });
 
 addActionHandler('setDomainLinkingWalletAddress', (global, actions, { address }) => {
-  return updateCurrentDomainLinking(global, { walletAddress: address });
+  return updateCurrentDomainLinking(global, {
+    walletAddress: address,
+    isCheckingAddress: false,
+  });
 });

@@ -129,10 +129,6 @@ extension MAccount {
         type == .mnemonic && isMultichain
     }
     
-    public var supportsEarn: Bool {
-        network == .mainnet && !isView
-    }
-    
     public var version: String? {
         guard
             let accountsData = KeychainHelper.getAccounts(),
@@ -244,11 +240,6 @@ extension MAccount {
         return firstAddress
     }
     
-    public var dieselAuthLink: URL? {
-        guard let tonAddress = getAddress(chain: .ton) else { return nil }
-        return URL(string: "https://t.me/\(BOT_USERNAME)?start=auth-\(tonAddress)")!
-    }
-
     public var crosschainIdentifyingFromAddress: String? {
         getAddress(chain: .ton)
     }

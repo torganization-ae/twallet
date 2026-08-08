@@ -9,17 +9,17 @@ struct DefaultTokenSortingTests {
         let account = makeAccount(chains: ApiChain.allCases)
         let defaultSlugs = ApiToken.defaultSlugs(forNetwork: .mainnet, account: account)
         let tokenBalances = [
-            MTokenBalance(tokenSlug: MONAD_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: ARBITRUM_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: AVALANCHE_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: POLYGON_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: BNB_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: BASE_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: TRX_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: TONCOIN_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: HYPERLIQUID_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: SOLANA_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: ETH_SLUG, balance: 0, isStaking: false),
+            MTokenBalance(tokenSlug: MONAD_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: ARBITRUM_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: AVALANCHE_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: POLYGON_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: BNB_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: BASE_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: TRX_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: TONCOIN_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: HYPERLIQUID_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: SOLANA_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: ETH_SLUG, balance: 0),
         ]
 
         #expect(Array(defaultSlugs) == [
@@ -63,8 +63,8 @@ struct DefaultTokenSortingTests {
         let account = makeAccount(chains: [.ton])
         let defaultSlugs = ApiToken.defaultSlugs(forNetwork: .mainnet, account: account)
         let tokenBalances = [
-            MTokenBalance(tokenSlug: TON_USDT_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: TONCOIN_SLUG, balance: 0, isStaking: false),
+            MTokenBalance(tokenSlug: TON_USDT_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: TONCOIN_SLUG, balance: 0),
         ]
 
         let sorted = MTokenBalance.sortedForBalanceData(
@@ -82,10 +82,10 @@ struct DefaultTokenSortingTests {
         let account = makeAccount(chains: [.ton, .ethereum, .solana])
         let defaultSlugs = ApiToken.defaultSlugs(forNetwork: .mainnet, account: account)
         let tokenBalances = [
-            MTokenBalance(tokenSlug: MYCOIN_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: SOLANA_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: ETH_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: TONCOIN_SLUG, balance: 0, isStaking: false),
+            MTokenBalance(tokenSlug: MYCOIN_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: SOLANA_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: ETH_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: TONCOIN_SLUG, balance: 0),
         ]
 
         let sorted = MTokenBalance.sortedForBalanceData(
@@ -103,9 +103,9 @@ struct DefaultTokenSortingTests {
         let account = makeAccount(chains: [.ton])
         let defaultSlugs = ApiToken.defaultSlugs(forNetwork: .mainnet, account: account)
         let tokenBalances = [
-            MTokenBalance(tokenSlug: TONCOIN_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: TON_USDT_SLUG, balance: 1_000_000, isStaking: false),
-            MTokenBalance(tokenSlug: TON_USDT_TESTNET_SLUG, balance: 2_000_000, isStaking: false),
+            MTokenBalance(tokenSlug: TONCOIN_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: TON_USDT_SLUG, balance: 1_000_000),
+            MTokenBalance(tokenSlug: TON_USDT_TESTNET_SLUG, balance: 2_000_000),
         ]
 
         let sorted = MTokenBalance.sortedForTokenPicker(
@@ -121,11 +121,11 @@ struct DefaultTokenSortingTests {
         let account = makeAccount(chains: [.ton, .tron])
         let defaultSlugs = ApiToken.defaultSlugs(forNetwork: .mainnet, account: account)
         let tokenBalances = [
-            MTokenBalance(tokenSlug: TRON_USDT_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: TRX_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: TON_USDT_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: MYCOIN_SLUG, balance: 0, isStaking: false),
-            MTokenBalance(tokenSlug: TONCOIN_SLUG, balance: 0, isStaking: false),
+            MTokenBalance(tokenSlug: TRON_USDT_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: TRX_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: TON_USDT_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: MYCOIN_SLUG, balance: 0),
+            MTokenBalance(tokenSlug: TONCOIN_SLUG, balance: 0),
         ]
 
         let sorted = MTokenBalance.sortedForTokenPicker(

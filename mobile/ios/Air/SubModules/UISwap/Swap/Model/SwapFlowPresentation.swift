@@ -33,26 +33,12 @@ struct SwapPresentationContext {
         guard state.swapEstimate != nil else {
             return .waitingForEstimate
         }
-        if validator.requiresDieselAuthorization(
-            input: context.validationInput,
-            swapEstimate: state.swapEstimate,
-            account: context.account
-        ) {
-            return .authorizeDiesel
-        }
         return .readyToSwap
     }
 
     func route(context: SwapPresentationContext, state: OnchainSwapModel) -> SwapRoute? {
         guard state.swapEstimate != nil else {
             return nil
-        }
-        if validator.requiresDieselAuthorization(
-            input: context.validationInput,
-            swapEstimate: state.swapEstimate,
-            account: context.account
-        ) {
-            return .authorizeDiesel
         }
         return .confirmSwap(presentCrosschainResult: false)
     }

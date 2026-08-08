@@ -10,7 +10,6 @@ import {
 import {
   ANIMATION_LEVEL_MIN,
   APP_VERSION,
-  BOT_USERNAME,
   DEBUG,
 } from '../../../config';
 import { parseNotificationTxId } from '../../../util/activities';
@@ -23,7 +22,6 @@ import getIsAppUpdateNeeded from '../../../util/getIsAppUpdateNeeded';
 import { vibrate, vibrateOnSuccess } from '../../../util/haptics';
 import { getTranslation } from '../../../util/langProvider';
 import { logDebugError } from '../../../util/logs';
-import { openUrl } from '../../../util/openUrl';
 import { getTelegramApp } from '../../../util/telegram';
 import {
   getIsMobileTelegramApp,
@@ -622,13 +620,6 @@ addActionHandler('clearAccountLoading', (global) => {
 
 addActionHandler('setIsAccountLoading', (global, actions, { isLoading }) => {
   setGlobal(updateAccounts(global, { isLoading }));
-});
-
-addActionHandler('authorizeDiesel', (global) => {
-  const address = selectCurrentAccount(global)!.byChain.ton?.address;
-  if (!address) throw new Error('TON address missing');
-  setGlobal(updateCurrentAccountState(global, { isDieselAuthorizationStarted: true }));
-  void openUrl(`https://t.me/${BOT_USERNAME}?start=auth-${address}`);
 });
 
 addActionHandler('closeAnyModal', () => {

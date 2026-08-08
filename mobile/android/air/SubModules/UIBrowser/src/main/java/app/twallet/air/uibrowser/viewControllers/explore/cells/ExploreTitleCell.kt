@@ -15,8 +15,10 @@ import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
 
 @SuppressLint("ViewConstructor")
-class ExploreTitleCell(context: Context) :
-    WCell(context, LayoutParams(MATCH_PARENT, WRAP_CONTENT)), WThemedView {
+class ExploreTitleCell(
+    context: Context
+) : WCell(context, LayoutParams(MATCH_PARENT, WRAP_CONTENT)),
+    WThemedView {
     private val titleLabel: WLabel by lazy {
         WLabel(context).apply {
             setStyle(28f, WFont.Medium)
@@ -25,13 +27,14 @@ class ExploreTitleCell(context: Context) :
     }
 
     private val containerView: WView by lazy {
-        val v = WView(context).apply {
-            addView(titleLabel, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-            setConstraints {
-                toCenterX(titleLabel)
-                toCenterY(titleLabel)
+        val v =
+            WView(context).apply {
+                addView(titleLabel, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
+                setConstraints {
+                    toCenterX(titleLabel)
+                    toCenterY(titleLabel)
+                }
             }
-        }
         v
     }
 
@@ -48,5 +51,4 @@ class ExploreTitleCell(context: Context) :
         titleLabel.text = title
         updateTheme()
     }
-
 }

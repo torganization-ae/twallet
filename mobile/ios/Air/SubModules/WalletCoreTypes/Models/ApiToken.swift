@@ -25,7 +25,6 @@ public struct ApiToken: Equatable, Hashable, Codable, Sendable {
     public var cmcSlug: String?
     public var color: String?
     public var isGaslessEnabled: Bool?
-    public var isStarsEnabled: Bool?
     public var isTiny: Bool?
     public var customPayloadApiUrl: String?
     public var codeHash: String?
@@ -38,7 +37,7 @@ public struct ApiToken: Equatable, Hashable, Codable, Sendable {
     public var priceUsd: Double?
     public var percentChange24h: Double?
 
-    public init(slug: String, name: String, symbol: String, decimals: Int, chain: ApiChain, type: ApiTokenType? = nil, tokenAddress: String? = nil, tokenWalletAddress: String? = nil, image: String? = nil, isPopular: Bool? = nil, keywords: [String]? = nil, cmcSlug: String? = nil, color: String? = nil, isGaslessEnabled: Bool? = nil, isStarsEnabled: Bool? = nil, isTiny: Bool? = nil, customPayloadApiUrl: String? = nil, codeHash: String? = nil, label: String? = nil, isFromBackend: Bool? = nil, priceUsd: Double? = nil, percentChange24h: Double? = nil) {
+    public init(slug: String, name: String, symbol: String, decimals: Int, chain: ApiChain, type: ApiTokenType? = nil, tokenAddress: String? = nil, tokenWalletAddress: String? = nil, image: String? = nil, isPopular: Bool? = nil, keywords: [String]? = nil, cmcSlug: String? = nil, color: String? = nil, isGaslessEnabled: Bool? = nil, isTiny: Bool? = nil, customPayloadApiUrl: String? = nil, codeHash: String? = nil, label: String? = nil, isFromBackend: Bool? = nil, priceUsd: Double? = nil, percentChange24h: Double? = nil) {
         self.slug = slug
         self.name = name
         self.symbol = symbol
@@ -53,7 +52,6 @@ public struct ApiToken: Equatable, Hashable, Codable, Sendable {
         self.cmcSlug = cmcSlug
         self.color = color
         self.isGaslessEnabled = isGaslessEnabled
-        self.isStarsEnabled = isStarsEnabled
         self.isTiny = isTiny
         self.customPayloadApiUrl = customPayloadApiUrl
         self.codeHash = codeHash
@@ -78,7 +76,6 @@ public struct ApiToken: Equatable, Hashable, Codable, Sendable {
         case cmcSlug
         case color
         case isGaslessEnabled
-        case isStarsEnabled
         case isTiny
         case customPayloadApiUrl
         case codeHash
@@ -111,7 +108,6 @@ public struct ApiToken: Equatable, Hashable, Codable, Sendable {
         try container.encodeIfPresent(self.cmcSlug, forKey: .cmcSlug)
         try container.encodeIfPresent(self.color, forKey: .color)
         try container.encodeIfPresent(self.isGaslessEnabled, forKey: .isGaslessEnabled)
-        try container.encodeIfPresent(self.isStarsEnabled, forKey: .isStarsEnabled)
         try container.encodeIfPresent(self.isTiny, forKey: .isTiny)
         try container.encodeIfPresent(self.customPayloadApiUrl, forKey: .customPayloadApiUrl)
         try container.encodeIfPresent(self.codeHash, forKey: .codeHash)
@@ -150,7 +146,6 @@ public struct ApiToken: Equatable, Hashable, Codable, Sendable {
         self.cmcSlug = try container.decodeIfPresent(String.self, forKey: .cmcSlug)
         self.color = try container.decodeIfPresent(String.self, forKey: .color)
         self.isGaslessEnabled = try container.decodeIfPresent(Bool.self, forKey: .isGaslessEnabled)
-        self.isStarsEnabled = try container.decodeIfPresent(Bool.self, forKey: .isStarsEnabled)
         self.isTiny = try container.decodeIfPresent(Bool.self, forKey: .isTiny)
         self.customPayloadApiUrl = try container.decodeIfPresent(String.self, forKey: .customPayloadApiUrl)
         self.codeHash = try container.decodeIfPresent(String.self, forKey: .codeHash)
@@ -192,7 +187,6 @@ public struct ApiToken: Equatable, Hashable, Codable, Sendable {
         self.cmcSlug = dict["cmcSlug"] as? String
         self.color = dict["color"] as? String
         self.isGaslessEnabled = dict["isGaslessEnabled"] as? Bool
-        self.isStarsEnabled = dict["isStarsEnabled"] as? Bool
         self.isTiny = dict["isTiny"] as? Bool
         self.customPayloadApiUrl = dict["customPayloadApiUrl"] as? String
         self.codeHash = dict["codeHash"] as? String
@@ -246,7 +240,9 @@ extension ApiToken {
     }
 
     public var isStakedToken: Bool {
-        return STAKED_TOKEN_SLUGS.contains(slug)
+        return slug == STAKED_TON_SLUG
+            || slug == STAKED_MYCOIN_SLUG
+            || slug == TON_TSUSDE_SLUG
     }
 
     public var isRwaStock: Bool {

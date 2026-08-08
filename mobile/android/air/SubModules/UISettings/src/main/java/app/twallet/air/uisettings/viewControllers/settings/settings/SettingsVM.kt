@@ -13,13 +13,10 @@ import app.twallet.air.uisettings.viewControllers.settings.cells.SettingsVersion
 import app.twallet.air.uisettings.viewControllers.settings.models.SettingsItem
 import app.twallet.air.uisettings.viewControllers.settings.models.SettingsSection
 import app.twallet.air.uisettings.viewControllers.settings.views.SettingsHeaderView
-import app.twallet.air.walletbasecontext.R as BaseR
 import app.twallet.air.walletbasecontext.localization.LocaleController
-import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.stores.AccountStore
-import app.twallet.air.walletcore.stores.ConfigStore
 import app.twallet.air.walletcore.stores.DappsStore
 
 class SettingsVM {
@@ -49,33 +46,6 @@ class SettingsVM {
             section = SettingsSection.Section.SETTINGS,
             title = LocaleController.getString("Settings"),
             children = emptyList()
-        ),
-        SettingsSection(
-            section = SettingsSection.Section.HELP,
-            title = LocaleController.getString("Help"),
-            children = emptyList(),
-        ),
-        SettingsSection(
-            section = SettingsSection.Section.ABOUT,
-            title = LocaleController.getString("About"),
-            children = listOf(
-                SettingsItem(
-                    identifier = SettingsItem.Identifier.INSTALL_ON_DESKTOP,
-                    icon = R.drawable.ic_desktop,
-                    title = LocaleController.getString("Install on Desktop"),
-                    hasTintColor = false
-                ),
-                SettingsItem(
-                    identifier = SettingsItem.Identifier.ABOUT_MTW,
-                    icon = R.drawable.ic_about,
-                    title = LocaleController.getStringWithKeyValues(
-                        "About %app_name%", listOf(
-                            Pair("%app_name%", ApplicationContextHolder.applicationContext.getString(BaseR.string.app_locale_name_key))
-                        )
-                    ),
-                    hasTintColor = false
-                )
-            )
         ),
     )
 
@@ -241,68 +211,6 @@ class SettingsVM {
         )
 
         settingsSections[walletConfigSectionIndex].children = items
-    }
-
-    private val askAQuestionItem = SettingsItem(
-        identifier = SettingsItem.Identifier.ASK_A_QUESTION,
-        icon = R.drawable.ic_ask_question,
-        title = LocaleController.getString("Get Support"),
-        value = "@mysupport",
-        hasTintColor = false
-    )
-    private val helpSectionStaticItems: List<SettingsItem>
-        get() = buildList {
-            add(
-                SettingsItem(
-                    identifier = SettingsItem.Identifier.HELP_CENTER,
-                    icon = R.drawable.ic_help_center,
-                    title = LocaleController.getString("Help Center"),
-                    hasTintColor = false
-                )
-            )
-            val tipsUsername = ApplicationContextHolder.applicationContext
-                .getString(BaseR.string.app_tips_telegram_username_en)
-            if (tipsUsername.isNotEmpty()) {
-                add(
-                    SettingsItem(
-                        identifier = SettingsItem.Identifier.MTW_FEATURES,
-                        icon = R.drawable.ic_features,
-                        title = LocaleController.getStringWithKeyValues(
-                            "%app_name% Features", listOf(
-                                Pair(
-                                    "%app_name%",
-                                    ApplicationContextHolder.applicationContext.getString(BaseR.string.app_locale_name_key)
-                                )
-                            )
-                        ),
-                        hasTintColor = false
-                    )
-                )
-            }
-            add(
-                SettingsItem(
-                    identifier = SettingsItem.Identifier.USE_RESPONSIBILITY,
-                    icon = R.drawable.ic_responsibility,
-                    title = LocaleController.getString("Use Responsibly"),
-                    hasTintColor = false
-                )
-            )
-        }
-
-    fun updateHelpSection(): Boolean {
-        val helpSectionIndex =
-            settingsSections.indexOfFirst { it.section == SettingsSection.Section.HELP }
-        if (helpSectionIndex == -1) return true
-
-        val dynamicItems = if ((ConfigStore.supportAccountsCount ?: 0.0) > 0) listOf(
-            askAQuestionItem
-        ) else listOf()
-        val newChildren = dynamicItems + helpSectionStaticItems
-
-        if (settingsSections[helpSectionIndex].children.map { it.identifier } == newChildren.map { it.identifier })
-            return false
-        settingsSections[helpSectionIndex].children = newChildren
-        return true
     }
 
     fun contentHeight(): Int {

@@ -1,5 +1,3 @@
-import { STAKING_POOLS } from '../../config';
-
 export function sha256(bytes: Uint8Array) {
   return crypto.subtle.digest('SHA-256', bytes);
 }
@@ -23,8 +21,4 @@ export function base64ToBytes(base64: string) {
 
 export function base64ToString(base64: string) {
   return Buffer.from(base64, 'base64').toString('utf-8');
-}
-
-export function isKnownStakingPool(address: string) {
-  return STAKING_POOLS.some((poolPart) => address.endsWith(poolPart));
 }

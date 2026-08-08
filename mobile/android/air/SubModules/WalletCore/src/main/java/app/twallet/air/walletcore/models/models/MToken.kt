@@ -6,19 +6,15 @@ import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.models.MBlockchainNetwork
 import app.twallet.air.walletcontext.utils.WEquatable
 import app.twallet.air.walletcore.DEFAULT_SHOWN_TOKENS
-import app.twallet.air.walletcore.MYCOIN_SLUG
 import app.twallet.air.walletcore.PRICELESS_TOKEN_HASHES
 import app.twallet.air.walletcore.TONCOIN_SLUG
 import app.twallet.air.walletcore.TRON_USDT_SLUG
-import app.twallet.air.walletcore.USDE_SLUG
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.moshi.IApiToken
-import app.twallet.air.walletcore.stakingSlugToTokenSlug
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.BalanceStore
 import app.twallet.air.walletcore.stores.ChainVisibilityStore
 import app.twallet.air.walletcore.stores.TokenStore
-import app.twallet.air.walletcore.tokenSlugToStakingSlug
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
@@ -62,7 +58,6 @@ class MToken(json: JSONObject) : IApiToken, WEquatable<MToken> {
     val cmcSlug: String? = json.optString("cmcSlug").ifBlank { null }
     var color: String? = json.optString("color").ifBlank { null }
     val isGaslessEnabled: Boolean = json.optBoolean("isGaslessEnabled")
-    val isStarsEnabled: Boolean = json.optBoolean("isStarsEnabled")
     val isTiny: Boolean = json.optBoolean("isTiny")
     val customPayloadApiUrl: String? = json.optString("customPayloadApiUrl").ifBlank { null }
 
@@ -109,7 +104,6 @@ class MToken(json: JSONObject) : IApiToken, WEquatable<MToken> {
             put("cmcSlug", cmcSlug)
             put("color", color)
             put("isGaslessEnabled", isGaslessEnabled)
-            put("isStarsEnabled", isStarsEnabled)
             put("isTiny", isTiny)
             put("customPayloadApiUrl", customPayloadApiUrl)
             put("codeHash", codeHash)
@@ -170,15 +164,6 @@ class MToken(json: JSONObject) : IApiToken, WEquatable<MToken> {
         val tokenAddress = tokenAddress ?: return null
         return MBlockchain.valueOfOrNull(chain)?.tokenExplorer()?.tokenUrl(network, tokenAddress)
     }
-
-    val isEarnAvailable: Boolean
-        get() {
-            return slug == TONCOIN_SLUG || slug == MYCOIN_SLUG || slug == USDE_SLUG
-        }
-
-    val stakingSlug: String? = tokenSlugToStakingSlug(slug)
-
-    val unstakedSlug: String? = stakingSlugToTokenSlug(slug)
 
     override fun isSame(comparing: WEquatable<*>): Boolean {
         return comparing is MToken && slug == comparing.slug

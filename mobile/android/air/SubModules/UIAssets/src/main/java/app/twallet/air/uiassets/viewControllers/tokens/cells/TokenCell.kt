@@ -220,7 +220,7 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
 
         val accountChanged = this.accountId != accountId
         val tokenChanged =
-            this.tokenBalance?.virtualStakingToken != tokenBalance.virtualStakingToken
+            this.tokenBalance?.token != tokenBalance.token
         val pinnedChanged = this.isPinned != isPinned
         if (!accountChanged &&
             this.tokenBalance == tokenBalance &&
@@ -246,7 +246,7 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
             }
         }
 
-        val amountCols = 4 + abs(tokenBalance.virtualStakingToken.hashCode() % 8)
+        val amountCols = 4 + abs(tokenBalance.token.hashCode() % 8)
         topRightLabel.setMaskCols(amountCols)
         val fiatAmountCols = 5 + (amountCols % 6)
         bottomRightLabel.setMaskCols(fiatAmountCols)
@@ -257,7 +257,7 @@ class TokenCell(context: Context, val mode: TokensVC.Mode) : WCell(context), WTh
         iconView.config(
             tokenBalance,
             showChain = isMultichain,
-            showPercentBadge = (tokenBalance.isVirtualStakingRow && tokenBalance.amountValue > BigInteger.ZERO)
+            showPercentBadge = false
         )
         val tokenName = token?.let { TokenNameHelper.getTokenName(token, tokenBalance) } ?: ""
         if (topLeftLabel.text != tokenName)

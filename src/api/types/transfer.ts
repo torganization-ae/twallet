@@ -41,7 +41,6 @@ export interface ApiSubmitTransferOptions extends ApiSubmitGasfullTransferOption
   realFee?: bigint;
   isGasless?: boolean;
   dieselAmount?: bigint;
-  isGaslessWithStars?: boolean;
 
   /**
    * The transaction to be signed and sent. Only used for gasless transfers in Solana.
@@ -67,7 +66,6 @@ export interface ApiSubmitGasfullTransferOptions extends ApiTransactionCommonOpt
 export interface ApiSubmitGaslessTransferOptions extends ApiSubmitGasfullTransferOptions {
   tokenAddress: string;
   dieselAmount: bigint;
-  isGaslessWithStars?: boolean;
   gaslessTransaction?: string;
 }
 
@@ -94,19 +92,15 @@ export interface ApiCheckTransactionDraftResult {
 
 /**
  * "Gas" is a fee in the native token.
- * "Diesel" is a fee in the transferred token (or in Telegram stars) in gasless mode.
+ * "Diesel" is a fee in the transferred token in gasless mode.
  */
 export interface ApiFetchEstimateDieselResult {
   status: DieselStatus;
   /**
-   * The amount of the diesel itself. It will be sent together with the actual transfer. None of this will return back
-   * as the excess. `undefined` means that gasless transfer is not available, and the diesel shouldn't be shown as the
-   * fee; nevertheless, the status should be displayed by the UI.
-   *
-   * - If the status is not 'stars-fee', the value is measured in the transferred token and charged on top of the
-   *   transferred amount.
-   * - If the status is 'stars-fee', the value is measured in Telegram stars, and the BigInt assumes 0 decimal places
-   *   (i.e. the number is equal to the visible number of stars).
+   * The amount of the diesel itself, measured in the transferred token and charged on top of the transferred amount.
+   * It will be sent together with the actual transfer. None of this will return back as the excess.
+   * `undefined` means that gasless transfer is not available, and the diesel shouldn't be shown as the fee;
+   * nevertheless, the status should be displayed by the UI.
    */
   amount?: bigint;
   /**
@@ -147,7 +141,6 @@ export interface ApiSubmitGasfullTransferResult {
 }
 
 export interface ApiSubmitGaslessTransferResult extends ApiSubmitGasfullTransferResult {
-  paymentLink?: string;
   withW5Gasless?: boolean;
 }
 

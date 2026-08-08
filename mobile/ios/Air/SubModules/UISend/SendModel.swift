@@ -124,7 +124,7 @@ public final class SendModel: Sendable {
         var maxBalance: Double = 0.0
         var tokens: [String: Double] = [:]
         for (tokenSlug, balance) in accountContext.balances {
-            let tb = MTokenBalance(tokenSlug: tokenSlug, balance: balance, isStaking: false)
+            let tb = MTokenBalance(tokenSlug: tokenSlug, balance: balance)
             guard let baseCurrencyBalance = tb.toBaseCurrency, baseCurrencyBalance > 0 else { continue }
             maxBalance = max(maxBalance, baseCurrencyBalance)
             tokens[tokenSlug] = baseCurrencyBalance
@@ -406,7 +406,8 @@ public final class SendModel: Sendable {
         !(isCommentRequired && comment.isEmpty) &&
         (amount ?? 0 > 0 || nfts.count > 0) &&
         !shouldShowMultisigWarning &&
-        !shouldShowGasWarning
+        !shouldShowGasWarning &&
+        dieselStatus != .pendingPrevious
     }
 
     var isAllowSuspiciousActions: Bool {
@@ -500,14 +501,11 @@ public final class SendModel: Sendable {
         } else {
             fee != nil && (fee! + (token.isNative && token.chain.canTransferFullNativeBalance ? amount ?? 0 : 0)) <= nativeTokenBalance
         }
-        let isGaslessWithStars = dieselStatus == .starsFee
-        let isDieselAvailable = dieselStatus == .available || isGaslessWithStars
+        let isDieselAvailable = dieselStatus == .available
         let withDiesel = currentExplainedFee?.isGasless == true
         let dieselAmount = draftData.transactionDraft?.diesel?.tokenAmount ?? 0
         let isEnoughDiesel = withDiesel && amount ?? 0 > 0 && (accountBalance?.amount ?? 0) > 0 && dieselAmount > 0
-          ? (isGaslessWithStars
-            ? true
-            : (accountBalance?.amount ?? 0) - (amount ?? 0) >= dieselAmount)
+          ? (accountBalance?.amount ?? 0) - (amount ?? 0) >= dieselAmount
           : false
         let isInsufficientFee = (fee != nil && !isEnoughNativeCoin && !isDieselAvailable) || (withDiesel && !isEnoughDiesel)
         let isInsufficientBalance = accountBalance != nil && amount != nil && amount! > (accountBalance?.amount ?? 0)

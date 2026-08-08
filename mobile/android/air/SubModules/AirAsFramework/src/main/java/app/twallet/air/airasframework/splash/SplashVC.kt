@@ -51,7 +51,6 @@ import app.twallet.air.uisettings.viewControllers.language.LanguageVC
 import app.twallet.air.uisettings.viewControllers.notificationSettings.NotificationSettingsVC
 import app.twallet.air.uisettings.viewControllers.userResponsibility.UserResponsibilityVC
 import app.twallet.air.uisettings.viewControllers.walletVersions.WalletVersionsVC
-import app.twallet.air.uistake.earn.EarnRootVC
 import app.twallet.air.uiswap.screens.swap.SwapVC
 import app.twallet.air.uitonconnect.TonConnectController
 import app.twallet.air.uitonconnect.viewControllers.connect.TonConnectRequestConnectVC
@@ -103,7 +102,6 @@ import app.twallet.air.walletcore.moshi.api.ApiMethod.DApp.TonConnectHandleDeepL
 import app.twallet.air.walletcore.moshi.api.ApiUpdate
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.NftStore
-import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
 import app.twallet.air.walletcore.utils.jsonObject
 import app.twallet.uihome.home.HomeVC
@@ -271,7 +269,6 @@ class SplashVC(context: Context) : WViewController(context),
                         Logger.LogTag.ACCOUNT,
                         "activateAccount: Reset accounts on splash error"
                     )
-                    StakingStore.wipeData()
                     resetToIntro()
                 }
             } else {
@@ -937,19 +934,6 @@ class SplashVC(context: Context) : WViewController(context),
                 window?.present(navVC)
             }
 
-            is Deeplink.Stake -> {
-                if (AccountStore.activeAccount?.isMainnet != true) {
-                    showAlertOverTopVC(
-                        null,
-                        LocaleController.getString("Staking is not supported in Testnet.")
-                    )
-                    nextDeeplink = null
-                    return
-                }
-                val navVC = WNavigationController(window!!, PresentationConfig.PreferredFullScreen)
-                navVC.setRoot(EarnRootVC(context))
-                window?.present(navVC)
-            }
 
             is Deeplink.Portfolio -> {
                 val tabsVC = tabsVC
@@ -1003,15 +987,6 @@ class SplashVC(context: Context) : WViewController(context),
                 }
             }
 
-            is Deeplink.StakeTx -> {
-                if (AccountStore.activeAccount?.accountType == MAccount.AccountType.VIEW) {
-                    nextDeeplink = null
-                    return
-                }
-                val nav = WNavigationController(window!!, PresentationConfig.PreferredFullScreen)
-                nav.setRoot(EarnRootVC(context))
-                window?.present(nav)
-            }
 
             is Deeplink.Transaction -> {
                 val chain = deeplink.chain

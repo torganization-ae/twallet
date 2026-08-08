@@ -25,7 +25,6 @@ def subModules = [
   "UISend",
   "UIInAppBrowser",
   "AirAsFramework",
-  "UIStake",
   "QRScan",
   "UIReceive",
   "UITonConnect",

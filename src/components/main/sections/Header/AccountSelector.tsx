@@ -1,11 +1,10 @@
 import React, { memo, useMemo } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiBaseCurrency, ApiCurrencyRates, ApiStakingState } from '../../../../api/types';
+import type { ApiBaseCurrency, ApiCurrencyRates } from '../../../../api/types';
 import type { Account, UserToken } from '../../../../global/types';
 
 import {
-  selectAccountStakingStates,
   selectCurrentAccountId,
   selectCurrentAccountTokens,
   selectNetworkAccounts,
@@ -32,7 +31,6 @@ interface StateProps {
   tokens?: UserToken[];
   baseCurrency: ApiBaseCurrency;
   currencyRates: ApiCurrencyRates;
-  stakingStates?: ApiStakingState[];
   isSensitiveDataHidden?: true;
 }
 
@@ -43,15 +41,14 @@ function AccountSelector({
   tokens,
   baseCurrency,
   currencyRates,
-  stakingStates,
   isSensitiveDataHidden,
 }: OwnProps & StateProps) {
   const { openAccountSelector } = getActions();
 
   const lang = useLang();
   const balanceValues = useMemo(() => {
-    return tokens ? calculateFullBalance(tokens, stakingStates, currencyRates[baseCurrency]) : undefined;
-  }, [tokens, stakingStates, currencyRates, baseCurrency]);
+    return tokens ? calculateFullBalance(tokens, currencyRates[baseCurrency]) : undefined;
+  }, [tokens, currencyRates, baseCurrency]);
   const shortBaseSymbol = getShortCurrencySymbol(baseCurrency);
   const { primaryWholePart, primaryFractionPart } = balanceValues || {};
 
@@ -133,14 +130,12 @@ export default memo(withGlobal<OwnProps>(
     const accounts = selectNetworkAccounts(global);
     const currentAccountId = selectCurrentAccountId(global)!;
     const currentAccount = accounts?.[currentAccountId];
-    const stakingStates = selectAccountStakingStates(global, currentAccountId);
 
     return {
       currentAccount,
       tokens: selectCurrentAccountTokens(global),
       baseCurrency,
       currencyRates,
-      stakingStates,
       isSensitiveDataHidden,
     };
   },

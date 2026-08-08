@@ -121,7 +121,7 @@ class SendCurrencyVC: WViewController {
             guard let self else { return }
             guard let walletToken = self.walletTokensBySlug[item.tokenSlug] else {
                 cell.configure(
-                    with: .init(tokenSlug: item.tokenSlug, balance: 0, isStaking: false),
+                    with: .init(tokenSlug: item.tokenSlug, balance: 0),
                     isAvailable: true,
                     isCurrentSelection: item.tokenSlug == self.currentTokenSlug
                 ) {}
@@ -223,7 +223,7 @@ extension SendCurrencyVC: UISearchBarDelegate, UISearchResultsUpdating {
 extension SendCurrencyVC {
     func balanceChanged() {
         walletTokens = balancesStore.getAccountBalances(accountId: accountId).map({ (key: String, value: BigInt) in
-            MTokenBalance(tokenSlug: key, balance: value, isStaking: false)
+            MTokenBalance(tokenSlug: key, balance: value)
         })
         walletTokensBySlug = Dictionary(uniqueKeysWithValues: walletTokens.map { ($0.tokenSlug, $0) })
         filterWalletTokens()

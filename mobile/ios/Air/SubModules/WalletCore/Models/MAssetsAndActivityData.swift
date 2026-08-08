@@ -36,6 +36,7 @@ public struct MAssetsAndActivityData: Equatable, Sendable {
             importedSlugs = []
             _pinnedSlugs = nil
         }
+        dropLegacyStakingIdentities()
     }
 
     var toDictionary: [String: Any] {
@@ -54,33 +55,29 @@ public struct MAssetsAndActivityData: Equatable, Sendable {
 
     // MARK: Hide
 
-    public mutating func saveTokenHidden(slug: String, isStaking: Bool, isHidden: Bool) {
-        let tokenIdentity = makeTokenIdentity(slug: slug, isStaked: isStaking)
-
+    public mutating func saveTokenHidden(slug: String, isHidden: Bool) {
         if isHidden {
-            alwaysHiddenSlugs.insert(tokenIdentity)
-            // alwaysShownSlugs.remove(tokenIdentity)
+            alwaysHiddenSlugs.insert(slug)
+            // alwaysShownSlugs.remove(slug)
         } else {
-            alwaysHiddenSlugs.remove(tokenIdentity)
-            // alwaysShownSlugs.insert(tokenIdentity)
+            alwaysHiddenSlugs.remove(slug)
+            // alwaysShownSlugs.insert(slug)
         }
     }
 
-    public func isTokenHidden(slug: String, isStaking: Bool) -> Bool {
-        let tokenIdentity = makeTokenIdentity(slug: slug, isStaked: isStaking)
-        return alwaysHiddenSlugs.contains(tokenIdentity)
+    public func isTokenHidden(slug: String) -> Bool {
+        alwaysHiddenSlugs.contains(slug)
     }
 
     // MARK: Pinning
 
-    public mutating func saveTokenPinning(slug: String, isStaking: Bool, isPinned: Bool) {
+    public mutating func saveTokenPinning(slug: String, isPinned: Bool) {
         if _pinnedSlugs == nil { _pinnedSlugs = [] }
 
-        let tokenIdentity = makeTokenIdentity(slug: slug, isStaked: isStaking)
         if isPinned {
-            _pinnedSlugs?.append(tokenIdentity)
+            _pinnedSlugs?.append(slug)
         } else {
-            _pinnedSlugs?.remove(tokenIdentity)
+            _pinnedSlugs?.remove(slug)
         }
     }
 
@@ -93,18 +90,12 @@ public struct MAssetsAndActivityData: Equatable, Sendable {
         !pinnedSlugs.isEmpty
     }
 
-    public func isTokenPinned(slug: String, isStaked: Bool) -> PinningInfo {
-        let tokenIdentity = makeTokenIdentity(slug: slug, isStaked: isStaked)
-
-        return if let index = pinnedSlugs.firstIndex(of: tokenIdentity) {
-            .pinned(index: index)
+    public func isTokenPinned(slug: String) -> PinningInfo {
+        if let index = pinnedSlugs.firstIndex(of: slug) {
+            return .pinned(index: index)
         } else {
-            .notPinned
+            return .notPinned
         }
-    }
-
-    private func makeTokenIdentity(slug: String, isStaked: Bool) -> String {
-        isStaked ? "staking-" + slug : slug
     }
 
     // MARK: Imported tokens
@@ -115,5 +106,13 @@ public struct MAssetsAndActivityData: Equatable, Sendable {
 
     public mutating func removeImportedToken(slug: String) {
         importedSlugs.remove(slug)
+    }
+
+    /// Drops legacy dual-identity keys (`staking-<slug>`) from pinned/hidden sets.
+    mutating func dropLegacyStakingIdentities() {
+        alwaysHiddenSlugs = Set(alwaysHiddenSlugs.filter { !$0.hasPrefix("staking-") })
+        if let pinned = _pinnedSlugs {
+            _pinnedSlugs = OrderedSet(pinned.filter { !$0.hasPrefix("staking-") })
+        }
     }
 }

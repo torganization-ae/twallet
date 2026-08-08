@@ -214,7 +214,6 @@ Testnet Version: Testnet Sürümü
 Error reading clipboard: Pano okunurken hata oluştu
 $fee_value: Ücret %fee%
 $fee_value_with_colon: "Ücret: %fee%"
-Pay fee with %stars_symbol%: "%stars_symbol% ile öde"
 Loading...: Yükleniyor...
 Recipient Address: Alıcının adresi
 Wallet address or domain: Cüzdan adresi veya alan adı
@@ -268,41 +267,10 @@ Appearance: Görünüm
 Light: Açık
 Dark: Koyu
 System: Sistem
-$stake_asset: "%symbol% stake et"
-Add Stake: Stake ekle
-Earn from your tokens while holding them: Tokenlarınızı tutarken pasif gelir elde edin
-Est. %annual_yield%: Tahmini %annual_yield%
-Current APY: Mevcut APY
-Est. Yearly Earnings: Tahmini Yıllık Kazanç
-Staking Details: Staking Detayları
-Why this is safe: Neden güvenlidir?
-$safe_staking_description1: Staking **tamamen merkeziyetsiz** bir işlemdir ve **resmi TON Likit Staking** akıllı sözleşmeleri tarafından yürütülür.
-$safe_staking_description2: Stake edilen tutar, **hisse kanıtı** esası kapsamında %chain% ağındaki işlemlerin doğrulanması için kullanılacaktır.
-$safe_staking_description3: Stake edilen tutarı **istediğiniz zaman** çekebilirsiniz; bu tutar **iki gün** içinde hesabınıza geri yatırılacaktır.
-$safe_staking_description_jetton1: Token stake etme işlemi **tamamen merkeziyetsizdir** ve %jvault_link% tarafından geliştirilen, **açık kaynaklı** akıllı sözleşmelerle gerçekleştirilir ve **güvenlik denetimlerinden** geçmiştir.
-$safe_staking_description_jetton2: Stake'inizi **herhangi bir zamanda** çekebilirsiniz ve miktar **anında** hesabınıza yatırılır.
 $min_value: Min. %value%
-Est. balance in a year: Bir yıl içindeki tahmini bakiye
-Confirm Staking: Staking işlemini onayla
-Coins have been staked!: Coin'ler stake edildi!
 View: Görüntüle
-Stake More: Daha fazla stake edin
 Staking: Staking
-Currently Staked: Güncel stake miktarı
-Total Staked: Toplam Stake
-Total Stakers: Toplam Staker
-Unstake: Unstake et
-Earning History: Kazanç Geçmişi
 $total: "Toplam: %value%"
-$unstake_asset: "%symbol% Unstake et"
-Amount to unstake: Unstake edilecek tutar
-Confirm Unstaking: Unstaking işlemini onayla
-Request for unstaking is sent!: Unstake işlemi için talep gönderildi!
-$unstaking_when_receive: Stake'e yatırılmamış bakiyenizi %time% içinde alacaksınız.
-$unstaking_when_receive_with_amount: Stake'i kaldırılan %amount%, %time% içinde hesabınıza geçecektir.
-$unstaking_when_receive_with_amount_ethena: "%amount% %time% sonra çekim için kullanılabilir olacak."
-$unstake_insufficient_balance: Unstaking işlemine devam etmek için ana bakiyenizde %balance% bulunması gerekir.
-at %annual_yield%: "%annual_yield% ile"
 Staked: Stake edildi
 $stake_action: Stake işlemi
 Unstaked: Unstake gerçekleşti
@@ -315,19 +283,13 @@ Invalid address: Geçersiz adres
 Domain is not connected to a wallet: Alan adı bir cüzdana bağlı değil
 Unexpected error: Beklenmedik hata
 Unexpected Error: Beklenmedik hata
-Earn: Kazan
-Earning: Kazanıyor
 Unexpected: Beklenmedik hata
 You can save this address for quick access while sending.: Gönderirken hızlı erişim için bu adresi kaydedebilirsiniz.
-Stake Again: Yeniden stake edin
-Earned: Kazanıldı
-$staking_history_earned: Kazanıldı
 Select wallet to use on this app: Bu uygulama üzerinde kullanılacak cüzdanı seçin
 Connect: Bağlan
 Payload: Yük
 $many_transactions: "%1$d Transfer"
 Total Amount: Toplam tutar
-$unstaking_short: Unstaking
 Handle ton:// links: ton:// bağlantılarını işle
 Back up wallet to have full access to it: Tam erişime sahip olmak için cüzdanı yedekleyin
 Consider More Secure Version: Daha güvenli sürümü kullanmayı düşünün
@@ -352,7 +314,6 @@ No active connections: Aktif bağlantı yok
 Other: Diğer
 No price data: Fiyat verisi yok
 Price Copied: Fiyat kopyalandı
-Not staked: Stake edilmemiş
 Portfolio: Portföy
 Performance, insights and P&L: Performans, içgörüler ve K/Z
 Custom Date Range: Özel tarih aralığı
@@ -377,7 +338,6 @@ Stablecoins: Stablecoinler
 Altcoins: Altcoinler
 Asset Mix: Varlık dağılımı
 No asset balances: Varlık bakiyesi yok
-No staked assets: Stake edilmiş varlık yok
 Entire Period: Tüm Dönem
 "Asset %1$@": "Varlık %1$@"
 Error: Hata
@@ -562,7 +522,6 @@ Chinese Yuan: Çin Yuanı
 Bitcoin: Bitcoin
 $max_balance: "Maks.: %balance%"
 $available_balance: "Kullanılabilir: %balance%"
-$unstake_information_instantly: Yatırdığınız tutarı anında alacaksınız
 Select Token: Token seçin
 MY: Cüzdanımdakiler
 Popular: Popüler
@@ -594,7 +553,6 @@ Correct: Doğru
 Confirm Action: İşlemi onayla
 $classic_confirm_actions: İşlemleri onayla
 Confirm Swap: Takası onaylayın
-Confirm Rewards Claim: Ödül Talebini Onayla
 "%amount% to %address%": "%address% numaralı adrese %amount%"
 "%amount_from% to %amount_to%": "%amount_from%'den' %amount_to%'e"
 Failed to enable biometrics.: Biyometrik koruma etkinleştirilemedi.
@@ -608,14 +566,12 @@ Biometric confirmation failed: Biyometrik doğrulama başarısız oldu
 No Activity: Etkinlik yok
 Fund: Yükleme
 Buy with Crypto: Kripto ile Satın Al
-Explore: Keşfetmek
+Explore: Tarayıcı
 $lockdown_mode_enabled_title: Kilit Modu Etkin
 $lockdown_mode_walletconnect_unavailable: "WalletConnect Kilit Modu'nda kullanılamaz. Kullanmak için Ayarlar > Gizlilik ve Güvenlik > Kilit Modu > Web Gezintisini Yapılandır bölümünde %app_name% için Kilit Modu'nu devre dışı bırakın."
 No partners yet: Henüz ortak yok
 Clear: Temizle
-$unstake_up_to_information: Anında – en fazla %value%
 $all_balance: "Tümü: %balance%"
-$unstaking_not_enough_balance: Stake iptal işlemine devam etmek için ana bakiyenizde %value% olması gerekmektedir.
 $ledger_verify_address_on_device: Lütfen Ledger'ınızdaki adresi doğrulayın.
 Wallet Versions: Cüzdan Versiyonları
 $read_more_about_wallet_version: "%link% üzerinde cüzdan sözleşmeleri türleri hakkında daha fazla bilgi edinin."
@@ -674,14 +630,12 @@ More actions: Daha fazla hareket
 Open on %explorer_name%: "%explorer_name%'da aç"
 Swap is not supported in Testnet.: Takas Testnet'te desteklenmemektedir.
 Swap is not yet supported by Ledger.: Takas henüz Ledger tarafından desteklenmiyor.
-Staking is not supported in Testnet.: Staking Testnet'te desteklenmemektedir.
 Get Support: Destek almak
 $transfer_link_expired: Transfer bağlantısının süresi doldu
 $transfer_text_and_bin_exclusive: Metin ve ikili veri parametreleri birlikte kullanılamaz
 $unsupported_deeplink_parameter: Bu derin bağlantı desteklenmeyen parametreler içeriyor.
 $unsupported_chain: Desteklenmeyen blok zinciri.
 Successfully: Başarıyla
-Unstake More: Unstake daha fazla
 Are you sure you want to burn this NFT? It will be lost forever.: Bu NFT'yi yakmak istediğinizden emin misiniz? Sonsuza kadar kaybolacak.
 $multi_burn_nft_warning: |
   %amount% NFT yakacaksınız. İşlem ~%duration% sürebilir. Lütfen işlem tamamlanana kadar uygulamayı kapatmayın veya cüzdan değiştirmeyin.
@@ -832,7 +786,6 @@ $fee_details: |
   %chain_name% Blockchain’in çalışma prensibi şöyledir.
 Got It: Anladım
 Wallet: Cüzdan
-Trending: Trendler
 No Data: Veri Yok
 Toggle fullscreen: Tam ekranı aç/kapat
 Request is sent!: İstek gönderildi!
@@ -929,19 +882,12 @@ $DappurlTrustStatusInvalidHelp: The origin does not match this application's ver
 DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: Lütfen bu uyarıdan kaçınmak için %app_name% %mobileAppButton% veya %browserExtensionButton% kullanın.
-$reopen_in_iab_explore: Bu uyarıdan kaçınmak için uygulamalara göz atarken lütfen %exploreTab% bölümünü kullanın.
+$reopen_in_iab_explore: Bu uyarıyı görmemek için uygulamaları %exploreTab% sekmesinden açın.
 tWallet Browser: tWallet Tarayıcısı
 mobile app: mobil uygulama
 browser extension: tarayıcı uzantısı
 Exit all wallets: Tüm cüzdanlardan çık
 Can't confirm?: Giriş yapılamıyor mu?
-$safe_staking_ethena_description1: Stake işlemi tamamen merkeziyetsizdir ve **Ethena'nın resmi** denetlenmiş likit stake **akıllı sözleşmeleri** tarafından yürütülür.
-$safe_staking_ethena_description2: Yatırılan USDe stake'i, Ethena'nın **ticaret ve yatırım stratejilerinde** otomatik ve şeffaf bir şekilde ödül kazanmak için kullanılır.
-$safe_staking_ethena_description3: "**Yatırılan tutarı** tahakkuk eden faizlerle birlikte istediğiniz zaman çekebilirsiniz — fonlar, Ethena'nın standart çekim süresine göre **7 gün** içinde ana hesabınıza iade edilecektir."
-Unstake %amount%: "%amount% unstake et"
-Request Unstaking: Stake Çekme Talebi
-$unstaking_when_receive_ethena: Stake'ten çıkan bakiyenizi **7 gün** içinde alabileceksiniz.
-Coins have been unstaked!: Coin’ler çıkarıldı!
 Confirm Upgrading: Yükseltmeyi Onayla
 How does it work?: Nasıl çalışır?
 Multisend: Çoklu Gönder
@@ -951,7 +897,6 @@ Renew Domain: Alan adını yenile
 Renew Domains: Alan adlarını yenile
 Some domains are about to expire: Bazı alan adlarının süresi dolmak üzere
 $domain_expire: "**%domain%** %days% sona eriyor"
-"%token% Staking": "%token% Stake Etme"
 Add Tab: Sekme Ekle
 Customize Tabs: Sekmeleri Özelleştir
 Remove Tab: Sekmeyi Kaldır
@@ -970,7 +915,6 @@ $domains_amount %1$d:
   otherValue: "%1$d alan adı"
 Stake: Stake
 Manage Tokens: Tokenları Yönet
-Claim Rewards: Ödülleri Talep Et
 Configure DNS: DNS yapılandır
 Link to Wallet: Cüzdana bağla
 Change Wallet: Cüzdanı değiştir
@@ -997,8 +941,6 @@ $domains_was_expired:
   otherValue: "**%domain% alan adının** süresi doldu"
 Reload: Yeniden yükle
 Copy Link: Bağlantıyı kopyala
-Check eligibility for max APY: Maks. APY için uygunluğu kontrol et
-Check eligibility: Uygunluğu kontrol et
 $expired_many: Süresi Doldu
 $one_domain_expires %days%: "%days% sona eriyor"
 $multiple_domains_expire %days%: "%days% sona erecekler"
@@ -1085,8 +1027,9 @@ Show More: Daha fazla göster
 Search app or enter address: Uygulama ara veya adres gir
 Connected Apps: Bağlı Uygulamalar
 Connected Sites: Bağlı Uygulamalar
-Popular Apps: Popüler Uygulamalar
-Popular Sites: Popüler Uygulamalar
+TMail: TMail
+Mint: Mint
+Recently Viewed: Son Görüntülenenler
 $wallets_amount:
   zeroValue: Cüzdan yok
   oneValue: "%1$d cüzdan"
@@ -1353,7 +1296,6 @@ M: 1 ay
 Y: 1 yıl
 $amount_K: "%amount%B"
 $amount_M: "%amount%M"
-Happening Now: Şu anda trend
 No Dapps Found!: dApp bulunamadı!
 Edit Wallet Name: Cüzdan adını düzenle
 Wallet Name: Cüzdan adı
@@ -1372,20 +1314,14 @@ Never: Asla
 "%1$@ minutes": "%1$@ dakika"
 Unstake Request: Stake çözme talebi
 History: Geçmiş
-Earn up to %1$@ per year from your tokens: Tokenlarınızdan yılda %1$@'a kadar kazanın
 Insufficient %1$@ Balance: "Yetersiz %1$@ bakiyesi"
-Instant Withdrawal: Anında çekim
 Instantly: Anında
-Up to %1$@: "%1$@'a kadar"
-up to %1$@: "%1$@'a kadar"
-Current APR: Güncel APR
 in: içinde
 Network Error: Ağ hatası
 Enter Amount: Tutar girin
 "Swap %1$@ to %2$@": "%1$@'ı %2$@ ile değiştir"
 "%1$@ to %2$@": "%1$@ → %2$@"
 "Max %1$@": "Maks. %1$@"
-"Authorize %1$@ fee": "%1$@ ücretini onayla"
 Pending previous fee: Önceki ücret bekleniyor
 AML/KYC: AML/KYC
 Receive to: Şuraya al
@@ -1495,7 +1431,6 @@ $n_wallets_selected:
 add: ekle
 send: gönder
 swap: takas et
-earn: kazan
 Actions: İşlemler
 $actions_description: En sık kullanılan işlemlere hızlı erişin.
 Rate: Kur
@@ -1542,7 +1477,6 @@ Unexpected error. Please let the support know.: Beklenmeyen bir hata oluştu. L�
 Unlock it and open the TON App: Cihazın kilidini açın ve TON uygulamasını başlatın
 Use 4-digit Passcode: 4 haneli geçiş kodu kullan
 Use 6-digit Passcode: 6 haneli geçiş kodu kullan
-Authorize %token% Fee: "%token% ücretini onayla"
 Awaiting Previous Fee: Önceki ücret bekleniyor
 Lock: Kilitle
 Receive: Al
@@ -1574,9 +1508,6 @@ push_activity_nft_minted: NFT mint edildi
 push_activity_nft_minted_named: "NFT mint edildi: %name%"
 push_activity_liquidity_deposited: Likidite sağlandı
 push_activity_liquidity_withdrawn: Likidite çekildi
-push_activity_stake_deposit: "%amount% %symbol% stake edildi"
-push_activity_stake_withdrawal: "%amount% %symbol% stake çekimi yapıldı"
-push_activity_stake_withdrawal_request: Stake çekim talebi gönderildi
 push_activity_auction_bid: "%amount% %symbol% açık artırma teklifi verildi"
 push_activity_dns_changed: DNS kaydı güncellendi
 push_activity_dns_deleted: DNS kaydı silindi
@@ -1588,8 +1519,6 @@ push_activity_swap_completed: Takas %from_symbol% -> %to_symbol% tamamlandı
 push_activity_swap_failed: Takas %from_symbol% -> %to_symbol% başarısız oldu
 push_activity_swap_expired: Takas %from_symbol% -> %to_symbol% süresi doldu
 push_activity_swap_pending: Takas %from_symbol% -> %to_symbol% %status%
-push_activity_staking_profit: Staking karı %amount% GRAM
-push_activity_staking_loyalty_profit: Staking sadakat karı %amount% GRAM
 push_domain_title_renew: Alan adınızı yenileyin
 push_domain_expired_yesterday: Alan adınız %domain% dün süresi doldu. Erişimi kaybetmemek için lütfen en kısa sürede yenileyin
 push_domain_expired_days_ago: Alan adınız %domain% %days% gün önce süresi doldu. Erişimi kaybetmemek için lütfen en kısa sürede yenileyin

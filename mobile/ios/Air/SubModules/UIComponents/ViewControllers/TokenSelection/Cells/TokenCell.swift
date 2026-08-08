@@ -173,7 +173,6 @@ public final class TokenCell: UICollectionViewCell {
             balance: walletToken.balance,
             isAvailable: isAvailable,
             secondaryAmountMode: secondaryAmountMode,
-            isStaking: walletToken.isStaking,
             fallbackName: walletToken.tokenSlug,
             isCurrentSelection: isCurrentSelection,
             onSelect: onSelect
@@ -191,7 +190,6 @@ public final class TokenCell: UICollectionViewCell {
             balance: balance,
             isAvailable: isAvailable,
             secondaryAmountMode: secondaryAmountMode,
-            isStaking: false,
             fallbackName: token.name,
             isCurrentSelection: isCurrentSelection,
             onSelect: onSelect
@@ -202,17 +200,15 @@ public final class TokenCell: UICollectionViewCell {
                            balance: BigInt,
                            isAvailable: Bool,
                            secondaryAmountMode: SecondaryAmountMode,
-                           isStaking: Bool,
                            fallbackName: String,
                            isCurrentSelection: Bool,
                            onSelect: @escaping () -> Void) {
         self.onSelect = onSelect
-        iconView.config(with: token, isStaking: isStaking, isWalletView: false, shouldShowChain: AccountStore.account?.isMultichain == true || token?.chain != .ton)
+        iconView.config(with: token, shouldShowChain: AccountStore.account?.isMultichain == true || token?.chain != .ton)
         let badgeText = token?.label?.nilIfEmpty
         titleLabel.text = if let token {
             MTokenBalance.displayName(
                 apiToken: token,
-                isStaking: isStaking,
                 strippingLabelWhenShown: badgeText != nil
             )
         } else {

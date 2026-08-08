@@ -133,15 +133,6 @@ public final class IconAccessoryView: UIView {
         setShowsSoftLightOverlay(true)
     }
 
-    public func configurePercentBadge(backgroundColor: UIColor = .air.positiveAmount) {
-        setClockVisible(false)
-        imageView.contentMode = .scaleToFill
-        imageView.image = .airBundle("Percent")
-        imageView.tintColor = .white
-        imageView.backgroundColor = backgroundColor
-        setShowsSoftLightOverlay(false)
-    }
-
     public func reset() {
         imageView.kf.cancelDownloadTask()
         imageView.image = nil

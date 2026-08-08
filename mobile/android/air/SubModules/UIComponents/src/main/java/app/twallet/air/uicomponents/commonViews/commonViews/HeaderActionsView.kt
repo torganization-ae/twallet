@@ -37,9 +37,7 @@ import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.requireDrawableCompat
 import app.twallet.air.walletcontext.models.MBlockchainNetwork
 import app.twallet.air.walletcore.models.MAccount
-import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
-import app.twallet.air.walletcore.tokenSlugToStakingSlug
 import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
@@ -183,7 +181,6 @@ class HeaderActionsView(
         RECEIVE,
         SEND,
         MULTISEND,
-        EARN,
         SWAP,
         LOCK_APP,
         TOGGLE_SENSITIVE_DATA_PROTECTION,
@@ -326,33 +323,10 @@ class HeaderActionsView(
 
     override fun updateActions(account: MAccount?, tokenSlug: String?) {
         this.account = account
-        val isMainNet = account?.isMainnet == true
         val isLpToken = TokenStore.getToken(tokenSlug)?.isLpToken == true
         setReceiveVisibility(account?.supportsReceiveScreen == true)
         setSendVisibility(account?.accountType != MAccount.AccountType.VIEW)
-        setEarnVisibility(isMainNet)
         setSwapVisibility(account?.supportsSwap == true && !isLpToken)
-        updateEarnTitle(account, tokenSlug)
-    }
-
-    private fun updateEarnTitle(account: MAccount?, tokenSlug: String?) {
-        val label = actionViews[Identifier.EARN]?.label ?: return
-        val hasActiveStaking = account?.let { currentAccount ->
-            val stakingTokenSlug = tokenSlug?.let { tokenSlugToStakingSlug(it) ?: it }
-            StakingStore.getStakingState(currentAccount.accountId)?.let { stakingData ->
-                if (stakingTokenSlug != null) {
-                    stakingData.hasActiveStaking(stakingTokenSlug)
-                } else {
-                    stakingData.hasActiveStaking()
-                }
-            } ?: false
-        } ?: false
-        val title = LocaleController.getString(if (hasActiveStaking) "Earning" else "Earn")
-        if (label.text == title) {
-            return
-        }
-        label.text = title
-        updateTextSizes()
     }
 
     private fun setReceiveVisibility(visible: Boolean) {
@@ -367,9 +341,6 @@ class HeaderActionsView(
         actionViews[Identifier.SWAP]?.visibility = if (visible) VISIBLE else GONE
     }
 
-    private fun setEarnVisibility(visible: Boolean) {
-        actionViews[Identifier.EARN]?.visibility = if (visible) VISIBLE else GONE
-    }
 
     private class HeaderActionItem(
         context: Context,
@@ -416,7 +387,7 @@ class HeaderActionsView(
         private const val ICON_SIZE = 44
         private const val ICON_INNER_SIZE = 30
 
-        fun headerTabs(context: Context, showEarn: Boolean): List<Item> {
+        fun headerTabs(context: Context): List<Item> {
             return mutableListOf<Item>().apply {
                 add(
                     Item(
@@ -439,15 +410,6 @@ class HeaderActionsView(
                         LocaleController.getString("Swap")
                     )
                 )
-                if (showEarn) {
-                    add(
-                        Item(
-                            Identifier.EARN,
-                            context.requireDrawableCompat(R.drawable.ic_header_earn_outline),
-                            LocaleController.getString("Earn")
-                        )
-                    )
-                }
             }
         }
     }

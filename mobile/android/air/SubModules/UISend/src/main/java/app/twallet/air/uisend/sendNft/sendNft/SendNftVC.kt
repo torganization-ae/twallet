@@ -543,6 +543,15 @@ class SendNftVC(
         }
     }
 
+    override fun addressResolvingChanged(isResolving: Boolean) {
+        val destination = viewModel.inputAddress.trim()
+        if (isResolving && destination.isNotEmpty()) {
+            addressInputView.showResolvingOverlay(destination)
+        } else if (!isResolving) {
+            addressInputView.stopResolvingOverlay(hideIfUnresolved = true)
+        }
+    }
+
     override fun addressSearchCandidatesChanged(enabled: Boolean) {
         suggestionsBoxView.isEnabled = enabled
     }
@@ -747,6 +756,7 @@ class SendNftVC(
         val name = info.addressName
         val isScam = info.isScam == true
         updateContinueButtonType(isScam)
+        addressInputView.stopResolvingOverlay()
 
         if (isScam) {
             val address = resolved ?: destination
@@ -760,20 +770,18 @@ class SendNftVC(
             return
         }
 
-        if (!resolved.isNullOrEmpty() && !name.isNullOrEmpty()) {
+        if (!resolved.isNullOrEmpty() && (!name.isNullOrEmpty() || resolved != destination)) {
             addressInputView.setAddress(
                 MSavedAddress(
                     address = resolved,
-                    name = name,
+                    name = name?.takeIf { it.isNotEmpty() } ?: destination,
                     chain = info.chain.name
                 )
             )
             return
         }
 
-        if (addressInputView.getKeyword() != destination) {
-            addressInputView.setText(destination)
-        }
+        addressInputView.setText(destination)
     }
 
     private fun updateContinueButtonType(isScam: Boolean) {

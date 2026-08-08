@@ -101,7 +101,6 @@ function SwapInitial({
     estimateSwap,
     setSwapScreen,
     setSwapCexAddress,
-    authorizeDiesel,
     showToast,
   } = getActions();
   const lang = useLang();
@@ -181,13 +180,12 @@ function SwapInitial({
     : 0n;
   const isEnoughNative = nativeTokenInBalance >= networkFeeBigint;
 
-  const isDieselNotAuthorized = explainedFee.isGasless && dieselStatus === 'not-authorized';
-
-  const canSubmit = isDieselNotAuthorized || (
+  const canSubmit = (
     (amountInBigint ?? 0n) > 0n
     && (amountOutBigint ?? 0n) > 0n
     && isEnoughBalance
-    && (!explainedFee.isGasless || dieselStatus === 'available' || dieselStatus === 'stars-fee')
+    && (!explainedFee.isGasless || dieselStatus === 'available')
+    && dieselStatus !== 'pending-previous'
     && !isEstimating
     && errorType === undefined
   );
@@ -199,7 +197,7 @@ function SwapInitial({
   const isAmountGreaterThanBalance = balanceIn !== undefined && amountInBigint !== undefined
     && amountInBigint > balanceIn;
   const hasInsufficientFeeError = isEnoughBalance === false && !isAmountGreaterThanBalance
-    && dieselStatus !== 'not-authorized' && dieselStatus !== 'pending-previous';
+    && dieselStatus !== 'pending-previous';
 
   const isPriceImpactError = priceImpact >= MAX_PRICE_IMPACT_VALUE;
   const isCrosschain = swapType !== SwapType.OnChain;
@@ -287,11 +285,6 @@ function SwapInitial({
     stopEvent(e);
 
     if (!canSubmit) {
-      return;
-    }
-
-    if (isDieselNotAuthorized) {
-      authorizeDiesel();
       return;
     }
 

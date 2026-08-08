@@ -2,18 +2,14 @@ import type { ElementRef } from '../../../../lib/teact/teact';
 import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiBaseCurrency, ApiCurrencyRates, ApiStakingState } from '../../../../api/types';
+import type { ApiBaseCurrency, ApiCurrencyRates } from '../../../../api/types';
 import type { IAnchorPosition, UserToken } from '../../../../global/types';
 import type { Layout } from '../../../../hooks/useMenuPosition';
 import type { DropdownItem } from '../../../ui/Dropdown';
 
 import { CURRENCIES } from '../../../../config';
 import { Big } from '../../../../lib/big.js';
-import {
-  selectAccountStakingStates,
-  selectCurrentAccountId,
-  selectCurrentAccountTokens,
-} from '../../../../global/selectors';
+import { selectCurrentAccountTokens } from '../../../../global/selectors';
 import { calculateFullBalance } from '../../../../util/calculateFullBalance';
 import { formatCurrency, getShortCurrencySymbol } from '../../../../util/formatNumber';
 
@@ -38,7 +34,6 @@ interface StateProps {
   currentCurrency?: ApiBaseCurrency;
   tokens?: UserToken[];
   currencyRates: ApiCurrencyRates;
-  stakingStates?: ApiStakingState[];
 }
 
 function CurrencySwitcherMenu({
@@ -53,7 +48,6 @@ function CurrencySwitcherMenu({
   hideBalance,
   tokens,
   currencyRates,
-  stakingStates,
   onClose,
   onChange,
 }: OwnProps & StateProps) {
@@ -70,7 +64,7 @@ function CurrencySwitcherMenu({
     }
 
     const totalBalanceInUsd = new Big(
-      calculateFullBalance(tokens, stakingStates).primaryValueUsd,
+      calculateFullBalance(tokens).primaryValueUsd,
     );
 
     return entries
@@ -90,7 +84,7 @@ function CurrencySwitcherMenu({
           description: formattedBalance,
         };
       });
-  }, [excludedCurrency, tokens, currencyRates, stakingStates, hideBalance]);
+  }, [excludedCurrency, tokens, currencyRates, hideBalance]);
 
   const handleBaseCurrencyChange = useLastCallback((currency: string) => {
     onClose();
@@ -134,12 +128,9 @@ function CurrencySwitcherMenu({
 }
 
 export default memo(withGlobal<OwnProps>((global) => {
-  const currentAccountId = selectCurrentAccountId(global);
-
   return {
     currentCurrency: global.settings.baseCurrency,
     tokens: selectCurrentAccountTokens(global),
     currencyRates: global.currencyRates,
-    stakingStates: selectAccountStakingStates(global, currentAccountId!),
   };
 })(CurrencySwitcherMenu));

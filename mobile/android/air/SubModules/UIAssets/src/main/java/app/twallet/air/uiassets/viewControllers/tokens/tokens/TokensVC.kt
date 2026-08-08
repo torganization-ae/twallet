@@ -47,10 +47,6 @@ import app.twallet.air.uicomponents.widgets.segmentedController.WSegmentedContro
 import app.twallet.air.uireceive.ReceiveVC
 import app.twallet.air.uisend.send.SendVC
 import app.twallet.air.uisettings.viewControllers.assetsAndActivities.AssetsAndActivitiesVC
-import app.twallet.air.uistake.earn.EarnRootVC
-import app.twallet.air.uistake.helpers.ClaimRewardsHelper
-import app.twallet.air.uistake.staking.StakingVC
-import app.twallet.air.uistake.staking.StakingViewModel
 import app.twallet.air.uiswap.screens.swap.SwapVC
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.theme.ThemeManager
@@ -347,21 +343,14 @@ class TokensVC(
                 MAssetsAndActivityData(accountId)
             }
             val newPinnedSlugs = assetsAndActivityData.pinnedTokens.toSet()
-            val allWalletTokens: Array<MTokenBalance> = assetsAndActivityData.getAllTokens(
-                addVirtualStakingTokens = true
-            )
+            val allWalletTokens: Array<MTokenBalance> = assetsAndActivityData.getAllTokens()
 
             val filteredWalletTokens = allWalletTokens.filter {
-                if (it.isVirtualStakingRow) {
-                    val slug = it.virtualStakingToken ?: return@filter false
-                    !assetsAndActivityData.hiddenTokens.contains(slug)
-                } else {
-                    val token = TokenStore.getToken(it.token)
-                    token?.isHidden(
-                        showingAccount,
-                        assetsAndActivityData
-                    ) != true
-                }
+                val token = TokenStore.getToken(it.token)
+                token?.isHidden(
+                    showingAccount,
+                    assetsAndActivityData
+                ) != true
             }
             withContext(Dispatchers.Main) {
                 pinnedSlugs = newPinnedSlugs
@@ -491,8 +480,7 @@ class TokensVC(
             WalletEvent.BalanceChanged,
             WalletEvent.AssetsAndActivityDataUpdated,
             WalletEvent.ChainVisibilityChanged,
-            is WalletEvent.AccountChanged,
-            WalletEvent.StakingDataUpdated -> {
+            is WalletEvent.AccountChanged -> {
                 dataUpdated(forceUpdate = false)
             }
 
@@ -529,15 +517,6 @@ class TokensVC(
                 cell.onTap = { tokenBalance ->
                     val token = TokenStore.getToken(tokenBalance.token)
                     token?.let {
-                        if (tokenBalance.isVirtualStakingRow) {
-                            val navVC = WNavigationController(
-                                window!!,
-                                WNavigationController.PresentationConfig.PreferredFullScreen
-                            )
-                            navVC.setRoot(EarnRootVC(context, tokenSlug = token.slug))
-                            window?.present(navVC)
-                            return@let
-                        }
                         val account = AccountStore.activeAccount ?: return@let
                         val tokenVC = TokenVC(context, account, it)
                         navigationController?.push(tokenVC)
@@ -563,7 +542,7 @@ class TokensVC(
         indexPath: IndexPath
     ) {
         val tokenBalance = walletTokens[indexPath.row]
-        val isPinned = tokenBalance.virtualStakingToken?.let { pinnedSlugs.contains(it) } == true
+        val isPinned = tokenBalance.token?.let { pinnedSlugs.contains(it) } == true
         (cellHolder.cell as TokenCell).configure(
             showingAccountId,
             isShowingAccountMultichain,
@@ -575,7 +554,7 @@ class TokensVC(
     }
 
     override fun recyclerViewCellItemId(rv: RecyclerView, indexPath: IndexPath): String? {
-        return walletTokens.getOrNull(indexPath.row)?.virtualStakingToken
+        return walletTokens.getOrNull(indexPath.row)?.token
     }
 
     override fun onDestroy() {
@@ -766,7 +745,7 @@ class TokensVC(
             emptyList()
         }.toMutableList().apply {
             val isPinned =
-                tokenBalance.virtualStakingToken?.let { pinnedSlugs.contains(it) } == true
+                tokenBalance.token?.let { pinnedSlugs.contains(it) } == true
             if (isPinned) {
                 add(
                     WMenuPopup.Item(
@@ -795,68 +774,26 @@ class TokensVC(
         tokenBalance: MTokenBalance,
         token: MToken
     ): List<WMenuPopup.Item> {
-        val actions = if (tokenBalance.isVirtualStakingRow) {
-            buildStakingActions(tokenBalance)
-        } else {
-            buildTokenActions(token)
-        }.toMutableList()
+        val actions = buildTokenActions(token).toMutableList()
         actions.last().hasSeparator = true
         return actions
     }
 
     private fun buildTokenActions(token: MToken): List<WMenuPopup.Item> {
-        val actions: MutableList<WMenuPopup.Item> = mutableListOf()
-        actions.add(
+        return listOf(
             WMenuPopup.Item(
                 R.drawable.ic_plus_30,
                 LocaleController.getString("Add")
-            ) { openAdd(token) }
-        )
-        actions.add(
+            ) { openAdd(token) },
             WMenuPopup.Item(
                 R.drawable.ic_arrow_up_thin_30,
                 LocaleController.getString("Send")
-            ) { openSend(token) }
-        )
-        actions.add(
+            ) { openSend(token) },
             WMenuPopup.Item(
                 R.drawable.ic_swap_30,
                 LocaleController.getString("Swap")
-            ) { openSwap(token) }
+            ) { openSwap(token) },
         )
-        if (token.isEarnAvailable) {
-            val hasActiveStaking = AccountStore.stakingData?.hasActiveStaking(token.slug) == true
-            actions.add(
-                WMenuPopup.Item(
-                    R.drawable.ic_stake_30,
-                    LocaleController.getString("Stake")
-                ) { openStake(token, hasActiveStaking) }
-            )
-        }
-        return actions
-    }
-
-    private fun buildStakingActions(tokenBalance: MTokenBalance): List<WMenuPopup.Item> {
-        val actions = mutableListOf(
-            WMenuPopup.Item(
-                R.drawable.ic_arrow_up_thin_30,
-                LocaleController.getString("Stake More")
-            ) { stakeMore(tokenBalance) },
-            WMenuPopup.Item(
-                R.drawable.ic_arrow_down_thin_30,
-                LocaleController.getString("Unstake")
-            ) { unstake(tokenBalance) }
-        )
-        val stakingState = AccountStore.stakingData?.stakingState(tokenBalance.token)
-        if (ClaimRewardsHelper.canClaimRewards(stakingState)) {
-            actions.add(
-                WMenuPopup.Item(
-                    R.drawable.ic_diamond_30,
-                    LocaleController.getString("Claim Rewards")
-                ) { claimRewards(tokenBalance) }
-            )
-        }
-        return actions
     }
 
     private fun openAdd(token: MToken) {
@@ -909,20 +846,6 @@ class TokensVC(
         window.present(navVC)
     }
 
-    private fun openStake(token: MToken, hasActiveStaking: Boolean) {
-        val window = this.window ?: return
-        val navVC = WNavigationController(
-            window,
-            WNavigationController.PresentationConfig.PreferredFullScreen
-        ).apply {
-            if (hasActiveStaking) {
-                setRoot(EarnRootVC(context, token.slug))
-            } else {
-                setRoot(StakingVC(context, token.slug, StakingViewModel.Mode.STAKE))
-            }
-        }
-        window.present(navVC)
-    }
 
     private fun openManageAssets() {
         val window = this.window ?: return
@@ -960,59 +883,24 @@ class TokensVC(
         updatePinnedToken(tokenBalance, shouldPin = false)
     }
 
-    private fun stakeMore(tokenBalance: MTokenBalance) {
-        val token = tokenBalance.token ?: return
-        val window = this.window ?: return
-        val navVC = WNavigationController(
-            window,
-            WNavigationController.PresentationConfig.PreferredFullScreen
-        ).apply {
-            setRoot(StakingVC(context, token, StakingViewModel.Mode.STAKE))
-        }
-        window.present(navVC)
-    }
 
-    private fun unstake(tokenBalance: MTokenBalance) {
-        val token = tokenBalance.token ?: return
-        val window = this.window ?: return
-        val navVC = WNavigationController(
-            window,
-            WNavigationController.PresentationConfig.PreferredFullScreen
-        ).apply {
-            setRoot(StakingVC(context, token, StakingViewModel.Mode.UNSTAKE))
-        }
-        window.present(navVC)
-    }
 
-    private fun claimRewards(tokenBalance: MTokenBalance) {
-        val tokenSlug = tokenBalance.token ?: return
-        val stakingState = AccountStore.stakingData?.stakingState(tokenSlug) ?: return
-        ClaimRewardsHelper.presentClaimRewards(
-            viewController = this,
-            tokenSlug = tokenSlug,
-            stakingState = stakingState,
-            amountToClaim = stakingState.amountToClaim,
-            onError = { error ->
-                showError(error)
-            }
-        )
-    }
 
     private fun updatePinnedToken(tokenBalance: MTokenBalance, shouldPin: Boolean) {
         val accountId = showingAccountId
         if (AccountStore.activeAccountId != accountId) {
             return
         }
-        val virtualStakingSlug = tokenBalance.virtualStakingToken ?: return
+        val slug = tokenBalance.token ?: return
         val currentData = AccountStore.assetsAndActivityData
         val pinned = currentData.pinnedTokens.toMutableList()
-        val isPinned = pinned.contains(virtualStakingSlug)
+        val isPinned = pinned.contains(slug)
         if (shouldPin == isPinned) {
             return
         }
-        pinned.removeAll { it == virtualStakingSlug }
+        pinned.removeAll { it == slug }
         if (shouldPin) {
-            pinned.add(0, virtualStakingSlug)
+            pinned.add(0, slug)
         }
         currentData.pinnedTokens = ArrayList(pinned)
         AccountStore.updateAssetsAndActivityData(

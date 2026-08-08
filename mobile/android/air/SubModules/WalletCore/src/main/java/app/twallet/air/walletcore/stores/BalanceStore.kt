@@ -8,11 +8,6 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import app.twallet.air.walletbasecontext.models.MBaseCurrency
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
-import app.twallet.air.walletcore.MYCOIN_SLUG
-import app.twallet.air.walletcore.STAKE_SLUG
-import app.twallet.air.walletcore.STAKING_SLUGS
-import app.twallet.air.walletcore.TONCOIN_SLUG
-import app.twallet.air.walletcore.USDE_SLUG
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.api.PortfolioBootstrapHolding
 import app.twallet.air.walletcore.api.recordPortfolioSnapshot
@@ -193,10 +188,7 @@ object BalanceStore : IStore {
         val priceBySlug = linkedMapOf<String, Double>()
 
         for ((tokenSlug, balance) in accountBalances) {
-            if (STAKING_SLUGS.contains(tokenSlug)) continue
-            val token = TokenStore.getToken(
-                if (tokenSlug == STAKE_SLUG) TONCOIN_SLUG else tokenSlug
-            ) ?: continue
+            val token = TokenStore.getToken(tokenSlug) ?: continue
             if (ChainVisibilityStore.isHidden(token.chain, network)) continue
             val priceUsd = token.priceUsd
             if (priceUsd <= 0.0) continue
@@ -204,25 +196,6 @@ object BalanceStore : IStore {
             if (amount <= 0.0) continue
             amountBySlug[tokenSlug] = (amountBySlug[tokenSlug] ?: 0.0) + amount
             priceBySlug[tokenSlug] = priceUsd
-        }
-
-        val staking = StakingStore.getStakingState(accountId)
-        if (staking != null) {
-            val parts = listOf(
-                TONCOIN_SLUG to staking.totalTonBalance,
-                MYCOIN_SLUG to staking.totalMycoinBalance,
-                USDE_SLUG to staking.totalUSDeBalance,
-            )
-            for ((slug, balance) in parts) {
-                val nonNullBalance = balance ?: continue
-                val token = TokenStore.getToken(slug) ?: continue
-                val priceUsd = token.priceUsd
-                if (priceUsd <= 0.0) continue
-                val amount = nonNullBalance.doubleAbsRepresentation(token.decimals)
-                if (amount <= 0.0) continue
-                amountBySlug[slug] = (amountBySlug[slug] ?: 0.0) + amount
-                priceBySlug[slug] = priceUsd
-            }
         }
 
         return amountBySlug.mapNotNull { (slug, amount) ->
@@ -270,10 +243,7 @@ object BalanceStore : IStore {
 
         var walletUsd = 0.0
         for ((tokenSlug, balance) in accountBalances) {
-            if (STAKING_SLUGS.contains(tokenSlug)) continue
-            val token = TokenStore.getToken(
-                if (tokenSlug == STAKE_SLUG) TONCOIN_SLUG else tokenSlug
-            ) ?: continue
+            val token = TokenStore.getToken(tokenSlug) ?: continue
             if (ChainVisibilityStore.isHidden(token.chain, network)) continue
             val usd = MTokenBalance.fromParameters(token, balance)?.toUsdBaseCurrency ?: continue
             if (usd <= 0.0) continue
@@ -281,31 +251,7 @@ object BalanceStore : IStore {
             walletUsd += usd
         }
 
-        val stakingUsd = addStakingUsdByTokenSlug(accountId, bySlug)
-        return PortfolioSnapshotUsd(totalUsd = walletUsd + stakingUsd, bySlug = bySlug)
-    }
-
-    /** Attribute staking USD to the underlying token slug (parity with web `buildPortfolioSnapshotValues`). */
-    private fun addStakingUsdByTokenSlug(
-        accountId: String,
-        bySlug: MutableMap<String, Double>,
-    ): Double {
-        val staking = StakingStore.getStakingState(accountId) ?: return 0.0
-        var total = 0.0
-        val parts = listOf(
-            TONCOIN_SLUG to staking.totalTonBalance,
-            MYCOIN_SLUG to staking.totalMycoinBalance,
-            USDE_SLUG to staking.totalUSDeBalance,
-        )
-        for ((slug, balance) in parts) {
-            val usd = MTokenBalance.fromParameters(TokenStore.getToken(slug), balance)
-                ?.toUsdBaseCurrency
-                ?: continue
-            if (usd <= 0.0) continue
-            bySlug[slug] = (bySlug[slug] ?: 0.0) + usd
-            total += usd
-        }
-        return total
+        return PortfolioSnapshotUsd(totalUsd = walletUsd, bySlug = bySlug)
     }
 
     fun resetBalanceInBaseCurrency() {
@@ -364,12 +310,9 @@ object BalanceStore : IStore {
 
         val network = MBlockchainNetwork.ofAccountId(accountId).value
         val walletUsd = accountBalances
-            .filter { !STAKING_SLUGS.contains(it.key) }
             .entries
             .sumOf { (tokenSlug, balance) ->
-                val token =
-                    TokenStore.getToken(if (tokenSlug == STAKE_SLUG) TONCOIN_SLUG else tokenSlug)
-                        ?: return@sumOf 0.0
+                val token = TokenStore.getToken(tokenSlug) ?: return@sumOf 0.0
                 if (ChainVisibilityStore.isHidden(token.chain, network)) {
                     return@sumOf 0.0
                 }
@@ -382,14 +325,8 @@ object BalanceStore : IStore {
                 usd
             }
 
-        val stakingUsd = StakingStore.getStakingState(accountId)?.totalBalanceInUSD() ?: 0.0
-        if (stakingUsd != 0.0) {
-            perChain[MBlockchain.ton] = (perChain[MBlockchain.ton] ?: 0.0) + stakingUsd
-        }
-
-        val totalUsd = walletUsd + stakingUsd
         return TotalBalanceResult(
-            total = totalUsd * currencyRate,
+            total = walletUsd * currencyRate,
             perChain = perChain.mapValues { it.value * currencyRate }
         )
     }
@@ -398,19 +335,16 @@ object BalanceStore : IStore {
         accountId: String,
     ): Double? {
         val accountBalances = balances[accountId]
-        val walletTokens = accountBalances?.filter { !STAKING_SLUGS.contains(it.key) }
+        val walletTokens = accountBalances
             ?.mapNotNull { (tokenSlug, balance) ->
-                val token =
-                    TokenStore.getToken(if (tokenSlug == STAKE_SLUG) "toncoin" else tokenSlug)
+                val token = TokenStore.getToken(tokenSlug)
                 if (token != null)
                     MTokenBalance.fromParameters(token, balance)
                 else
                     null
             } ?: return null
-        val stakingBalance =
-            StakingStore.getStakingState(accountId)?.totalBalanceInBaseCurrency24h() ?: 0.0
 
-        return (walletTokens.sumOf { it.toBaseCurrency24h ?: 0.0 } + stakingBalance)
+        return walletTokens.sumOf { it.toBaseCurrency24h ?: 0.0 }
     }
 
 }

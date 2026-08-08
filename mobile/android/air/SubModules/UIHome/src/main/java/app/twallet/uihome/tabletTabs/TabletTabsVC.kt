@@ -47,6 +47,7 @@ import app.twallet.uihome.home.status.HomeStatusController
 import app.twallet.uihome.home.views.header.HomeHeaderView
 import app.twallet.uihome.tabletTabs.views.TabletSidePanelView
 import app.twallet.uihome.tabs.BaseTabsVC
+import app.twallet.uihome.tabs.ProductChooserHelper
 import app.twallet.uihome.tabs.views.IBottomNavigationView
 import app.twallet.uihome.walletsTabs.WalletsTabsVC
 import kotlin.math.abs
@@ -82,6 +83,10 @@ class TabletTabsVC(context: Context) : BaseTabsVC(context), WThemedView,
             TabletSidePanelView.TabDef(
                 IBottomNavigationView.ID_SETTINGS,
                 R.drawable.ic_settings_thin, R.drawable.ic_settings_filled, "Settings"
+            ),
+            TabletSidePanelView.TabDef(
+                IBottomNavigationView.ID_TMAIL,
+                R.drawable.ic_tmail, R.drawable.ic_tmail, "TMail"
             ),
         )
     }
@@ -379,6 +384,11 @@ class TabletTabsVC(context: Context) : BaseTabsVC(context), WThemedView,
     }
 
     private fun selectTab(id: Int) {
+        if (id == IBottomNavigationView.ID_TMAIL) {
+            val anchor = sidePanel.getTabRowView(IBottomNavigationView.ID_TMAIL) ?: sidePanel
+            ProductChooserHelper.present(anchor, this)
+            return
+        }
         if (id == currentTabId) return
         contentNav.popToRoot(animated = false)
         navForOrNull(currentTabId)?.viewWillDisappear()

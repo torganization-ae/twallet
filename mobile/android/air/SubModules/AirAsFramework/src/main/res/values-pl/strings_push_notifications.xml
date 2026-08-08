@@ -15,9 +15,6 @@
   <string name="push_activity_nft_minted_named">Wybito NFT: %1$s</string>
   <string name="push_activity_liquidity_deposited">Dodano płynność</string>
   <string name="push_activity_liquidity_withdrawn">Wycofano płynność</string>
-  <string name="push_activity_stake_deposit">Zastakowano %1$s %2$s</string>
-  <string name="push_activity_stake_withdrawal">Odstakowano %1$s %2$s</string>
-  <string name="push_activity_stake_withdrawal_request">Zażądano wypłaty ze stakingu</string>
   <string name="push_activity_auction_bid">Złożono ofertę aukcyjną %1$s %2$s</string>
   <string name="push_activity_dns_changed">Zaktualizowano rekord DNS</string>
   <string name="push_activity_dns_deleted">Usunięto rekord DNS</string>
@@ -29,8 +26,6 @@
   <string name="push_activity_swap_failed">Wymiana %1$s -> %2$s nie powiodła się</string>
   <string name="push_activity_swap_expired">Wymiana %1$s -> %2$s wygasła</string>
   <string name="push_activity_swap_pending">Wymiana %1$s -> %2$s %3$s</string>
-  <string name="push_activity_staking_profit">Zysk ze stakingu %1$s GRAM</string>
-  <string name="push_activity_staking_loyalty_profit">Zysk lojalnościowy ze stakingu %1$s GRAM</string>
   <string name="push_domain_title_renew">Odnów swoją domenę</string>
   <string name="push_domain_expired_yesterday">Twoja domena %1$s wygasła wczoraj. Odnów ją jak najszybciej, aby nie utracić dostępu</string>
   <string name="push_domain_expired_days_ago">Twoja domena %1$s wygasła %2$s dni temu. Odnów ją jak najszybciej, aby nie utracić dostępu</string>

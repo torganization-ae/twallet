@@ -1,97 +1,140 @@
 @use "../../styles/mixins";
 
+$listHorizontalPadding: 1rem;
+
 .root {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 0.5rem;
-  align-items: center;
+  margin-bottom: 1.25rem;
 }
 
 .header {
   cursor: var(--custom-cursor, pointer);
 
-  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-  font-size: 0.8125rem;
-  font-weight: 700;
-  line-height: 1;
+  margin: 0 $listHorizontalPadding 0.625rem;
+
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.375rem;
   color: var(--color-black);
 }
 
-.folder {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 1rem;
-
-  aspect-ratio: 1;
-  width: 100%;
-  padding: 1rem;
-  border-radius: min(2rem, 25%);
-
-  background-color: var(--color-background-second);
-
-  &.interactive {
-    cursor: var(--custom-cursor, pointer);
-  }
-
-  :global(html.theme-dark) & {
-    background-color: var(--color-background-first);
-
-    @include mixins.respond-below(xs) {
-      background-color: var(--color-gray-button-background-light);
-    }
-  }
+.headerTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.subfolder {
-  --scale-value: 0.95;
+.headerChevron {
+  flex-shrink: 0;
+  margin-inline-start: 0.25rem;
+  font-size: 1rem;
+  color: var(--color-gray-3);
+}
 
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.25rem;
-  align-items: start;
+.list {
+  scrollbar-width: none;
+  scroll-padding-left: $listHorizontalPadding;
+
+  overflow-x: auto;
+  display: flex;
+  gap: 0.75rem;
+
+  padding: 0.125rem $listHorizontalPadding;
+
+  &::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  @include mixins.adapt-padding-to-scrollbar($listHorizontalPadding);
 }
 
 .site {
-  --scale-value: 1.05;
-
   cursor: var(--custom-cursor, pointer);
 
-  overflow: hidden;
   display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 0.5rem;
   align-items: center;
-  justify-content: center;
 
+  width: 4.5rem;
   margin: 0;
   padding: 0;
   border: none;
-  border-radius: min(1rem, 25%);
+
+  color: var(--color-black);
+  text-align: center;
 
   background: none;
 
-  &.small {
-    border-radius: min(0.4375rem, 25%);
+  @media (hover: hover) {
+    &:hover,
+    &:focus-visible {
+      .iconWrapper {
+        transform: scale(1.05);
+      }
+
+      .siteName {
+        color: var(--color-accent);
+      }
+    }
   }
+
+  @media (pointer: coarse) {
+    &:active {
+      .iconWrapper {
+        transform: scale(1.05);
+      }
+    }
+  }
+}
+
+.iconWrapper {
+  /* Fix for `border-radius` missing during transform on Safari. See https://stackoverflow.com/a/58283449 */
+  isolation: isolate;
+  transform-origin: center;
+
+  overflow: hidden;
+  display: block !important;
+  flex-shrink: 0;
+
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: var(--border-radius-normal);
+
+  @include mixins.transition('transform 300ms');
 }
 
 .icon {
-  aspect-ratio: 1;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
-.scalable {
-  transition: transform 300ms;
+.placeholderIcon {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
 
-  &:active {
-    transform: scale(var(--scale-value));
-  }
+  font-size: 1.75rem;
+  color: var(--color-gray-2);
 
-  @media (hover: hover) {
-    &:hover {
-      transform: scale(var(--scale-value));
-    }
-  }
+  background-color: var(--color-background-second);
+}
+
+.siteName {
+  overflow: hidden;
+
+  width: 100%;
+
+  font-size: 0.75rem;
+  font-weight: 650;
+  line-height: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @include mixins.transition('color 150ms');
 }

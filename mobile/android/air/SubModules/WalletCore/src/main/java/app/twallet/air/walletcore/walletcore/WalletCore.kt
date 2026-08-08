@@ -47,7 +47,6 @@ import app.twallet.air.walletcore.stores.ExploreHistoryStore
 import app.twallet.air.walletcore.stores.IStore
 import app.twallet.air.walletcore.stores.NftStore
 import app.twallet.air.walletcore.stores.PortfolioStore
-import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
 import java.lang.ref.WeakReference
 import kotlin.random.Random
@@ -92,35 +91,8 @@ const val AVALANCHE_SLUG = "ava"
 const val AVALANCHE_USDT_MAINNET_SLUG = "avalanche-0x9702230a"
 const val HYPERLIQUID_SLUG = "hyperliquid"
 const val HYPERLIQUID_USDC_MAINNET_SLUG = "hyperliquid-0xb88339cb"
-const val VIRTUAL_STAKING_SLUG_PREFIX = "staking-"
 const val TON_DNS_COLLECTION = "EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz"
 const val TELEGRAM_USERNAMES_COLLECTION = "EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi"
-
-val STAKING_SLUGS = setOf(
-    STAKE_SLUG, STAKED_MYCOIN_SLUG, STAKED_USDE_SLUG
-)
-
-fun tokenSlugToStakingSlug(slug: String): String? {
-    return when (slug) {
-        TONCOIN_SLUG -> STAKE_SLUG
-        MYCOIN_SLUG -> STAKED_MYCOIN_SLUG
-        USDE_SLUG -> STAKED_USDE_SLUG
-        else -> null
-    }
-}
-
-fun stakingSlugToTokenSlug(stakingSlug: String): String? {
-    return when (stakingSlug) {
-        STAKE_SLUG, TONCOIN_SLUG -> TONCOIN_SLUG
-        STAKED_MYCOIN_SLUG, MYCOIN_SLUG -> MYCOIN_SLUG
-        STAKED_USDE_SLUG, USDE_SLUG -> USDE_SLUG
-        else -> null
-    }
-}
-
-fun buildVirtualStakingSlug(baseSlug: String): String {
-    return "$VIRTUAL_STAKING_SLUG_PREFIX$baseSlug"
-}
 
 val POPULAR_WALLET_VERSIONS = listOf(
     "v3R1", "v3R2", "v4R2", "W5"
@@ -249,7 +221,7 @@ object WalletCore {
 
     val stores = listOf<IStore>(
         AccountStore, ActivityStore, AddressStore, AuthStore, BalanceStore,
-        ConfigStore, DappsStore, ExploreHistoryStore, NftStore, PortfolioStore, StakingStore,
+        ConfigStore, DappsStore, ExploreHistoryStore, NftStore, PortfolioStore,
         TokenStore
     )
 
@@ -464,7 +436,6 @@ object WalletCore {
             return
         setupDone = true
         registerConnectionChanges()
-        StakingStore.loadCachedStates()
     }
 
     private fun registerConnectionChanges() {

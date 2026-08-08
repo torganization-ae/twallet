@@ -31,6 +31,8 @@ import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 import { CLOSE_DURATION, CLOSE_DURATION_PORTRAIT } from '../../../components/ui/Modal';
 
 const GET_DAPPS_PAUSE = 250;
+const LOAD_EXPLORE_SITES_ATTEMPTS = 3;
+const LOAD_EXPLORE_SITES_RETRY_MS = 1000;
 
 // Reports a TON Connect UI event (modal shown / approved / rejected) for a real request; the worker enriches it
 // from the flow context by `promiseId`. No-op for the speculative placeholder, which has no `promiseId`.
@@ -462,8 +464,28 @@ addActionHandler('apiUpdateDappCloseLoading', (global, actions, { connectionType
 });
 
 addActionHandler('loadExploreSites', async (global, _, { isLandscape, langCode = USER_AGENT_LANG_CODE }) => {
-  const exploreData = await callApi('loadExploreSites', { isLandscape, langCode });
+  let exploreData;
+
+  for (let attempt = 0; attempt < LOAD_EXPLORE_SITES_ATTEMPTS; attempt++) {
+    exploreData = await callApi('loadExploreSites', { isLandscape, langCode });
+
+    if (exploreData && Array.isArray(exploreData.sites)) {
+      break;
+    }
+
+    if (attempt < LOAD_EXPLORE_SITES_ATTEMPTS - 1) {
+      await pause(LOAD_EXPLORE_SITES_RETRY_MS);
+    }
+  }
+
   global = getGlobal();
+
+  // `callApi` returns `undefined` on failure. Writing that into `exploreData` would wipe a
+  // previously loaded catalog and leave Explore stuck on the loading spinner forever.
+  if (!exploreData || !Array.isArray(exploreData.sites)) {
+    return;
+  }
+
   if (areDeepEqual(exploreData, global.exploreData)) {
     return;
   }

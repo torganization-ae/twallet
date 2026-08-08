@@ -204,7 +204,7 @@ fileprivate struct AmountSection: View {
 
     func onTokenTapped() {
         let walletTokens = model.$account.walletTokens ?? model.$account.balances.map { (key: String, value: BigInt) in
-            MTokenBalance(tokenSlug: key, balance: value, isStaking: false)
+            MTokenBalance(tokenSlug: key, balance: value)
         }
         let vc = SendCurrencyVC(
             accountId: model.account.id,

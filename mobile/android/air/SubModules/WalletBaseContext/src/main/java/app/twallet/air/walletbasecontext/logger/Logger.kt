@@ -39,7 +39,6 @@ object Logger {
         SHIDDevice("SHID"),
         SEND("Send"),
         SWAP("Swap"),
-        STAKING("Staking"),
         SETTINGS("Settings"),
         QR_SCAN("QRScan"),
         MEMORY("Memory"),

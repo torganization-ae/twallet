@@ -20,7 +20,6 @@ import { callApi } from '../../../api';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import { updateHistoryBundle, updatePnlChangeByAccountId, updatePortfolio } from '../../reducers';
 import {
-  selectAccountStakingStates,
   selectAccountTokens,
   selectCurrentAccountId,
   selectPortfolioMainnetWalletKeys,
@@ -150,8 +149,7 @@ async function runLoadPortfolioHistory() {
 
   const currencyRate = Number(global.currencyRates[baseCurrency] || 1);
   const tokens = selectAccountTokens(global, accountId);
-  const stakingStates = selectAccountStakingStates(global, accountId);
-  const bootstrapHoldings = buildPortfolioBootstrapHoldings(tokens, stakingStates);
+  const bootstrapHoldings = buildPortfolioBootstrapHoldings(tokens);
   const bootstrapPeriod = resolveBootstrapPeriod(range, customDateRange);
 
   await callApi(
@@ -289,11 +287,10 @@ async function runLoadPortfolioPnlChange(global: GlobalState) {
   global = getGlobal();
   const currencyRate = Number(global.currencyRates[baseCurrency] || 1);
   const tokens = selectAccountTokens(global, accountId);
-  const stakingStates = selectAccountStakingStates(global, accountId);
   await callApi(
     'ensurePortfolioSnapshotsSeeded',
     accountId,
-    buildPortfolioBootstrapHoldings(tokens, stakingStates),
+    buildPortfolioBootstrapHoldings(tokens),
     resolveBootstrapPeriod(range, customDateRange),
   );
   if (requestId !== activePnlChangeRequestId) return;
@@ -358,8 +355,7 @@ async function persistPortfolioSnapshot(accountId: string, force = false) {
   const tokens = selectAccountTokens(global, accountId);
   if (!tokens?.length) return;
 
-  const stakingStates = selectAccountStakingStates(global, accountId);
-  const { totalUsd, bySlug } = buildPortfolioSnapshotValues(tokens, stakingStates);
+  const { totalUsd, bySlug } = buildPortfolioSnapshotValues(tokens);
 
   const previous = lastSnapshotByAccount[accountId];
   const now = Date.now();

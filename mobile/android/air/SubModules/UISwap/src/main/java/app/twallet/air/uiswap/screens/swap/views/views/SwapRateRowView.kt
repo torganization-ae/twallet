@@ -55,8 +55,8 @@ class SwapRateRowView(
         setStyle(12f, WFont.Medium)
         setGradientColor(
             intArrayOf(
-                WColor.EarnGradientLeft.color,
-                WColor.EarnGradientRight.color
+                0xFF41C433.toInt(),
+                0xFF0098EB.toInt()
             )
         )
         background = HighlightGradientBackgroundDrawable(

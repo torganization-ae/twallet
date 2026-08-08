@@ -13,7 +13,6 @@ struct CrosschainFromWalletConfirmation {
 }
 
 indirect enum SwapRoute {
-    case authorizeDiesel
     case confirmSwap(presentCrosschainResult: Bool)
     case crosschainFromWallet(CrosschainFromWalletConfirmation)
     case priceImpactWarning(impact: Double, next: SwapRoute)
@@ -22,7 +21,7 @@ indirect enum SwapRoute {
         switch self {
         case .confirmSwap:
             return true
-        case .authorizeDiesel, .crosschainFromWallet, .priceImpactWarning:
+        case .crosschainFromWallet, .priceImpactWarning:
             return false
         }
     }

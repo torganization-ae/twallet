@@ -282,17 +282,26 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate {
                 sourceRect: sourceRect
             )
             return PanelPlacement(panelSize: panelSize, panelOrigin: panelOrigin, verticalDirection: direction)
-        case .sourceAttached:
+        case .sourceAttached, .preferAbove:
             let idealPanelSize = self.navigationView.preferredPanelSize(
                 constrainedTo: CGSize(width: maxPanelWidth, height: max(1.0, safeFrame.height))
             )
-            let direction = self.lockedVerticalDirection(
-                preferred: self.preferredVerticalDirection(
+            let preferredDirection: VerticalDirection
+            switch self.configuration.style.verticalPlacementBehavior {
+            case .preferAbove:
+                preferredDirection = self.preferredAboveVerticalDirection(
                     idealPanelHeight: idealPanelSize.height,
                     safeFrame: safeFrame,
                     sourceRect: sourceRect
                 )
-            )
+            default:
+                preferredDirection = self.preferredVerticalDirection(
+                    idealPanelHeight: idealPanelSize.height,
+                    safeFrame: safeFrame,
+                    sourceRect: sourceRect
+                )
+            }
+            let direction = self.lockedVerticalDirection(preferred: preferredDirection)
             let availableHeight = self.availableHeight(for: direction, safeFrame: safeFrame, sourceRect: sourceRect)
             let panelSize = self.navigationView.preferredPanelSize(
                 constrainedTo: CGSize(width: maxPanelWidth, height: max(1.0, availableHeight))
@@ -375,6 +384,23 @@ final class ContextMenuOverlayView: UIView, ContextMenuNavigationViewDelegate {
             return .above
         } else {
             return availableBelow >= availableAbove ? .below : .above
+        }
+    }
+
+    private func preferredAboveVerticalDirection(
+        idealPanelHeight: CGFloat,
+        safeFrame: CGRect,
+        sourceRect: CGRect
+    ) -> VerticalDirection {
+        let availableBelow = self.availableHeight(for: .below, safeFrame: safeFrame, sourceRect: sourceRect)
+        let availableAbove = self.availableHeight(for: .above, safeFrame: safeFrame, sourceRect: sourceRect)
+
+        if idealPanelHeight <= availableAbove {
+            return .above
+        } else if idealPanelHeight <= availableBelow {
+            return .below
+        } else {
+            return availableAbove >= availableBelow ? .above : .below
         }
     }
 

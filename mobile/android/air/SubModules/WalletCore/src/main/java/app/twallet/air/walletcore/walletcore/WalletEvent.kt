@@ -67,7 +67,6 @@ sealed class WalletEvent {
     data object DappsCountUpdated : WalletEvent()
     data class DappRemoved(val dapp: ApiDapp) : WalletEvent()
     data class DappDisconnect(val accountId: String, val origin: String) : WalletEvent()
-    data object StakingDataUpdated : WalletEvent()
     data object AssetsAndActivityDataUpdated : WalletEvent()
     data object HideTinyTransfersChanged : WalletEvent()
     data object NetworkConnected : WalletEvent()

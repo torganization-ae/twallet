@@ -52,12 +52,10 @@ class SendComposeVC: WViewController, WSensitiveDataProtocol {
                     lang("Invalid address")
                 } else if hasInsufficientBalanceError {
                     lang("Insufficient Balance")
+                } else if let dieselError = model.dieselStatus?.errorString {
+                    dieselError
                 } else {
-                    if model.draftData.transactionDraft?.diesel?.status == .notAuthorized {
-                        lang("Authorize %token% Fee", arg1: model.token.symbol)
-                    } else {
-                        lang("Continue")
-                    }
+                    lang("Continue")
                 }
                 if continueButton.title(for: .normal) != title {
                     continueButton.setTitle(title, for: .normal)
@@ -173,10 +171,6 @@ class SendComposeVC: WViewController, WSensitiveDataProtocol {
     
     @objc private func continuePressed() {
         view.resignFirstResponder()
-        if model.draftData.transactionDraft?.diesel?.status == .notAuthorized {
-            authorizeDiesel()
-            return
-        }
         if model.shouldConfirmDomainScamWarning {
             showDomainScamWarning()
             return
@@ -201,11 +195,6 @@ class SendComposeVC: WViewController, WSensitiveDataProtocol {
         navigationController?.pushViewController(vc, animated: true)
     }
     
-    private func authorizeDiesel() {
-        guard let telegramURL = model.account.dieselAuthLink else { return }
-        UIApplication.shared.open(telegramURL, options: [:], completionHandler: nil)
-    }
-
     private func showDomainScamWarning() {
         guard model.isAllowSuspiciousActions else {
             showAlert(

@@ -5,7 +5,7 @@ import React, {
 import { getActions, withGlobal } from '../../../../global';
 
 import type {
-  ApiBaseCurrency, ApiCurrencyRates, ApiStakingState,
+  ApiBaseCurrency, ApiCurrencyRates,
 } from '../../../../api/types';
 import type {
   TokenChartMode,
@@ -13,7 +13,7 @@ import type {
 } from '../../../../global/types';
 
 import {
-  selectAccountStakingStates, selectCurrentAccount,
+  selectCurrentAccount,
   selectCurrentAccountId,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
@@ -26,7 +26,6 @@ import captureEscKeyListener from '../../../../util/captureEscKeyListener';
 import { getCardGradient, getCardGradientStyle } from '../../../../util/cardColor';
 import { getShortCurrencySymbol } from '../../../../util/formatNumber';
 import { IS_IOS, IS_SAFARI } from '../../../../util/windowEnvironment';
-import { buildSegmentsByChain } from '../../../portfolio/helpers/buildStackSegments';
 
 import { useDeviceScreen } from '../../../../hooks/useDeviceScreen';
 import useFontScale from '../../../../hooks/useFontScale';
@@ -53,7 +52,6 @@ interface OwnProps {
   ref?: ElementRef<HTMLDivElement>;
   onChartCardClose: NoneToVoidFunction;
   tokenChartMode: TokenChartMode;
-  onYieldClick: (stakingId?: string) => void;
 }
 
 interface StateProps {
@@ -63,7 +61,6 @@ interface StateProps {
   currentTokenSlug?: string;
   baseCurrency: ApiBaseCurrency;
   currencyRates: ApiCurrencyRates;
-  stakingStates?: ApiStakingState[];
   isSensitiveDataHidden?: true;
   isViewMode: boolean;
   accentColorIndex?: number;
@@ -79,10 +76,8 @@ function Card({
   currentTokenSlug,
   onChartCardClose,
   tokenChartMode,
-  onYieldClick,
   baseCurrency,
   currencyRates,
-  stakingStates,
   isSensitiveDataHidden,
   isViewMode,
   accentColorIndex,
@@ -124,18 +119,8 @@ function Card({
   });
 
   const values = useMemo(() => {
-    return tokens ? calculateFullBalance(tokens, stakingStates, currencyRates[baseCurrency]) : undefined;
-  }, [tokens, stakingStates, currencyRates, baseCurrency]);
-
-  const chainSegments = useMemo(() => {
-    if (!tokens?.length) return [];
-    return buildSegmentsByChain(tokens, baseCurrency);
-  }, [tokens, baseCurrency]);
-
-  const chainSegmentsTotal = useMemo(
-    () => chainSegments.reduce((sum, segment) => sum + segment.rawAmount, 0),
-    [chainSegments],
-  );
+    return tokens ? calculateFullBalance(tokens, currencyRates[baseCurrency]) : undefined;
+  }, [tokens, currencyRates, baseCurrency]);
 
   useHistoryBack({
     isActive: Boolean(currentTokenSlug),
@@ -172,86 +157,55 @@ function Card({
     );
     const noAnimationCounter = !isUpdating || IS_SAFARI || IS_IOS || isSensitiveDataHidden;
     return (
-      <>
-        <Transition
-          ref={amountRef}
-          activeKey={isUpdating && !isSensitiveDataHidden ? 1 : 0}
-          name="fade"
-          shouldCleanup
-          className={styles.balanceTransition}
-          slideClassName={styles.balanceSlide}
+      <Transition
+        ref={amountRef}
+        activeKey={isUpdating && !isSensitiveDataHidden ? 1 : 0}
+        name="fade"
+        shouldCleanup
+        className={styles.balanceTransition}
+        slideClassName={styles.balanceSlide}
+      >
+        <SensitiveData
+          isActive={isSensitiveDataHidden}
+          rows={4}
+          cols={14}
+          cellSize={13}
+          align="center"
+          isAdaptive
+          className={styles.sensitiveData}
+          contentClassName={styles.sensitiveDataContent}
+          maskClassName={styles.blurred}
         >
-          <SensitiveData
-            isActive={isSensitiveDataHidden}
-            rows={4}
-            cols={14}
-            cellSize={13}
-            align="center"
-            isAdaptive
-            className={styles.sensitiveData}
-            contentClassName={styles.sensitiveDataContent}
-            maskClassName={styles.blurred}
-          >
-            <div className={buildClassName(styles.primaryValue, 'rounded-font')}>
-              <span
-                className={buildClassName(
-                  styles.currencySwitcher,
-                  isUpdating && 'glare-text',
-                )}
-                role="button"
-                tabIndex={0}
-                onClick={!isSensitiveDataHidden ? handleOpenPortfolio : undefined}
-              >
-                {shortBaseSymbol.length === 1 && <span className={styles.currencySymbol}>{shortBaseSymbol}</span>}
-                <AnimatedCounter isDisabled={noAnimationCounter} text={primaryWholePart ?? ''} />
-                {primaryFractionPart && (
-                  <span className={styles.primaryFractionPart}>
-                    <AnimatedCounter isDisabled={noAnimationCounter} text={`.${primaryFractionPart}`} />
-                  </span>
-                )}
-                {shortBaseSymbol.length > 1 && (
-                  <span className={styles.primaryFractionPart}>&nbsp;{shortBaseSymbol}</span>
-                )}
-                <img
-                  src={portfolioBarsSrc}
-                  alt=""
-                  className={portfolioIconClassNames}
-                  draggable={false}
-                />
-              </span>
-            </div>
-          </SensitiveData>
-        </Transition>
-        {chainSegments.length > 1 && chainSegmentsTotal > 0 && (
-          <button
-            type="button"
-            className={styles.chainBreakdown}
-            onClick={handleOpenPortfolio}
-          >
-            <div className={styles.chainBar}>
-              {chainSegments.map((segment) => (
-                <span
-                  key={segment.id}
-                  className={styles.chainBarSegment}
-                  style={`width: ${(segment.rawAmount / chainSegmentsTotal) * 100}%; background: ${segment.colorHex}`}
-                  title={`${segment.title} ${Math.round((segment.rawAmount / chainSegmentsTotal) * 100)}%`}
-                />
-              ))}
-            </div>
-            <div className={styles.chainChips}>
-              {chainSegments.slice(0, 4).map((segment) => (
-                <span key={segment.id} className={styles.chainChip}>
-                  <i className={styles.chainChipDot} style={`background: ${segment.colorHex}`} aria-hidden />
-                  {segment.title}
-                  {' '}
-                  {Math.round((segment.rawAmount / chainSegmentsTotal) * 100)}
-                  %
+          <div className={buildClassName(styles.primaryValue, 'rounded-font')}>
+            <span
+              className={buildClassName(
+                styles.currencySwitcher,
+                isUpdating && 'glare-text',
+              )}
+              role="button"
+              tabIndex={0}
+              onClick={!isSensitiveDataHidden ? handleOpenPortfolio : undefined}
+            >
+              {shortBaseSymbol.length === 1 && <span className={styles.currencySymbol}>{shortBaseSymbol}</span>}
+              <AnimatedCounter isDisabled={noAnimationCounter} text={primaryWholePart ?? ''} />
+              {primaryFractionPart && (
+                <span className={styles.primaryFractionPart}>
+                  <AnimatedCounter isDisabled={noAnimationCounter} text={`.${primaryFractionPart}`} />
                 </span>
-              ))}
-            </div>
-          </button>
-        )}
-      </>
+              )}
+              {shortBaseSymbol.length > 1 && (
+                <span className={styles.primaryFractionPart}>&nbsp;{shortBaseSymbol}</span>
+              )}
+              <img
+                src={portfolioBarsSrc}
+                alt=""
+                className={portfolioIconClassNames}
+                draggable={false}
+              />
+            </span>
+          </div>
+        </SensitiveData>
+      </Transition>
     );
   }
 
@@ -292,7 +246,6 @@ function Card({
           ref={chartCardRef}
           isUpdating={isUpdating}
           tokenChartMode={tokenChartMode}
-          onYieldClick={isViewMode ? undefined : onYieldClick}
         />
       )}
     </div>
@@ -304,8 +257,6 @@ export default memo(
     (global): StateProps => {
       const currentAccountId = selectCurrentAccountId(global)!;
       const accountState = selectCurrentAccountState(global);
-      const stakingStates = selectAccountStakingStates(global, currentAccountId);
-
       const { baseCurrency } = global.settings;
 
       return {
@@ -316,7 +267,6 @@ export default memo(
         currentTokenSlug: accountState?.currentTokenSlug,
         baseCurrency,
         currencyRates: global.currencyRates,
-        stakingStates,
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
         accentColorIndex: selectCurrentAccountSettings(global)?.accentColorIndex,
       };

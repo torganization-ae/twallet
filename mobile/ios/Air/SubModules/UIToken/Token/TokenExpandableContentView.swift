@@ -34,7 +34,7 @@ final class TokenExpandableContentView: WTouchPassView {
     private lazy var iconView: IconView = {
         let v = IconView(size: 60)
         v.setChainSize(24, borderWidth: 1.5, horizontalOffset: 5, verticalOffset: 1.5)
-        v.config(with: token, isStaking: false, isWalletView: false, shouldShowChain: true)
+        v.config(with: token, shouldShowChain: true)
         v.isUserInteractionEnabled = false
         return v
     }()
@@ -76,7 +76,7 @@ final class TokenExpandableContentView: WTouchPassView {
     
     func configure(token: ApiToken) {
         self.token = token
-        iconView.config(with: token, isStaking: false, shouldShowChain: true)
+        iconView.config(with: token, shouldShowChain: true)
         let balance = $account.balances[token.slug] ?? 0
         let balanceAsDouble = balance.doubleAbsRepresentation(decimals: token.decimals)
         let baseCurrencyValue = balanceAsDouble * (token.price ?? 0)

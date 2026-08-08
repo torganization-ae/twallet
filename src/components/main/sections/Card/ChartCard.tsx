@@ -3,7 +3,7 @@ import { useEffect, useRef } from '../../../../lib/teact/teact';
 import React, { memo, useMemo, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
-import type { ApiBaseCurrency, ApiChain, ApiStakingState } from '../../../../api/types';
+import type { ApiBaseCurrency, ApiChain } from '../../../../api/types';
 import type {
   IAnchorPosition,
   PriceHistoryPeriods,
@@ -12,10 +12,8 @@ import type {
   UserToken,
 } from '../../../../global/types';
 
-import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, IS_FEATURE_LIMITED, TONCOIN } from '../../../../config';
+import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TONCOIN } from '../../../../config';
 import {
-  selectAccountStakingStates,
-  selectCurrentAccountId,
   selectCurrentAccountState,
   selectUserTokenMemoized,
 } from '../../../../global/selectors';
@@ -57,7 +55,6 @@ interface OwnProps {
   classNames?: string;
   isUpdating?: boolean;
   tokenChartMode: TokenChartMode;
-  onYieldClick?: (stakingId?: string) => void;
 }
 
 interface StateProps {
@@ -68,7 +65,6 @@ interface StateProps {
   netWorthHistoryPeriods?: PriceHistoryPeriods;
   tokenAddress?: string;
   isTestnet?: boolean;
-  stakingStates?: ApiStakingState[];
   isSensitiveDataHidden?: true;
   selectedExplorerIds?: Partial<Record<ApiChain, string>>;
 }
@@ -91,9 +87,7 @@ function ChartCard({
   historyPeriods,
   netWorthHistoryPeriods,
   tokenAddress,
-  stakingStates,
   isSensitiveDataHidden,
-  onYieldClick,
   tokenChartMode,
   selectedExplorerIds,
 }: OwnProps & StateProps) {
@@ -126,17 +120,6 @@ function ChartCard({
   } = token ?? {};
 
   const isNetWorthMode = tokenChartMode === 'netWorth' && isNetWorthChartAvailable(token);
-
-  const { annualYield, yieldType, id: stakingId } = useMemo(() => {
-    if (IS_FEATURE_LIMITED) return undefined;
-
-    return stakingStates?.reduce((bestState, state) => {
-      if (state.tokenSlug === slug && (!bestState || state.balance > bestState.balance)) {
-        return state;
-      }
-      return bestState;
-    }, undefined as ApiStakingState | undefined);
-  }, [stakingStates, slug]) ?? {};
 
   const refreshHistory = useLastCallback((newPeriod?: TokenPeriod) => {
     if (!slug) {
@@ -320,14 +303,6 @@ function ChartCard({
         <div className={styles.tokenInfoSubheader}>
           <span className={styles.tokenTitle}>
             <span className={styles.tokenName}>{name}</span>
-            {yieldType && (
-              <span
-                className={buildClassName(styles.apy, onYieldClick && styles.interactive)}
-                onClick={onYieldClick ? () => onYieldClick(stakingId) : undefined}
-              >
-                {yieldType} {round(annualYield ?? 0, 2)}%
-              </span>
-            )}
           </span>
           {withChange && Boolean(changeValue) && (
             <div className={styles.tokenChange}>
@@ -407,11 +382,9 @@ function ChartCard({
 export default memo(
   withGlobal<OwnProps>((global, ownProps): StateProps => {
     const slug = ownProps.tokenSlug ?? '';
-    const currentAccountId = selectCurrentAccountId(global);
     const accountState = selectCurrentAccountState(global);
     const token = slug ? selectUserTokenMemoized(global, slug) : undefined;
     const tokenAddress = global.tokenInfo.bySlug[slug]?.tokenAddress;
-    const stakingStates = currentAccountId ? selectAccountStakingStates(global, currentAccountId) : undefined;
     const netWorthHistoryPeriods = accountState?.tokenNetWorthHistory?.[slug];
 
     return {
@@ -422,7 +395,6 @@ export default memo(
       historyPeriods: global.tokenPriceHistory.bySlug[slug],
       netWorthHistoryPeriods,
       tokenAddress,
-      stakingStates,
       isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
       selectedExplorerIds: global.settings.selectedExplorerIds,
     };

@@ -452,7 +452,6 @@ public class ActivityCell: WHighlightCollectionViewCell {
     @MainActor struct ConfigureDetailsOptions {
         var activity: ApiActivity
         var isMultichain = false
-        var stakingState: ApiStakingState?
         var accountChains: Set<ApiChain> = []
         var isEmulation: Bool
         var address: String = ""
@@ -464,9 +463,6 @@ public class ActivityCell: WHighlightCollectionViewCell {
             self.accountChains = accountContext.account.supportedChains
             if  case .transaction(let transaction) = activity {
                 isMultichain = accountContext.account.isMultichain
-                if activity.shouldShowTransactionAnnualYield {
-                    stakingState = accountContext.stakingData?.bySlug(activity.slug)
-                }
                 if let address = transaction.extra?.dex?.displayName ?? transaction.extra?.marketplace?.displayName {
                     self.address = address
                     self.addressLabelKey = "$transaction_on"
@@ -519,21 +515,7 @@ public class ActivityCell: WHighlightCollectionViewCell {
 
             }
 
-            if activity.shouldShowTransactionAnnualYield, let stakingState = options.stakingState {
-                if !attr.string.isEmpty {
-                    attr.append(NSAttributedString(string: " · ", attributes: detailsAttributes))
-                }
-                let annualYield = NSAttributedString(string: "\(stakingState.yieldType.rawValue) \(stakingState.annualYield.value)%", attributes: [
-                    .font: UIFont.systemFont(ofSize: 14, weight: .semibold)
-                ])
-                attr.append(attributedLang(
-                    "at %annual_yield%",
-                    attributes: detailsAttributes,
-                    arg1: annualYield
-                ))
-            } else {
-                // TODO: auction bid, nft bought
-            }
+            // TODO: auction bid, nft bought
         case .swap(let swap):
             var status: String?
             switch swap.displayStatus(accountChains: options.accountChains) {

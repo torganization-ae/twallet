@@ -47,23 +47,23 @@ final class HistorySearchProvider: SingleShotSearchProvider {
     }
 }
 
-private extension BrowserHistoryItem {
-    func urlPrefixMatches(keyword: String) -> Bool {
-        SearchURLMatching.urlHasPrefix(url, prefix: keyword)
-    }
-
-    func prefixMatches(keyword: String) -> Bool {
-        title.lowercased().hasPrefix(keyword) || urlPrefixMatches(keyword: keyword)
-    }
-
-    func matches(_ searchString: String) -> Bool {
-        let s = searchString.lowercased()
-        return title.lowercased().contains(s) || SearchURLMatching.urlContains(url, searchText: s)
-    }
-
+extension BrowserHistoryItem {
     var isGoogleSearchResult: Bool {
         guard let components = URLComponents(string: url),
               let host = components.host?.lowercased() else { return false }
         return host.contains("google.") && components.path.lowercased().hasPrefix("/search")
+    }
+
+    fileprivate func urlPrefixMatches(keyword: String) -> Bool {
+        SearchURLMatching.urlHasPrefix(url, prefix: keyword)
+    }
+
+    fileprivate func prefixMatches(keyword: String) -> Bool {
+        title.lowercased().hasPrefix(keyword) || urlPrefixMatches(keyword: keyword)
+    }
+
+    fileprivate func matches(_ searchString: String) -> Bool {
+        let s = searchString.lowercased()
+        return title.lowercased().contains(s) || SearchURLMatching.urlContains(url, searchText: s)
     }
 }

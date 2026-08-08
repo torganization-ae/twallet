@@ -4,7 +4,7 @@ import React, { memo } from '../../lib/teact/teact';
 import type { ApiToken } from '../../api/types';
 import type { FeePrecision, FeeTerms, FeeValue } from '../../util/fee/types';
 
-import { STARS_SYMBOL, TOKEN_CUSTOM_STYLES } from '../../config';
+import { TOKEN_CUSTOM_STYLES } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { toDecimal } from '../../util/decimals';
 import { formatCurrency } from '../../util/formatNumber';
@@ -17,11 +17,6 @@ const PRECISION_PREFIX: Record<FeePrecision, string> = {
   exact: '',
   approximate: '~\u202F',
   lessThan: '<\u202F',
-};
-const STARS_TOKEN: FeeToken = {
-  slug: '__stars__',
-  symbol: STARS_SYMBOL,
-  decimals: 0,
 };
 const UNKNOWN_TOKEN: FeeToken = {
   slug: '__unknown__',
@@ -66,7 +61,7 @@ function Fee({
       content.push(TERM_SEPARATOR);
     }
 
-    const currentToken = tokenType === 'stars' ? STARS_TOKEN : tokenType === 'native' ? nativeToken : token;
+    const currentToken = tokenType === 'native' ? nativeToken : token;
     const icon = shouldPreferIcons ? TOKEN_CUSTOM_STYLES[currentToken.slug]?.fontIcon : undefined;
 
     if (typeof amount === 'bigint') {

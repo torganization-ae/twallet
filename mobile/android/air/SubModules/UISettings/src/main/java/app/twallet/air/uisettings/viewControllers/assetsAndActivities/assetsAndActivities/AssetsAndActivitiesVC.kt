@@ -53,8 +53,8 @@ class AssetsAndActivitiesVC(context: Context) : WViewController(context),
 
         override fun isSame(comparing: WEquatable<*>): Boolean {
             return comparing is TokenRow
-                && balance.virtualStakingToken != null
-                && balance.virtualStakingToken == comparing.balance.virtualStakingToken
+                && balance.token != null
+                && balance.token == comparing.balance.token
         }
 
         override fun isChanged(comparing: WEquatable<*>): Boolean {
@@ -168,7 +168,7 @@ class AssetsAndActivitiesVC(context: Context) : WViewController(context),
 
     private fun reloadTokens() {
         allTokens = AccountStore.assetsAndActivityData
-            .getAllTokens(addVirtualStakingTokens = true)
+            .getAllTokens()
             .mapNotNull { balance ->
                 val slug = balance.token ?: return@mapNotNull null
                 val token = TokenStore.getToken(slug) ?: return@mapNotNull null
@@ -188,11 +188,7 @@ class AssetsAndActivitiesVC(context: Context) : WViewController(context),
         row: TokenRow,
         data: MAssetsAndActivityData
     ): Boolean {
-        return if (row.balance.isVirtualStakingRow) {
-            row.balance.virtualStakingToken?.let { data.hiddenTokens.contains(it) } == true
-        } else {
-            row.token.isHidden(AccountStore.activeAccount, data)
-        }
+        return row.token.isHidden(AccountStore.activeAccount, data)
     }
 
     override fun recyclerViewNumberOfSections(rv: RecyclerView): Int {
@@ -273,19 +269,19 @@ class AssetsAndActivitiesVC(context: Context) : WViewController(context),
             1 -> {
                 val row = allTokens[indexPath.row]
                 val slug = row.balance.token ?: return
-                val virtualStakingSlug = row.balance.virtualStakingToken ?: return
+                val tokenSlugKey = row.balance.token ?: return
                 val cell = cellHolder.cell as AssetsAndActivitiesTokenCell
                 val assetsAndActivityData = AccountStore.assetsAndActivityData
 
                 val isSwipeEnabled =
-                    assetsAndActivityData.isTokenRemovable(slug, row.balance.isVirtualStakingRow)
+                    assetsAndActivityData.isTokenRemovable(slug)
                 val isHidden = isTokenHidden(row, assetsAndActivityData)
-                val isPinned = assetsAndActivityData.pinnedTokens.contains(virtualStakingSlug)
+                val isPinned = assetsAndActivityData.pinnedTokens.contains(tokenSlugKey)
 
                 if (isSwipeEnabled) {
                     viewBinderHelper.bind(
                         cell.swipeRevealLayout,
-                        virtualStakingSlug
+                        tokenSlugKey
                     )
                 }
 
@@ -299,7 +295,7 @@ class AssetsAndActivitiesVC(context: Context) : WViewController(context),
                     onDeleteToken = if (isSwipeEnabled) {
                         {
                             val assetsAndActivityData = AccountStore.assetsAndActivityData
-                            assetsAndActivityData.deleteToken(virtualStakingSlug)
+                            assetsAndActivityData.deleteToken(tokenSlugKey)
                             AccountStore.updateAssetsAndActivityData(
                                 assetsAndActivityData,
                                 notify = true,
@@ -371,7 +367,7 @@ class AssetsAndActivitiesVC(context: Context) : WViewController(context),
             }
 
             1 -> {
-                return allTokens[indexPath.row].balance.virtualStakingToken
+                return allTokens[indexPath.row].balance.token
             }
         }
         return super.recyclerViewCellItemId(rv, indexPath)

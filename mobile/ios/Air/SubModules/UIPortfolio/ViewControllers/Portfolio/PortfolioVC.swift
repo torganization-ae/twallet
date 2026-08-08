@@ -385,16 +385,11 @@ public final class PortfolioVC: WViewController, UICollectionViewDelegate, WBack
         ]
 
         if !localInsightCards.isEmpty {
-            let localInsightsHeight = PortfolioInsightCardMetrics.totalHeight(for: localInsightCards)
             sections.append(
                     PortfolioSectionDescriptor(
                         id: .localInsights,
                         items: localInsightCards.map { .localInsight($0.id) },
-                        layout: .horizontalTiles(
-                            itemWidth: 280,
-                            estimatedHeight: localInsightsHeight,
-                            orthogonalScrolling: .continuousGroupLeadingBoundary
-                        ),
+                        layout: .fullWidthTile(estimatedHeight: PortfolioInsightCardMetrics.estimatedCardHeight),
                         contentInsets: .init(
                             top: portfolioSectionTopSpacing,
                             leading: portfolioHorizontalInset,
@@ -933,12 +928,8 @@ public final class PortfolioVC: WViewController, UICollectionViewDelegate, WBack
         }
 
         cell.backgroundColor = .clear
-        let localInsightsHeight = PortfolioInsightCardMetrics.totalHeight(for: localInsightCards)
         cell.contentConfiguration = UIHostingConfiguration {
-            PortfolioInsightCardView(
-                card: card,
-                height: localInsightsHeight
-            )
+            PortfolioInsightCardView(card: card)
         }
         .background {
             Color.clear

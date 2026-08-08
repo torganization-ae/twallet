@@ -46,10 +46,6 @@
       background-color: var(--color-interactive-item-hover);
     }
   }
-
-  &_purple {
-    color: var(--color-purple-1);
-  }
 }
 
 .icon {
@@ -73,10 +69,6 @@
   color: var(--color-black);
   text-overflow: ellipsis;
   white-space: nowrap;
-
-  .button_purple > & {
-    color: inherit;
-  }
 
   :global(html:is([lang="ru"], [lang="uk"])) & {
     font-size: 0.75rem;

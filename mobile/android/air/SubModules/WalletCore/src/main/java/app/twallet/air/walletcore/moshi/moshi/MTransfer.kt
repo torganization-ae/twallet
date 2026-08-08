@@ -93,20 +93,6 @@ data class MApiCheckTransactionDraftResult(
         get() = explainedFee?.realFee?.nativeSum ?: realFee ?: fullNativeFee
 }
 
-@JsonClass(generateAdapter = true)
-data class MApiCheckStakeDraftResult(
-    val fee: BigInteger?,
-    val realFee: BigInteger?,
-    val addressName: String?,
-    val isScam: Boolean?,
-    val resolvedAddress: String?,
-    val isToAddressNew: Boolean?,
-    val isBounceable: Boolean?,
-    val isMemoRequired: Boolean?,
-    val error: MApiAnyDisplayError?,
-    val diesel: MTransferDiesel?,
-    val tokenAmount: BigInteger,
-)
 
 @JsonClass(generateAdapter = true)
 data class MTransferDiesel(
@@ -119,9 +105,6 @@ data class MTransferDiesel(
 ) : IDiesel {
     override val tokenAmount: BigInteger?
         get() = amount
-
-    override val starsAmount: BigInteger?
-        get() = null
 }
 
 @JsonClass(generateAdapter = true)
@@ -134,9 +117,6 @@ data class MSwapDiesel(
 ) : IDiesel {
     override val tokenAmount: BigInteger?
         get() = amount?.token
-
-    override val starsAmount: BigInteger?
-        get() = amount?.stars
 }
 
 interface IDiesel {
@@ -146,12 +126,10 @@ interface IDiesel {
     val nativeAmount: BigInteger?
 
     val tokenAmount: BigInteger?
-    val starsAmount: BigInteger?
 }
 
 data class MDieselAmount(
     val token: BigInteger?,
-    val stars: BigInteger?
 )
 
 @JsonClass(generateAdapter = true)
@@ -173,7 +151,6 @@ data class MApiSubmitTransferOptions(
     val realFee: BigInteger? = null,
     val isGasless: Boolean? = null,
     val dieselAmount: BigInteger? = null,
-    val isGaslessWithStars: Boolean? = null,
     val gaslessTransaction: String? = null,
 
     /** Display name used at send time (tmail / DNS); shown on the local pending activity. */
@@ -185,17 +162,11 @@ enum class MDieselStatus {
     @Json(name = "not-available")
     NOT_AVAILABLE,
 
-    @Json(name = "not-authorized")
-    NOT_AUTHORIZED,
-
     @Json(name = "pending-previous")
     PENDING_PREVIOUS,
 
     @Json(name = "available")
     AVAILABLE,
-
-    @Json(name = "stars-fee")
-    STARS_FEE
 }
 
 @JsonClass(generateAdapter = false)

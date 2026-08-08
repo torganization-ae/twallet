@@ -2,31 +2,27 @@ import React, { memo, useMemo, useRef } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type {
-  ApiBaseCurrency, ApiCurrencyRates, ApiStakingState, ApiTokenWithPrice, ApiVestingInfo,
+  ApiBaseCurrency, ApiTokenWithPrice, ApiVestingInfo,
 } from '../../../../api/types';
 import type { LoadMoreDirection, Theme, UserSwapToken, UserToken } from '../../../../global/types';
 import { SettingsState } from '../../../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_FEATURE_LIMITED, IS_MY_WALLET_BRAND } from '../../../../config';
+import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_MY_WALLET_BRAND } from '../../../../config';
 import {
-  selectAccountStakingStates,
   selectCurrentAccountId,
   selectCurrentAccountSettings,
   selectCurrentAccountState,
   selectCurrentAccountTokens,
   selectIsCurrentAccountViewMode,
   selectIsMultichainAccount,
-  selectIsStakingDisabled,
   selectIsSwapDisabled,
   selectMycoin,
   selectSwapTokens,
 } from '../../../../global/selectors';
 import buildClassName from '../../../../util/buildClassName';
 import buildStyle from '../../../../util/buildStyle';
-import { toDecimal } from '../../../../util/decimals';
 import { buildCollectionByKey } from '../../../../util/iteratees';
 import { MEMO_EMPTY_ARRAY } from '../../../../util/memo';
-import { getIsActiveStakingState, getStakingStateStatus } from '../../../../util/staking';
 import { REM } from '../../../../util/windowEnvironment';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 import { getScrollContainerClosestSelector } from '../../helpers/scrollableContainer';
@@ -38,7 +34,6 @@ import useInfiniteScroll from '../../../../hooks/useInfiniteScroll';
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
 import usePrevious2 from '../../../../hooks/usePrevious2';
-import useTokensWithStaking from '../../../../hooks/useTokensWithStaking';
 import useVesting from '../../../../hooks/useVesting';
 
 import InfiniteScroll from '../../../ui/InfiniteScroll';
@@ -55,7 +50,6 @@ type OwnProps = {
   isSeparatePanel?: boolean;
   isWidget?: boolean;
   onTokenClick: (slug: string) => void;
-  onStakedTokenClick: (stakingId?: string) => void;
   onScroll?: (e: React.UIEvent<HTMLDivElement>) => void;
 };
 
@@ -68,14 +62,10 @@ interface StateProps {
   theme: Theme;
   mycoin?: ApiTokenWithPrice;
   isSensitiveDataHidden?: true;
-  states?: ApiStakingState[];
   isViewMode?: boolean;
   isSwapDisabled?: boolean;
   isMultichainAccount: boolean;
-  isStakingDisabled?: boolean;
   pinnedSlugs?: string[];
-  alwaysHiddenSlugs?: string[];
-  currencyRates?: ApiCurrencyRates;
 }
 
 const TOKEN_HEIGHT_REM = 4;
@@ -92,16 +82,11 @@ function Assets({
   mycoin,
   isSensitiveDataHidden,
   theme,
-  states,
   isMultichainAccount,
   isViewMode,
   isSwapDisabled,
-  isStakingDisabled,
   pinnedSlugs = MEMO_EMPTY_ARRAY,
-  alwaysHiddenSlugs = MEMO_EMPTY_ARRAY,
-  currencyRates,
   onTokenClick,
-  onStakedTokenClick,
   onScroll,
 }: OwnProps & StateProps) {
   const lang = useLang();
@@ -119,27 +104,6 @@ function Assets({
   const { isLandscape, isPortrait } = useDeviceScreen();
   const appTheme = useAppTheme(theme);
 
-  const activeStates = useMemo(() => {
-    if (IS_FEATURE_LIMITED) return [];
-
-    return states?.filter(getIsActiveStakingState) ?? [];
-  }, [states]);
-
-  // Set of BASE token slugs that have active staking.
-  // Used to prevent showing staking info (APY, etc.) on base tokens when a separate staking token exists.
-  const stakedTokenSlugs = useMemo(() => {
-    return new Set(activeStates.map((state) => state.tokenSlug));
-  }, [activeStates]);
-
-  const allTokensWithStaked = useTokensWithStaking({
-    tokens: renderedTokens,
-    states,
-    baseCurrency,
-    currencyRates,
-    pinnedSlugs,
-    alwaysHiddenSlugs,
-  });
-
   const swapTokensBySlug = useMemo(() => {
     return buildCollectionByKey<UserSwapToken>(swapTokens ?? [], 'slug');
   }, [swapTokens]);
@@ -155,10 +119,10 @@ function Assets({
   } = useVesting({ vesting, userMycoin, isDisabled: !IS_MY_WALLET_BRAND });
 
   const tokenSlugs = useMemo(() => (
-    allTokensWithStaked
+    renderedTokens
       ?.filter(({ isDisabled }) => !isDisabled)
       .map(({ slug }) => slug)
-  ), [allTokensWithStaked]);
+  ), [renderedTokens]);
   const [viewportSlugs, getMore] = useInfiniteScroll({
     listIds: tokenSlugs,
     isActive,
@@ -195,10 +159,10 @@ function Assets({
     getMore({ direction: args.direction, offsetId: tokenSlugs[targetIndex] });
   });
   const tokensBySlug = useMemo(() => (
-    allTokensWithStaked ? buildCollectionByKey(allTokensWithStaked, 'slug') : undefined
-  ), [allTokensWithStaked]);
+    renderedTokens ? buildCollectionByKey(renderedTokens, 'slug') : undefined
+  ), [renderedTokens]);
 
-  const shouldUseAnimations = Boolean(isActive && allTokensWithStaked);
+  const shouldUseAnimations = Boolean(isActive && renderedTokens);
 
   // Size the container to the rendered window (viewportIndex already includes the vesting row),
   // not the full token list. Avoids a ~8000rem spacer for wallets with thousands of tokens that
@@ -216,28 +180,15 @@ function Assets({
   });
 
   const handleTokenClick = useLastCallback((slug: string) => {
-    const token = tokensBySlug?.[slug];
-    if (token?.isStaking) {
-      onStakedTokenClick(token.stakingId);
-    } else {
-      onTokenClick(slug);
-    }
+    onTokenClick(slug);
   });
-
-  const stateByTokenSlug = useMemo(() => {
-    return buildCollectionByKey(states ?? [], 'tokenSlug');
-  }, [states]);
-
-  const stakingStateById = useMemo(() => {
-    return buildCollectionByKey(activeStates, 'id');
-  }, [activeStates]);
 
   const pinnedSlugsSet = useMemo(() => {
     return new Set(pinnedSlugs);
   }, [pinnedSlugs]);
 
   const prevPinnedSlugs = usePrevious2(pinnedSlugs);
-  const prevAllTokensWithStaked = usePrevious2(allTokensWithStaked);
+  const prevRenderedTokens = usePrevious2(renderedTokens);
 
   // Detect which token was just pinned/unpinned
   const pinToggledSlug = useMemo(() => {
@@ -261,14 +212,14 @@ function Assets({
 
   // Check if pin-toggled token stayed in the same position
   const isPinAnimatable = useMemo(() => {
-    if (!pinToggledSlug || !prevAllTokensWithStaked || !allTokensWithStaked) return false;
+    if (!pinToggledSlug || !prevRenderedTokens || !renderedTokens) return false;
 
-    const prevIndex = prevAllTokensWithStaked.findIndex((t) => t.slug === pinToggledSlug);
-    const currentIndex = allTokensWithStaked.findIndex((t) => t.slug === pinToggledSlug);
+    const prevIndex = prevRenderedTokens.findIndex((t) => t.slug === pinToggledSlug);
+    const currentIndex = renderedTokens.findIndex((t) => t.slug === pinToggledSlug);
 
     // Token stayed in the same position
     return prevIndex === currentIndex && prevIndex !== -1;
-  }, [pinToggledSlug, prevAllTokensWithStaked, allTokensWithStaked]);
+  }, [pinToggledSlug, prevRenderedTokens, renderedTokens]);
 
   function renderVestingToken() {
     return (
@@ -296,20 +247,9 @@ function Assets({
   function renderToken(token: UserToken, indexInViewport: number) {
     const topOffset = (viewportIndex + indexInViewport) * TOKEN_HEIGHT_REM;
 
-    const { stakingId, isStaking, slug, amount, decimals } = token;
-    const stakingState = stakingId ? stakingStateById[stakingId] : undefined;
-
-    // For staking tokens use their state, for base tokens use state only if not staked
-    const baseTokenState = !isStaking && !stakedTokenSlugs.has(slug)
-      ? stateByTokenSlug[slug]
-      : undefined;
-
-    const { annualYield, yieldType } = stakingState || baseTokenState || {};
-    const stakingStatus = stakingState ? getStakingStateStatus(stakingState) : undefined;
-    const isStakingAvailable = Boolean(baseTokenState && !isStakingDisabled);
+    const { slug } = token;
     const isSwapAvailable = Boolean(swapTokensBySlug[slug]);
     const isPinned = pinnedSlugsSet.has(slug);
-    const amountDecimal = isStaking ? toDecimal(amount, decimals) : undefined;
     const isPinToggled = slug === pinToggledSlug;
     const withPinTransition = isPinToggled && isPinAnimatable;
 
@@ -322,11 +262,6 @@ function Assets({
       >
         <Token
           token={token}
-          stakingStatus={stakingStatus}
-          stakingState={stakingState}
-          annualYield={annualYield}
-          yieldType={yieldType}
-          amount={amountDecimal}
           isActive={token.slug === currentTokenSlug}
           baseCurrency={baseCurrency}
           withChainIcon={isMultichainAccount}
@@ -336,7 +271,6 @@ function Assets({
           withContextMenu
           tokenClassName={isWidget ? styles.tokenInWidget : undefined}
           isViewMode={isViewMode}
-          isStakingAvailable={isStakingAvailable}
           isSwapDisabled={isSwapDisabled || !isSwapAvailable}
           isPinned={isPinned}
           withPinTransition={withPinTransition}
@@ -423,7 +357,6 @@ export default memo(
       const accountState = selectCurrentAccountState(global);
       const accountSettings = selectCurrentAccountSettings(global);
 
-      const states = selectAccountStakingStates(global, currentAccountId);
       const isViewMode = selectIsCurrentAccountViewMode(global);
 
       return {
@@ -435,14 +368,10 @@ export default memo(
         mycoin: selectMycoin(global),
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
         theme: global.settings.theme,
-        states,
         isMultichainAccount: selectIsMultichainAccount(global, currentAccountId),
         isViewMode,
         isSwapDisabled: selectIsSwapDisabled(global),
-        isStakingDisabled: selectIsStakingDisabled(global),
         pinnedSlugs: accountSettings?.pinnedSlugs,
-        alwaysHiddenSlugs: accountSettings?.alwaysHiddenSlugs,
-        currencyRates: global.currencyRates,
       };
     },
     (global, _, stickToFirst) => stickToFirst(selectCurrentAccountId(global)),

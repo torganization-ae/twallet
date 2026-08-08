@@ -9,7 +9,5 @@ data class SettingsSection(
         ACCOUNTS,
         PORTFOLIO,
         SETTINGS,
-        HELP,
-        ABOUT
     }
 }

@@ -8,7 +8,10 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.ToJson
 import kotlin.reflect.KClass
 
-class EnumJsonAdapter<T : Enum<T>>(private val enumClass: KClass<T>) : JsonAdapter<T>() {
+class EnumJsonAdapter<T : Enum<T>>(
+    private val enumClass: KClass<T>,
+    private val unknownFallback: T? = null,
+) : JsonAdapter<T>() {
     private val values =
         requireNotNull(enumClass.java.enumConstants) { "$enumClass is not an enum class" }
             .associateBy {
@@ -22,7 +25,7 @@ class EnumJsonAdapter<T : Enum<T>>(private val enumClass: KClass<T>) : JsonAdapt
         }
 
         val value = reader.nextString()
-        return values[value]
+        return values[value] ?: unknownFallback
     }
 
     @ToJson

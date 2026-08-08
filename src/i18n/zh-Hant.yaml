@@ -212,7 +212,6 @@ Testnet Version: 測試網版本
 Error reading clipboard: 讀取剪貼板時出現錯誤
 $fee_value: 手續費 %fee%
 $fee_value_with_colon: "手續費: %fee%"
-Pay fee with %stars_symbol%: 使用 %stars_symbol% 支付
 Loading...: 讀取中...
 Recipient Address: 接收人地址
 Wallet address or domain: 錢包地址或是域名
@@ -266,41 +265,10 @@ Appearance: 外觀
 Light: 亮色模式
 Dark: 暗色模式
 System: 系統
-$stake_asset: 質押 %symbol%
-Add Stake: 新增質押
-Earn from your tokens while holding them: 從你持有中的代幣獲利
-Current APY: 當前年化收益率
-Est. Yearly Earnings: 預計年收益
-Staking Details: 質押詳情
-Why this is safe: 為什麼這是安全的
-$safe_staking_description1: Staking 是**完全去中心化的**，由官方 TON Liquid Staking 智能合約運作。
-$safe_staking_description2: 作為其 **權益證明** 本質的一部分，存入的代幣將用於 %chain% 網路驗證。
-$safe_staking_description3: 您可以在**任何時候**提取您的質押資產，它會在**2 天內**存入您的帳戶。
-$safe_staking_description_jetton1: 代幣質押是 **完全去中心化的**，由 %jvault_link% 開發的 **開源** 智能合約操作，並已通過 **安全審計**。
-$safe_staking_description_jetton2: 您可以在 **任何時候** 提取您的質押，並會 **立即** 存入您的賬戶。
 $min_value: 最少 %value%
-Est. balance in a year: 預估 1 年後的資產餘額
-Confirm Staking: 確認質押
-Coins have been staked!: 代幣已被質押成功!
 View: 查看
-Stake More: 繼續質押
 Staking: 質押中
-Currently Staked: 目前質押數量
-Total Staked: 總質押量
-Total Stakers: 總質押人數
-Unstake: 解除質押
-Earning History: 收益紀錄
 $total: "總額: %value%"
-$unstake_asset: 解除 %symbol% 質押
-Amount to unstake: 解除質押數量
-Confirm Unstaking: 確認解除質押
-Request for unstaking is sent!: 解除質押申請已送出!
-$unstaking_when_receive: 你將會在 %time% 後收到解除的質押數量。
-$unstaking_when_receive_with_amount: 您將於 %time% 後收到未質押的 %amount%。
-$unstaking_when_receive_with_amount_ethena: "%amount% 將在 %time% 後可供提款。"
-$unstake_insufficient_balance: 您的主帳戶餘額需要有 %balance% 才能繼續取消質押。
-at %annual_yield%: 在%annual_yield%
-Est. %annual_yield%: 預估 %annual_yield%
 Staked: 已質押
 $stake_action: 質押
 Unstaked: 已解除質押
@@ -313,18 +281,12 @@ Invalid address: 無效地址
 Domain is not connected to a wallet: 域名未與錢包連結
 Unexpected error: 未知錯誤
 Unexpected Error: 未知錯誤
-Earn: 赚取
-Earning: 賺取中
 You can save this address for quick access while sending.: 您可以保存此地址以便在發送時快速訪問。
-Stake Again: 再次質押
-Earned: 獲得
-$staking_history_earned: 獲得
 Select wallet to use on this app: 選擇要在此應用上使用的錢包
 Connect: 連接
 Payload: 有效載荷
 $many_transactions: "%1$d筆轉賬"
 Total Amount: 總金額
-$unstaking_short: 解除質押
 Handle ton:// links: 處理 ton:// 鏈接
 Back up wallet to have full access to it: 備份錢包以完全訪問它
 Consider More Secure Version: 提高錢包安全性
@@ -350,7 +312,6 @@ No active connections: 沒有活動連接
 Other: 其他的
 No price data: 暫無價格資料
 Price Copied: 價格已複製
-Not staked: 未質押
 Portfolio: 投資組合
 Performance, insights and P&L: 動態、洞察與盈虧
 Custom Date Range: 自訂日期範圍
@@ -375,7 +336,6 @@ Stablecoins: 穩定幣
 Altcoins: 替代幣
 Asset Mix: 資產組成
 No asset balances: 暫無資產餘額
-No staked assets: 暫無質押資產
 Entire Period: 全部時間
 "Asset %1$@": "資產 %1$@"
 Error: 錯誤
@@ -559,7 +519,6 @@ Russian Ruble: 俄羅斯盧布
 Chinese Yuan: 人民幣
 $max_balance: "最大: %balance%"
 $available_balance: "可用: %balance%"
-$unstake_information_instantly: 您將立即收到您的存款
 Select Token: 選擇代幣
 MY: 我的
 Popular: 受歡迎
@@ -591,7 +550,6 @@ Correct: 不錯
 Confirm Action: 確認操作
 $classic_confirm_actions: 確認所有操作
 Confirm Swap: 確認兌換
-Confirm Rewards Claim: 確認獎勵提取
 "%amount% to %address%": "%amount% 至 %address%"
 "%amount_from% to %amount_to%": "%amount_from% 至 %amount_to%"
 Failed to enable biometrics.: 無法啟用生物識別。
@@ -605,14 +563,12 @@ Biometric confirmation failed: 生物辨識確認失敗
 No Activity: 無活動
 Fund: 儲值
 Buy with Crypto: 用加密貨幣購買
-Explore: 探索
+Explore: 瀏覽器
 $lockdown_mode_enabled_title: 鎖定模式已啟用
 $lockdown_mode_walletconnect_unavailable: "WalletConnect 在鎖定模式下無法使用。若要使用它，請在 設定 > 隱私權與安全性 > 鎖定模式 > 設定網頁瀏覽 中為 %app_name% 關閉鎖定模式。"
 No partners yet: 還沒有伴侶
 Clear: 清除
-$unstake_up_to_information: 即時 – 高達 %value%
 $all_balance: "全部: %balance%"
-$unstaking_not_enough_balance: 您需要在您的主要余额中有 %value% 才能继续进行解押。
 $ledger_verify_address_on_device: 請驗證您的 Ledger 上的網址。
 Wallet Versions: 錢包版本
 $read_more_about_wallet_version: 在%link%上了解更多關於錢包合約的類型。
@@ -671,14 +627,12 @@ More actions: 更多操作
 Open on %explorer_name%: 在 %explorer_name% 上打開
 Swap is not supported in Testnet.: 測試網不支援共享。
 Swap is not yet supported by Ledger.: Ledger 尚不支援該交易所。
-Staking is not supported in Testnet.: 測試網不支援質押。
 Get Support: 得到支持
 $transfer_link_expired: 轉帳連結已過期
 $transfer_text_and_bin_exclusive: 不能同時使用文字和二進位資料參數
 $unsupported_deeplink_parameter: 此深度連結包含不支援的參數。
 $unsupported_chain: 不支援的區塊鏈。
 Successfully: 成功地
-Unstake More: 解除質押更多
 Are you sure you want to burn this NFT? It will be lost forever.: 您確定要燒掉這個 NFT 嗎？ 它將永遠失去。
 $multi_burn_nft_warning: |
   您即將銷毀 %amount% 個 NFT。該過程可能需要 ~%duration%。請勿關閉應用程式或切換錢包，直到完成。
@@ -828,7 +782,6 @@ $fee_details: |
   這就是 %chain_name% 區塊鏈的工作方式。
 Got It: 知道了
 Wallet: 錢包
-Trending: 熱門
 No Data: 無數據
 Toggle fullscreen: 切換全螢幕模式
 Request is sent!: 請求已發送！
@@ -925,19 +878,12 @@ $DappurlTrustStatusInvalidHelp: The origin does not match this application's ver
 DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: 請使用 %app_name% %mobileAppButton% 或 %browserExtensionButton% 以避免此警告。
-$reopen_in_iab_explore: 瀏覽應用程式時，請使用 %exploreTab% 專區以避免此警告。
+$reopen_in_iab_explore: 為避免此警告，請透過「%exploreTab%」分頁開啟應用程式。
 tWallet Browser: tWallet 瀏覽器
 mobile app: 行動應用程式
 browser extension: 瀏覽器擴充功能
 Exit all wallets: 退出所有錢包
 Can't confirm?: 無法登入？
-$safe_staking_ethena_description1: 質押完全去中心化，由**Ethena官方**審計的流動性質押**智能合約**運營。
-$safe_staking_ethena_description2: 質押的USDe將用於Ethena的**交易和投資策略**，自動透明地產生收益。
-$safe_staking_ethena_description3: 您可隨時**提取存款**及累計利息——根據Ethena標準提款週期，資金將在**7天**後返還至您的主賬戶。
-Unstake %amount%: 解除質押 %amount%
-Request Unstaking: 申請取消質押
-$unstaking_when_receive_ethena: 您將在 **7 天** 後收到已解除質押的存款。
-Coins have been unstaked!: 代幣已解鎖！
 Confirm Upgrading: 確認升級
 How does it work?: 它是如何運作的？
 Multisend: 批量發送
@@ -947,7 +893,6 @@ Renew Domain: 續費域名
 Renew Domains: 續費域名
 Some domains are about to expire: 部分域名即將到期
 $domain_expire: "**%domain%** 將於%days%到期"
-"%token% Staking": "%token% 質押"
 Add Tab: 新增分頁
 Customize Tabs: 自訂分頁
 Remove Tab: 移除分頁
@@ -965,7 +910,6 @@ $domains_amount %1$d:
   otherValue: "%1$d個網域"
 Stake: 質押
 Manage Tokens: 管理代幣
-Claim Rewards: 領取獎勵
 Configure DNS: 設定DNS
 Link to Wallet: 連結到錢包
 Change Wallet: 變更錢包
@@ -992,8 +936,6 @@ $domains_was_expired:
   otherValue: "**%domain%個網域** 已過期"
 Reload: 重新載入
 Copy Link: 複製連結
-Check eligibility for max APY: 檢查最大 APY 資格
-Check eligibility: 檢查資格
 $expired_many: 已過期
 $one_domain_expires %days%: 將於%days%到期
 $multiple_domains_expire %days%: 將於%days%到期
@@ -1080,8 +1022,9 @@ Show More: 顯示更多
 Search app or enter address: 搜尋應用程式或輸入地址
 Connected Apps: 已連線的應用程式
 Connected Sites: 已連線的應用程式
-Popular Apps: 熱門應用程式
-Popular Sites: 熱門應用程式
+TMail: TMail
+Mint: Mint
+Recently Viewed: 最近瀏覽
 $wallets_amount:
   zeroValue: 沒有錢包
   oneValue: "%1$d 個錢包"
@@ -1347,7 +1290,6 @@ M: 1個月
 Y: 1年
 $amount_K: "%amount%萬"
 $amount_M: "%amount%億"
-Happening Now: 正在流行
 No Dapps Found!: 找不到 dApp！
 Edit Wallet Name: 編輯錢包名稱
 Wallet Name: 錢包名稱
@@ -1366,20 +1308,14 @@ Never: 永不
 "%1$@ minutes": "%1$@ 分鐘"
 Unstake Request: 解除質押申請
 History: 歷史紀錄
-Earn up to %1$@ per year from your tokens: 每年可從代幣賺取最高 %1$@ 的收益
 Insufficient %1$@ Balance: "%1$@ 餘額不足"
-Instant Withdrawal: 立即提領
 Instantly: 立即
-Up to %1$@: 最高 %1$@
-up to %1$@: 最高 %1$@
-Current APR: 目前 APR
 in: 於
 Network Error: 網路錯誤
 Enter Amount: 輸入金額
 "Swap %1$@ to %2$@": "將 %1$@ 兌換為 %2$@"
 "%1$@ to %2$@": "%1$@ 兌換為 %2$@"
 "Max %1$@": "最大 %1$@"
-"Authorize %1$@ fee": "授權 %1$@ 手續費"
 Pending previous fee: 前次手續費待處理
 AML/KYC: AML/KYC
 Receive to: 收到至
@@ -1482,7 +1418,6 @@ $n_wallets_selected:
 add: 新增
 send: 傳送
 swap: 兌換
-earn: 賺取
 Actions: 動作
 $actions_description: 快速存取最常用的動作。
 Rate: 匯率
@@ -1528,7 +1463,6 @@ Unexpected error. Please let the support know.: 發生未預期錯誤，請通�
 Unlock it and open the TON App: 先解鎖並開啟 TON App
 Use 4-digit Passcode: 使用四位 PIN 碼
 Use 6-digit Passcode: 使用六位 PIN 碼
-Authorize %token% Fee: 授權 %token% 手續費
 Awaiting Previous Fee: 等候前一筆手續費
 Lock: 鎖定
 Receive: 收款
@@ -1560,9 +1494,6 @@ push_activity_nft_minted: 已鑄造 NFT
 push_activity_nft_minted_named: "已鑄造 NFT: %name%"
 push_activity_liquidity_deposited: 已提供流動性
 push_activity_liquidity_withdrawn: 已提取流動性
-push_activity_stake_deposit: 已質押 %amount% %symbol%
-push_activity_stake_withdrawal: 已解除質押 %amount% %symbol%
-push_activity_stake_withdrawal_request: 已提交質押提款請求
 push_activity_auction_bid: 已出價競標 %amount% %symbol%
 push_activity_dns_changed: 已更新 DNS 記錄
 push_activity_dns_deleted: 已刪除 DNS 記錄
@@ -1574,8 +1505,6 @@ push_activity_swap_completed: 兌換 %from_symbol% -> %to_symbol% 已完成
 push_activity_swap_failed: 兌換 %from_symbol% -> %to_symbol% 失敗
 push_activity_swap_expired: 兌換 %from_symbol% -> %to_symbol% 已過期
 push_activity_swap_pending: 兌換 %from_symbol% -> %to_symbol% %status%
-push_activity_staking_profit: 質押收益 %amount% GRAM
-push_activity_staking_loyalty_profit: 質押忠誠度收益 %amount% GRAM
 push_domain_title_renew: 續訂您的網域
 push_domain_expired_yesterday: 您的網域 %domain% 昨天已過期。請盡快續訂，以免失去存取權限
 push_domain_expired_days_ago: 您的網域 %domain% 已於 %days% 天前過期。請盡快續訂，以免失去存取權限

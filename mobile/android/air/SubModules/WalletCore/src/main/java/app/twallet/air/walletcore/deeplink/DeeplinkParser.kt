@@ -60,7 +60,6 @@ sealed class Deeplink {
 
     data class Receive(override val accountAddress: String?) : Deeplink()
 
-    data class Stake(override val accountAddress: String?) : Deeplink()
     data class Portfolio(override val accountAddress: String?) : Deeplink()
     data class Explore(
         override val accountAddress: String?,
@@ -93,7 +92,6 @@ sealed class Deeplink {
         val address: String
     ) : Deeplink()
 
-    data class StakeTx(override val accountAddress: String?) : Deeplink()
     data class ExpiringDns(override val accountAddress: String?, val domainAddress: String) :
         Deeplink()
 
@@ -182,9 +180,6 @@ class DeeplinkParser {
                     )
                 }
 
-                "staking" -> {
-                    return Deeplink.StakeTx(accountAddress = address)
-                }
 
                 "expiringDns" -> {
                     val domainAddress = bundle.getString("domainAddress") ?: return null
@@ -347,7 +342,6 @@ class DeeplinkParser {
                 "send" -> handleSend(uri)
                 "receive" -> Deeplink.Receive(accountAddress = null)
 
-                "stake" -> Deeplink.Stake(accountAddress = null)
                 "portfolio" -> Deeplink.Portfolio(accountAddress = null)
                 "explore" -> Deeplink.Explore(
                     accountAddress = null,

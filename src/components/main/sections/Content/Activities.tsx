@@ -11,7 +11,6 @@ import type {
   ApiChain,
   ApiCurrencyRates,
   ApiNft,
-  ApiStakingState,
   ApiSwapAsset,
   ApiTokenWithPrice,
 } from '../../../../api/types';
@@ -24,7 +23,6 @@ import { getIsTinyOrScamTransaction } from '../../../../global/helpers';
 import {
   selectAccount,
   selectAccounts,
-  selectAccountStakingStatesBySlug,
   selectActivityHistoryIds,
   selectCurrentAccountId,
   selectCurrentAccountSettings,
@@ -91,7 +89,6 @@ type StateProps = {
   baseCurrency: ApiBaseCurrency;
   currencyRates: ApiCurrencyRates;
   isSensitiveDataHidden?: true;
-  stakingStateBySlug: Record<string, ApiStakingState>;
   nftsByAddress?: Record<string, ApiNft>;
   blacklistedNftAddresses?: string[];
   whitelistedNftAddresses?: string[];
@@ -140,7 +137,6 @@ function Activities({
   baseCurrency,
   currencyRates,
   isSensitiveDataHidden,
-  stakingStateBySlug,
   nftsByAddress,
   blacklistedNftAddresses,
   whitelistedNftAddresses,
@@ -343,7 +339,6 @@ function Activities({
             isSensitiveDataHidden={isSensitiveDataHidden}
             nftsByAddress={nftsByAddress}
             currentAccountId={currentAccountId}
-            stakingStateBySlug={stakingStateBySlug}
             savedAddresses={savedAddresses}
             withChainIcon={isMultichainAccount}
             accounts={accounts}
@@ -427,7 +422,6 @@ export default memo(
       const accountState = selectCurrentAccountState(global);
       const accountSettings = selectCurrentAccountSettings(global);
       const slug = isWidget ? undefined : accountState?.currentTokenSlug;
-      const stakingStateBySlug = selectAccountStakingStatesBySlug(global, currentAccountId);
       const { activities } = accountState || {};
       const { byId } = activities || {};
       const { byAddress } = accountState?.nfts || {};
@@ -451,7 +445,6 @@ export default memo(
         theme: global.settings.theme,
         baseCurrency: global.settings.baseCurrency,
         currencyRates: global.currencyRates,
-        stakingStateBySlug,
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
         nftsByAddress: byAddress,
         blacklistedNftAddresses: accountState?.blacklistedNftAddresses,

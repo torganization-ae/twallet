@@ -1,3 +1,4 @@
+import type { DieselStatus } from '../../global/types';
 import type { ApiFetchEstimateDieselResult } from '../types';
 
 import { randomBytes } from '../../util/random';
@@ -9,6 +10,14 @@ export const DIESEL_NOT_AVAILABLE: ApiFetchEstimateDieselResult = {
   remainingFee: 0n,
   realFee: 0n,
 };
+
+/** Maps legacy backend diesel statuses (stars-fee, not-authorized) to client statuses. */
+export function normalizeDieselStatus(status: string): DieselStatus {
+  if (status === 'available' || status === 'pending-previous') {
+    return status;
+  }
+  return 'not-available';
+}
 
 let clientId: string | undefined;
 let referrer: string | undefined;

@@ -596,6 +596,10 @@ extension JSWebViewBridge: WKScriptMessageHandler { // todo: move to a separate 
                     
                 case "updateVesting":
                     break
+
+                case "updateStaking":
+                    // Staking product removed; ignore legacy bridge updates if JS still emits them.
+                    break
                     
                 case "newLocalActivities":
                     do {
@@ -652,15 +656,6 @@ extension JSWebViewBridge: WKScriptMessageHandler { // todo: move to a separate 
                     
                 case "updateRegion":
                     break
-
-                case "updateStaking":
-                    do {
-                        let update = try JSONSerialization.decode(ApiUpdate.UpdateStaking.self, from: data)
-                        WalletCoreData.notify(event: .updateStaking(update))
-                    } catch {
-                        log.error("failed to decode updateStaking: \(error, .public)")
-//                        assertionFailure()
-                    }
 
                 case "updatingStatus":
                     guard let isUpdating = data["isUpdating"] as? Bool else { return }

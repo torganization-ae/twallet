@@ -139,7 +139,6 @@ export interface ChainSdk<T extends ApiChain> {
    * Starts continuously updating the data of the given account. That includes but not limited to:
    *  - activity history
    *  - balance
-   *  - staking
    *  - NFT
    *  - is multisig
    *  - etc...

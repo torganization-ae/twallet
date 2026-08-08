@@ -111,8 +111,8 @@ $signSizeDiff: 0.375rem;
 
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
   justify-content: center;
-  gap: 0.75rem;
 
   width: 100%;
   height: 100%;
@@ -931,57 +931,4 @@ $signSizeDiff: 0.375rem;
   height: 0.375rem !important;
 
   opacity: 0.75 !important;
-}
-
-.chainBreakdown {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: stretch;
-
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
-
-  background: transparent;
-  cursor: pointer;
-}
-
-.chainBar {
-  display: flex;
-  overflow: hidden;
-
-  height: 0.25rem;
-  border-radius: 999px;
-
-  background: rgb(255 255 255 / 20%);
-}
-
-.chainBarSegment {
-  display: block;
-  height: 100%;
-}
-
-.chainChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem 0.625rem;
-  justify-content: center;
-}
-
-.chainChip {
-  display: inline-flex;
-  gap: 0.25rem;
-  align-items: center;
-
-  font-size: 0.6875rem;
-  line-height: 1;
-  color: rgb(255 255 255 / 85%);
-}
-
-.chainChipDot {
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 50%;
 }

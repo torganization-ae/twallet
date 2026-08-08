@@ -46,7 +46,7 @@ function ReceiveChainSelector({ chains, selectedChain }: OwnProps) {
 
     chainItems.push({
       value: NETWORKS_VALUE,
-      name: lang('Networks') as string,
+      name: lang('Networks'),
       icon: <i className={styles.networksMenuIcon} aria-hidden />,
       // Default item separator is a 1px hairline; `withDelimiter` is a thick section bar.
       noTranslate: true,

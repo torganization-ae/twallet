@@ -15,9 +15,6 @@
   <string name="push_activity_nft_minted_named">สร้าง NFT: %1$s</string>
   <string name="push_activity_liquidity_deposited">เพิ่มสภาพคล่องแล้ว</string>
   <string name="push_activity_liquidity_withdrawn">ถอนสภาพคล่องแล้ว</string>
-  <string name="push_activity_stake_deposit">นำ %1$s %2$s ไปสเตกแล้ว</string>
-  <string name="push_activity_stake_withdrawal">ถอน %1$s %2$s ออกจากสเตกแล้ว</string>
-  <string name="push_activity_stake_withdrawal_request">ส่งคำขอถอนจากสเตกแล้ว</string>
   <string name="push_activity_auction_bid">วางบิดประมูล %1$s %2$s แล้ว</string>
   <string name="push_activity_dns_changed">อัปเดตระเบียน DNS แล้ว</string>
   <string name="push_activity_dns_deleted">ลบระเบียน DNS แล้ว</string>
@@ -29,8 +26,6 @@
   <string name="push_activity_swap_failed">สลับ %1$s -> %2$s ล้มเหลว</string>
   <string name="push_activity_swap_expired">สลับ %1$s -> %2$s หมดอายุ</string>
   <string name="push_activity_swap_pending">สลับ %1$s -> %2$s %3$s</string>
-  <string name="push_activity_staking_profit">กำไรจากการสเตก %1$s GRAM</string>
-  <string name="push_activity_staking_loyalty_profit">กำไรจากความภักดีในการสเตก %1$s GRAM</string>
   <string name="push_domain_title_renew">ต่ออายุโดเมนของคุณ</string>
   <string name="push_domain_expired_yesterday">โดเมน %1$s ของคุณหมดอายุเมื่อวานนี้ โปรดต่ออายุโดยเร็วที่สุดเพื่อหลีกเลี่ยงการสูญเสียการเข้าถึง</string>
   <string name="push_domain_expired_days_ago">โดเมน %1$s ของคุณหมดอายุมาแล้ว %2$s วัน โปรดต่ออายุโดยเร็วที่สุดเพื่อหลีกเลี่ยงการสูญเสียการเข้าถึง</string>

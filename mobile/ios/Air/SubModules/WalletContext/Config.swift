@@ -19,12 +19,6 @@ public let PRICELESS_TOKEN_HASHES: Set<String?> = [
   "5d01684bdf1d5c9be2682c4e36074202432628bd3477d77518d66b0976b78cca", // USDT Storm LP (for example, EQAzm06UMMsnFQrNKEubV1myIR-mm2ZOCnoic36frCgD8MLR)
 ]
 
-public let STAKED_TOKEN_SLUGS: Set<String> = [
-  STAKED_TON_SLUG,
-  STAKED_MYCOIN_SLUG,
-  TON_TSUSDE_SLUG,
-]
-
 public let MYTONWALLET_MULTISEND_DAPP_URL = "https://multisend.mywallet.io/";
 
 public let NFT_MARKETPLACE_URL = "https://opensea.io/"
@@ -33,27 +27,6 @@ public let TON_NFT_MARKETPLACE_URL = "https://fragment.com/"
 public let TON_NFT_MARKETPLACE_TITLE = "Fragment"
 
 public let MAX_PUSH_NOTIFICATIONS_ACCOUNT_COUNT = 3
-
-public let LIQUID_POOL = "EQD2_4d91M4TVbEBVyBF8J1UwpMJc361LKVCz6bBlffMW05o"
-public let NOMINATORS_STAKING_POOL = "Ef84o4VJRnlp1wsqSHov1QttqSTQda2Z1vGK-b7EaPQoeJMx"
-public let MYCOIN_STAKING_POOL = "EQC3roTiRRsoLzfYVK7yVVoIZjTEqAjQU3ju7aQ7HWTVL5o5"
-
-// Mirrors DEFAULT_STAKING_POOLS + ALL_STAKING_POOLS in src/config.ts; must include every
-// nominators pool the backend can return, or its stake/unstake transactions render as
-// ordinary transfers.
-public let ALL_STAKING_POOLS: Set<String> = [
-  LIQUID_POOL,
-  "Ef8dgIOIRyCLU0NEvF8TD6Me3wrbrkS1z3Gpjk3ppd8m8-s_",
-  "Ef-WMmizoLk4CvqTKs-mDrGJwW4fiH5zVd4SaHih7PObxP_0",
-  "Ef9KkdMtAom9qYE64A_3ZA5sOP3OduRYPdavxGO3DH12fF5g",
-  "Ef9-8keOeXR4Sn-ywrlFgxma4ubJvEFRW3jgP0ib16A-HCiG",
-  NOMINATORS_STAKING_POOL,
-  "Ef_CbvHoa5imR1x_ESkUT_6NJQoONbSGp8MkrAu1xtM6NOxE",
-  "Ef-j7wmnLdy54kZC0gtbVbCrdPA4cFLr3rxLOoDcpzR_SyBX",
-  MYCOIN_STAKING_POOL,
-  "EQChGuD1u0e7KUWHH5FaYh_ygcLXhsdG2nSHPXHW8qqnpZXW", // ETHENA_STAKING_VAULT
-  "EQDQ5UUyPHrLcQJlPAczd_fjxn8SLrlNQwolBznxCdSlfQwr", // TON_TSUSDE.tokenAddress
-]
 
 public let BURN_ADDRESS = "UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ"
 
@@ -72,7 +45,6 @@ public let APP_BLOG_URL = "https://mywallet.io/en/blog/"
 public var APP_TERMS_OF_USE_URL: String { IS_TWALLETGRAM_WALLET ? "https://gramwallet.io/terms-of-use/" : "https://mywallet.io/terms-of-use/" }
 public var APP_PRIVACY_POLICY_URL: String { IS_TWALLETGRAM_WALLET ? "https://gramwallet.io/privacy-policy/" : "https://mywallet.io/privacy-policy/" }
 public var APP_INSTALL_URL: String { IS_TWALLETGRAM_WALLET ? "https://apps.apple.com/us/app/gram-wallet/id6763345750" : "https://get.mywallet.io/ios" }
-public let BOT_USERNAME = "MyTonWalletBot"
 public let SUPPORT_USERNAME = "mysupport"
 
 public let MTW_TIPS_CHANNEL_NAME = "MyTonWalletTips"
@@ -89,6 +61,9 @@ public func buildMfaBotUrl(startApp: String) -> URL? {
     ]
     return components.url
 }
+
+public let TMAIL_APP_URL = URL(string: "https://app.tmail.ae")!
+public let MINT_APP_URL = URL(string: "https://tmarket.ae")!
 
 public let HELP_CENTER_URL = "https://help.mywallet.io"
 public let HELP_CENTER_URL_RU = "https://help.mywallet.io/ru"

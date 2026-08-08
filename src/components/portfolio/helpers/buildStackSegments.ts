@@ -5,7 +5,6 @@ import type { LangFn } from '../../../hooks/useLang';
 import { getChainConfig, getChainTitle } from '../../../util/chain';
 import { toBig } from '../../../util/decimals';
 import { formatCurrency, getShortCurrencySymbol } from '../../../util/formatNumber';
-import { clamp } from '../../../util/math';
 import { getIsNativeToken } from '../../../util/tokens';
 
 const STABLECOIN_PRICE_MIN = 0.95;
@@ -15,11 +14,6 @@ const TOKEN_TYPE_COLORS = {
   native: '#2C92F0',
   stablecoins: '#E49329',
   altcoins: '#10B853',
-} as const;
-
-const STAKED_COLORS = {
-  staked: '#6875E9',
-  notStaked: '#2C92F0',
 } as const;
 
 export type PortfolioStackSegment = {
@@ -115,41 +109,6 @@ export function buildSegmentsByChain(
   }
 
   return sortBottomHeavy(result);
-}
-
-export function buildSegmentsByStacked(
-  lang: LangFn,
-  totalAmount: number,
-  stakedAmount: number,
-  baseCurrency: ApiBaseCurrency,
-) {
-  const shortSymbol = getShortCurrencySymbol(baseCurrency);
-  // `totalAmount` and `stakedAmount` come from different price sources, so clamp to keep the bar within 100%
-  const clampedStaked = clamp(stakedAmount, 0, totalAmount);
-  const notStakedAmount = Math.max(totalAmount - clampedStaked, 0);
-
-  const segments: PortfolioStackSegment[] = [];
-  if (clampedStaked > 0) {
-    segments.push({
-      id: 'staked',
-      title: lang('Staked'),
-      rawAmount: clampedStaked,
-      colorHex: STAKED_COLORS.staked,
-      value: formatCurrency(clampedStaked, shortSymbol),
-    });
-  }
-
-  if (notStakedAmount > 0) {
-    segments.push({
-      id: 'notStaked',
-      title: lang('Not staked'),
-      rawAmount: notStakedAmount,
-      colorHex: STAKED_COLORS.notStaked,
-      value: formatCurrency(notStakedAmount, shortSymbol),
-    });
-  }
-
-  return sortBottomHeavy(segments);
 }
 
 // Ascending by amount so the chart stacks the largest segment at the bottom (smallest on top)

@@ -139,7 +139,6 @@ data class SwapEstimateResponse(
         get() {
             return !isEnoughBalance &&
                 !isAmountGreaterThanBalance &&
-                dex?.dieselStatus != MDieselStatus.NOT_AUTHORIZED &&
                 dex?.dieselStatus != MDieselStatus.PENDING_PREVIOUS
         }
 

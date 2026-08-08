@@ -11,7 +11,6 @@ object WCacheStorage {
     private const val CACHE_PREF_TOKENS = "tokens"
     private const val CACHE_PREF_SWAP_ASSETS = "swapAssets"
 
-    private const val CACHE_PREF_STAKING_DATA = "stakingData."
     private const val CACHE_PREF_NFTS = "nfts."
     private const val CACHE_PREF_NFT_COLLECTIONS = "nftCollections."
     private const val CACHE_PREF_HAS_HIDDEN_NFT = "hasHiddenNFT."
@@ -47,17 +46,6 @@ object WCacheStorage {
         sharedPreferences.edit { putString(CACHE_PREF_SWAP_ASSETS, value) }
     }
 
-    fun getStakingData(accountId: String): String? {
-        return sharedPreferences.getString(CACHE_PREF_STAKING_DATA + accountId, null)
-    }
-
-    fun setStakingData(accountId: String, value: String?) {
-        if (value == null) {
-            sharedPreferences.edit { remove(CACHE_PREF_STAKING_DATA + accountId) }
-            return
-        }
-        sharedPreferences.edit { putString(CACHE_PREF_STAKING_DATA + accountId, value) }
-    }
 
     fun getNfts(accountId: String): String? {
         return sharedPreferences.getString(CACHE_PREF_NFTS + accountId, null)
@@ -186,11 +174,24 @@ object WCacheStorage {
         }
     }
 
+
+    /** Legacy key read for storage migrations only (staking cache is no longer written). */
+    fun getLegacyStakingData(accountId: String): String? {
+        return sharedPreferences.getString("stakingData.$accountId", null)
+    }
+
+    fun clearAllStakingData() {
+        val editor = sharedPreferences.edit()
+        sharedPreferences.all.keys
+            .filter { it.startsWith("stakingData.") }
+            .forEach { editor.remove(it) }
+        editor.apply()
+    }
+
     fun clean(accountId: String) {
         setNfts(accountId, null)
         setNftCollections(accountId, null)
         setHasHiddenNft(accountId, null)
-        setStakingData(accountId, null)
         setExploreHistory(accountId, null)
         cleanPortfolio(accountId)
     }

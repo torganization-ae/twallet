@@ -12,7 +12,6 @@ import {
   BURN_CHUNK_DURATION_APPROX_SEC,
   NFT_BATCH_SIZE,
   NOTCOIN_EXCHANGERS,
-  STARS_SYMBOL,
 } from '../../config';
 import renderText from '../../global/helpers/renderText';
 import { selectCurrentAccountId, selectNetworkAccounts } from '../../global/selectors';
@@ -70,7 +69,6 @@ function TransferConfirm({
     isScam,
     binPayload,
     nfts,
-    isGaslessWithStars,
     diesel,
     stateInit,
     isNftBurn,
@@ -210,9 +208,6 @@ function TransferConfirm({
   function getSubmitBtnText() {
     if (isBurning || isNotcoinBurning) {
       return lang(isNftTransfer ? ((nfts?.length ?? 0) > 1 ? 'Burn Collectibles' : 'Burn NFT') : 'Burn');
-    }
-    if (isGaslessWithStars) {
-      return lang('Pay fee with %stars_symbol%', { stars_symbol: STARS_SYMBOL });
     }
     return lang('Confirm');
   }

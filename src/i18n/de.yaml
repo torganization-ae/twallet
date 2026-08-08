@@ -214,7 +214,6 @@ Testnet Version: Testnet Version
 Error reading clipboard: Fehler beim Lesen der Zwischenablage
 $fee_value: Gebühr %fee%
 $fee_value_with_colon: "Gebühr: %fee%"
-Pay fee with %stars_symbol%: Bezahlen mit %stars_symbol%
 Loading...: Laden...
 Recipient Address: Empfänger adresse
 Wallet address or domain: Wallet adresse oder Domain
@@ -268,41 +267,10 @@ Appearance: Erscheinungsbild
 Light: Hell
 Dark: Dunkel
 System: System
-$stake_asset: "%symbol% staken"
-Add Stake: Zum Staking hinzufügen
-Earn from your tokens while holding them: Verdienen Sie mit Ihren Token, während Sie sie halten.
-Current APY: Aktueller APY
-Est. Yearly Earnings: Geschätzter Jahresertrag
-Staking Details: Staking-Details
-Why this is safe: Warum ist dies sicher
-$safe_staking_description1: Das Staken erfolgt **vollständig dezentral** und wird von den **offiziellen TON Liquid Staking**-Smart Contracts betrieben.
-$safe_staking_description2: Der hinterlegte Einsatz wird für die Validierung des %chain%-Netzwerks als Teil seiner **Proof-of-Stake**-Essenz verwendet.
-$safe_staking_description3: Sie können Ihren Einsatz **jederzeit** abheben, und er wird innerhalb von **zwei Tagen** wieder auf Ihr Konto eingezahlt.
-$safe_staking_description_jetton1: Das Token-Staking ist **vollständig dezentralisiert** und wird von den **Open-Source**-Smart-Contracts betrieben, die von %jvault_link% entwickelt und einer **Sicherheitsprüfung** unterzogen wurden.
-$safe_staking_description_jetton2: Sie können Ihren Einsatz **jederzeit** abheben, und er wird **sofort** auf Ihr Konto zurückgebucht.
 $min_value: Mindestens %value%
-Est. balance in a year: Geschätztes Guthaben in einem Jahr
-Confirm Staking: Staking bestätigen
-Coins have been staked!: Die Coins wurden gestakt!
 View: Anzeigen
-Stake More: Mehr staken
 Staking: Staking
-Currently Staked: Derzeit gestakt
-Total Staked: Gesamt gestaked
-Total Stakers: Anzahl der Staker
-Unstake: Unstaken
-Earning History: Verdiensthistorie
 $total: "Gesamt: %value%"
-$unstake_asset: "%symbol% unstaken"
-Amount to unstake: Betrag zum unstaken
-Confirm Unstaking: Entstaken bestätigen
-Request for unstaking is sent!: Die Anfrage zum unstaken wurde gesendet!
-$unstaking_when_receive: Sie erhalten Ihre unstaked Einzahlung in %time%.
-$unstaking_when_receive_with_amount: Du wirst deine abgezogenen %amount% in %time% erhalten.
-$unstaking_when_receive_with_amount_ethena: "%amount% werden in %time% zur Auszahlung verfügbar sein."
-$unstake_insufficient_balance: Sie müssen %balance% auf Ihrem Hauptguthaben haben, um mit dem unstaken fortzufahren.
-at %annual_yield%: bei %annual_yield%
-Est. %annual_yield%: Geschätzte %annual_yield%
 Staked: Gestakt
 $stake_action: Stake
 Unstaked: Ungestakt
@@ -315,13 +283,8 @@ Invalid address: Ungültige Adresse
 Domain is not connected to a wallet: Die Domain ist nicht mit einer Wallet verbunden.
 Unexpected error: Unerwarteter Fehler
 Unexpected Error: Unerwarteter Fehler
-Earn: Verdienen
-Earning: Verdienend
 Unexpected: Unerwarteter Fehler
 You can save this address for quick access while sending.: Sie können diese Adresse speichern, um schnellen Zugriff beim Senden zu haben.
-Stake Again: Erneut staken
-Earned: Verdient
-$staking_history_earned: Verdient
 Select wallet to use on this app: Wählen Sie die Brieftasche aus, die Sie für diese App verwenden möchten.
 Connect: Verbinden
 Payload: Nutzlast
@@ -330,7 +293,6 @@ $many_transactions:
   oneValue: "%1$d Überweisung"
   otherValue: "%1$d Überweisungen"
 Total Amount: Gesamtbetrag
-$unstaking_short: Entstaken
 Handle ton:// links: Umgang mit ton://-Links
 Back up wallet to have full access to it: Sichern Sie das Wallet, um vollen Zugriff darauf zu haben
 Consider More Secure Version: Berücksichtigen Sie eine sicherere Version
@@ -355,7 +317,6 @@ No active connections: Keine aktiven Verbindungen
 Other: Sonstige
 No price data: Keine Preisdaten
 Price Copied: Preis kopiert
-Not staked: Nicht gestakt
 Portfolio: Portfolio
 Performance, insights and P&L: Dynamik, Einblicke und GuV
 Custom Date Range: Benutzerdefinierter Zeitraum
@@ -380,7 +341,6 @@ Stablecoins: Stablecoins
 Altcoins: Altcoins
 Asset Mix: Vermögensmix
 No asset balances: Keine Vermögensguthaben
-No staked assets: Keine gestakten Vermögenswerte
 Entire Period: Gesamter Zeitraum
 "Asset %1$@": "Vermögenswert %1$@"
 Error: Fehler
@@ -566,7 +526,6 @@ Chinese Yuan: Chinesischer Yuan
 Bitcoin: Bitcoin
 $max_balance: "Maximal: %balance%"
 $available_balance: "Verfügbar: %balance%"
-$unstake_information_instantly: Sie erhalten Ihre Einzahlung sofort
 Select Token: Token auswählen
 MY: Meine
 Popular: Beliebt
@@ -598,7 +557,6 @@ Correct: Korrekt
 Confirm Action: Aktion bestätigen
 $classic_confirm_actions: Aktionen bestätigen
 Confirm Swap: Swap bestätigen
-Confirm Rewards Claim: Belohnungsanspruch bestätigen
 "%amount% to %address%": "%amount% zu %address%"
 "%amount_from% to %amount_to%": "%amount_from% zu %amount_to%"
 Failed to enable biometrics.: Fehler beim Aktivieren der Biometrie.
@@ -612,14 +570,12 @@ Biometric confirmation failed: Biometrische Bestätigung fehlgeschlagen
 No Activity: Keine aktivität
 Fund: Aufladen
 Buy with Crypto: Mit Krypto kaufen
-Explore: Erkunden
+Explore: Browser
 $lockdown_mode_enabled_title: Blockierungsmodus aktiviert
 $lockdown_mode_walletconnect_unavailable: "WalletConnect ist im Blockierungsmodus nicht verfügbar. Um es zu verwenden, deaktivieren Sie den Blockierungsmodus für %app_name% unter Einstellungen > Datenschutz & Sicherheit > Blockierungsmodus > Web-Browsing konfigurieren."
 No partners yet: Noch keine Partner
 Clear: Löschen
-$unstake_up_to_information: Sofort – bis zu %value%
 $all_balance: "Gesamt: %balance%"
-$unstaking_not_enough_balance: Sie müssen %value% auf Ihrem Hauptkonto haben, um mit dem Entsperrprozess fortzufahren.
 $ledger_verify_address_on_device: Bitte überprüfen Sie die Adresse auf Ihrem Ledger.
 Wallet Versions: Wallet-Versionen
 $read_more_about_wallet_version: Lesen Sie mehr über die Arten von Wallet-Verträgen auf %link%.
@@ -678,14 +634,12 @@ More actions: Mehr Aktionen
 Open on %explorer_name%: Auf %explorer_name% öffnen
 Swap is not supported in Testnet.: Swap wird in Testnet nicht unterstützt.
 Swap is not yet supported by Ledger.: Swap wird von Ledger noch nicht unterstützt.
-Staking is not supported in Testnet.: Das Abstecken wird in Testnet nicht unterstützt.
 Get Support: Hole dir Unterstützung
 $transfer_link_expired: Transfer-Link ist abgelaufen
 $transfer_text_and_bin_exclusive: Text- und Binärdaten-Parameter können nicht zusammen verwendet werden
 $unsupported_deeplink_parameter: Dieser Deeplink enthält nicht unterstützte Parameter.
 $unsupported_chain: Nicht unterstützte Blockchain.
 Successfully: Erfolgreich
-Unstake More: Mehr abstecken
 Are you sure you want to burn this NFT? It will be lost forever.: Sind Sie sicher, dass Sie diese NFT verbrennen wollen? Es wird für immer verloren sein.
 $multi_burn_nft_warning: |
   Sie werden %amount% NFTs verbrennen. Der Vorgang kann ~%duration% dauern. Bitte schließen Sie die App nicht und wechseln Sie nicht die Wallet, bis er abgeschlossen ist.
@@ -836,7 +790,6 @@ $fee_details: |
   So funktioniert die %chain_name% Blockchain.
 Got It: Verstanden
 Wallet: Wallet
-Trending: Im Trend
 No Data: Keine Daten
 Toggle fullscreen: Vollbildmodus umschalten
 Request is sent!: Anfrage gesendet!
@@ -933,19 +886,12 @@ $DappurlTrustStatusInvalidHelp: The origin does not match this application's ver
 DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: Bitte verwenden Sie %app_name% %mobileAppButton% oder %browserExtensionButton%, um diese Warnung zu vermeiden.
-$reopen_in_iab_explore: Bitte verwenden Sie beim Durchsuchen von Apps den Bereich %exploreTab%, um diese Warnung zu vermeiden.
+$reopen_in_iab_explore: Bitte öffnen Sie Apps über den Tab „%exploreTab%“, um diese Warnung zu vermeiden.
 tWallet Browser: tWallet Browser
 mobile app: mobile App
 browser extension: Browser-Erweiterung
 Exit all wallets: Alle Wallets schließen
 Can't confirm?: Anmeldung nicht möglich?
-$safe_staking_ethena_description1: Staking ist vollständig dezentralisiert und wird durch **offizielle, auditiere** Liquid-Staking-**Smart Contracts** von Ethena betrieben.
-$safe_staking_ethena_description2: Die hinterlegte USDe-Stake wird in Ethenas **Handels- und Investitionsstrategien** eingesetzt, um automatisch und transparent Belohnungen zu erwirtschaften.
-$safe_staking_ethena_description3: Sie können **Ihre Einzahlung** zusammen mit den aufgelaufenen Zinsen jederzeit abheben — die Mittel werden gemäß Ethenas Standard-Auszahlungsfrist nach **7 Tagen** auf Ihr Hauptkonto zurücküberwiesen.
-Unstake %amount%: "%amount% entstaken"
-Request Unstaking: Entstaken anfordern
-$unstaking_when_receive_ethena: Sie können Ihre abgesteckte Einzahlung in **7 Tagen** erhalten.
-Coins have been unstaked!: Coins wurden entstaked!
 Confirm Upgrading: Upgrade bestätigen
 How does it work?: Wie funktioniert das?
 Multisend: Multisend
@@ -955,7 +901,6 @@ Renew Domain: Domain erneuern
 Renew Domains: Domains erneuern
 Some domains are about to expire: Einige Domains laufen bald ab
 $domain_expire: "**%domain%** läuft %days% ab"
-"%token% Staking": "%token% Staking"
 Add Tab: Tab hinzufügen
 Customize Tabs: Tabs anpassen
 Remove Tab: Tab entfernen
@@ -974,7 +919,6 @@ $domains_amount %1$d:
   otherValue: "%1$d Domains"
 Stake: Staken
 Manage Tokens: Token verwalten
-Claim Rewards: Belohnungen beanspruchen
 Configure DNS: DNS konfigurieren
 Link to Wallet: Mit Wallet verknüpfen
 Change Wallet: Wallet ändern
@@ -1001,8 +945,6 @@ $domains_was_expired:
   otherValue: "**%domain% Domains** sind abgelaufen"
 Reload: Neu laden
 Copy Link: Link kopieren
-Check eligibility for max APY: Verfügbarkeit für max. APY prüfen
-Check eligibility: Verfügbarkeit prüfen
 $expired_many: Abgelaufen
 $one_domain_expires %days%: Läuft %days% ab
 $multiple_domains_expire %days%: Laufen %days% ab
@@ -1089,8 +1031,9 @@ Show More: Mehr anzeigen
 Search app or enter address: App suchen oder Adresse eingeben
 Connected Apps: Verbundene Apps
 Connected Sites: Verbundene Apps
-Popular Apps: Beliebte Apps
-Popular Sites: Beliebte Apps
+TMail: TMail
+Mint: Mint
+Recently Viewed: Zuletzt angesehen
 $wallets_amount:
   zeroValue: Keine Wallets
   oneValue: "%1$d Wallet"
@@ -1361,7 +1304,6 @@ M: 1 Mon
 Y: 1 Jahr
 $amount_K: "%amount%K"
 $amount_M: "%amount%M"
-Happening Now: Aktuell im Trend
 No Dapps Found!: Keine dApp gefunden!
 Edit Wallet Name: Wallet-Namen bearbeiten
 Wallet Name: Wallet-Name
@@ -1380,20 +1322,14 @@ Never: Nie
 "%1$@ minutes": "%1$@ Minuten"
 Unstake Request: Unstaking-Anfrage
 History: Verlauf
-Earn up to %1$@ per year from your tokens: Erziele bis zu %1$@ pro Jahr mit deinen Token
 Insufficient %1$@ Balance: "%1$@-Guthaben unzureichend"
-Instant Withdrawal: Sofortige Auszahlung
 Instantly: Sofort
-Up to %1$@: Bis zu %1$@
-up to %1$@: bis zu %1$@
-Current APR: Aktueller APR
 in: in
 Network Error: Netzwerkfehler
 Enter Amount: Betrag eingeben
 "Swap %1$@ to %2$@": "%1$@ in %2$@ tauschen"
 "%1$@ to %2$@": "%1$@ → %2$@"
 "Max %1$@": "Max. %1$@"
-"Authorize %1$@ fee": "%1$@-Gebühr autorisieren"
 Pending previous fee: Vorherige Gebühr ausstehend
 AML/KYC: AML/KYC
 Receive to: Empfangen auf
@@ -1503,7 +1439,6 @@ $n_wallets_selected:
 add: hinzufügen
 send: senden
 swap: tauschen
-earn: verdienen
 Actions: Aktionen
 $actions_description: Schneller Zugriff auf die am häufigsten verwendeten Aktionen.
 Rate: Kurs
@@ -1550,7 +1485,6 @@ Unexpected error. Please let the support know.: Unerwarteter Fehler. Bitte infor
 Unlock it and open the TON App: Entsperre sie und öffne die TON-App
 Use 4-digit Passcode: 4-stelligen Passcode verwenden
 Use 6-digit Passcode: 6-stelligen Passcode verwenden
-Authorize %token% Fee: "%token%-Gebühr autorisieren"
 Awaiting Previous Fee: Vorherige Gebühr ausstehend
 Lock: Sperren
 Receive: Empfangen
@@ -1582,9 +1516,6 @@ push_activity_nft_minted: NFT gemintet
 push_activity_nft_minted_named: "NFT gemintet: %name%"
 push_activity_liquidity_deposited: Liquidität bereitgestellt
 push_activity_liquidity_withdrawn: Liquidität abgezogen
-push_activity_stake_deposit: Gestakt %amount% %symbol%
-push_activity_stake_withdrawal: Aus dem Staking abgezogen %amount% %symbol%
-push_activity_stake_withdrawal_request: Staking-Auszahlung angefordert
 push_activity_auction_bid: Auktionsgebot abgegeben %amount% %symbol%
 push_activity_dns_changed: DNS-Eintrag aktualisiert
 push_activity_dns_deleted: DNS-Eintrag gelöscht
@@ -1596,8 +1527,6 @@ push_activity_swap_completed: Tausch %from_symbol% -> %to_symbol% abgeschlossen
 push_activity_swap_failed: Tausch %from_symbol% -> %to_symbol% fehlgeschlagen
 push_activity_swap_expired: Tausch %from_symbol% -> %to_symbol% abgelaufen
 push_activity_swap_pending: Tausch %from_symbol% -> %to_symbol% %status%
-push_activity_staking_profit: Staking-Ertrag %amount% GRAM
-push_activity_staking_loyalty_profit: Staking-Treueertrag %amount% GRAM
 push_domain_title_renew: Erneuern Sie Ihre Domain
 push_domain_expired_yesterday: Ihre Domain %domain% ist gestern abgelaufen. Bitte erneuern Sie sie so bald wie möglich, um den Zugriff nicht zu verlieren
 push_domain_expired_days_ago: Ihre Domain %domain% ist vor %days% Tagen abgelaufen. Bitte erneuern Sie sie so bald wie möglich, um den Zugriff nicht zu verlieren

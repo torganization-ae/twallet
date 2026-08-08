@@ -49,12 +49,6 @@ public class IconStackView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public func configureAll(with item: MStakingHistoryItem) {
-        for iconView in iconViews {
-            iconView.config(with: item)
-        }
-    }
-    
     public func setVisibleIcons(_ count: Int) {
         guard count >= 1 && count <= 3 && iconViews.count == 3 else { return }
         

@@ -14,7 +14,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { IS_FEATURE_LIMITED, IS_STAKING_DISABLED, NO_MFA, NO_STAKING, NO_SWAP } from '../../config';
+import { IS_FEATURE_LIMITED, NO_MFA, NO_SWAP } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { findChainConfig } from '../../util/chain';
@@ -46,7 +46,6 @@ import { MINUTE, SEC } from '../constants';
 import { storage } from '../storages';
 import { refreshMfaStateAndNotify } from './mfa';
 import { resolveDataPreloadPromise } from './preload';
-import { tryUpdateStakingCommonData } from './staking';
 import { swapGetAssets } from './swap';
 
 const BACKEND_INTERVAL = MINUTE;
@@ -92,8 +91,7 @@ export function initPolling(_onUpdate: OnApiUpdate) {
     tryUpdateKnownAddresses(),
     tryUpdateTokens(),
     tryUpdateCurrencyRates(),
-    !IS_STAKING_DISABLED && !NO_SWAP && tryUpdateSwapTokens(),
-    !NO_STAKING && tryUpdateStakingCommonData(),
+    !NO_SWAP && tryUpdateSwapTokens(),
   ]).then(() => resolveDataPreloadPromise());
 
   void tryUpdateConfig();
@@ -124,7 +122,6 @@ function setupCommonBackendPolling() {
         await Promise.all([
           tryUpdateTokens(),
           tryUpdateKnownAddresses(),
-          !IS_STAKING_DISABLED && !NO_STAKING && tryUpdateStakingCommonData(),
           tryUpdateConfig(),
           !NO_SWAP && tryUpdateSwapTokens(),
         ]);

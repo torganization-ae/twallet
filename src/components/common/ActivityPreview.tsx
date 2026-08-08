@@ -5,7 +5,6 @@ import type {
   ApiBaseCurrency,
   ApiCurrencyRates,
   ApiNft,
-  ApiStakingState,
   ApiSwapAsset,
   ApiToken,
   ApiTokenWithPrice,
@@ -32,12 +31,10 @@ type OwnProps = {
   appTheme: AppTheme;
   nftsByAddress?: Record<string, ApiNft>;
   currentAccountId: string;
-  stakingStateBySlug: Record<string, ApiStakingState>;
   savedAddresses?: SavedAddress[];
   accounts?: Record<string, Account>;
   baseCurrency: ApiBaseCurrency;
   currencyRates: ApiCurrencyRates;
-  shouldHideStakingAnnualYield?: boolean;
   className?: string;
 };
 
@@ -50,12 +47,10 @@ function ActivityPreview({
   appTheme,
   nftsByAddress,
   currentAccountId,
-  stakingStateBySlug,
   savedAddresses,
   accounts,
   baseCurrency,
   currencyRates,
-  shouldHideStakingAnnualYield,
   className,
 }: OwnProps) {
   const lang = useLang();
@@ -88,12 +83,10 @@ function ActivityPreview({
             appTheme={appTheme}
             nftsByAddress={nftsByAddress}
             currentAccountId={currentAccountId}
-            stakingStateBySlug={stakingStateBySlug}
             savedAddresses={savedAddresses}
             accounts={accounts}
             baseCurrency={baseCurrency}
             currencyRates={currencyRates}
-            shouldHideStakingAnnualYield={shouldHideStakingAnnualYield}
           />
         ))}
       </div>

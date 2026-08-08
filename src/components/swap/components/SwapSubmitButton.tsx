@@ -90,8 +90,6 @@ function SwapSubmitButton({
         text = lang('Not Enough %symbol%', { symbol: nativeToken?.symbol }) as string;
       } else if (dieselStatus === 'pending-previous') {
         text = lang('Awaiting Previous Fee');
-      } else if (dieselStatus === 'not-authorized') {
-        text = lang('Authorize %token% Fee', { token: tokenIn?.symbol }) as string;
       }
     }
   }

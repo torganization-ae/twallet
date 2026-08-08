@@ -27,7 +27,6 @@ import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.models.MBaseCurrency
 import app.twallet.air.walletbasecontext.utils.MHistoryTimePeriod
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
-import app.twallet.air.walletcore.STAKING_SLUGS
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.api.ensurePortfolioSnapshotsSeeded
@@ -44,7 +43,6 @@ import app.twallet.air.walletcore.moshi.normalizedForPortfolioDisplay
 import app.twallet.air.walletcore.models.MTokenBalance
 import app.twallet.air.walletcore.stores.AccountStore
 import app.twallet.air.walletcore.stores.BalanceStore
-import app.twallet.air.walletcore.stores.StakingStore
 import app.twallet.air.walletcore.stores.TokenStore
 import kotlin.math.abs
 import kotlin.math.pow
@@ -316,7 +314,6 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
             overview = normalized?.toOverview(account),
             assetBreakdown = buildAssetClassBreakdown(account),
             chainBreakdown = buildChainBreakdown(account),
-            stakedBreakdown = buildStakedBreakdown(account),
             netWorthFailed = results.netWorthFailed,
             totalPnlFailed = results.pnlCumulativeFailed,
             dailyPnlFailed = results.pnlDailyFailed,
@@ -576,11 +573,10 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
         )
     }
 
-    // Wallet (non-staking) token balances for the account, in base currency.
+    // Wallet token balances for the account, in base currency.
     private fun walletTokenBalances(accountId: String): List<MTokenBalance> {
         val balances = BalanceStore.getBalances(accountId) ?: return emptyList()
         return balances.entries
-            .filter { !STAKING_SLUGS.contains(it.key) }
             .mapNotNull { (slug, amount) ->
                 MTokenBalance.fromParameters(TokenStore.getToken(slug), amount)
             }
@@ -619,29 +615,6 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
             }
     }
 
-    private fun buildStakedBreakdown(account: MAccount?): List<PortfolioBreakdownSlice> {
-        val accountId = account?.accountId ?: return emptyList()
-        val stakedValue = (StakingStore.getStakingState(accountId)
-            ?.totalBalanceInBaseCurrency() ?: 0.0).coerceAtLeast(0.0)
-        val unstakedValue = walletTokenBalances(accountId)
-            .sumOf { (it.toBaseCurrency ?: 0.0).coerceAtLeast(0.0) }
-        val total = stakedValue + unstakedValue
-        if (total <= 0.0) return emptyList()
-        return listOf(
-            Triple("staked", "Staked", BARREL_STAKED) to stakedValue,
-            Triple("unstaked", "Not staked", BARREL_NATIVE) to unstakedValue,
-        )
-            .filter { it.second > 0.0 }
-            .sortedBy { it.second }
-            .map { (meta, value) ->
-                PortfolioBreakdownSlice(
-                    id = meta.first,
-                    label = LocaleController.getString(meta.second),
-                    color = meta.third,
-                    ratio = value / total,
-                )
-            }
-    }
 
     private fun buildChainBreakdown(account: MAccount?): List<PortfolioBreakdownSlice> {
         if (account?.isMultichain != true) return emptyList()
@@ -1027,7 +1000,6 @@ class PortfolioVM : ViewModel(), WalletCore.EventObserver {
         private const val BARREL_NATIVE = 0xFF2C92F0.toInt()
         private const val BARREL_STABLE = 0xFFE49329.toInt()
         private const val BARREL_ALTCOINS = 0xFF10B853.toInt()
-        private const val BARREL_STAKED = 0xFF6875E9.toInt()
         private val DEFAULT_PORTFOLIO_PERIOD = MHistoryTimePeriod.THREE_MONTHS
 
         private val fallbackChartColors = intArrayOf(

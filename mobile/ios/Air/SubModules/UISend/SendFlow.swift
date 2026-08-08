@@ -82,7 +82,6 @@ struct TokenSendFlow: SendFlow {
             realFee: explainedFee?.realFee?.nativeSum,
             isGasless: explainedFee?.isGasless,
             dieselAmount: diesel?.tokenAmount,
-            isGaslessWithStars: diesel?.status == .starsFee,
             gaslessTransaction: diesel?.transaction,
             password: password,
             fee: explainedFee?.fullFee?.nativeSum,

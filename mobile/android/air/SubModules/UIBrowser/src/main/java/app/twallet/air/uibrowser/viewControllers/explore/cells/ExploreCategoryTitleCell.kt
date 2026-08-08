@@ -15,8 +15,10 @@ import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
 
 @SuppressLint("ViewConstructor")
-class ExploreCategoryTitleCell(context: Context) :
-    WCell(context, LayoutParams(MATCH_PARENT, WRAP_CONTENT)), WThemedView {
+class ExploreCategoryTitleCell(
+    context: Context
+) : WCell(context, LayoutParams(MATCH_PARENT, WRAP_CONTENT)),
+    WThemedView {
     private val titleLabel: WLabel by lazy {
         val lbl = WLabel(context)
         lbl.setStyle(17f, WFont.Medium)
@@ -25,13 +27,14 @@ class ExploreCategoryTitleCell(context: Context) :
     }
 
     private val containerView: WView by lazy {
-        val v = WView(context).apply {
-            addView(titleLabel, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-            setConstraints {
-                toStart(titleLabel)
-                toCenterY(titleLabel)
+        val v =
+            WView(context).apply {
+                addView(titleLabel, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
+                setConstraints {
+                    toStart(titleLabel)
+                    toCenterY(titleLabel)
+                }
             }
-        }
         v
     }
 
@@ -49,5 +52,4 @@ class ExploreCategoryTitleCell(context: Context) :
         titleLabel.letterSpacing = -0.031f
         updateTheme()
     }
-
 }

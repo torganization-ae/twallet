@@ -50,10 +50,8 @@ final class ActionsVC: WViewController, WalletCoreData.EventsObserver {
             view.isUserInteractionEnabled = true
             actionsView.sendButton.isHidden = !account.supportsSend
             actionsView.swapButton.isHidden = !account.supportsSwap
-            actionsView.earnButton.isHidden = !account.supportsEarn
             actionsView.sendButton.alpha = account.supportsSend ? 1 : 0
             actionsView.swapButton.alpha = account.supportsSwap ? 1 : 0
-            actionsView.earnButton.alpha = account.supportsEarn ? 1 : 0
             actionsView.update()
             setActionButtonsAlpha(1, animated: animated)
         }
@@ -108,7 +106,6 @@ final class ActionsView: ButtonsToolbar {
     var addButton: UIView!
     var sendButton: UIView!
     var swapButton: UIView!
-    var earnButton: UIView!
     private var sendMenuInteraction: ContextMenuInteraction?
     
     init() {
@@ -178,16 +175,6 @@ final class ActionsView: ButtonsToolbar {
             }
         )
         addArrangedSubview(swapButton)
-        
-        earnButton = WScalableButton(
-            title: lang("Earn"),
-            image: .airBundle("EarnIconBold"),
-            onTap: { [weak self] in
-                guard let accountContext = self?.accountContext else { return }
-                AppActions.showEarn(accountContext: accountContext, tokenSlug: nil)
-            }
-        )
-        addArrangedSubview(earnButton)
     }
 
     private func makeSendMenuConfiguration() -> ContextMenuConfiguration {

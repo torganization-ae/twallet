@@ -226,7 +226,7 @@ public class WalletTokenCell: WHighlightCollectionViewCell {
         // configure icon view
         if tokenChanged || tokenImage != token?.image?.nilIfEmpty {
             tokenImage = token?.image?.nilIfEmpty
-            iconView.config(with: token, isStaking: walletToken.isStaking, isWalletView: true, shouldShowChain: isMultichain)
+            iconView.config(with: token, shouldShowChain: isMultichain)
         }
         
         // pin icon
@@ -240,7 +240,6 @@ public class WalletTokenCell: WHighlightCollectionViewCell {
         tokenNameLabel.text = if let token {
             MTokenBalance.displayName(
                 apiToken: token,
-                isStaking: walletToken.isStaking,
                 strippingLabelWhenShown: badgeContent?.isTokenLabel == true
             )
         } else {
@@ -309,12 +308,6 @@ public class WalletTokenCell: WHighlightCollectionViewCell {
     public func configureBadge(badgeContent: BadgeContent?) {
         if let badgeContent {
             switch badgeContent {
-            case .staking(let stakingBadge):
-                if stakingBadge.isActive {
-                    badge.configureStakingActive(yieldType: stakingBadge.yieldType, apy: stakingBadge.yieldValue)
-                } else {
-                    badge.configureStakingInactive(yieldType: stakingBadge.yieldType, apy: stakingBadge.yieldValue)
-                }
             case .chain(let chain):
                 badge.configureChain(chain: chain)
             case .tokenLabel(let text, let style):

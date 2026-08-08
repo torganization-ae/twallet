@@ -3,7 +3,7 @@ import WalletContext
 
 /**
  * "Gas" is a fee in the native token.
- * "Diesel" is a fee in the transferred token (or in Telegram stars) in gasless mode.
+ * "Diesel" is a fee in the transferred token in gasless mode.
  */
 public struct ApiFetchEstimateDieselResult: Equatable, Codable, Sendable {
     
@@ -14,10 +14,7 @@ public struct ApiFetchEstimateDieselResult: Equatable, Codable, Sendable {
     /// gasless transfer is not available, and the diesel shouldn't be shown as the fee; nevertheless, the status should
     /// be displayed by the UI.
     ///
-    /// - If the status is not 'stars-fee', the value is measured in the transferred token and charged on top of the
-    ///   transferred amount.
-    /// - If the status is 'stars-fee', the value is measured in Telegram stars, and the BigInt assumes 0 decimal places
-    ///   (i.e. the number is equal to the visible number of stars).
+    /// Measured in the transferred token and charged on top of the transferred amount.
     let amount: BigInt?
     
     /// The native token amount covered by the diesel. Guaranteed to be > 0.
@@ -34,27 +31,34 @@ public struct ApiFetchEstimateDieselResult: Equatable, Codable, Sendable {
 }
 
 extension ApiFetchEstimateDieselResult {
-    public var tokenAmount: BigInt? { status == .starsFee ? nil : amount }
-    public var starsAmount: BigInt? { status == .starsFee ? amount : nil }
+    public var tokenAmount: BigInt? { amount }
 }
 
 
 public enum DieselStatus: String, Codable, Sendable {
     case notAvailable = "not-available"
-    case notAuthorized = "not-authorized"
     case pendingPrevious = "pending-previous"
     case available = "available"
-    case starsFee = "stars-fee"
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        switch raw {
+        case Self.available.rawValue:
+            self = .available
+        case Self.pendingPrevious.rawValue:
+            self = .pendingPrevious
+        default:
+            // Unknown or retired diesel statuses map to notAvailable
+            self = .notAvailable
+        }
+    }
 }
 
 extension DieselStatus {
-    public var canContinue: Bool {
-        return self == .notAuthorized || self == .available || self == .starsFee
-    }
-
     public var errorString: String? {
         switch self {
-        case .notAvailable, .starsFee, .notAuthorized, .available:
+        case .notAvailable, .available:
             return nil
         case .pendingPrevious:
             return lang("Awaiting Previous Fee")

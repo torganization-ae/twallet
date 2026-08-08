@@ -128,7 +128,7 @@ public func isDieselAvailable(_ diesel: ApiFetchEstimateDieselResult) -> Bool {
 }
 
 public func getDieselTokenAmount(diesel: ApiFetchEstimateDieselResult) -> BigInt {
-    return diesel.status == .starsFee ? .zero : (diesel.amount ?? .zero)
+    return diesel.amount ?? .zero
 }
 
 public func getFullTransferFee(_ terms: MFee.FeeTerms?, tokenSlug: String) -> BigInt? {

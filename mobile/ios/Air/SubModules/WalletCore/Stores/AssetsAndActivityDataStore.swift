@@ -12,7 +12,6 @@ public final class AccountAssetsAndActivityData: Sendable {
     @Perceptible
     public final class State: Sendable {
         private let _data: UnfairLock<MAssetsAndActivityData?> = .init(initialState: nil)
-        private let _didAutoPinStaking: UnfairLock<Bool> = .init(initialState: false)
 
         nonisolated init() {}
 
@@ -21,20 +20,9 @@ public final class AccountAssetsAndActivityData: Sendable {
             return _data.withLock { $0 }
         }
 
-        public var didAutoPinStaking: Bool {
-            access(keyPath: \._didAutoPinStaking)
-            return _didAutoPinStaking.withLock { $0 }
-        }
-
-        fileprivate func replace(
-            data: MAssetsAndActivityData?,
-            didAutoPinStaking: Bool
-        ) {
+        fileprivate func replace(data: MAssetsAndActivityData?) {
             withMutation(keyPath: \._data) {
                 _data.withLock { $0 = data }
-            }
-            withMutation(keyPath: \._didAutoPinStaking) {
-                _didAutoPinStaking.withLock { $0 = didAutoPinStaking }
             }
         }
     }
@@ -50,15 +38,8 @@ public final class AccountAssetsAndActivityData: Sendable {
         state.data
     }
 
-    public var didAutoPinStaking: Bool {
-        state.didAutoPinStaking
-    }
-
-    func replace(data: MAssetsAndActivityData?, didAutoPinStaking: Bool) {
-        state.replace(
-            data: data,
-            didAutoPinStaking: didAutoPinStaking
-        )
+    func replace(data: MAssetsAndActivityData?) {
+        state.replace(data: data)
     }
 }
 
@@ -78,10 +59,6 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
         self.for(accountId: accountId).data
     }
 
-    public nonisolated func didAutoPinStaking(accountId: String) -> Bool {
-        self.for(accountId: accountId).didAutoPinStaking
-    }
-
     public func use(db: any DatabaseWriter) {
         self.db = db
         loadFromDb()
@@ -96,10 +73,6 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
         Task { await self._update(accountId: accountId, update: update) }
     }
 
-    public nonisolated func autoPinStakingIfNeeded(accountId: String, slugs: [String]) {
-        Task { await self._autoPinStakingIfNeeded(accountId: accountId, slugs: slugs) }
-    }
-
     @MainActor public func walletCore(event: WalletCoreData.Event) {
         Task {
             await handleEvent(event)
@@ -109,10 +82,7 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
     private func handleEvent(_ event: WalletCoreData.Event) {
         switch event {
         case .accountDeleted(let accountId):
-            byAccountId.existing(accountId: accountId)?.replace(
-                data: nil,
-                didAutoPinStaking: false
-            )
+            byAccountId.existing(accountId: accountId)?.replace(data: nil)
             byAccountId.remove(accountId: accountId)
         case .accountsReset:
             clean()
@@ -125,50 +95,17 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
         let context = byAccountId.for(accountId: accountId)
         var next = context.data ?? .empty
         update(&next)
-        persist(
-            accountId: accountId,
-            data: next,
-            didAutoPinStaking: context.didAutoPinStaking
-        )
-    }
-
-    private func _autoPinStakingIfNeeded(accountId: String, slugs: [String]) {
-        guard !slugs.isEmpty else { return }
-        let context = byAccountId.for(accountId: accountId)
-        guard !context.didAutoPinStaking else { return }
-        var next = context.data ?? .empty
-        if next.hasPinnedTokens {
-            persist(
-                accountId: accountId,
-                data: next,
-                didAutoPinStaking: true
-            )
-            return
-        }
-        for slug in slugs {
-            next.saveTokenPinning(slug: slug, isStaking: true, isPinned: true)
-        }
-        persist(
-            accountId: accountId,
-            data: next,
-            didAutoPinStaking: true
-        )
+        persist(accountId: accountId, data: next)
     }
 
     private func persist(
         accountId: String,
-        data: MAssetsAndActivityData,
-        didAutoPinStaking: Bool
+        data: MAssetsAndActivityData
     ) {
         let context = byAccountId.for(accountId: accountId)
-        let dataChanged = context.data != data
-        let autoPinChanged = context.didAutoPinStaking != didAutoPinStaking
-        guard dataChanged || autoPinChanged else { return }
+        guard context.data != data else { return }
 
-        context.replace(
-            data: data,
-            didAutoPinStaking: didAutoPinStaking
-        )
+        context.replace(data: data)
 
         do {
             guard let db else {
@@ -177,8 +114,7 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
             }
             let row = MAccountAssetsAndActivityData(
                 accountId: accountId,
-                data: data,
-                didAutoPinStaking: didAutoPinStaking
+                data: data
             )
             try db.write { db in
                 try row.upsert(db)
@@ -187,9 +123,7 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
             log.error("save failed accountId=\(accountId, .public) error=\(error, .public)")
         }
 
-        if dataChanged {
-            WalletCoreData.notify(event: .assetsAndActivityDataUpdated)
-        }
+        WalletCoreData.notify(event: .assetsAndActivityDataUpdated)
     }
 
     private func loadFromDb() {
@@ -202,10 +136,13 @@ public actor _AssetsAndActivityDataStore: WalletCoreData.EventsObserver {
                 try MAccountAssetsAndActivityData.fetchAll(db)
             }
             for row in rows {
-                byAccountId.for(accountId: row.accountId).replace(
-                    data: row.data,
-                    didAutoPinStaking: row.didAutoPinStaking
-                )
+                var data = row.data
+                let before = data
+                data.dropLegacyStakingIdentities()
+                byAccountId.for(accountId: row.accountId).replace(data: data)
+                if data != before {
+                    persist(accountId: row.accountId, data: data)
+                }
             }
         } catch {
             log.error("initial load failed: \(error, .public)")

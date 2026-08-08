@@ -52,7 +52,6 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
 
     // dependencies
     private let balancesStore: _BalancesStore
-    private let stakingStore: _StakingStore
     private let assetsAndActivityDataStore: _AssetsAndActivityDataStore
     private let accountStore: _AccountStore
     private let tokenStore: _TokenStore
@@ -66,13 +65,11 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
 
     private init() {
         @Dependency(\.balancesStore) var balancesStore
-        @Dependency(\.stakingStore) var stakingStore
         @Dependency(\.assetsAndActivityDataStore) var assetsAndActivityDataStore
         @Dependency(\.accountStore) var accountStore
         @Dependency(\.tokenStore) var tokenStore
 
         self.balancesStore = balancesStore
-        self.stakingStore = stakingStore
         self.assetsAndActivityDataStore = assetsAndActivityDataStore
         self.accountStore = accountStore
         self.tokenStore = tokenStore
@@ -147,8 +144,6 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
         switch event {
         case .rawBalancesChanged(let accountId):
             await recomputeAccount(accountId: accountId)
-        case .stakingAccountData(let stakingData):
-            await recomputeAccount(accountId: stakingData.accountId)
         case .baseCurrencyChanged, .tokensChanged, .hideNoCostTokensChanged, .assetsAndActivityDataUpdated, .chainVisibilityChanged:
             scheduleRecomputeAllKnownAccounts()
         case .accountDeleted(let accountId):
@@ -287,7 +282,6 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
 
     private nonisolated func computeAccountData(accountId: String) -> ComputedAccountData {
         let balances = balancesStore.getAccountBalances(accountId: accountId)
-        let stakingData = stakingStore.stakingData(accountId: accountId)
         let account = accountStore.get(accountId: accountId)
         let network = account.network
         var walletTokens: [MTokenBalance] = balances.compactMap { slug, amount in
@@ -295,7 +289,7 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
                ChainVisibilityStore.shared.isHidden(chain, network: network) {
                 return nil
             }
-            return MTokenBalance(tokenSlug: slug, balance: amount, isStaking: false)
+            return MTokenBalance(tokenSlug: slug, balance: amount)
         }
 
         var allTokensFound = true
@@ -305,12 +299,6 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
         var totalBalanceUsdByChain: [ApiChain: Double] = [:]
 
         for token in walletTokens {
-            if token.tokenSlug == STAKED_TON_SLUG
-                || token.tokenSlug == STAKED_MYCOIN_SLUG
-                || token.tokenSlug == TON_TSUSDE_SLUG
-            {
-                continue
-            }
             if let value = token.toBaseCurrency, let yesterday = token.toBaseCurrency24h {
                 totalBalance += value
                 totalBalanceYesterday += yesterday
@@ -347,7 +335,7 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
             if !walletTokens.contains(where: { $0.tokenSlug == slug }),
                account.supports(chain: chain),
                !(chain.map { ChainVisibilityStore.shared.isHidden($0, network: network) } ?? false) {
-                walletTokens.append(MTokenBalance(tokenSlug: slug, balance: 0, isStaking: false))
+                walletTokens.append(MTokenBalance(tokenSlug: slug, balance: 0))
             }
         }
 
@@ -358,43 +346,12 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
                 let chain = tokenStore.tokens[slug]?.chain
                 if account.supports(chain: chain),
                    !(chain.map { ChainVisibilityStore.shared.isHidden($0, network: network) } ?? false) {
-                    walletTokens.append(MTokenBalance(tokenSlug: slug, balance: 0, isStaking: false))
+                    walletTokens.append(MTokenBalance(tokenSlug: slug, balance: 0))
                 }
             }
         }
 
-        walletTokens.removeAll(where: { prefs.isTokenHidden(slug: $0.tokenSlug, isStaking: $0.isStaking) })
-
-        var stakingSlugsToAutoPin: [String] = []
-        var walletStaked: [MTokenBalance] = stakingData?.stateById.values.compactMap { stakingState in
-            let fullBalance = getFullStakingBalance(state: stakingState)
-            guard fullBalance > 0 else {
-                return nil
-            }
-            if getHasPositiveStakingYield(state: stakingState) {
-                stakingSlugsToAutoPin.append(stakingState.tokenSlug)
-            }
-            return MTokenBalance(tokenSlug: stakingState.tokenSlug, balance: fullBalance, isStaking: true)
-        } ?? []
-
-        if !stakingSlugsToAutoPin.isEmpty {
-            assetsAndActivityDataStore.autoPinStakingIfNeeded(accountId: account.id, slugs: stakingSlugsToAutoPin)
-        }
-
-        for token in walletStaked {
-            if let value = token.toBaseCurrency, let yesterday = token.toBaseCurrency24h {
-                totalBalance += value
-                totalBalanceYesterday += yesterday
-                if let amountInUSD = token.toUsd {
-                    totalBalanceUsd += amountInUSD
-                    if let chain = token.token?.chain {
-                        totalBalanceUsdByChain[chain, default: 0] += amountInUSD
-                    }
-                }
-            }
-        }
-
-        walletStaked.removeAll(where: { prefs.isTokenHidden(slug: $0.tokenSlug, isStaking: $0.isStaking) })
+        walletTokens.removeAll(where: { prefs.isTokenHidden(slug: $0.tokenSlug) })
 
         let baseCurrency = tokenStore.baseCurrency
         let totalBalanceAmount = BaseCurrencyAmount.fromDouble(totalBalance, baseCurrency)
@@ -405,7 +362,7 @@ public actor _BalanceDataStore: WalletCoreData.EventsObserver {
             nil
         }
         let orderedTokenBalances = MTokenBalance.sortedForBalanceData(
-            tokenBalances: walletTokens + walletStaked,
+            tokenBalances: walletTokens,
             balances: balances,
             defaultTokenSlugs: ApiToken.defaultSlugs(forNetwork: account.network, account: account),
             importedTokenSlugs: prefs.importedSlugs

@@ -207,7 +207,6 @@ Testnet Version: Testnet Version
 Error reading clipboard: Error reading clipboard
 $fee_value: Fee %fee%
 $fee_value_with_colon: "Fee: %fee%"
-Pay fee with %stars_symbol%: Pay fee with %stars_symbol%
 Loading...: Loading...
 No price data: No price data
 Price Copied: Price Copied
@@ -264,45 +263,13 @@ Appearance: Appearance
 Light: Light
 Dark: Dark
 System: System
-$stake_asset: Stake %symbol%
-Add Stake: Add Stake
-Earn from your tokens while holding them: Earn from your tokens while holding them
-Current APY: Current APY
-Est. Yearly Earnings: Est. Yearly Earnings
-Staking Details: Staking Details
-Why this is safe: Why this is safe
-$safe_staking_description1: Staking is **fully decentralized** and operated by the **official TON Liquid Staking** smart contracts.
-$safe_staking_description2: The deposited stake will be used for the %chain% network validation as part of its **proof-of-stake** essence.
-$safe_staking_description3: You can withdraw your stake at **any time** and it will be deposited back to your account within **two days**.
-$safe_staking_description_jetton1: Token staking is **fully decentralized** and operated by the **open-source** smart contracts developed by %jvault_link% and passed **security audits**.
-$safe_staking_description_jetton2: You can withdraw your stake at **any time** and it will be deposited back to your account **instantly**.
 $min_value: Min %value%
-Est. balance in a year: Est. balance in a year
-Confirm Staking: Confirm Staking
-Coins have been staked!: Coins have been staked!
 View: View
-Stake More: Stake More
 Staking: Staking
-Currently Staked: Currently Staked
-Total Staked: Total Staked
-Total Stakers: Total Stakers
-Unstake: Unstake
-Earning History: Earning History
 $total: "Total: %value%"
-$unstake_asset: Unstake %symbol%
-Amount to unstake: Amount to unstake
-Confirm Unstaking: Confirm Unstaking
-Request for unstaking is sent!: Request for unstaking is sent!
-$unstaking_when_receive: You will receive your unstaked deposit in %time%.
-$unstaking_when_receive_with_amount: You will receive your unstaked %amount% in %time%.
-$unstaking_when_receive_with_amount_ethena: You will be able to receive your unstaked %amount% in %time%.
-$unstake_insufficient_balance: You need to have %balance% on your main balance to proceed with unstaking.
-at %annual_yield%: at %annual_yield%
-Est. %annual_yield%: Est. %annual_yield%
 Staked: Staked
 $stake_action: Stake
 Unstaked: Unstaked
-Not staked: Not staked
 Unstaking: Unstaking
 $unstake_action: Unstake
 The network fee has slightly changed, try sending again.: The network fee has slightly changed, try sending again.
@@ -312,13 +279,8 @@ Invalid address: Invalid address
 Domain is not connected to a wallet: Domain is not connected to a wallet
 Unexpected error: Unexpected error
 Unexpected Error: Unexpected Error
-Earn: Earn
-Earning: Earning
 Unexpected: Unexpected error
 You can save this address for quick access while sending.: You can save this address for quick access while sending.
-Stake Again: Stake Again
-Earned: Earned
-$staking_history_earned: Earned
 Select wallet to use on this app: Select wallet to use on this app
 Connect: Connect
 Already Connected: Already Connected
@@ -333,7 +295,6 @@ $many_transactions:
   oneValue: "%1$d Transfer"
   otherValue: "%1$d Transfers"
 Total Amount: Total Amount
-$unstaking_short: Unstaking
 Handle ton:// links: Handle ton:// links
 Back up wallet to have full access to it: Back up wallet to have full access to it
 Consider More Secure Version: Consider More Secure Version
@@ -374,7 +335,6 @@ Stablecoins: Stablecoins
 Altcoins: Altcoins
 Asset Mix: Asset Mix
 No asset balances: No asset balances
-No staked assets: No staked assets
 Entire Period: Entire Period
 "Asset %1$@": "Asset %1$@"
 Assets & Activity: Assets & Activity
@@ -556,7 +516,6 @@ Chinese Yuan: Chinese Yuan
 Bitcoin: Bitcoin
 $max_balance: "Max: %balance%"
 $available_balance: "Available: %balance%"
-$unstake_information_instantly: You will get your deposit instantly
 Select Token: Select Token
 MY: My
 Popular: Popular
@@ -588,7 +547,6 @@ Correct: Correct
 Confirm Action: Confirm Action
 $classic_confirm_actions: Confirm Actions
 Confirm Swap: Confirm Swap
-Confirm Rewards Claim: Confirm Rewards Claim
 "%amount% to %address%": "%amount% to %address%"
 "%amount_from% to %amount_to%": "%amount_from% to %amount_to%"
 Failed to enable biometrics.: Failed to enable biometrics.
@@ -603,15 +561,13 @@ No Activity: No Activity
 Fund: Fund
 Buy with Crypto: Buy with Crypto
 Error: Error
-Explore: Explore
+Explore: Browser
 $lockdown_mode_enabled_title: Lockdown Mode Enabled
 $lockdown_mode_walletconnect_unavailable: "WalletConnect is not available in Lockdown Mode. To use it, disable Lockdown Mode for %app_name% in Settings > Privacy & Security > Lockdown Mode > Configure Web Browsing."
 No partners yet: No partners yet
 Clear: Clear
 Unavailable: Unavailable
-$unstake_up_to_information: Instantly – up to %value%
 $all_balance: "All: %balance%"
-$unstaking_not_enough_balance: You need to have %value% on your main balance to proceed with unstaking.
 $ledger_verify_address_on_device: Please, verify the address on your Ledger.
 Wallet Versions: Wallet Versions
 $read_more_about_wallet_version: Read more about types of wallet contracts on %link%.
@@ -669,14 +625,12 @@ More actions: More actions
 Open on %explorer_name%: Open on %explorer_name%
 Swap is not supported in Testnet.: Swap is not supported in Testnet.
 Swap is not yet supported by Ledger.: Swap is not yet supported by Ledger.
-Staking is not supported in Testnet.: Staking is not supported in Testnet.
 Get Support: Get Support
 $transfer_link_expired: Transfer link has expired
 $transfer_text_and_bin_exclusive: Cannot use both text and bin parameters together
 $unsupported_deeplink_parameter: This deeplink contains unsupported parameters.
 $unsupported_chain: Unsupported blockchain.
 Successfully: Successfully
-Unstake More: Unstake More
 Are you sure you want to burn this NFT? It will be lost forever.: |
   Are you sure you want to burn this NFT?
   It will be lost forever.
@@ -834,7 +788,6 @@ $fee_details: |
   This is how %chain_name% Blockchain works.
 Got It: Got It
 Wallet: Wallet
-Trending: Trending
 No Data: No Data
 Toggle fullscreen: Toggle fullscreen
 Request is sent!: Request is sent!
@@ -931,19 +884,12 @@ $DappurlTrustStatusInvalidHelp: The origin does not match this application's ver
 DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: Please, use %app_name% %mobileAppButton% or %browserExtensionButton% to avoid this warning.
-$reopen_in_iab_explore: Please use the %exploreTab% section when browsing apps to avoid this warning.
+$reopen_in_iab_explore: Please use the %exploreTab% tab when opening apps to avoid this warning.
 tWallet Browser: tWallet Browser
 mobile app: mobile app
 browser extension: browser extension
 Exit all wallets: Exit all wallets
 Can't confirm?: Can't confirm?
-$safe_staking_ethena_description1: Staking is fully decentralized and operated by **Ethena’s official** audited liquid staking **smart contracts**.
-$safe_staking_ethena_description2: The deposited USDe stake is used in Ethena’s **trading and investment strategies** to yield rewards automatically and transparently.
-$safe_staking_ethena_description3: You can **withdraw** your stake with rewards at any time, and it will be returned to your account **in 7 days**, according to Ethena’s standard withdrawal period.
-Unstake %amount%: Unstake %amount%
-Request Unstaking: Request Unstaking
-$unstaking_when_receive_ethena: You will be able to receive your unstaked deposit in **7 days**.
-Coins have been unstaked!: Coins have been unstaked!
 Confirm Upgrading: Confirm Upgrading
 How does it work?: How does it work?
 Multisend: Multisend
@@ -953,7 +899,6 @@ Renew Domain: Renew Domain
 Renew Domains: Renew Domains
 Some domains are about to expire: Some domains are about to expire
 $domain_expire: "**%domain%** expires %days%"
-"%token% Staking": "%token% Staking"
 Add Tab: Add Tab
 Customize Tabs: Customize Tabs
 Remove Tab: Remove Tab
@@ -970,7 +915,6 @@ $domains_amount %1$d:
   otherValue: "%1$d domains"
 Stake: Stake
 Manage Tokens: Manage Tokens
-Claim Rewards: Claim Rewards
 Configure DNS: Configure DNS
 Link to Wallet: Link to Wallet
 Change Wallet: Change Wallet
@@ -997,8 +941,6 @@ $domains_was_expired:
   otherValue: "**%domain% domains** are expired"
 Reload: Reload
 Copy Link: Copy Link
-Check eligibility for max APY: Check eligibility for max APY
-Check eligibility: Check eligibility
 $expired_many: Expired
 $one_domain_expires %days%: Expires %days%
 $multiple_domains_expire %days%: Expires %days%
@@ -1088,8 +1030,9 @@ Show More: Show More
 Search app or enter address: Search app or enter address
 Connected Apps: Connected Apps
 Connected Sites: Connected Sites
-Popular Apps: Popular Apps
-Popular Sites: Popular Sites
+TMail: TMail
+Mint: Mint
+Recently Viewed: Recently Viewed
 $wallets_amount:
   zeroValue: No wallets
   oneValue: "%1$d wallet"
@@ -1365,7 +1308,6 @@ M: M
 Y: "Y"
 $amount_K: "%amount%K"
 $amount_M: "%amount%M"
-Happening Now: Happening Now
 No Dapps Found!: No Dapps Found!
 Edit Wallet Name: Edit Wallet Name
 Wallet Name: Wallet Name
@@ -1384,20 +1326,14 @@ Never: Never
 "%1$@ minutes": "%1$@ minutes"
 Unstake Request: Unstake Request
 History: History
-Earn up to %1$@ per year from your tokens: Earn up to %1$@ per year from your tokens
 Insufficient %1$@ Balance: "Insufficient %1$@ Balance"
-Instant Withdrawal: Instant Withdrawal
 Instantly: Instantly
-Up to %1$@: Up to %1$@
-up to %1$@: up to %1$@
-Current APR: Current APR
 in: in
 Network Error: Network Error
 Enter Amount: Enter Amount
 "Swap %1$@ to %2$@": "Swap %1$@ to %2$@"
 "%1$@ to %2$@": "%1$@ to %2$@"
 "Max %1$@": "Max %1$@"
-"Authorize %1$@ fee": "Authorize %1$@ fee"
 Pending previous fee: Pending previous fee
 AML/KYC: AML/KYC
 Receive to: Receive to
@@ -1506,7 +1442,6 @@ Are you sure you want to unpin %tab%?: Are you sure you want to unpin %tab%?
 add: add
 send: send
 swap: swap
-earn: earn
 Actions: Actions
 $actions_description: Quickly access most common actions.
 Rate: Rate
@@ -1553,7 +1488,6 @@ Unexpected error. Please let the support know.: Unexpected error. Please let the
 Unlock it and open the TON App: Unlock it and open the TON App
 Use 4-digit Passcode: Use 4-digit Passcode
 Use 6-digit Passcode: Use 6-digit Passcode
-Authorize %token% Fee: Authorize %token% Fee
 Awaiting Previous Fee: Awaiting Previous Fee
 Lock: Lock
 Receive: Receive
@@ -1585,9 +1519,6 @@ push_activity_nft_minted: Minted NFT
 push_activity_nft_minted_named: "Minted NFT: %name%"
 push_activity_liquidity_deposited: Provided liquidity
 push_activity_liquidity_withdrawn: Withdrew liquidity
-push_activity_stake_deposit: Staked %amount% %symbol%
-push_activity_stake_withdrawal: Unstaked %amount% %symbol%
-push_activity_stake_withdrawal_request: Requested staking withdrawal
 push_activity_auction_bid: Placed auction bid %amount% %symbol%
 push_activity_dns_changed: Updated DNS record
 push_activity_dns_deleted: Deleted DNS record
@@ -1599,8 +1530,6 @@ push_activity_swap_completed: Swapped %from_symbol% -> %to_symbol%
 push_activity_swap_failed: Swap %from_symbol% -> %to_symbol% failed
 push_activity_swap_expired: Swap %from_symbol% -> %to_symbol% expired
 push_activity_swap_pending: Swap %from_symbol% -> %to_symbol% %status%
-push_activity_staking_profit: Staking profit %amount% GRAM
-push_activity_staking_loyalty_profit: Staking loyalty profit %amount% GRAM
 push_domain_title_renew: Renew your domain
 push_domain_expired_yesterday: Your domain %domain% expired yesterday. Please renew it as soon as possible to avoid losing access
 push_domain_expired_days_ago: Your domain %domain% expired %days% days ago. Please renew it as soon as possible to avoid losing access

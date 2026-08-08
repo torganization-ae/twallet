@@ -3,6 +3,7 @@ import { logDebug } from '../../../util/logs';
 import { IS_ELECTRON } from '../../../util/windowEnvironment';
 import { callApi, initApi } from '../../../api';
 import { removeTemporaryAccount } from '../../helpers/auth';
+import { syncVaultAccountsFromGlobal } from '../../helpers/vault';
 import { addActionHandler, getGlobal, setGlobal } from '../../index';
 import { selectNewestActivityTimestamps } from '../../selectors';
 
@@ -26,6 +27,9 @@ addActionHandler('initApi', async (global, actions) => {
     await removeTemporaryAccount(global.currentTemporaryViewAccountId);
   }
   global = getGlobal();
+
+  // Safe here: worker connector exists and `waitDataPreload` finished.
+  syncVaultAccountsFromGlobal(global);
 
   if (!global.isDerivationsSynced) {
     // Migration to add derivations to the client

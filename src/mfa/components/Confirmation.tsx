@@ -8,7 +8,6 @@ import type {
   ApiCurrencyRates,
   ApiEmulationResult,
   ApiNft,
-  ApiStakingState,
   ApiSwapAsset,
   ApiTokenWithPrice,
 } from '../../api/types';
@@ -18,7 +17,6 @@ import type { ApiTransaction } from '../types';
 import { TONCOIN } from '../../config';
 import { ANIMATED_STICKER_MIDDLE_SIZE_PX } from '../config';
 import {
-  selectAccountStakingStatesBySlug,
   selectCurrentAccountId,
   selectCurrentAccountState,
   selectNetworkAccounts,
@@ -60,7 +58,6 @@ interface StateProps {
   currencyRates: ApiCurrencyRates;
   nftsByAddress?: Record<string, ApiNft>;
   currentAccountId?: string;
-  stakingStateBySlug: Record<string, ApiStakingState>;
   savedAddresses?: SavedAddress[];
   accounts?: Record<string, Account>;
 }
@@ -90,7 +87,6 @@ function Confirmation({
   currencyRates,
   nftsByAddress,
   currentAccountId,
-  stakingStateBySlug,
   savedAddresses,
   accounts,
   onConfirm,
@@ -239,12 +235,10 @@ function Confirmation({
             appTheme={appTheme}
             nftsByAddress={nftsByAddress}
             currentAccountId={currentAccountId ?? ''}
-            stakingStateBySlug={stakingStateBySlug}
             savedAddresses={savedAddresses}
             accounts={accounts}
             baseCurrency={baseCurrency}
             currencyRates={currencyRates}
-            shouldHideStakingAnnualYield
           />
         )}
       </div>
@@ -274,7 +268,6 @@ export default memo(withGlobal<OwnProps>((global): StateProps => {
     currencyRates: global.currencyRates,
     nftsByAddress: accountState?.nfts?.byAddress,
     currentAccountId: accountId,
-    stakingStateBySlug: accountId ? selectAccountStakingStatesBySlug(global, accountId) : {},
     savedAddresses: accountState?.savedAddresses,
     accounts,
   };

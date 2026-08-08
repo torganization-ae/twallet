@@ -94,7 +94,6 @@ let package = Package(
         airLibrary("UIComponents"),
         airLibrary("UICreateWallet"),
         airLibrary("UIDapp"),
-        airLibrary("UIEarn"),
         airLibrary("UIHome"),
         airLibrary("UIInAppBrowser"),
         airLibrary("UIPortfolio"),
@@ -421,18 +420,6 @@ let package = Package(
             ]
         ),
         airTarget(
-            "UIEarn",
-            dependencies: [
-                "WalletCore",
-                "WalletContext",
-                "UIComponents",
-                .product(name: "Perception", package: "swift-perception"),
-                "Ledger",
-                .product(name: "SwiftNavigation", package: "swift-navigation"),
-                .product(name: "OrderedCollections", package: "swift-collections"),
-            ]
-        ),
-        airTarget(
             "UIPortfolio",
             dependencies: [
                 "UIComponents",
@@ -483,7 +470,6 @@ let package = Package(
                 "WalletContext",
                 "WalletCore",
                 "WReachability",
-                "UIEarn",
                 .product(name: "Perception", package: "swift-perception"),
                 .product(name: "Dependencies", package: "swift-dependencies"),
                 "UIAssets",
@@ -524,7 +510,6 @@ let package = Package(
                 "UIAssets",
                 "UISettings",
                 "UIReceive",
-                "UIEarn",
                 "UIToken",
                 "UIInAppBrowser",
                 "UIPortfolio",

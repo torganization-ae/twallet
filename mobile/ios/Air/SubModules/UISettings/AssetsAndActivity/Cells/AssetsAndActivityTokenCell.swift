@@ -122,7 +122,6 @@ final class AssetsAndActivityTokenCell: UICollectionViewListCell {
     private var ignoreUpdatesForSlug: String? = nil
     
     func configure(with token: ApiToken,
-                   isStaking: Bool,
                    balance: BigInt,
                    importedSlug: Bool,
                    isHidden: Bool,
@@ -132,7 +131,7 @@ final class AssetsAndActivityTokenCell: UICollectionViewListCell {
         self.token = token
         self.onTokenVisibilityChange = onTokenVisibilityChange
         iconImageView.config(with: token, shouldShowChain: AccountStore.account?.isMultichain == true)
-        titleLabel.text = MTokenBalance.displayName(apiToken: token, isStaking: isStaking)
+        titleLabel.text = MTokenBalance.displayName(apiToken: token)
         symbolLabel.text = token.symbol
         if !tokenChanged {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

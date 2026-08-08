@@ -2,7 +2,7 @@ import React, { memo, useEffect, useMemo, useRef, useState } from '../../../../l
 import { getActions, withGlobal } from '../../../../global';
 
 import type {
-  ApiBaseCurrency, ApiCurrencyRates, ApiStakingState, ApiWalletWithVersionInfo,
+  ApiBaseCurrency, ApiCurrencyRates, ApiWalletWithVersionInfo,
 } from '../../../../api/types';
 import type { Account, AccountSettings, GlobalState } from '../../../../global/types';
 import { AccountSelectorState } from '../../../../global/types';
@@ -63,7 +63,6 @@ interface AccountSelectorOpenProps {
   networkAccounts?: Record<string, Account>;
   byAccountId: GlobalState['byAccountId'];
   tokenInfo: GlobalState['tokenInfo'];
-  stakingDefault: ApiStakingState;
   settingsByAccountId: Record<string, AccountSettings>;
   activeTab?: number;
   viewModeInitial?: 'cards' | 'list';
@@ -93,7 +92,6 @@ function AccountSelectorModal({
   networkAccounts,
   byAccountId,
   tokenInfo,
-  stakingDefault,
   settingsByAccountId,
   activeTab = DEFAULT_TAB,
   viewModeInitial,
@@ -161,7 +159,6 @@ function AccountSelectorModal({
     areTokensWithNoCostHidden,
     baseCurrency,
     currencyRates,
-    stakingDefault,
   });
   const { sortState, handleDrag, handleDragEnd } = useSortableAccounts(filteredAccounts);
 
@@ -751,7 +748,6 @@ export default memo(withGlobal(
         areTokensWithNoCostHidden,
         isTestnet,
       },
-      stakingDefault,
       tokenInfo,
       walletVersions,
     } = global;
@@ -771,7 +767,6 @@ export default memo(withGlobal(
       networkAccounts,
       byAccountId,
       tokenInfo,
-      stakingDefault,
       settingsByAccountId,
       baseCurrency,
       currencyRates,

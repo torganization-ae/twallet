@@ -20,10 +20,7 @@ export interface SearchSuggestions {
   isEmpty: boolean;
 }
 
-export interface ProcessedSites {
-  featuredSites: ApiSite[];
-  allSites: Record<number, ApiSite[]>;
-}
+export type SitesByCategory = Record<number, ApiSite[]>;
 
 export type SearchFactors<L extends number> = number[] & { length: L };
 
@@ -121,30 +118,64 @@ export function generateSearchSuggestions(
   };
 }
 
-export function processSites(sites?: ApiSite[]): ProcessedSites {
+export function processSites(sites?: ApiSite[]): SitesByCategory {
   return (sites || []).reduce((acc, site) => {
-    if (site.isFeatured) {
-      acc.featuredSites.push(site);
+    if (site.categoryId === undefined) {
+      return acc;
     }
 
-    if (!acc.allSites[site.categoryId!]) {
-      acc.allSites[site.categoryId!] = [];
+    if (!acc[site.categoryId]) {
+      acc[site.categoryId] = [];
     }
-    acc.allSites[site.categoryId!].push(site);
+    acc[site.categoryId].push(site);
 
     return acc;
-  }, { featuredSites: [], allSites: {} } as ProcessedSites);
+  }, {} as SitesByCategory);
 }
 
 export function findSiteByUrl(sites?: ApiSite[], targetUrl?: string): ApiSite | undefined {
   return sites?.find(({ url }) => url === targetUrl);
 }
 
+export function resolveHistorySite(url: string, sites?: ApiSite[]): {
+  url: string;
+  name: string;
+  icon?: string;
+  isExternal?: boolean;
+} {
+  const exact = findSiteByUrl(sites, url);
+  if (exact) {
+    return {
+      url,
+      name: exact.name,
+      icon: exact.icon,
+      isExternal: exact.isExternal,
+    };
+  }
+
+  const host = getHostnameFromUrl(url);
+  const byHost = sites?.find((site) => getHostnameFromUrl(site.url) === host);
+  if (byHost) {
+    return {
+      url,
+      name: byHost.name,
+      icon: byHost.icon,
+      isExternal: byHost.isExternal,
+    };
+  }
+
+  return {
+    url,
+    name: host || url,
+  };
+}
+
 export function openSite(originalUrl: string, isExternal?: boolean, title?: string) {
   let url = normalizeUrl(originalUrl);
   if (!isValidUrl(url)) {
     url = `${GOOGLE_SEARCH_URL}${encodeURIComponent(originalUrl)}`;
-  } else {
+  } else if (isExternal) {
+    // In-app path records history via `openBrowser`; external Explore opens need this.
     getActions().addSiteToBrowserHistory({ url });
   }
 

@@ -1,13 +1,10 @@
 import React, { type ElementRef, memo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
-import type { StakingStateStatus } from '../../../../util/staking';
-
 import { IS_FEATURE_LIMITED } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/haptics';
 import { handleSendMenuItemClick, SEND_CONTEXT_MENU_ITEMS } from './helpers/sendMenu';
-import { STAKING_TAB_TEXT_VARIANTS } from './helpers/stakingLabels';
 
 import useLang from '../../../../hooks/useLang';
 import useLastCallback from '../../../../hooks/useLastCallback';
@@ -20,20 +17,13 @@ import styles from './PortraitActions.module.scss';
 interface OwnProps {
   isTestnet?: boolean;
   isLedger?: boolean;
-  stakingStatus: StakingStateStatus;
   isSwapDisabled?: boolean;
-  isStakingDisabled?: boolean;
   containerRef: ElementRef<HTMLDivElement>;
-  onEarnClick: NoneToVoidFunction;
 }
 
 function PortraitActions({
-  isTestnet,
-  stakingStatus,
-  isStakingDisabled,
   isSwapDisabled,
   containerRef,
-  onEarnClick,
 }: OwnProps) {
   const {
     startTransfer, startSwap, openReceiveModal,
@@ -67,12 +57,6 @@ function PortraitActions({
     vibrate();
 
     openReceiveModal();
-  });
-
-  const handleEarnClick = useLastCallback(() => {
-    vibrate();
-
-    onEarnClick();
   });
 
   return (
@@ -114,16 +98,6 @@ function PortraitActions({
           >
             <i className={buildClassName(styles.buttonIcon, 'icon-action-swap')} aria-hidden />
             {lang('Swap')}
-          </Button>
-        )}
-        {!isStakingDisabled && (
-          <Button
-            isSimple
-            className={buildClassName(styles.button, stakingStatus !== 'inactive' && styles.button_purple)}
-            onClick={handleEarnClick}
-          >
-            <i className={buildClassName(styles.buttonIcon, 'icon-action-earn')} aria-hidden />
-            {lang(STAKING_TAB_TEXT_VARIANTS[stakingStatus])}
           </Button>
         )}
       </div>
