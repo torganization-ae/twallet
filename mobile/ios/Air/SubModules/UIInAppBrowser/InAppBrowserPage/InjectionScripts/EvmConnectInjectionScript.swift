@@ -13,9 +13,9 @@ struct EvmConnectInjectionScript {
         let activeNetwork = AccountStore.activeNetwork.rawValue
         let defaultCaip2 = makeDefaultCaip2()
         let appName = makeJSONString(APP_NAME)
-        let rdns = makeJSONString(IS_TWALLETGRAM_WALLET ? "app.twalletgram" : "app.twallet")
+        let rdns = makeJSONString("app.twallet")
         let defaultCaip2JSON = makeJSONString(defaultCaip2)
-        let installFlag = IS_TWALLETGRAM_WALLET ? "__twalletGramEvmConnectorInstalled" : "__twalletEvmConnectorInstalled"
+        let installFlag = "__twalletEvmConnectorInstalled"
         return #"""
         (function() {
             if (window.\#(installFlag)) return;
@@ -188,8 +188,8 @@ struct EvmConnectInjectionScript {
                     // (eth_accounts is polled at 100+/s; in-flight dedup alone leaks 60% to the worker).
                     this._silentReconnect = null;
                     this.provider = {
-                        isTwallet: \#(!IS_TWALLETGRAM_WALLET),
-                        isGramWallet: \#(IS_TWALLETGRAM_WALLET),
+                        isTwallet: true,
+                        isGramWallet: false,
                         request: (args) => this.request(args || {}),
                         on: (event, handler) => {
                             this.addListener(event, handler);

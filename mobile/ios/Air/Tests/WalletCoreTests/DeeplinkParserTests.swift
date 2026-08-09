@@ -82,8 +82,6 @@ struct DeeplinkParserTests {
             "mw://wc?uri=\(walletConnectRequestLink)",
             "mywallet-wc://wc?uri=\(walletConnectRequestLink)",
             "mytonwallet-tc://connect",
-            "gramwallet://wc?uri=\(walletConnectRequestLink)",
-            "gramwallet-wc://wc?uri=\(walletConnectRequestLink)",
         ] {
             let url = try #require(URL(string: urlString))
             #expect(Deeplink(url: url) == nil)

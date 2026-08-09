@@ -1,7 +1,6 @@
 import type { ApiActivity, ApiChain } from '../../../api/types';
 import type { GlobalState } from '../../types';
 
-import { IS_FEATURE_LIMITED } from '../../../config';
 import { getActivityIdReplacements, getIsHiddenNftActivity } from '../../../util/activities';
 import { playIncomingTransactionSound } from '../../../util/notificationSound';
 import { getIsTransactionWithPoisoning, updatePoisoningCacheFromActivities } from '../../../util/poisoningHash';
@@ -110,23 +109,17 @@ addActionHandler('apiUpdate', (global, actions, update) => {
       notifyAboutNewActivities(global, accountId, newConfirmedActivities);
       updatePoisoningCacheFromActivities(newConfirmedActivities);
 
-      if (!IS_FEATURE_LIMITED) {
-        // NFT polling is executed at long intervals, so a transaction-event with an NFT can arrive
-        // long before the next polling round. Apply the change to local NFT state immediately so the UI
-        // reflects new ownership without waiting for polling.
-        // A subsequent `nftReceived`/`nftSent` socket update or polling round is idempotent here.
-        for (const activity of newConfirmedActivities) {
-          if (activity.kind !== 'transaction' || !activity.nft) continue;
+      for (const activity of newConfirmedActivities) {
+        if (activity.kind !== 'transaction' || !activity.nft) continue;
 
-          // For `nftTrade` (marketplace buy/sell) `isIncoming` reflects the `TONCOIN` direction,
-          // not the NFT direction - so it must be inverted here
-          const isNftIncoming = activity.type === 'nftTrade' ? !activity.isIncoming : activity.isIncoming;
+        // For `nftTrade` (marketplace buy/sell) `isIncoming` reflects the `TONCOIN` direction,
+        // not the NFT direction - so it must be inverted here
+        const isNftIncoming = activity.type === 'nftTrade' ? !activity.isIncoming : activity.isIncoming;
 
-          if (isNftIncoming) {
-            global = applyIncomingNftFromActivity(global, accountId, activity.nft);
-          } else {
-            global = applyOutgoingNftFromActivity(global, accountId, activity.nft);
-          }
+        if (isNftIncoming) {
+          global = applyIncomingNftFromActivity(global, accountId, activity.nft);
+        } else {
+          global = applyOutgoingNftFromActivity(global, accountId, activity.nft);
         }
       }
 

@@ -5,7 +5,6 @@ import { getActions, getGlobal } from '../../../global';
 import type { ApiChain, ApiNft } from '../../../api/types';
 import type { DropdownItem } from '../../ui/Dropdown';
 
-import { IS_FEATURE_LIMITED } from '../../../config';
 import { formatRelativeDays } from '../../../util/dateFormat';
 import { isDotTonDomainNft, isLinkableDnsNft, isRenewableDnsNft } from '../../../util/dns';
 import { compact } from '../../../util/iteratees';
@@ -285,9 +284,9 @@ export default function useNftMenu({
       getExplorerItem(nft.chain),
       SHARE_LINK_ITEM,
       collectionAddress && COLLECTION_ITEM,
-      !IS_FEATURE_LIMITED && ((!isScam && !isNftBlacklisted) || isNftWhitelisted) && HIDE_ITEM,
-      !IS_FEATURE_LIMITED && isScam && !isNftWhitelisted && NOT_SCAM,
-      !IS_FEATURE_LIMITED && !isScam && isNftBlacklisted && UNHIDE,
+      ((!isScam && !isNftBlacklisted) || isNftWhitelisted) && HIDE_ITEM,
+      isScam && !isNftWhitelisted && NOT_SCAM,
+      !isScam && isNftBlacklisted && UNHIDE,
       ...(!isOnSale && !isViewMode ? [
         BURN_ITEM,
         !isWidget && SELECT_ITEM,

@@ -38,12 +38,7 @@ object ApplicationContextHolder {
         density = applicationContext.density()
     }
 
-    val isGramApp: Boolean by lazy {
-        applicationContext.packageName.startsWith("app.twalletgram")
-    }
-
-    val universalShortUrlHost: String
-        get() = if (isGramApp) "go.gramwallet.io" else "my.tt"
+    val universalShortUrlHost: String = "my.tt"
 
     val packageInfo: PackageInfo
         get() {

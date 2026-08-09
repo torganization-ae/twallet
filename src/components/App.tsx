@@ -8,9 +8,7 @@ import {
   APP_NAME,
   INACTIVE_MARKER,
   IS_ANDROID_DIRECT,
-  IS_CORE_WALLET,
   IS_EXPLORER,
-  IS_FEATURE_LIMITED,
 } from '../config';
 import { selectCurrentAccountId, selectCurrentAccountSettings, selectCurrentAccountState } from '../global/selectors';
 import { useAccentColor } from '../util/accentColor';
@@ -135,8 +133,7 @@ function App({
     renderingKey === AppState.Auth && !canPrerenderMain ? PRERENDER_MAIN_DELAY : undefined,
   );
 
-  // Core builds are deployed to a domain we do not own and have no store presence, so there is no version to nag about
-  useInterval(checkAppVersion, IS_CORE_WALLET ? undefined : APP_UPDATE_INTERVAL);
+  useInterval(checkAppVersion, APP_UPDATE_INTERVAL);
 
   useEffect(() => {
     document.documentElement.classList.toggle('with-bottombar', withBottomBar);
@@ -248,7 +245,7 @@ function App({
             onClose={closeBackupWalletModal}
           />
           <TransferModal />
-          {!IS_FEATURE_LIMITED && <SwapModal />}
+          <SwapModal />
           <SignatureModal />
           <TransactionModal />
           <TransactionInfoModal />

@@ -1,7 +1,6 @@
 import React, { type ElementRef, memo } from '../../../../lib/teact/teact';
 import { getActions } from '../../../../global';
 
-import { IS_FEATURE_LIMITED } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { vibrate } from '../../../../util/haptics';
 import { handleSendMenuItemClick, SEND_CONTEXT_MENU_ITEMS } from './helpers/sendMenu';
@@ -31,13 +30,10 @@ function PortraitActions({
 
   const lang = useLang();
 
-  const addBuyButtonName = IS_FEATURE_LIMITED
-    ? lang('Receive')
-    : (!isSwapDisabled
-      ? lang('Fund')
-      : lang('Add')
-    );
-  const sendButtonName = IS_FEATURE_LIMITED || lang.code !== 'en'
+  const addBuyButtonName = !isSwapDisabled
+    ? lang('Fund')
+    : lang('Add');
+  const sendButtonName = lang.code !== 'en'
     ? lang('Send')
     : <span className={styles.name}>{lang('Send')}</span>;
 

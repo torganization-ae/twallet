@@ -2,7 +2,6 @@ package app.twallet.air.walletcore.models.blockchain
 
 import com.squareup.moshi.JsonClass
 import app.twallet.air.icons.R
-import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import java.math.BigDecimal
 
 enum class MultiWalletSupport {
@@ -189,18 +188,8 @@ enum class MBlockchain(
 
         const val VIEW_ACCOUNT_EVM_PARAM = "evm"
 
-        private val GRAM_CHAIN_ORDER = listOf(
-            ton, ethereum, solana, tron, bnb, hyperliquid, base, arbitrum
-        )
-
         val supportedChains: List<MBlockchain> by lazy {
-            val supported = entries.filter { it.isSupported }
-            if (ApplicationContextHolder.isGramApp) {
-                supported.sortedBy {
-                    val i = GRAM_CHAIN_ORDER.indexOf(it)
-                    if (i < 0) Int.MAX_VALUE else i
-                }
-            } else supported
+            entries.filter { it.isSupported }
         }
         val supportedChainValues: List<String> by lazy { supportedChains.map { it.name } }
         val evmChains: List<MBlockchain> by lazy {

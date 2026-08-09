@@ -24,7 +24,7 @@ describe('Electron bundle identity', () => {
     // Electron reads `app.getName()` from the packaged package.json, which `extraMetadata` writes.
     // It resolves `~/Library/Application Support/<name>` (wallets live there) and the keychain entry
     // `<name> Safe Storage` (`secrets.ts`). Renaming it orphans both, with no migration path.
-    expect(config.extraMetadata.productName).toBe('tWallet');
+    expect(config.extraMetadata.productName).toBe('TWallet');
   });
 
   it('keeps the appId', () => {

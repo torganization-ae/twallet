@@ -46,17 +46,9 @@ struct AboutView: View {
 
     @ViewBuilder
     var headerIcon: some View {
-        if IS_TWALLETGRAM_WALLET {
-            WUISpeedingDiamondWithParticles(
-                diamondSize: 96,
-                particleSize: CGSize(width: 258, height: 170)
-            )
-                .frame(width: 96, height: 96)
-        } else {
-            Image.mainBundle("IntroLogo")
-                .resizable()
-                .frame(width: 96, height: 96)
-        }
+        Image.mainBundle("IntroLogo")
+            .resizable()
+            .frame(width: 96, height: 96)
     }
     
     var longDescription: some View {
@@ -69,13 +61,11 @@ struct AboutView: View {
     
     var resources: some View {
         InsetSection(dividersInset: 46) {
-            if !IS_TWALLETGRAM_WALLET {
-                Item(
-                    icon: "PlayIcon",
-                    text: lang("Watch Video about Features"),
-                    onTap: onWatch
-                )
-            }
+            Item(
+                icon: "PlayIcon",
+                text: lang("Watch Video about Features"),
+                onTap: onWatch
+            )
             Item(
                 icon: "FireIcon",
                 text: lang("Enjoy Monthly Updates in Blog"),

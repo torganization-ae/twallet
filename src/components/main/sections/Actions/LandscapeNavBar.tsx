@@ -4,7 +4,6 @@ import { getActions, withGlobal } from '../../../../global';
 import type { Theme } from '../../../../global/types';
 import { ContentTab } from '../../../../global/types';
 
-import { IS_FEATURE_LIMITED } from '../../../../config';
 import { selectCurrentAccountSettings } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
@@ -68,16 +67,14 @@ function LandscapeNavBar({
         accentColor={accentColor}
         onClick={handleWalletClick}
       />
-      {!IS_FEATURE_LIMITED && (
-        <NavButton
-          isActive={isExploreOpen}
-          label={lang('Explore')}
-          tgsUrl={isExploreOpen ? stickerPaths.iconExploreSolid : stickerPaths.iconExplore}
-          previewUrl={isExploreOpen ? stickerPaths.preview.iconExploreSolid : stickerPaths.preview.iconExplore}
-          accentColor={accentColor}
-          onClick={switchToExplore}
-        />
-      )}
+      <NavButton
+        isActive={isExploreOpen}
+        label={lang('Explore')}
+        tgsUrl={isExploreOpen ? stickerPaths.iconExploreSolid : stickerPaths.iconExplore}
+        previewUrl={isExploreOpen ? stickerPaths.preview.iconExploreSolid : stickerPaths.preview.iconExplore}
+        accentColor={accentColor}
+        onClick={switchToExplore}
+      />
       <NavButton
         isActive={areSettingsOpen}
         label={lang('Settings')}
@@ -86,24 +83,22 @@ function LandscapeNavBar({
         accentColor={accentColor}
         onClick={switchToSettings}
       />
-      {!IS_FEATURE_LIMITED && (
-        <>
-          <Button
-            ref={tmailTriggerRef}
-            isSimple
-            className={styles.button}
-            onClick={openProductMenu}
-          >
-            <img src={tmailLogo} alt="" className={styles.tmailLogo} />
-            <span className={styles.label}>{lang('TMail')}</span>
-          </Button>
-          <ProductChooserMenu
-            isOpen={isProductMenuOpen}
-            triggerRef={tmailTriggerRef}
-            onClose={closeProductMenu}
-          />
-        </>
-      )}
+      <>
+        <Button
+          ref={tmailTriggerRef}
+          isSimple
+          className={styles.button}
+          onClick={openProductMenu}
+        >
+          <img src={tmailLogo} alt="" className={styles.tmailLogo} />
+          <span className={styles.label}>{lang('TMail')}</span>
+        </Button>
+        <ProductChooserMenu
+          isOpen={isProductMenuOpen}
+          triggerRef={tmailTriggerRef}
+          onClose={closeProductMenu}
+        />
+      </>
     </div>
   );
 }

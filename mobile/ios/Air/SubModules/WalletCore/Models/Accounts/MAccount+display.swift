@@ -40,33 +40,7 @@ public extension MAccount {
     }
 
     var telegramAvatarUrl: URL? {
-        guard
-            IS_TWALLETGRAM_WALLET,
-            let domain = byChain[ApiChain.ton.rawValue]?.domain?.nilIfEmpty,
-            let username = Self.telegramUsername(fromDomain: domain)
-        else {
-            return nil
-        }
-
-        return URL(string: "https://t.me/i/userpic/320/\(username).jpg")
-    }
-
-    private static func telegramUsername(fromDomain domain: String) -> String? {
-        let domain = domain.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard domain.hasSuffix(".t.me") else { return nil }
-
-        let username = String(domain.dropLast(".t.me".count))
-        guard
-            !username.contains("."),
-            username.range(
-                of: #"^[-_\da-z]{4,32}$"#,
-                options: [.regularExpression, .caseInsensitive]
-            ) != nil
-        else {
-            return nil
-        }
-
-        return username
+        nil
     }
     
     struct AddressLine: Equatable, Hashable {
@@ -210,25 +184,8 @@ public extension MAccount {
         }
     }
 
-    func addressLine(orderedChains: [(ApiChain, AccountChain)], tokenChains: Set<ApiChain>? = nil, isTwalletGramWallet: Bool = IS_TWALLETGRAM_WALLET) -> AddressLine {
-        let orderedChains = Self.addressLineChains(
-            orderedChains: orderedChains,
-            tokenChains: tokenChains,
-            isTwalletGramWallet: isTwalletGramWallet
-        )
-        return makeAddressLine(orderedChains: orderedChains)
-    }
-
-    static func addressLineChains(orderedChains: [(ApiChain, AccountChain)], tokenChains: Set<ApiChain>?, isTwalletGramWallet: Bool) -> [(ApiChain, AccountChain)] {
-        guard
-            isTwalletGramWallet,
-            let tokenChains,
-            tokenChains.subtracting([.ton]).isEmpty,
-            let tonChain = orderedChains.first(where: { $0.0 == .ton })
-        else {
-            return orderedChains
-        }
-        return [tonChain]
+    func addressLine(orderedChains: [(ApiChain, AccountChain)]) -> AddressLine {
+        makeAddressLine(orderedChains: orderedChains)
     }
     
     private func makeAddressLine(orderedChains: [(ApiChain, AccountChain)]) -> AddressLine {
@@ -291,19 +248,7 @@ public extension AccountContext {
     }
 
     var addressLine: MAccount.AddressLine {
-        account.addressLine(orderedChains: orderedChains, tokenChains: addressLineTokenChains)
-    }
-
-    private var addressLineTokenChains: Set<ApiChain>? {
-        guard let tokens = walletTokensData?.orderedTokenBalances else { return nil }
-        var chains: Set<ApiChain> = []
-        for token in tokens {
-            guard let chain = getChainBySlug(token.tokenSlug) ?? token.token?.chain else {
-                return nil
-            }
-            chains.insert(chain)
-        }
-        return chains
+        account.addressLine(orderedChains: orderedChains)
     }
 }
 

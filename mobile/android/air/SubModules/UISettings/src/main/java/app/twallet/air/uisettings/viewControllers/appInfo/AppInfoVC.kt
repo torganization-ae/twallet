@@ -24,7 +24,6 @@ import app.twallet.air.uicomponents.extensions.setPaddingLocalized
 import app.twallet.air.uicomponents.helpers.WFont
 import app.twallet.air.uicomponents.widgets.WLabel
 import app.twallet.air.uicomponents.widgets.WScrollView
-import app.twallet.air.uicomponents.widgets.WSpeedingDiamondView
 import app.twallet.air.uicomponents.widgets.WView
 import app.twallet.air.uicomponents.widgets.addRippleEffect
 import app.twallet.air.uicomponents.widgets.fadeIn
@@ -40,7 +39,6 @@ import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
-import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import app.twallet.air.walletbasecontext.utils.getDrawableCompat
 import app.twallet.air.walletbasecontext.utils.toProcessedSpannableStringBuilder
 import app.twallet.air.walletcore.models.InAppBrowserConfig
@@ -55,15 +53,7 @@ class AppInfoVC(context: Context) : WViewController(context) {
     override val shouldDisplayTopBar = false
     override val shouldDisplayBottomBar = navigationController?.tabBarController == null
 
-    private val isGramApp = ApplicationContextHolder.isGramApp
-
-    private val particleParams: ParticleConfig? = if (isGramApp) ParticleConfig(
-        particleCount = 35,
-        centerShift = floatArrayOf(0f, -28f),
-        distanceLimit = 0.45f,
-        colorPair = ParticleConfig.Companion.PARTICLE_COLORS.PURPLE_GRADIENT,
-        useStarShape = true
-    ) else null
+    private val particleParams: ParticleConfig? = null
 
     var particlesCleaner: (() -> Unit)? = null
     val tonParticlesView = ParticleView(context).apply {
@@ -71,27 +61,16 @@ class AppInfoVC(context: Context) : WViewController(context) {
         isGone = true
     }
 
-    val diamondAnimationView: WSpeedingDiamondView? = if (isGramApp) {
-        WSpeedingDiamondView(view.context).apply {
-            id = View.generateViewId()
-            bindParticleHost(tonParticlesView, centerShift = floatArrayOf(0f, -28f))
-        }
-    } else null
-
     val logoImageView = AppCompatImageView(view.context).apply {
         id = View.generateViewId()
-        if (isGramApp) {
-            isGone = true
-        } else {
-            setImageDrawable(view.context.getDrawableCompat(R.drawable.img_logo))
-            setOnClickListener {
-                pulseView(0.98f, AnimationConstants.VERY_VERY_QUICK_ANIMATION)
-                tonParticlesView.addParticleSystem(
-                    ParticleConfig.particleBurstParams(
-                        ParticleConfig.Companion.PARTICLE_COLORS.TON
-                    )
+        setImageDrawable(view.context.getDrawableCompat(R.drawable.img_logo))
+        setOnClickListener {
+            pulseView(0.98f, AnimationConstants.VERY_VERY_QUICK_ANIMATION)
+            tonParticlesView.addParticleSystem(
+                ParticleConfig.particleBurstParams(
+                    ParticleConfig.Companion.PARTICLE_COLORS.TON
                 )
-            }
+            )
         }
     }
 
@@ -216,10 +195,6 @@ class AppInfoVC(context: Context) : WViewController(context) {
         )
         v.addView(tonParticlesView, FrameLayout.LayoutParams(0, WRAP_CONTENT))
         v.addView(logoImageView, FrameLayout.LayoutParams(96.dp, 96.dp))
-        diamondAnimationView?.let { dv ->
-            v.addView(dv, FrameLayout.LayoutParams(96.dp, 96.dp))
-            dv.start()
-        }
         v.addView(titleLabel, ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
         v.addView(subtitleLabel, ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
         v.addView(descriptionLabel, ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
@@ -234,13 +209,7 @@ class AppInfoVC(context: Context) : WViewController(context) {
             toCenterX(tonParticlesView)
             toTop(logoImageView, 66f)
             toCenterX(logoImageView)
-            diamondAnimationView?.let {
-                toTop(it, 66f)
-                toCenterX(it)
-                topToBottom(titleLabel, it, 17f)
-            } ?: run {
-                topToBottom(titleLabel, logoImageView, 17f)
-            }
+            topToBottom(titleLabel, logoImageView, 17f)
             toCenterX(titleLabel)
             topToBottom(subtitleLabel, titleLabel, 4f)
             toCenterX(subtitleLabel)

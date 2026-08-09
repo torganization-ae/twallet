@@ -1,6 +1,6 @@
 import Foundation
 
-public let APP_GROUP_ID = IS_TWALLETGRAM_WALLET ? "group.app.twalletgram" : "group.app.twallet"
+public let APP_GROUP_ID = "group.app.twallet"
 /// Optional when building without extensions. Can be force-unwrapped when accessed from widgets.
 public let appGroupContainerUrl: URL? = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: APP_GROUP_ID)
 

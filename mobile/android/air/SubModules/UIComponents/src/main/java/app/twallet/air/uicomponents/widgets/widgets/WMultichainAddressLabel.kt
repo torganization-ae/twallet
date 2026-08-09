@@ -21,7 +21,6 @@ import app.twallet.air.uicomponents.helpers.spans.WLetterSpacingSpan
 import app.twallet.air.uicomponents.helpers.spans.WSpacingSpan
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
-import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import app.twallet.air.walletbasecontext.utils.TrimResult
 import app.twallet.air.walletbasecontext.utils.ceilToInt
 import app.twallet.air.walletbasecontext.utils.getDrawableCompat
@@ -36,8 +35,6 @@ import app.twallet.air.walletcore.models.MSavedAddress
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.stores.BalanceStore
 import app.twallet.air.walletcore.stores.ChainVisibilityStore
-import app.twallet.air.walletcore.stores.TokenStore
-import java.math.BigInteger
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -124,26 +121,10 @@ class WMultichainAddressLabel(context: Context) : WRadialGradientLabel(context) 
         displayAddresses(
             account.network,
             account.accountId,
-            visibleByChain.appAddressLineChains(account.accountId),
+            visibleByChain,
             style,
             keyword
         )
-    }
-
-    private fun Map<String, AccountChain>.appAddressLineChains(
-        accountId: String
-    ): Map<String, AccountChain> {
-        if (!ApplicationContextHolder.isGramApp) return this
-        if (size <= 1) return this
-        val tonChain = this[MBlockchain.ton.name] ?: return this
-        val balances = BalanceStore.getBalances(accountId) ?: return this
-        val hasNonTonToken = balances.keys.any { slug ->
-            if (balances[slug] == BigInteger.ZERO)
-                return@any false
-            val chain = TokenStore.getToken(slug)?.mBlockchain ?: return@any false
-            return@any chain != MBlockchain.ton
-        }
-        return if (hasNonTonToken) this else mapOf(MBlockchain.ton.name to tonChain)
     }
 
     fun displayAddresses(

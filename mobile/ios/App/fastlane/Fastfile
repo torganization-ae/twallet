@@ -42,16 +42,6 @@ $variant_config = {
     plist_path: '../../App/App/Resources/Twallet/Info.plist',
     testflight_group: 'Twallet external group',
   },
-  'twalletgram' => {
-    app_identifier: 'app.twalletgram',
-    app_identifier_widget: 'app.twalletgram.widget',
-    profile_name: 'Twallet Gram Production profile',
-    profile_name_widget: 'Twallet Gram Production profile - Widget',
-    scheme: 'TwalletGram',
-    scheme_widget: 'TwalletGramWidgetExtension',
-    plist_path: '../../App/App/Resources/TwalletGram/Info.plist',
-    testflight_group: 'Twallet Gram external group',
-  },
 }
 
 raise "Unknown APP_VARIANT: #{$variant}" unless $variant_config.key?($variant)

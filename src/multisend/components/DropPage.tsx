@@ -271,7 +271,7 @@ function DropPage({
           </>
         ) : (
           <p>
-            Connect <b>tWallet</b> to access<br />the multi-send feature.
+            Connect <b>TWallet</b> to access<br />the multi-send feature.
           </p>
         )}
       </div>
@@ -295,7 +295,7 @@ function DropPage({
             className={styles.connectButton}
             onClick={onConnectClick}
           >
-            Connect tWallet
+            Connect TWallet
           </Button>
         </div>
       )}

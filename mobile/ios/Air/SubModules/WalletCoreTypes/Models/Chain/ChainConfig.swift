@@ -153,21 +153,8 @@ private let DEFAULT_CHAIN_ORDER: [ApiChain] = [
     .arbitrum,
     .monad,
 ]
-private let GRAM_CHAIN_ORDER: [ApiChain] = [
-    .ton,
-    .ethereum,
-    .solana,
-    .tron,
-    .bnb,
-    .hyperliquid,
-    .base,
-    .arbitrum,
-   .monad,
-   .polygon,
-   .avalanche,
-]
 private var CHAIN_ORDER: [ApiChain] {
-    IS_TWALLETGRAM_WALLET ? GRAM_CHAIN_ORDER : DEFAULT_CHAIN_ORDER
+    DEFAULT_CHAIN_ORDER
 }
 private let TON_DEFAULT_DERIVATION_PATH = "m/44'/607'/{index}'"
 private let TRON_DEFAULT_DERIVATION_PATH = "m/44'/195'/0'/0/{index}"

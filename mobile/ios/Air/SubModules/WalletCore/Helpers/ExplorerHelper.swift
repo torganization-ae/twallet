@@ -130,7 +130,7 @@ public final class ExplorerHelper {
     public static func defaultMarketplace(for account: MAccount) -> Website? {
         let title: String
         let urlString: String
-        if !IS_TWALLETGRAM_WALLET && account.isMultichain {
+        if account.isMultichain {
             title = NFT_MARKETPLACE_TITLE
             urlString = NFT_MARKETPLACE_URL
         } else {

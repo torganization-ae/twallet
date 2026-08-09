@@ -52,8 +52,8 @@ sealed class MMarketplace(
     }
 
     companion object {
-        fun defaultForEmptyAssets(account: MAccount, isGramWallet: Boolean): MMarketplace {
-            return if (!isGramWallet && account.isMultichain) OpenSea else Fragment
+        fun defaultForEmptyAssets(account: MAccount): MMarketplace {
+            return if (account.isMultichain) OpenSea else Fragment
         }
     }
 }

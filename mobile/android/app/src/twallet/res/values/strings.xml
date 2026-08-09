@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-  <string name="app_name" translatable="false">tWallet</string>
+  <string name="app_name" translatable="false">TWallet</string>
   <string name="package_name" translatable="false">app.twallet</string>
   <string name="ton_url_scheme" translatable="false">ton</string>
   <string name="tc_url_scheme" translatable="false">tc</string>

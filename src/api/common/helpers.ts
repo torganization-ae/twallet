@@ -5,14 +5,13 @@ import type { StorageKey } from '../storages/types';
 import type {
   ApiActivity,
   ApiLocalTransactionParams,
-  ApiTonAccount,
   ApiTonWallet,
   ApiTransactionActivity,
   OnApiUpdate,
 } from '../types';
 
 import {
-  IS_AIR_APP, IS_CORE_WALLET, IS_EXTENSION, IS_FEATURE_LIMITED, MAIN_ACCOUNT_ID,
+  IS_AIR_APP, IS_EXTENSION, MAIN_ACCOUNT_ID,
 } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { buildLocalTxId } from '../../util/activities';
@@ -32,7 +31,6 @@ import {
   getKnownAddresses,
   getScamMarkers,
 } from './addresses';
-import { purgeCoreTwins } from './coreTwins';
 import { hexToBytes } from './utils';
 
 const actualStateVersion = 22;
@@ -108,11 +106,7 @@ export function isUpdaterAlive(onUpdate: OnApiUpdate) {
 
 export async function tryMigrateStorage(onUpdate: OnApiUpdate, ton: typeof tonSdk, accountIds?: string[]) {
   try {
-    const result = await migrateStorage(onUpdate, ton, accountIds);
-    // Not a state migration: runs on EVERY boot (including when the version is already current) and self-gates
-    // by build flavor and its own storage marker. See `coreTwins.ts` for why it must not ride stateVersion.
-    await purgeCoreTwins(onUpdate);
-    return result;
+    return await migrateStorage(onUpdate, ton, accountIds);
   } catch (err) {
     logDebugError('Migration error', err);
     onUpdate?.({
@@ -127,10 +121,6 @@ export async function migrateStorage(onUpdate: OnApiUpdate, ton: typeof tonSdk, 
 
   if (version === actualStateVersion) {
     return;
-  }
-
-  if (IS_CORE_WALLET && !version) {
-    await migrateCoreWallet(onUpdate);
   }
 
   if (IS_AIR_APP && !version) {
@@ -485,95 +475,3 @@ async function iosBackupAndMigrateKeychainMode() {
   }
 }
 
-async function migrateCoreWallet(onUpdate: OnApiUpdate) {
-  const currentStorage = IS_EXTENSION ? storage : localStorage;
-
-  const [
-    // Default Core Wallet version is v3R2
-    // https://github.com/toncenter/ton-wallet/blob/master/src/js/Controller.js#L128
-    walletVersion = 'v3R2',
-    isTestnet,
-    address,
-    words,
-    publicKey,
-    isTonProxyEnabled,
-  ] = await Promise.all([
-    currentStorage.getItem('walletVersion' as StorageKey),
-    currentStorage.getItem('isTestnet' as StorageKey),
-    currentStorage.getItem('address' as StorageKey),
-    currentStorage.getItem('words' as StorageKey),
-    currentStorage.getItem('publicKey' as StorageKey),
-    currentStorage.getItem('proxy' as StorageKey),
-  ]);
-
-  if (isTestnet) {
-    onUpdate({
-      type: 'updateSettings',
-      settings: {
-        isTestnet: true,
-      },
-    });
-  }
-
-  const network = isTestnet ? 'testnet' : 'mainnet';
-  const accountId = `0-ton-${network}`;
-
-  if (address && words && publicKey) {
-    const newAccountById: Record<string, ApiTonAccount> = {};
-    newAccountById[accountId] = {
-      type: 'ton',
-      mnemonicEncrypted: words,
-      byChain: {
-        ton: {
-          address,
-          version: walletVersion,
-          publicKey,
-          index: 0,
-        },
-      },
-    };
-
-    // The trimmed core build mirrors the wallet onto the opposite network (it has no network switcher and relies on
-    // wipe-both logout). The full-featured combo build must NOT create that invisible twin - it would leave the
-    // mnemonic behind on logout once the network switcher and per-account removal are reachable.
-    let secondAccountId: string | undefined;
-    let secondAddress: string | undefined;
-    if (IS_FEATURE_LIMITED) {
-      const secondNetwork = network === 'mainnet' ? 'testnet' : 'mainnet';
-      secondAccountId = `0-ton-${secondNetwork}`;
-      secondAddress = toBase64Address(address, false, secondNetwork);
-      newAccountById[secondAccountId] = {
-        type: 'ton',
-        mnemonicEncrypted: words,
-        byChain: {
-          ton: {
-            address: secondAddress,
-            version: walletVersion,
-            publicKey,
-            index: 0,
-          },
-        },
-      };
-    }
-
-    await storage.setItem('accounts', newAccountById);
-
-    onUpdate({
-      type: 'migrateCoreApplication',
-      isTestnet,
-      accountId,
-      address,
-      secondAccountId,
-      secondAddress,
-      isTonProxyEnabled,
-    });
-
-    // Clean up storage after migrate the app from Core Wallet
-    [
-      'walletVersion', 'isTestnet', 'words', 'address', 'publicKey', 'proxy', 'isLedger',
-      'ledgerTransportType', '__time', 'isDebug',
-    ].forEach((key) => {
-      void currentStorage.removeItem(key as StorageKey);
-    });
-  }
-}

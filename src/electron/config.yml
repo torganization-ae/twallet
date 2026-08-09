@@ -1,6 +1,6 @@
-productName: "tWallet"
+productName: "TWallet"
 # Without this key electron-builder derives the copyright from package.json `author`.
-copyright: "Copyright © 2026 tWallet"
+copyright: "Copyright © 2026 TWallet"
 # Pinned by config.test.ts: change ONLY together with ARTIFACT_NAME_BASE in
 # package-and-publish.yml (workflow artifact names must match electron-builder output) and the
 # get.mywallet.io download page. Renaming is safe for installed clients: the update feed
@@ -12,8 +12,8 @@ extraMetadata:
   main: "./dist/electron.js"
   # Sole source of `app.getName()`, which keys `app.getPath('userData')` (the IndexedDB holding every
   # wallet) and the macOS keychain entry `<name> Safe Storage`. This is a hard fork — we do NOT carry
-  # over upstream desktop installs, so the identity is rebranded to tWallet and starts clean.
-  productName: "tWallet"
+  # over upstream desktop installs, so the identity is rebranded to TWallet and starts clean.
+  productName: "TWallet"
 files:
   - "dist"
   - "package.json"
@@ -31,13 +31,13 @@ protocols:
     schemes: ["ton"]
   - name: "TonConnect"
     schemes: ["tc"]
-  - name: "TonConnect tWallet"
+  - name: "TonConnect TWallet"
     schemes: ["twallet-tc"]
-  - name: "tWallet"
+  - name: "TWallet"
     schemes: ["twallet"]
   - name: "WalletConnect"
     schemes: ["wc"]
-  - name: "WalletConnect tWallet"
+  - name: "WalletConnect TWallet"
     schemes: ["twallet-wc"]
 publish:
   provider: "github"
@@ -62,7 +62,7 @@ mac:
   icon: "public/icon-electron-macos.icns"
 
 dmg:
-  title: "tWallet installer"
+  title: "TWallet installer"
   background: "public/background-electron-dmg.tiff"
   contents:
     - x: 148

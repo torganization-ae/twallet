@@ -87,10 +87,7 @@ class ExplorerHelpers {
         }
 
         fun defaultNftMarketplace(account: MAccount): MMarketplace {
-            return MMarketplace.defaultForEmptyAssets(
-                account = account,
-                isGramWallet = ApplicationContextHolder.isGramApp
-            )
+            return MMarketplace.defaultForEmptyAssets(account = account)
         }
     }
 }

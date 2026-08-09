@@ -14,7 +14,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { IS_FEATURE_LIMITED, NO_MFA, NO_SWAP } from '../../config';
+import { NO_MFA, NO_SWAP } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { findChainConfig } from '../../util/chain';
@@ -274,7 +274,7 @@ export async function setActivePollingAccount(
     // Each visible chain is an independent module: start them together. Hidden
     // chains are already filtered out above, so there is no reason to stagger.
     const stopPollingFns: Array<NoneToVoidFunction | undefined> = [
-      !IS_FEATURE_LIMITED ? setupAccountConfigPolling(accountId, account).stop : undefined,
+      setupAccountConfigPolling(accountId, account).stop,
       !NO_MFA && doesAccountHaveChain(account, 'ton') ? setupMfaPolling(accountId).stop : undefined,
       ...visibleChains.map((chain) => chains[chain].setupActivePolling(
         accountId,

@@ -176,17 +176,8 @@ private func makeCollectiblesMenuConfig(
         let accountId = accountStore.resolveAccountId(source: accountSource)
         let collections = NftStore.getCollections(accountId: accountId)
         let gifts = collections.telegramGiftsCollections
-        let telegramUsernames = IS_TWALLETGRAM_WALLET
-            ? collections.notTelegramGiftsCollections.first {
-                $0.chain == .ton && $0.address == ApiNft.TELEGRAM_USERNAMES_COLLECTION_ADDRESS
-            }
-            : nil
-        let notGifts = collections.notTelegramGiftsCollections.filter {
-            if IS_TWALLETGRAM_WALLET && $0.chain == .ton && $0.address == ApiNft.TELEGRAM_USERNAMES_COLLECTION_ADDRESS {
-                return false
-            }
-            return true
-        }
+        let telegramUsernames: NftCollection? = nil
+        let notGifts = collections.notTelegramGiftsCollections
         let hasHidden = NftStore.getAccountHasHiddenNfts(accountId: accountId)
 
         var items: [ContextMenuItem] = []

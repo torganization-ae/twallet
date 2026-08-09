@@ -17,7 +17,6 @@ Sign transfers and important actions with your passcode, then confirm them in Te
 This helps protect your funds even if your recovery phrase or keys are compromised.: 即使你的助记词或密钥泄露，这也有助于保护你的资金。
 "Connection Fee:": "连接费用："
 Connect Telegram: 连接 Telegram
-Add in Gram Wallet: 在 Gram Wallet 中添加
 Telegram will be used to confirm transfers and important actions.: Telegram 将用于确认转账和重要操作。
 My Telegram Account: 我的 Telegram 账户
 Without username: 无用户名
@@ -876,7 +875,7 @@ DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: 请使用 %app_name% %mobileAppButton% 或 %browserExtensionButton% 以避免此警告。
 $reopen_in_iab_explore: 为避免此警告，请通过“%exploreTab%”标签页打开应用。
-tWallet Browser: tWallet 浏览器
+TWallet Browser: TWallet 浏览器
 mobile app: 移动应用
 browser extension: 浏览器扩展
 Exit all wallets: 退出所有钱包
@@ -1077,7 +1076,7 @@ Adding wallets is not available in explorer mode: 在浏览器模式下无法添
 $explorer_mode_warning: "浏览器模式：正在等待查看深层链接以打开地址"
 This command is not supported in explorer mode: 此命令在浏览器模式下不受支持
 $saved_addresses_header: 已保存
-confirm an action in tWallet: 在 tWallet 中确认操作
+confirm an action in TWallet: 在 TWallet 中确认操作
 Timed out waiting for account to be ready: 等待账户准备就绪超时
 $connected_apps:
   otherValue: "%1$d 已连接"
@@ -1142,7 +1141,7 @@ Show All Wallets: 显示所有钱包
 Ask a Question: 提问
 Learn more: 了解更多
 Unsupported link: 此链接不受支持
-tWallet Features: tWallet 功能
+TWallet Features: TWallet 功能
 Notifications: 通知
 Wrong passcode, please try again: 密码错误，请重试。
 Use biometric authentication or create a passcode to protect it.: 使用生物识别认证或创建密码进行保护。
@@ -1248,7 +1247,7 @@ Screen Recording: 屏幕录制
 Disable Screen Record Warning: 关闭屏幕录制警告
 I Understand, Proceed: 知道了，继续
 Waiting for Network: 正在等待网络
-tWallet: tWallet
+TWallet: TWallet
 $no_activity_history: |
   这个钱包还没有
   任何交易记录。
@@ -1324,7 +1323,7 @@ Connecting your wallet: 正在连接你的钱包
 Action is not possible on a view-only wallet.: 只读钱包无法执行此操作。
 No matching chains: 没有兼容的网络
 Select multichain wallet: 选择多链钱包
-Logged in with tWallet: 已通过 tWallet 登录
+Logged in with TWallet: 已通过 TWallet 登录
 You have no apps connected to this wallet.: 尚无应用连接到此钱包。
 Asset: 资产
 Sent to: 已发送至
@@ -1371,7 +1370,7 @@ Payment Address: 支付地址
 "Install Palette": 安装调色板
 Ledger: Ledger
 "Moving to staking balance": 正转入质押余额
-tWallet uses biometric authentication to unlock and authorize transactions: tWallet 使用生物识别来解锁并授权交易
+TWallet uses biometric authentication to unlock and authorize transactions: TWallet 使用生物识别来解锁并授权交易
 "Network error": 网络错误
 "No Camera Access": 无法访问相机
 "Not all transactions were sent successfully.": 并非所有交易都发送成功。

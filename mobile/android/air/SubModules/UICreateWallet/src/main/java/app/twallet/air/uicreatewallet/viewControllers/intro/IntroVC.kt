@@ -35,7 +35,6 @@ import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.extensions.setPaddingDp
 import app.twallet.air.uicomponents.helpers.WFont
 import app.twallet.air.uicomponents.widgets.WButton
-import app.twallet.air.uicomponents.widgets.WSpeedingDiamondView
 import app.twallet.air.uicomponents.widgets.WLabel
 import app.twallet.air.uicomponents.widgets.WScrollView
 import app.twallet.air.uicomponents.widgets.WView
@@ -58,7 +57,6 @@ import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
-import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import app.twallet.air.walletbasecontext.utils.requireDrawableCompat
 import app.twallet.air.walletbasecontext.utils.toProcessedSpannableStringBuilder
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
@@ -81,22 +79,13 @@ class IntroVC(
 
     override val shouldDisplayTopBar = false
 
-    private val isGramApp = ApplicationContextHolder.isGramApp
-
     // Normal particle configuration
-    private val particleParams =
-        if (isGramApp) ParticleConfig(
-            particleCount = 35,
-            centerShift = floatArrayOf(0f, -36f),
-            distanceLimit = 0.45f,
-            colorPair = ParticleConfig.Companion.PARTICLE_COLORS.PURPLE_GRADIENT,
-            useStarShape = true
-        ) else ParticleConfig(
-            particleCount = 35,
-            centerShift = floatArrayOf(0f, 32f),
-            distanceLimit = 0.45f,
-            color = ParticleConfig.Companion.PARTICLE_COLORS.TON
-        )
+    private val particleParams = ParticleConfig(
+        particleCount = 35,
+        centerShift = floatArrayOf(0f, 32f),
+        distanceLimit = 0.45f,
+        color = ParticleConfig.Companion.PARTICLE_COLORS.TON
+    )
 
     var particlesCleaner: (() -> Unit)? = null
     val tonParticlesView = ParticleView(context).apply {
@@ -104,32 +93,21 @@ class IntroVC(
         isGone = true
     }
 
-    val diamondAnimationView: WSpeedingDiamondView? = if (isGramApp) {
-        WSpeedingDiamondView(view.context).apply {
-            id = View.generateViewId()
-            bindParticleHost(tonParticlesView, centerShift = floatArrayOf(0f, -36f))
-        }
-    } else null
-
     val logoImageView = AppCompatImageView(view.context).apply {
         id = View.generateViewId()
-        if (isGramApp) {
-            isGone = true
-        } else {
-            setImageDrawable(
-                AppCompatResources.getDrawable(
-                    view.context,
-                    app.twallet.air.uicomponents.R.drawable.img_logo
+        setImageDrawable(
+            AppCompatResources.getDrawable(
+                view.context,
+                app.twallet.air.uicomponents.R.drawable.img_logo
+            )
+        )
+        setOnClickListener {
+            pulseView(0.98f, AnimationConstants.VERY_VERY_QUICK_ANIMATION)
+            tonParticlesView.addParticleSystem(
+                ParticleConfig.particleBurstParams(
+                    ParticleConfig.Companion.PARTICLE_COLORS.TON
                 )
             )
-            setOnClickListener {
-                pulseView(0.98f, AnimationConstants.VERY_VERY_QUICK_ANIMATION)
-                tonParticlesView.addParticleSystem(
-                    ParticleConfig.particleBurstParams(
-                        ParticleConfig.Companion.PARTICLE_COLORS.TON
-                    )
-                )
-            }
         }
     }
 
@@ -207,11 +185,6 @@ class IntroVC(
     private val contentView = WView(context).apply {
         addView(tonParticlesView, FrameLayout.LayoutParams(0, WRAP_CONTENT))
         addView(logoImageView, FrameLayout.LayoutParams(124.dp, 124.dp))
-        diamondAnimationView?.let { dv ->
-            addView(dv, FrameLayout.LayoutParams(124.dp, 124.dp))
-            alpha = 0f
-            dv.start(onStart = { fadeIn(AnimationConstants.VERY_VERY_QUICK_ANIMATION) })
-        }
         addView(titleLabel)
         addView(subtitleLabel, FrameLayout.LayoutParams(0, WRAP_CONTENT))
         addView(moreInfoButton)
@@ -249,16 +222,7 @@ class IntroVC(
                 (navigationController?.getSystemBars()?.top ?: 0) + logoTopMargin.dp
             )
             toCenterX(logoImageView)
-            diamondAnimationView?.let {
-                toTopPx(
-                    it,
-                    (navigationController?.getSystemBars()?.top ?: 0) + logoTopMargin.dp
-                )
-                toCenterX(it)
-                topToBottom(titleLabel, it, titleTopMargin)
-            } ?: run {
-                topToBottom(titleLabel, logoImageView, titleTopMargin)
-            }
+            topToBottom(titleLabel, logoImageView, titleTopMargin)
             toCenterX(titleLabel, 32f)
             topToBottom(subtitleLabel, titleLabel, subtitleTopMargin)
             toCenterX(subtitleLabel, 20f)

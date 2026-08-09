@@ -1,6 +1,5 @@
 import React, { memo } from '../../../../lib/teact/teact';
 
-import { IS_FEATURE_LIMITED } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { IS_LEDGER_SUPPORTED } from '../../../../util/windowEnvironment';
 
@@ -103,16 +102,14 @@ function AddAccountSelector({
         )}
       </div>
 
-      {!IS_FEATURE_LIMITED && (
-        <div className={styles.actionsSection}>
-          <ListItem
-            icon="wallet-view"
-            label={lang('View Any Address')}
-            description={lang('Watch wallet in read-only mode')}
-            onClick={onViewModeWalletClick}
-          />
-        </div>
-      )}
+      <div className={styles.actionsSection}>
+        <ListItem
+          icon="wallet-view"
+          label={lang('View Any Address')}
+          description={lang('Watch wallet in read-only mode')}
+          onClick={onViewModeWalletClick}
+        />
+      </div>
 
       <WalletVersionSection
         isVisible={hasOtherWalletVersions}

@@ -72,24 +72,18 @@ public class MainActivity extends BaseActivity {
       return;
     }
 
-    boolean isGramApp = getPackageName().startsWith("app.twalletgram");
     splashScreen.setKeepOnScreenCondition(() -> keep);
     splashScreen.setOnExitAnimationListener(splashScreenView -> {
       AnimatorSet animationSet = new AnimatorSet();
 
       View view = splashScreenView.getView();
       ObjectAnimator opacity = ObjectAnimator.ofFloat(view, View.ALPHA, 0.0f);
+      ObjectAnimator scaleY = ObjectAnimator.ofFloat(view, View.SCALE_Y, 4f);
+      ObjectAnimator scaleX = ObjectAnimator.ofFloat(view, View.SCALE_X, 4f);
 
       animationSet.setInterpolator(new FastOutSlowInInterpolator());
-      if (isGramApp) {
-        animationSet.setDuration(200L);
-        animationSet.playTogether(opacity);
-      } else {
-        ObjectAnimator scaleY = ObjectAnimator.ofFloat(view, View.SCALE_Y, 4f);
-        ObjectAnimator scaleX = ObjectAnimator.ofFloat(view, View.SCALE_X, 4f);
-        animationSet.setDuration(350L);
-        animationSet.playTogether(scaleX, scaleY, opacity);
-      }
+      animationSet.setDuration(350L);
+      animationSet.playTogether(scaleX, scaleY, opacity);
 
       animationSet.addListener(new AnimatorListenerAdapter() {
         @Override
@@ -103,7 +97,7 @@ public class MainActivity extends BaseActivity {
     });
 
     Handler handler = new Handler();
-    handler.postDelayed(() -> keep = false, isGramApp ? 0L : DELAY);
+    handler.postDelayed(() -> keep = false, DELAY);
   }
 
   private void splashScreenAnimatedEnded() {

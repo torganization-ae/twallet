@@ -7,8 +7,8 @@ import type { Log } from '../../util/logs';
 import type { DropdownItem } from '../ui/Dropdown';
 
 import {
-  APP_COMMIT_HASH, APP_ENV, APP_VERSION, IS_EXTENSION, IS_TELEGRAM_APP, IS_TON_BRAND,
-  IS_TWALLETGRAM_WALLET } from '../../config';
+  APP_COMMIT_HASH, APP_ENV, APP_VERSION, IS_EXTENSION, IS_TELEGRAM_APP,
+} from '../../config';
 import { selectCurrentAccountId, selectIsMultichainAccount } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
 import { copyTextToClipboard } from '../../util/clipboard';
@@ -99,8 +99,7 @@ function SettingsDeveloperOptions({
       showToast({ message: lang('Logs Copied'), icon: 'icon-copy' });
       onClose();
     } else {
-      const brandPrefix = IS_TWALLETGRAM_WALLET ? 'twalletgram' : IS_TON_BRAND ? 'tonwallet' : 'twallet';
-      const filename = `${brandPrefix}_logs_${new Date().toISOString()}.json`;
+      const filename = `twallet_logs_${new Date().toISOString()}.json`;
       await shareFile(filename, logsString, 'application/json');
     }
   });

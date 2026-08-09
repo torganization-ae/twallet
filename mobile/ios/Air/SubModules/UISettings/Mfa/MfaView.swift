@@ -22,7 +22,6 @@ struct MfaView: View {
             let mfa = accountContext.account.getChainInfo(chain: .ton)?.mfa
             let state = MfaScreenState(
                 mfa: mfa,
-                canInstallMfa: IS_TWALLETGRAM_WALLET,
                 isWalletSupported: accountContext.account.currentTonWalletVersion == ApiTonWalletVersion.W5.rawValue,
                 hasInstallBalance: tonBalance.map { $0 >= MfaFlowModel.installFee } ?? false,
                 isRefreshingMfa: model.isRefreshingMfa,
@@ -34,8 +33,6 @@ struct MfaView: View {
                 Task {
                     await model.primaryAction(mfa: mfa)
                 }
-            } onAddInGramWallet: {
-                UIApplication.shared.open(URL(string: "https://apps.apple.com/us/app/gram-wallet/id6763345750")!)
             }
             .onReceive(pollingTimer) { _ in
                 Task {
@@ -57,7 +54,6 @@ struct MfaView: View {
 
 private struct MfaScreenState {
     let mfa: AccountMfa?
-    let canInstallMfa: Bool
     let isWalletSupported: Bool
     let hasInstallBalance: Bool
     let isRefreshingMfa: Bool
@@ -69,19 +65,11 @@ private struct MfaScreenState {
     }
 
     var isInstallAvailable: Bool {
-        canInstallMfa && isWalletSupported && hasInstallBalance
-    }
-
-    var shouldShowAddInGramWalletButton: Bool {
-        !isConfigured && !canInstallMfa && !isWaitingForTelegramInstall && !isWaitingForTelegramRemoval
+        isWalletSupported && hasInstallBalance
     }
 
     var shouldShowFooter: Bool {
-        isConfigured || canInstallMfa || isWaitingForTelegramInstall || isWaitingForTelegramRemoval || shouldShowAddInGramWalletButton
-    }
-
-    var shouldShowConnectionFee: Bool {
-        !shouldShowAddInGramWalletButton
+        true
     }
 
     var isPrimaryActionLoading: Bool {
@@ -93,7 +81,7 @@ private struct MfaScreenState {
     }
 
     var feeTextColor: Color {
-        canInstallMfa && !isConfigured && isWalletSupported && !hasInstallBalance ? .red : .air.secondaryLabel
+        !isConfigured && isWalletSupported && !hasInstallBalance ? .red : .air.secondaryLabel
     }
 
     var primaryButtonTitle: String {
@@ -102,9 +90,6 @@ private struct MfaScreenState {
         }
         if isWaitingForTelegramInstall {
             return lang("Open Telegram")
-        }
-        if !canInstallMfa {
-            return lang("Confirm with Telegram")
         }
         if !isWalletSupported {
             return lang("Unsupported Wallet Version")
@@ -116,7 +101,6 @@ private struct MfaScreenState {
         if isConfigured {
             return !isRefreshingMfa && !isWaitingForTelegramRemoval
         }
-        if !canInstallMfa { return false }
         if isRefreshingMfa { return false }
         if isWaitingForTelegramInstall {
             return true
@@ -128,7 +112,6 @@ private struct MfaScreenState {
 private struct MfaScreen: View {
     let state: MfaScreenState
     let onPrimaryAction: () -> Void
-    let onAddInGramWallet: () -> Void
 
     private let installBenefits: [MfaBenefit] = [
         .init(
@@ -142,7 +125,7 @@ private struct MfaScreen: View {
         .init(
             iconAssetName: "MfaBenefitKeyIcon",
             markdownText: lang("This helps **protect your funds** even if your recovery phrase or keys are compromised.")
-        )
+        ),
     ]
 
     var body: some View {
@@ -192,33 +175,24 @@ private struct MfaScreen: View {
     private var footer: some View {
         if state.shouldShowFooter {
             VStack(spacing: 12) {
-                if state.shouldShowConnectionFee {
-                    (
-                        Text(lang("Connection Fee:")) +
-                        Text(" ") +
-                        Text(amount: TokenAmount(MfaFlowModel.installFee, .TONCOIN), format: .init())
-                    )
-                        .font(.system(size: 14))
-                        .foregroundStyle(state.feeTextColor)
-                }
+                (
+                    Text(lang("Connection Fee:")) +
+                    Text(" ") +
+                    Text(amount: TokenAmount(MfaFlowModel.installFee, .TONCOIN), format: .init())
+                )
+                    .font(.system(size: 14))
+                    .foregroundStyle(state.feeTextColor)
 
-                if state.shouldShowAddInGramWalletButton {
-                    Button(action: onAddInGramWallet) {
-                        Text(lang("Add in Gram Wallet"))
-                    }
-                    .buttonStyle(WUIButtonStyle(style: .primary))
-                } else {
-                    Button(action: onPrimaryAction) {
-                        Text(state.primaryButtonTitle)
-                    }
-                    .buttonStyle(
-                        state.isConfigured
-                            ? WUIButtonStyle(style: .destructive)
-                            : WUIButtonStyle(style: .primary)
-                    )
-                    .environment(\.isLoading, state.isPrimaryActionLoading)
-                    .disabled(!state.isPrimaryActionEnabled)
+                Button(action: onPrimaryAction) {
+                    Text(state.primaryButtonTitle)
                 }
+                .buttonStyle(
+                    state.isConfigured
+                        ? WUIButtonStyle(style: .destructive)
+                        : WUIButtonStyle(style: .primary)
+                )
+                .environment(\.isLoading, state.isPrimaryActionLoading)
+                .disabled(!state.isPrimaryActionEnabled)
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
@@ -360,15 +334,13 @@ struct MfaSettingsRowIcon: View {
     MfaScreen(
         state: MfaScreenState(
             mfa: nil,
-            canInstallMfa: true,
             isWalletSupported: true,
             hasInstallBalance: true,
             isRefreshingMfa: false,
             isWaitingForTelegramInstall: false,
             isWaitingForTelegramRemoval: false
         ),
-        onPrimaryAction: {},
-        onAddInGramWallet: {}
+        onPrimaryAction: {}
     )
 }
 
@@ -377,15 +349,13 @@ struct MfaSettingsRowIcon: View {
     MfaScreen(
         state: MfaScreenState(
             mfa: nil,
-            canInstallMfa: true,
             isWalletSupported: true,
             hasInstallBalance: false,
             isRefreshingMfa: false,
             isWaitingForTelegramInstall: false,
             isWaitingForTelegramRemoval: false
         ),
-        onPrimaryAction: {},
-        onAddInGramWallet: {}
+        onPrimaryAction: {}
     )
 }
 
@@ -397,15 +367,13 @@ struct MfaSettingsRowIcon: View {
                 address: "0:demo",
                 user: .init(id: "1", name: "Artemii Ledenev", username: "artemii")
             ),
-            canInstallMfa: true,
             isWalletSupported: true,
             hasInstallBalance: true,
             isRefreshingMfa: false,
             isWaitingForTelegramInstall: false,
             isWaitingForTelegramRemoval: false
         ),
-        onPrimaryAction: {},
-        onAddInGramWallet: {}
+        onPrimaryAction: {}
     )
 }
 #endif

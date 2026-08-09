@@ -35,13 +35,6 @@ $variant_config = {
     release_gradle_task: 'bundleTwalletProdRelease',
     direct_gradle_task: 'assembleTwalletProdRelease',
   },
-  'twalletgram' => {
-    package_name: 'app.twalletgram',
-    firebase_app_id: '1:155616896352:android:539fe0c1f3fc36fa7eaa05',
-    beta_gradle_task: 'assembleTwalletgramBetaRelease',
-    release_gradle_task: 'bundleTwalletgramProdRelease',
-    direct_gradle_task: 'assembleTwalletgramProdRelease',
-  },
 }
 
 raise "Unknown APP_VARIANT: #{$variant}" unless $variant_config.key?($variant)

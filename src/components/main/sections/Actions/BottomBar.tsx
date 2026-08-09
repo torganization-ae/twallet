@@ -6,7 +6,6 @@ import { getActions, withGlobal } from '../../../../global';
 
 import type { Theme } from '../../../../global/types';
 
-import { IS_FEATURE_LIMITED } from '../../../../config';
 import { selectCurrentAccountSettings } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
@@ -56,8 +55,8 @@ const TAB_EXPLORE = 1;
 const TAB_SETTINGS_FULL = 2;
 const TAB_TMAIL = 3;
 
-const TAB_COUNT = IS_FEATURE_LIMITED ? 2 : 4;
-const SETTINGS_INDEX = IS_FEATURE_LIMITED ? 1 : TAB_SETTINGS_FULL;
+const TAB_COUNT = 4;
+const SETTINGS_INDEX = TAB_SETTINGS_FULL;
 
 function BottomBar({
   theme, areSettingsOpen, isExploreOpen, accentColorIndex,
@@ -80,23 +79,18 @@ function BottomBar({
 
   const activeIndex = getActiveIndex({ isExploreOpen, areSettingsOpen });
 
-  const tabs: TabConfig[] = IS_FEATURE_LIMITED
-    ? [
-      { index: TAB_WALLET, label: 'Wallet', iconKey: 'iconWallet', onClick: switchToWallet },
-      { index: SETTINGS_INDEX, label: 'Settings', iconKey: 'iconSettings', onClick: switchToSettings },
-    ]
-    : [
-      { index: TAB_WALLET, label: 'Wallet', iconKey: 'iconWallet', onClick: switchToWallet },
-      { index: TAB_EXPLORE, label: 'Explore', iconKey: 'iconExplore', onClick: switchToExplore },
-      { index: SETTINGS_INDEX, label: 'Settings', iconKey: 'iconSettings', onClick: switchToSettings },
-      {
-        index: TAB_TMAIL,
-        label: 'TMail',
-        logoSrc: tmailLogo,
-        onClick: openProductMenu,
-        buttonRef: tmailTriggerRef,
-      },
-    ];
+  const tabs: TabConfig[] = [
+    { index: TAB_WALLET, label: 'Wallet', iconKey: 'iconWallet', onClick: switchToWallet },
+    { index: TAB_EXPLORE, label: 'Explore', iconKey: 'iconExplore', onClick: switchToExplore },
+    { index: SETTINGS_INDEX, label: 'Settings', iconKey: 'iconSettings', onClick: switchToSettings },
+    {
+      index: TAB_TMAIL,
+      label: 'TMail',
+      logoSrc: tmailLogo,
+      onClick: openProductMenu,
+      buttonRef: tmailTriggerRef,
+    },
+  ];
 
   const switchToTabByIndex = useLastCallback((index: number) => {
     tabs.find((tab) => tab.index === index)?.onClick();
@@ -161,13 +155,11 @@ function BottomBar({
           );
         })}
       </div>
-      {!IS_FEATURE_LIMITED && (
-        <ProductChooserMenu
-          isOpen={isProductMenuOpen}
-          triggerRef={tmailTriggerRef}
-          onClose={closeProductMenu}
-        />
-      )}
+      <ProductChooserMenu
+        isOpen={isProductMenuOpen}
+        triggerRef={tmailTriggerRef}
+        onClose={closeProductMenu}
+      />
     </div>
   );
 }
@@ -233,10 +225,6 @@ const TabButton = memo(({
 function getActiveIndex({
   isExploreOpen, areSettingsOpen,
 }: Pick<StateProps, 'isExploreOpen' | 'areSettingsOpen'>) {
-  if (IS_FEATURE_LIMITED) {
-    return areSettingsOpen ? SETTINGS_INDEX : TAB_WALLET;
-  }
-
   if (isExploreOpen) return TAB_EXPLORE;
   if (areSettingsOpen) return TAB_SETTINGS_FULL;
 

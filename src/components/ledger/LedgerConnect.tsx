@@ -6,7 +6,6 @@ import type { ApiChain } from '../../api/types';
 import type { Theme } from '../../global/types';
 import { HardwareConnectState } from '../../global/types';
 
-import { IS_TWALLETGRAM_WALLET } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { getChainTitle } from '../../util/chain';
 import { closeLedgerTab } from '../../util/ledger/tab';
@@ -30,10 +29,6 @@ import styles from './LedgerModal.module.scss';
 
 import ledgerDesktopSrc from '../../assets/ledger/desktop.png';
 import ledgerDesktopDarkSrc from '../../assets/ledger/desktop-dark.png';
-import gramLedgerDesktopSrc from '../../assets/ledger/gram-desktop.png';
-import gramLedgerDesktopDarkSrc from '../../assets/ledger/gram-desktop-dark.png';
-import gramLedgerMobileUsbSrc from '../../assets/ledger/gram-mobile-usb.png';
-import gramLedgerMobileUsbDarkSrc from '../../assets/ledger/gram-mobile-usb-dark.png';
 import ledgerMobileUsbSrc from '../../assets/ledger/mobile-usb.png';
 import ledgerMobileUsbDarkSrc from '../../assets/ledger/mobile-usb-dark.png';
 
@@ -60,10 +55,6 @@ const NEXT_SLIDE_DELAY = 500;
 const LEDGER_ICONS = {
   desktop: { light: ledgerDesktopSrc, dark: ledgerDesktopDarkSrc },
   mobileUsb: { light: ledgerMobileUsbSrc, dark: ledgerMobileUsbDarkSrc },
-};
-const GRAM_LEDGER_ICONS = {
-  desktop: { light: gramLedgerDesktopSrc, dark: gramLedgerDesktopDarkSrc },
-  mobileUsb: { light: gramLedgerMobileUsbSrc, dark: gramLedgerMobileUsbDarkSrc },
 };
 
 function LedgerConnect({
@@ -178,7 +169,7 @@ function LedgerConnect({
 
   function getLedgerIconSrc() {
     const isDarkTheme = appTheme === 'dark';
-    const icons = IS_TWALLETGRAM_WALLET ? GRAM_LEDGER_ICONS : LEDGER_ICONS;
+    const icons = LEDGER_ICONS;
     const iconData = {
       desktop: isDarkTheme ? icons.desktop.dark : icons.desktop.light,
       mobileUsb: isDarkTheme ? icons.mobileUsb.dark : icons.mobileUsb.light,

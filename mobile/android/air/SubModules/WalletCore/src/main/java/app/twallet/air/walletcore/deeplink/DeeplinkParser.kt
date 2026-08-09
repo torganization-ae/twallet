@@ -112,11 +112,10 @@ interface DeeplinkNavigator {
 class DeeplinkParser {
 
     companion object {
-        private val WC_WRAPPER_SCHEMES = setOf("twallet-wc", "twalletgram-wc")
+        private val WC_WRAPPER_SCHEMES = setOf("twallet-wc")
         private val WC_WRAPPER_UNIVERSAL_HOSTS = setOf(
             "connect.mywallet.io",
             "connect.mytonwallet.org",
-            "connect.gramwallet.io",
         )
 
         fun parse(intent: Intent): Deeplink? {
@@ -199,15 +198,8 @@ class DeeplinkParser {
         }
 
         private fun handleHttpsDeeplinks(uri: Uri): Deeplink? {
-            val isGram = ApplicationContextHolder.isGramApp
-            val universalHosts = if (isGram)
-                setOf("go.gramwallet.io", "my.tt", "go.mytonwallet.org")
-            else
-                setOf("my.tt", "go.mytonwallet.org")
-            val tonconnectHosts = if (isGram)
-                setOf("connect.gramwallet.io", "connect.mytonwallet.org")
-            else
-                setOf("connect.mytonwallet.org")
+            val universalHosts = setOf("my.tt", "go.mytonwallet.org")
+            val tonconnectHosts = setOf("connect.mytonwallet.org")
             val host = uri.host
             when {
                 host != null && host.lowercase() in WC_WRAPPER_UNIVERSAL_HOSTS &&
@@ -324,10 +316,7 @@ class DeeplinkParser {
                     Deeplink.Url(accountAddress = null, config)
                 }
 
-                "classic" -> {
-                    if (ApplicationContextHolder.isGramApp) null
-                    else Deeplink.SwitchToLegacy(null)
-                }
+                "classic" -> Deeplink.SwitchToLegacy(null)
 
                 "token" -> {
                     val pathParts = uri.pathSegments

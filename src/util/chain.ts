@@ -24,7 +24,6 @@ import {
   ETH_USDT_MAINNET,
   HYPERLIQUID,
   HYPERLIQUID_USDC_MAINNET,
-  IS_TWALLETGRAM_WALLET,
   MONAD,
   MYCOIN_MAINNET,
   MYCOIN_TESTNET,
@@ -985,28 +984,12 @@ export function resolveReceiveChain(visibleChains: ApiChain[], preferred?: ApiCh
   return visibleChains[0];
 }
 
-/**
- * The chains whose addresses the address rows show (the account card, the wallet lists). While a Gram Wallet
- * account holds funds on TON alone (or none at all), the row collapses to the TON address; once foreign-chain
- * funds appear, only the funded chains show - the release-branch stand-in for the master-side chainDisplay
- * defaults (`getDefaultVisibleChains`). Display-only: the other addresses keep existing and receiving.
- * An undefined `fundedChains` means the token list is not known yet, so nothing is hidden.
- */
+/** Address-row chains for the account card and wallet lists. Always shows every account chain. */
 export function getAddressLineChains(
   chains: ApiChain[],
-  fundedChains?: ReadonlySet<ApiChain>,
+  _fundedChains?: ReadonlySet<ApiChain>,
 ): ApiChain[] {
-  if (!IS_TWALLETGRAM_WALLET || !fundedChains) {
-    return chains;
-  }
-
-  const hasForeignFunds = [...fundedChains].some((chain) => chain !== TONCOIN.chain);
-  if (!hasForeignFunds) {
-    return chains.includes(TONCOIN.chain) ? [TONCOIN.chain] : chains;
-  }
-
-  const funded = chains.filter((chain) => fundedChains.has(chain));
-  return funded.length ? funded : chains;
+  return chains;
 }
 
 /** Chains holding a non-zero amount of any token. */

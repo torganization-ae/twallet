@@ -68,10 +68,6 @@ extension ApiToken {
     /// These are shown when account is created and there are no transactions yet.
     /// The order is defined as for displaying in UI.
     public static func defaultSlugs(forNetwork network: ApiNetwork, account: MAccount? = nil) -> OrderedSet<String> {
-        if IS_TWALLETGRAM_WALLET {
-            return OrderedSet(defaultSlugs(for: .ton, network: network, account: nil))
-        }
-
         if let account {
             let supportedChains = ApiChain.allCases.filter { account.supports(chain: $0) }
             if supportedChains.count == 1, let chain = supportedChains.first {

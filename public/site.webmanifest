@@ -1,6 +1,6 @@
 {
-    "name": "tWallet",
-    "short_name": "tWallet",
+    "name": "TWallet",
+    "short_name": "TWallet",
     "start_url": "./",
     "gcm_sender_id": "122867383838",
     "icons": [

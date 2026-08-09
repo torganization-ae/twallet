@@ -49,13 +49,10 @@ public extension Deeplink {
 }
 
 private var compatibleWalletConnectSelfProtocolSchemes: Set<String> { [SELF_PROTOCOL_SCHEME] }
-private var compatibleWalletConnectWrapperProtocolSchemes: Set<String> {
-    IS_TWALLETGRAM_WALLET ? ["twalletgram-wc"] : ["twallet-wc"]
-}
+private var compatibleWalletConnectWrapperProtocolSchemes: Set<String> { ["twallet-wc"] }
 private let compatibleWalletConnectUniversalHosts: Set<String> = [
     "connect.mywallet.io",
     "connect.mytonwallet.org",
-    "connect.gramwallet.io",
 ]
 private var compatibleTonConnectProtocolSchemes: Set<String> {
     ["tc", TONCONNECT_PROTOCOL_SCHEME]

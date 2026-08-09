@@ -30,10 +30,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
 import com.google.mlkit.vision.common.InputImage
-import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import me.vkryl.android.AnimatorUtils
 import me.vkryl.android.animatorx.BoolAnimator
 import me.vkryl.android.util.ClickHelper
@@ -313,15 +310,7 @@ class QrScannerView @JvmOverloads constructor(
         }
     }
 
-    private fun createScannerBackend(): QrScannerBackend {
-        // mytonwallet ships the bundled MlKit model in-APK, so it works without GMS.
-        // Gram uses the thin-client and needs GMS to download the model — fall back to ZXing
-        // on no-GMS devices (e.g. recent Huawei) until the model is available.
-        if (!ApplicationContextHolder.isGramApp) return MlKitBackend()
-        val gmsAvailable = GoogleApiAvailability.getInstance()
-            .isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS
-        return if (gmsAvailable) MlKitBackend() else ZXingBackend()
-    }
+    private fun createScannerBackend(): QrScannerBackend = MlKitBackend()
 
     fun init(lifecycleOwner: LifecycleOwner, listener: QrScannerListener) {
         this.lifecycleOwner = lifecycleOwner

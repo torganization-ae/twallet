@@ -123,47 +123,10 @@ describe('getDnsZoneByCollection', () => {
 });
 
 describe('getTelegramAvatarUrlFromDomain', () => {
-  async function withTelegramAvatarHelper(
-    isTwalletgramWallet: boolean,
-    run: (getTelegramAvatarUrlFromDomain: typeof import('./dns').getTelegramAvatarUrlFromDomain) => void,
-  ) {
-    const previousIsTwalletgramWallet = process.env.IS_TWALLETGRAM_WALLET;
-    process.env.IS_TWALLETGRAM_WALLET = isTwalletgramWallet ? '1' : '0';
-
-    try {
-      await jest.isolateModulesAsync(async () => {
-        const { getTelegramAvatarUrlFromDomain } = await import('./dns');
-        run(getTelegramAvatarUrlFromDomain);
-      });
-    } finally {
-      if (previousIsTwalletgramWallet === undefined) {
-        delete process.env.IS_TWALLETGRAM_WALLET;
-      } else {
-        process.env.IS_TWALLETGRAM_WALLET = previousIsTwalletgramWallet;
-      }
-    }
-  }
-
-  it('returns undefined outside Gram Wallet', async () => {
-    await withTelegramAvatarHelper(false, (getTelegramAvatarUrlFromDomain) => {
-      expect(getTelegramAvatarUrlFromDomain('tonsbid.t.me')).toBeUndefined();
-    });
-  });
-
-  it('returns a Telegram avatar URL for direct .t.me domains in Gram Wallet', async () => {
-    await withTelegramAvatarHelper(true, (getTelegramAvatarUrlFromDomain) => {
-      expect(getTelegramAvatarUrlFromDomain('tonsbid.t.me')).toBe('https://t.me/i/userpic/320/tonsbid.jpg');
-      expect(getTelegramAvatarUrlFromDomain('  Foo-Bar_Baz.t.me  ')).toBe(
-        'https://t.me/i/userpic/320/foo-bar_baz.jpg',
-      );
-    });
-  });
-
-  it('returns undefined for non-Telegram and Telegram subdomains in Gram Wallet', async () => {
-    await withTelegramAvatarHelper(true, (getTelegramAvatarUrlFromDomain) => {
-      expect(getTelegramAvatarUrlFromDomain('tonsbid.ton')).toBeUndefined();
-      expect(getTelegramAvatarUrlFromDomain('sub.tonsbid.t.me')).toBeUndefined();
-      expect(getTelegramAvatarUrlFromDomain()).toBeUndefined();
-    });
+  it('always returns undefined', async () => {
+    const { getTelegramAvatarUrlFromDomain } = await import('./dns');
+    expect(getTelegramAvatarUrlFromDomain('tonsbid.t.me')).toBeUndefined();
+    expect(getTelegramAvatarUrlFromDomain('tonsbid.ton')).toBeUndefined();
+    expect(getTelegramAvatarUrlFromDomain()).toBeUndefined();
   });
 });

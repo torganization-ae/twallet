@@ -34,44 +34,17 @@ struct AddressLineDisplayTests {
     }
 
     @Test
-    func `gram wallet with no token chains shows only ton address`() {
+    func `keeps ordered chains for multichain account`() {
         let orderedChains = makeOrderedChains([.ethereum, .ton, .solana])
         let account = makeAccount(chains: [.ethereum, .ton, .solana])
-        let addressLine = account.addressLine(orderedChains: orderedChains, tokenChains: [], isTwalletGramWallet: true)
-
-        #expect(addressLine.items.map(\.chain) == [.ton])
-    }
-
-    @Test
-    func `gram wallet with only ton token chains shows only ton address`() {
-        let orderedChains = makeOrderedChains([.ethereum, .ton, .solana])
-        let account = makeAccount(chains: [.ethereum, .ton, .solana])
-        let addressLine = account.addressLine(orderedChains: orderedChains, tokenChains: [.ton], isTwalletGramWallet: true)
-
-        #expect(addressLine.items.map(\.chain) == [.ton])
-    }
-
-    @Test
-    func `gram wallet with non ton token chains keeps ordered chains`() {
-        let orderedChains = makeOrderedChains([.ethereum, .ton, .solana])
-        let account = makeAccount(chains: [.ethereum, .ton, .solana])
-        let addressLine = account.addressLine(orderedChains: orderedChains, tokenChains: [.ton, .ethereum], isTwalletGramWallet: true)
-
-        #expect(addressLine.items.map(\.chain) == [.ethereum, .ton, .solana])
-    }
-
-    @Test
-    func `non gram wallet keeps ordered chains when token chains are empty`() {
-        let orderedChains = makeOrderedChains([.ethereum, .ton, .solana])
-        let account = makeAccount(chains: [.ethereum, .ton, .solana])
-        let addressLine = account.addressLine(orderedChains: orderedChains, tokenChains: [], isTwalletGramWallet: false)
+        let addressLine = account.addressLine(orderedChains: orderedChains)
 
         #expect(addressLine.items.map(\.chain) == [.ethereum, .ton, .solana])
     }
 
     private func makeAddressLine(chains: [ApiChain]) -> MAccount.AddressLine {
         let account = makeAccount(chains: chains)
-        return account.addressLine(orderedChains: makeOrderedChains(chains), isTwalletGramWallet: false)
+        return account.addressLine(orderedChains: makeOrderedChains(chains))
     }
 
     private func makeAccount(chains: [ApiChain]) -> MAccount {

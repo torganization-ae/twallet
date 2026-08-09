@@ -13,7 +13,6 @@ import app.twallet.air.uicomponents.image.Content
 import app.twallet.air.uicomponents.image.WCustomImageView
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
-import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import app.twallet.air.walletbasecontext.utils.gradientColors
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.MSavedAddress
@@ -80,7 +79,7 @@ class AccountIconView(context: Context, val usage: Usage) : FrameLayout(context)
 
     fun config(
         account: MAccount,
-        useTelegramAvatar: Boolean = ApplicationContextHolder.isGramApp,
+        useTelegramAvatar: Boolean = false,
     ) {
         val avatarUrl = account.telegramAvatarUrl
             ?.takeIf { useTelegramAvatar && !it.substringBefore('?').endsWith(".svg", ignoreCase = true) }

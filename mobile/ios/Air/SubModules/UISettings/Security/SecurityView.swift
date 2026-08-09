@@ -156,8 +156,7 @@ struct SecurityView: View {
         guard let account = AccountStore.account, account.supports(chain: .ton) else {
             return false
         }
-        return (IS_TWALLETGRAM_WALLET && accountContext.isMfaEnabled)
-            || account.getChainInfo(chain: .ton)?.mfa != nil
+        return account.getChainInfo(chain: .ton)?.mfa != nil
     }
 
     func onMfa() {

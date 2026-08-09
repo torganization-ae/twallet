@@ -3,7 +3,6 @@ import React, { memo, useEffect, useRef } from '../../../../lib/teact/teact';
 import type { Account, AccountType } from '../../../../global/types';
 import type { AccountTab } from './constants';
 
-import { IS_FEATURE_LIMITED } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 
 import Transition from '../../../ui/Transition';
@@ -72,7 +71,7 @@ function AccountsGridView({
         title={title}
         profile={profile}
         balanceData={balanceData}
-        withContextMenu={!IS_FEATURE_LIMITED}
+        withContextMenu
         isSensitiveDataHidden={isSensitiveDataHidden}
         onClick={onSwitchAccount}
         onRename={onRename}

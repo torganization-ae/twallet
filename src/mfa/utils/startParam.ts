@@ -1,4 +1,4 @@
-export type MfaWalletApp = 'twalletgram' | 'twallet';
+export type MfaWalletApp = 'twallet';
 
 type MfaStartParam = {
   id?: string;
@@ -8,31 +8,26 @@ type MfaStartParam = {
 };
 
 export function parseMfaStartParam(startParam?: string): MfaStartParam {
-  const { id, walletApp } = parseWalletPrefix(startParam);
+  const { id } = parseWalletPrefix(startParam);
   const isInstall = id?.startsWith('i-') ?? false;
 
   return {
     id,
     requestId: isInstall ? id?.slice(2) : id,
     isInstall,
-    walletApp,
+    walletApp: 'twallet',
   };
 }
 
-export function getMfaWalletAppInfo(walletApp: MfaWalletApp) {
-  return walletApp === 'twalletgram'
-    ? { name: 'tWallet Gram', deeplink: 'https://go.gramwallet.io' }
-    : { name: 'tWallet', deeplink: 'twallet://' };
+export function getMfaWalletAppInfo(_walletApp: MfaWalletApp) {
+  return { name: 'TWallet', deeplink: 'twallet://' };
 }
 
-function parseWalletPrefix(startParam?: string): Pick<MfaStartParam, 'id' | 'walletApp'> {
-  if (startParam?.startsWith('g_')) {
-    return { id: startParam.slice(2), walletApp: 'twalletgram' };
+function parseWalletPrefix(startParam?: string): Pick<MfaStartParam, 'id'> {
+  // Accept legacy Gram (`g_`) and TWallet (`m_`) prefixes; both resolve to TWallet.
+  if (startParam?.startsWith('g_') || startParam?.startsWith('m_')) {
+    return { id: startParam.slice(2) };
   }
 
-  if (startParam?.startsWith('m_')) {
-    return { id: startParam.slice(2), walletApp: 'twallet' };
-  }
-
-  return { walletApp: 'twallet' };
+  return {};
 }

@@ -18,7 +18,6 @@ Sign transfers and important actions with your passcode, then confirm them in Te
 This helps protect your funds even if your recovery phrase or keys are compromised.: Esto ayuda a proteger tus fondos incluso si tu frase de recuperación o tus claves se ven comprometidas.
 "Connection Fee:": "Comisión de conexión:"
 Connect Telegram: Conectar Telegram
-Add in Gram Wallet: Añadir en Gram Wallet
 Telegram will be used to confirm transfers and important actions.: Telegram se usará para confirmar transferencias y acciones importantes.
 My Telegram Account: Mi cuenta de Telegram
 Without username: Sin nombre de usuario
@@ -882,7 +881,7 @@ DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: Por favor, use %app_name% %mobileAppButton% o %browserExtensionButton% para evitar esta advertencia.
 $reopen_in_iab_explore: Para evitar esta advertencia, abra las aplicaciones desde la pestaña %exploreTab%.
-tWallet Browser: Navegador tWallet
+TWallet Browser: Navegador TWallet
 mobile app: aplicación móvil
 browser extension: extensión del navegador
 Exit all wallets: Cerrar todas las billeteras
@@ -1084,7 +1083,7 @@ Adding wallets is not available in explorer mode: Agregar billeteras no está di
 $explorer_mode_warning: "Modo explorador: esperando un enlace profundo de View para abrir una dirección"
 This command is not supported in explorer mode: Este comando no es compatible en modo explorador
 $saved_addresses_header: Guardado
-confirm an action in tWallet: confirmar una acción en tWallet
+confirm an action in TWallet: confirmar una acción en TWallet
 Timed out waiting for account to be ready: Tiempo de espera agotado para la preparación de la cuenta
 $connected_apps:
   otherValue: "%1$d conectadas"
@@ -1149,7 +1148,7 @@ Show All Wallets: Mostrar todas las billeteras
 Ask a Question: Hacer una pregunta
 Learn more: Más información
 Unsupported link: Este enlace no es compatible
-tWallet Features: Características de tWallet
+TWallet Features: Características de TWallet
 Notifications: Notificaciones
 Enter Passcode: Introducir código
 Wrong passcode, please try again: Código incorrecto, por favor inténtelo de nuevo.
@@ -1258,7 +1257,7 @@ Screen Recording: Grabación de pantalla
 Disable Screen Record Warning: Desactivar advertencia de grabación de pantalla
 I Understand, Proceed: Entiendo, continuar
 Waiting for Network: Esperando la red
-tWallet: tWallet
+TWallet: TWallet
 $no_activity_history: |
   Aún no hay historial
   de actividades en esta cartera.
@@ -1334,7 +1333,7 @@ Connecting your wallet: Conectando tu cartera
 Action is not possible on a view-only wallet.: Esta acción no es posible en una cartera de solo lectura.
 No matching chains: No hay redes compatibles
 Select multichain wallet: Elegir billetera multichain
-Logged in with tWallet: Sesión iniciada con tWallet
+Logged in with TWallet: Sesión iniciada con TWallet
 You have no apps connected to this wallet.: No tienes apps conectadas a esta cartera.
 Asset: Activo
 Sent to: Enviado a
@@ -1381,7 +1380,7 @@ Payment Address: Dirección de pago
 "Install Palette": Instalar paleta
 Ledger: Ledger
 "Moving to staking balance": Moviendo al saldo de staking
-tWallet uses biometric authentication to unlock and authorize transactions: tWallet usa autenticación biométrica para desbloquear y autorizar transacciones
+TWallet uses biometric authentication to unlock and authorize transactions: TWallet usa autenticación biométrica para desbloquear y autorizar transacciones
 "Network error": Error de red
 "No Camera Access": Sin acceso a la cámara
 "Not all transactions were sent successfully.": No todas las transacciones se enviaron correctamente.

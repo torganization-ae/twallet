@@ -6,7 +6,7 @@ import { getActions, withGlobal } from '../../global';
 import type { ApiTokenWithPrice } from '../../api/types';
 import { ContentTab, type Theme, type TokenChartMode } from '../../global/types';
 
-import { IS_EXPLORER, IS_FEATURE_LIMITED } from '../../config';
+import { IS_EXPLORER } from '../../config';
 import {
   selectCurrentAccountId,
   selectCurrentAccountSettings,
@@ -117,8 +117,6 @@ function Main({
   const { isPortrait, isLandscape } = useDeviceScreen();
 
   useEffectOnce(() => {
-    if (IS_FEATURE_LIMITED) return;
-
     loadExploreSites({ isLandscape, langCode: lang.code });
   });
 
@@ -239,7 +237,7 @@ function Main({
 
           <LandscapeNavBar />
           {/* Core is single-account, and its `Add Wallet` would be dead anyway: AccountSelectorModal is not rendered below. */}
-          {!IS_FEATURE_LIMITED && <LandscapeWalletList />}
+          <LandscapeWalletList />
           {IS_EXPLORER && <PromoteWallet />}
         </div>
         <div className={styles.main}>
@@ -274,7 +272,7 @@ function Main({
       <RenewDomainModal />
       <LinkingDomainModal />
       {!IS_ELECTRON && <UpdateAvailable />}
-      {!IS_FEATURE_LIMITED && <AccountSelectorModal />}
+      <AccountSelectorModal />
     </>
   );
 }

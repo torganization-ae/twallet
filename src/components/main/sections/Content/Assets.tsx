@@ -7,7 +7,7 @@ import type {
 import type { LoadMoreDirection, Theme, UserSwapToken, UserToken } from '../../../../global/types';
 import { SettingsState } from '../../../../global/types';
 
-import { ANIMATED_STICKER_SMALL_SIZE_PX, IS_MY_WALLET_BRAND } from '../../../../config';
+import { ANIMATED_STICKER_SMALL_SIZE_PX } from '../../../../config';
 import {
   selectCurrentAccountId,
   selectCurrentAccountSettings,
@@ -116,7 +116,7 @@ function Assets({
     vestingStatus,
     unfreezeEndDate,
     onVestingTokenClick,
-  } = useVesting({ vesting, userMycoin, isDisabled: !IS_MY_WALLET_BRAND });
+  } = useVesting({ vesting, userMycoin, isDisabled: false });
 
   const tokenSlugs = useMemo(() => (
     renderedTokens

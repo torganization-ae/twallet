@@ -596,10 +596,6 @@ $footerPaddingBottomMin: 1rem;
   }
 }
 
-.coreWalletButtons {
-  gap: 2rem;
-}
-
 .importText {
   position: relative;
 
@@ -628,13 +624,6 @@ $footerPaddingBottomMin: 1rem;
     right: -5.125rem;
     left: auto;
   }
-}
-
-.coreWalletStartButtons {
-  display: flex;
-  gap: 1rem;
-  width: 100%;
-  margin: 0 -1rem;
 }
 
 .biometricsStep {

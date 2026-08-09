@@ -43,30 +43,25 @@ struct IntroView: View {
     
     @ViewBuilder
     var iconAndEffect: some View {
-        if IS_TWALLETGRAM_WALLET {
-            WUISpeedingDiamondWithParticles()
-                .offset(y: -32)
-        } else {
-            Image.mainBundle("IntroLogo")
-                .highlightScale(isTouching, scale: 0.9, isEnabled: true)
-                .touchGesture($isTouching)
-                .frame(width: 124, height: 124)
-                .background {
-                    ParticleBackground(burstTrigger: $burstTrigger)
+        Image.mainBundle("IntroLogo")
+            .highlightScale(isTouching, scale: 0.9, isEnabled: true)
+            .touchGesture($isTouching)
+            .frame(width: 124, height: 124)
+            .background {
+                ParticleBackground(burstTrigger: $burstTrigger)
+            }
+            .onChange(of: isTouching) { isTouching in
+                if isTouching {
+                    burstTrigger += 1
                 }
-                .onChange(of: isTouching) { isTouching in
-                    if isTouching {
-                        burstTrigger += 1
-                    }
-                }
-                .backportSensoryFeedback(value: isTouching)
-                .accessibilityHidden(true)
-        }
+            }
+            .backportSensoryFeedback(value: isTouching)
+            .accessibilityHidden(true)
     }
 
     var title: some View {
         Text(APP_NAME)
-            .font(IS_TWALLETGRAM_WALLET ? .system(size: 32, weight: .semibold) : .calSans(size: 32))
+            .font(.calSans(size: 32))
             .accessibilityAddTraits(.isHeader)
     }
     

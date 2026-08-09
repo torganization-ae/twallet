@@ -21,7 +21,6 @@ on:
           - both
           - none
           - twallet
-          - twalletgram
       ios_variant:
         description: iOS app variant to release
         required: true
@@ -31,7 +30,6 @@ on:
           - both
           - none
           - twallet
-          - twalletgram
   push:
     branches:
       - production
@@ -109,9 +107,6 @@ jobs:
               twallet)
                 echo 'android-variants=["twallet"]' >> "$GITHUB_OUTPUT"
                 ;;
-              twalletgram)
-                echo 'android-variants=["twalletgram"]' >> "$GITHUB_OUTPUT"
-                ;;
               *)
                 # both / default: twallet flavor only
                 echo 'android-variants=["twallet"]' >> "$GITHUB_OUTPUT"
@@ -124,9 +119,6 @@ jobs:
                 ;;
               twallet)
                 echo 'ios-variants=["twallet"]' >> "$GITHUB_OUTPUT"
-                ;;
-              twalletgram)
-                echo 'ios-variants=["twalletgram"]' >> "$GITHUB_OUTPUT"
                 ;;
               *)
                 echo 'ios-variants=["twallet"]' >> "$GITHUB_OUTPUT"
@@ -662,11 +654,6 @@ jobs:
               echo "ANDROID_PACKAGE_NAME=app.twallet" >> "$GITHUB_ENV"
               echo "ANDROID_ARTIFACT_NAME=${{ env.ARTIFACT_NAME_BASE }}.apk" >> "$GITHUB_ENV"
               ;;
-            twalletgram)
-              echo "ANDROID_APP_NAME=Twallet Gram" >> "$GITHUB_ENV"
-              echo "ANDROID_PACKAGE_NAME=app.twalletgram" >> "$GITHUB_ENV"
-              echo "ANDROID_ARTIFACT_NAME=TwalletGram.apk" >> "$GITHUB_ENV"
-              ;;
             *)
               echo "::error::Unknown APP_VARIANT: $APP_VARIANT"
               exit 1
@@ -791,7 +778,6 @@ jobs:
       - name: Configure iOS variant
         env:
           IOS_TESTFLIGHT_GROUP: ${{ vars.IOS_TESTFLIGHT_GROUP }}
-          IOS_TWALLETGRAM_TESTFLIGHT_GROUP: ${{ vars.IOS_TWALLETGRAM_TESTFLIGHT_GROUP }}
         run: |
           case "$APP_VARIANT" in
             twallet)
@@ -802,15 +788,6 @@ jobs:
               echo "IOS_WIDGET_SCHEME=AirWidgetExtension" >> "$GITHUB_ENV"
               echo "IOS_PLIST_PATH=../../App/App/Resources/Twallet/Info.plist" >> "$GITHUB_ENV"
               echo "IOS_TESTFLIGHT_GROUP=${IOS_TESTFLIGHT_GROUP:-Twallet external group}" >> "$GITHUB_ENV"
-              ;;
-            twalletgram)
-              echo "IOS_APP_NAME=Twallet Gram" >> "$GITHUB_ENV"
-              echo "IOS_APP_IDENTIFIER=app.twalletgram" >> "$GITHUB_ENV"
-              echo "IOS_APP_IDENTIFIER_WIDGET=app.twalletgram.widget" >> "$GITHUB_ENV"
-              echo "IOS_SCHEME=TwalletGram" >> "$GITHUB_ENV"
-              echo "IOS_WIDGET_SCHEME=TwalletGramWidgetExtension" >> "$GITHUB_ENV"
-              echo "IOS_PLIST_PATH=../../App/App/Resources/TwalletGram/Info.plist" >> "$GITHUB_ENV"
-              echo "IOS_TESTFLIGHT_GROUP=${IOS_TWALLETGRAM_TESTFLIGHT_GROUP:-Twallet Gram external group}" >> "$GITHUB_ENV"
               ;;
             *)
               echo "::error::Unknown APP_VARIANT: $APP_VARIANT"
@@ -831,13 +808,7 @@ jobs:
         run: |
           defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
 
-          if [ "$APP_VARIANT" = "twalletgram" ]; then
-            if [ -z "$PUBLISH_REPO" ]; then
-              APP_ENV=staging npm run mobile:build:sdk
-            else
-              APP_ENV=production npm run mobile:build:sdk
-            fi
-          elif [ -z "$PUBLISH_REPO" ]; then
+          if [ -z "$PUBLISH_REPO" ]; then
             npm run mobile:build:staging
           else
             npm run mobile:build:production
@@ -856,10 +827,6 @@ jobs:
           IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
           IOS_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
           IOS_PROVISION_PROFILE_WIDGET_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_WIDGET_BASE64 }}
-          IOS_TWALLETGRAM_CERTIFICATE_BASE64: ${{ secrets.IOS_TWALLETGRAM_CERTIFICATE_BASE64 }}
-          IOS_TWALLETGRAM_CERTIFICATE_PASSWORD: ${{ secrets.IOS_TWALLETGRAM_CERTIFICATE_PASSWORD }}
-          IOS_TWALLETGRAM_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_TWALLETGRAM_PROVISION_PROFILE_BASE64 }}
-          IOS_TWALLETGRAM_PROVISION_PROFILE_WIDGET_BASE64: ${{ secrets.IOS_TWALLETGRAM_PROVISION_PROFILE_WIDGET_BASE64 }}
           IOS_KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
         run: |
           set -euo pipefail
@@ -868,13 +835,6 @@ jobs:
           CERTIFICATE_PASSWORD="$IOS_CERTIFICATE_PASSWORD"
           PROVISION_PROFILE_BASE64="$IOS_PROVISION_PROFILE_BASE64"
           PROVISION_PROFILE_WIDGET_BASE64="$IOS_PROVISION_PROFILE_WIDGET_BASE64"
-
-          if [ "$APP_VARIANT" = "twalletgram" ]; then
-            CERTIFICATE_BASE64="${IOS_TWALLETGRAM_CERTIFICATE_BASE64:-$IOS_CERTIFICATE_BASE64}"
-            CERTIFICATE_PASSWORD="${IOS_TWALLETGRAM_CERTIFICATE_PASSWORD:-$IOS_CERTIFICATE_PASSWORD}"
-            PROVISION_PROFILE_BASE64="$IOS_TWALLETGRAM_PROVISION_PROFILE_BASE64"
-            PROVISION_PROFILE_WIDGET_BASE64="$IOS_TWALLETGRAM_PROVISION_PROFILE_WIDGET_BASE64"
-          fi
 
           if [ -z "$CERTIFICATE_BASE64" ]; then
             echo "::error::Missing iOS distribution certificate for $APP_VARIANT"
@@ -929,13 +889,9 @@ jobs:
       - name: "iOS: Package and publish"
         env:
           IOS_AUTH_KEY_BASE64: ${{ secrets.IOS_AUTH_KEY_BASE64 }}
-          IOS_TWALLETGRAM_AUTH_KEY_BASE64: ${{ secrets.IOS_TWALLETGRAM_AUTH_KEY_BASE64 }}
           IOS_AUTH_KEY_ID: ${{ vars.IOS_AUTH_KEY_ID }}
           IOS_AUTH_KEY_ISSUER_ID: ${{ vars.IOS_AUTH_KEY_ISSUER_ID }}
-          IOS_TWALLETGRAM_AUTH_KEY_ID: ${{ vars.IOS_TWALLETGRAM_AUTH_KEY_ID }}
-          IOS_TWALLETGRAM_AUTH_KEY_ISSUER_ID: ${{ vars.IOS_TWALLETGRAM_AUTH_KEY_ISSUER_ID }}
           IOS_METADATA_PATH: ${{ vars.IOS_METADATA_PATH }}
-          IOS_TWALLETGRAM_METADATA_PATH: ${{ vars.IOS_TWALLETGRAM_METADATA_PATH }}
           FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 300
         run: |
           set -euo pipefail
@@ -953,13 +909,6 @@ jobs:
           ASC_KEY_ID="${IOS_AUTH_KEY_ID:-}"
           ASC_ISSUER_ID="${IOS_AUTH_KEY_ISSUER_ID:-}"
           METADATA_PATH="${IOS_METADATA_PATH:-}"
-
-          if [ "$APP_VARIANT" = "twalletgram" ]; then
-            AUTH_KEY_BASE64="${IOS_TWALLETGRAM_AUTH_KEY_BASE64:-$IOS_AUTH_KEY_BASE64}"
-            ASC_KEY_ID="${IOS_TWALLETGRAM_AUTH_KEY_ID:-$ASC_KEY_ID}"
-            ASC_ISSUER_ID="${IOS_TWALLETGRAM_AUTH_KEY_ISSUER_ID:-$ASC_ISSUER_ID}"
-            METADATA_PATH="${IOS_TWALLETGRAM_METADATA_PATH:-$METADATA_PATH}"
-          fi
 
           if [ -z "$AUTH_KEY_BASE64" ]; then
             echo "::error::Missing App Store Connect auth key for $APP_VARIANT"

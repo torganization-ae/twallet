@@ -2,11 +2,7 @@ import Foundation
 import SwiftUI
 import UIKit
 
-#if GRAM_WALLET
-let SELF_PROTOCOL = "twalletgram://"
-#else
 let SELF_PROTOCOL = "twallet://"
-#endif
 
 let TONCOIN_SLUG = "toncoin"
 let TON_USDT_SLUG = "ton-eqcxe6mutq"

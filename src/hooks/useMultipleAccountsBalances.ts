@@ -5,11 +5,9 @@ import type {
 } from '../api/types';
 import type { Account, AccountSettings, GlobalState } from '../global/types';
 
-import { IS_TWALLETGRAM_WALLET } from '../config';
 import {
   selectMultipleAccountsTokensSlow,
 } from '../global/selectors';
-import { getAddressDisplayByChain } from '../util/formatAccountAddress';
 import { useAccountsBalances } from './useAccountsBalances';
 
 interface OwnProps {
@@ -57,25 +55,8 @@ export function useMultipleAccountsBalances({
     currencyRates,
   ]);
 
-  // The same accounts with `byChain` narrowed for address display (see `getAddressDisplayByChain`).
   // While no account is narrowed, the `filteredAccounts` identity survives so memoized consumers keep their cache.
-  const displayedAccounts = useMemo(() => {
-    if (!IS_TWALLETGRAM_WALLET || !filteredAccounts) return filteredAccounts;
-
-    let isNarrowed = false;
-    const narrowed = filteredAccounts.map(([accountId, account]): [string, Account] => {
-      const byChain = getAddressDisplayByChain(
-        account.byChain,
-        allAccountsTokens?.[accountId],
-      );
-      if (byChain === account.byChain) return [accountId, account];
-
-      isNarrowed = true;
-      return [accountId, { ...account, byChain }];
-    });
-
-    return isNarrowed ? narrowed : filteredAccounts;
-  }, [filteredAccounts, allAccountsTokens]);
+  const displayedAccounts = filteredAccounts;
 
   const balances = useAccountsBalances(
     filteredAccounts,

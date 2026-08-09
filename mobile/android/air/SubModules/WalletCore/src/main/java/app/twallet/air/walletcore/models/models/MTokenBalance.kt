@@ -1,7 +1,6 @@
 package app.twallet.air.walletcore.models
 
 import org.json.JSONObject
-import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import app.twallet.air.walletbasecontext.utils.doubleAbsRepresentation
 import app.twallet.air.walletcore.BNB_SLUG
 import app.twallet.air.walletcore.ETH_SLUG
@@ -70,13 +69,7 @@ data class MTokenBalance(
     }
 
     companion object {
-        private val GRAM_PRIORITY_ORDER = listOf(
-            TONCOIN_SLUG,
-            TON_USDT_SLUG,
-            TON_USDT_TESTNET_SLUG,
-        )
-
-        private val MYTONWALLET_PRIORITY_ORDER = listOf(
+        private val PRIORITY_ORDER = listOf(
             ETH_SLUG,
             SOLANA_SLUG,
             TONCOIN_SLUG,
@@ -84,10 +77,6 @@ data class MTokenBalance(
             BNB_SLUG,
             HYPERLIQUID_SLUG,
         )
-
-        private val PRIORITY_ORDER: List<String>
-            get() = if (ApplicationContextHolder.isGramApp) GRAM_PRIORITY_ORDER
-            else MYTONWALLET_PRIORITY_ORDER
 
         // Factory method to create an instance from JSON
         fun fromJson(json: JSONObject): MTokenBalance {

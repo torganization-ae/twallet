@@ -25,16 +25,12 @@ import {
   EXTENSION_NAME,
   IFRAME_WHITELIST,
   IPFS_GATEWAY_BASE_URL,
-  IS_CORE_WALLET,
   IS_EXPLORER,
   IS_EXTENSION,
-  IS_FEATURE_LIMITED,
   IS_FIREFOX_EXTENSION,
   IS_OPERA_EXTENSION,
   IS_PACKAGED_ELECTRON,
   IS_TELEGRAM_APP,
-  IS_TON_BRAND,
-  IS_TWALLETGRAM_WALLET,
   MFA_API_BASE_URL,
   PROXY_API_BASE_URL,
   SSE_BRIDGE_URL,
@@ -52,7 +48,7 @@ const cspConnectSrcExtra = APP_ENV === 'development'
   ? `http://localhost:3000 ${process.env.CSP_CONNECT_SRC_EXTRA_URL}`
   : '';
 const cspScriptSrcExtra = IS_TELEGRAM_APP ? 'https://telegram.org' : '';
-const cspFrameSrcExtra = IS_FEATURE_LIMITED ? '' : [
+const cspFrameSrcExtra = [
   ...WALLET_CONNECT_PAY_FRAME_ORIGINS,
   ...IFRAME_WHITELIST,
   SUBPROJECT_URL_MASK,
@@ -321,10 +317,8 @@ export default function createConfig(
         chunks: ['main'],
         csp: CSP,
         title: APP_NAME,
-        homepage: IS_CORE_WALLET
-          ? 'https://wallet.ton.org'
-          : IS_TWALLETGRAM_WALLET ? 'https://gramwallet.io' : 'https://mywallet.io',
-        assets_prefix: IS_TWALLETGRAM_WALLET ? 'gramWallet/' : IS_TON_BRAND ? 'coreWallet/' : '',
+        homepage: 'https://mywallet.io',
+        assets_prefix: '',
       }),
       new PreloadWebpackPlugin({
         include: 'allAssets',
@@ -334,12 +328,6 @@ export default function createConfig(
           /theme_.*?\.png/, // Theme icons
           /chain_.*?\.png/, // Chain icons
           /settings_.*?\.svg/, // Settings icons (svg)
-          ...(IS_TON_BRAND ? [
-            /core_wallet_.*?\.png/, // Lottie thumbs for TON Wallet
-          ] : []),
-          ...(IS_TWALLETGRAM_WALLET ? [
-            /gram_wallet_.*?\.png/, // Lottie thumbs for Gram Wallet
-          ] : []),
         ],
         as(entry: string) {
           if (/\.png$/.test(entry)) return 'image';
@@ -366,8 +354,6 @@ export default function createConfig(
         IS_EXTENSION: '', // It's necessary to use an empty string, because it's used in bundle-time conditions
         IS_FIREFOX_EXTENSION: 'false',
         IS_AIR_APP: 'false',
-        IS_CORE_WALLET: 'false',
-        IS_TWALLETGRAM_WALLET: 'false',
         IS_TELEGRAM_APP: 'false',
         IS_EXPLORER: 'false',
         SWAP_FEE_ADDRESS: '',
@@ -401,19 +387,7 @@ export default function createConfig(
                 extension_pages: CSP,
               };
               manifest.action = { default_title: APP_NAME };
-              manifest.icons = IS_TWALLETGRAM_WALLET
-                ? {
-                  192: 'gramWallet/icon-192x192.png',
-                  256: 'gramWallet/icon-256x256.png',
-                  512: 'gramWallet/icon-512x512.png',
-                }
-                : IS_TON_BRAND
-                  ? {
-                    192: 'coreWallet/icon-192x192.png',
-                    256: 'coreWallet/icon-256x256.png',
-                    512: 'coreWallet/icon-512x512.png',
-                  }
-                  : { 192: 'icon-192x192.png', 384: 'icon-384x384.png', 512: 'icon-512x512.png' };
+              manifest.icons = { 192: 'icon-192x192.png', 384: 'icon-384x384.png', 512: 'icon-512x512.png' };
 
               if (IS_FIREFOX_EXTENSION) {
                 manifest.background = {
@@ -449,9 +423,8 @@ export default function createConfig(
               // header rather than a redirect; the same site also answers on web(.beta).mywallet.io, which
               // self-canonicalizes. Omitted for Gram/core: those builds are a different brand
               // (wallet.ton.org ships to ton-blockchain/ton-wallet) and must never point at mywallet.io.
-              const canonical = (IS_TWALLETGRAM_WALLET || IS_CORE_WALLET) ? undefined
-                : APP_ENV === 'staging' ? 'https://web-beta.mywallet.io/'
-                  : 'https://web.mywallet.io/';
+              const canonical = APP_ENV === 'staging' ? 'https://web-beta.mywallet.io/'
+                : 'https://web.mywallet.io/';
               return canonical
                 ? headers.replace('{{CANONICAL}}', canonical)
                 : headers.replace(/^.*\{\{CANONICAL\}\}.*\n?/m, '');

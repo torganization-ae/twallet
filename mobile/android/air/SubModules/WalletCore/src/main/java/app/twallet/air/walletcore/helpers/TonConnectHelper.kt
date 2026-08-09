@@ -10,8 +10,7 @@ object TonConnectHelper {
     const val TON_CONNECT_WALLET_JS_BRIDGE_INTERFACE = "_twallet"
 
     // Must match wallets-list app_name / web TONCONNECT_WALLET_JSBRIDGE_KEY
-    private val tonConnectWalletJsBridgeKey: String
-        get() = if (ApplicationContextHolder.isGramApp) "twalletgram" else "twallet"
+    private const val tonConnectWalletJsBridgeKey = "twallet"
 
     val deviceInfo: DeviceInfo
         get() = DeviceInfo(

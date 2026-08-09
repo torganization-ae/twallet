@@ -33,10 +33,9 @@ print(f"ok: {len(chains)} chains in {path}")
 PY
 
 ANDROID_TW="$ROOT/mobile/android/app/src/twallet/assets/networks.json"
-ANDROID_GRAM="$ROOT/mobile/android/app/src/twalletgram/assets/networks.json"
 IOS_RES="$ROOT/mobile/ios/Air/SubModules/WalletResources/Resources/networks.json"
 
-for copy in "$ANDROID_TW" "$ANDROID_GRAM" "$IOS_RES"; do
+for copy in "$ANDROID_TW" "$IOS_RES"; do
   if [[ ! -f "$copy" ]]; then
     echo "error: missing platform copy $copy" >&2
     exit 1

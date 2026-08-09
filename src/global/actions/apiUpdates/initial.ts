@@ -2,8 +2,6 @@ import type { ApiNft } from '../../../api/types';
 import type { AccountChain } from '../../types';
 
 import {
-  IS_CORE_WALLET,
-  IS_FEATURE_LIMITED,
   SWAP_API_VERSION,
   TELEGRAM_GIFTS_SUPER_COLLECTION,
 } from '../../../config';
@@ -235,17 +233,16 @@ addActionHandler('apiUpdate', (global, actions, update) => {
         swapVersion,
       } = update;
 
-      const shouldRestrictSwapsAndNftBuying = IS_FEATURE_LIMITED;
       global = updateRestrictions(global, {
         isLimitedRegion,
-        isSwapDisabled: shouldRestrictSwapsAndNftBuying,
-        isNftBuyingDisabled: shouldRestrictSwapsAndNftBuying,
+        isSwapDisabled: false,
+        isNftBuyingDisabled: false,
         isCopyStorageEnabled,
         supportAccountsCount,
       });
       global = {
         ...global,
-        isAppUpdateRequired: IS_CORE_WALLET ? undefined : isAppUpdateRequired,
+        isAppUpdateRequired,
         swapVersion: swapVersion ?? SWAP_API_VERSION,
       };
       setGlobal(global);

@@ -2,14 +2,11 @@
 import Foundation
 
 public let SINGLETON_TABLE_ROW_ID: Int64 = 0
-public var IS_TWALLETGRAM_WALLET: Bool {
-    Bundle.main.bundleIdentifier?.hasPrefix("app.twalletgram") == true
-}
 
 // reference: src/config.ts
 
-public var NATIVE_BIOMETRICS_USERNAME: String { IS_TWALLETGRAM_WALLET ? "TwalletGram" : "Twallet" }
-public var NATIVE_BIOMETRICS_SERVER: String { IS_TWALLETGRAM_WALLET ? "https://gramwallet.io" : "https://mytonwallet.app" }
+public let NATIVE_BIOMETRICS_USERNAME = "Twallet"
+public let NATIVE_BIOMETRICS_SERVER = "https://mytonwallet.app"
 
 public let PRICELESS_TOKEN_HASHES: Set<String?> = [
   "82566ad72b6568fe7276437d3b0c911aab65ed701c13601941b2917305e81c11", // Stonfi V1
@@ -38,11 +35,11 @@ public let MAX_PRICE_IMPACT_VALUE = 5.0
 
 public let JSBRIDGE_IDENTIFIER = "jsbridge"
 
-public var APP_WEBSITE_URL: String { IS_TWALLETGRAM_WALLET ? "https://gramwallet.io" : "https://mywallet.io" }
+public let APP_WEBSITE_URL = "https://mywallet.io"
 public let APP_BLOG_URL = "https://mywallet.io/en/blog/"
-public var APP_TERMS_OF_USE_URL: String { IS_TWALLETGRAM_WALLET ? "https://gramwallet.io/terms-of-use/" : "https://mywallet.io/terms-of-use/" }
-public var APP_PRIVACY_POLICY_URL: String { IS_TWALLETGRAM_WALLET ? "https://gramwallet.io/privacy-policy/" : "https://mywallet.io/privacy-policy/" }
-public var APP_INSTALL_URL: String { IS_TWALLETGRAM_WALLET ? "https://apps.apple.com/us/app/gram-wallet/id6763345750" : "https://get.mywallet.io/ios" }
+public let APP_TERMS_OF_USE_URL = "https://mywallet.io/terms-of-use/"
+public let APP_PRIVACY_POLICY_URL = "https://mywallet.io/privacy-policy/"
+public let APP_INSTALL_URL = "https://get.mywallet.io/ios"
 public let SUPPORT_USERNAME = "mysupport"
 
 public let MTW_TIPS_CHANNEL_NAME = "MyTonWalletTips"
@@ -53,9 +50,8 @@ public func buildMfaBotUrl(startApp: String) -> URL? {
     guard var components = URLComponents(string: MFA_BOT_URL) else {
         return nil
     }
-    let appPrefix = IS_TWALLETGRAM_WALLET ? "g" : "m"
     components.queryItems = [
-        URLQueryItem(name: "startapp", value: "\(appPrefix)_\(startApp)"),
+        URLQueryItem(name: "startapp", value: "m_\(startApp)"),
     ]
     return components.url
 }
@@ -76,7 +72,7 @@ public let SMALL_CARD_RATIO: CGFloat = 116/80
 public let MEDIUM_CARD_RATIO: CGFloat = 110/75
 public let LARGE_CARD_RATIO: CGFloat = 274/176
 
-public var APP_NAME: String { IS_TWALLETGRAM_WALLET ? "tWallet Gram" : "tWallet" }
+public let APP_NAME = "TWallet"
 
 public enum DebugProductionMode {
     public static let userDefaultsKey = "debug_forceProductionMode"
@@ -86,7 +82,7 @@ public enum DebugProductionMode {
     }
 }
 
-public let APP_ROOT_URL_DOMAINS = [ "gramwallet.io", "mytonwallet.io", "mywallet.io" ]
+public let APP_ROOT_URL_DOMAINS = [ "mytonwallet.io", "mywallet.io" ]
 
 public var IS_DEBUG_OR_TESTFLIGHT_DEFAULT: Bool {
     #if DEBUG
@@ -100,10 +96,10 @@ public var IS_DEBUG_OR_TESTFLIGHT: Bool {
     !DebugProductionMode.isEnabled && IS_DEBUG_OR_TESTFLIGHT_DEFAULT
 }
 
-public var SELF_PROTOCOL_SCHEME: String { IS_TWALLETGRAM_WALLET ? "twalletgram" : "twallet" }
-public var TONCONNECT_PROTOCOL_SCHEME: String { IS_TWALLETGRAM_WALLET ? "twalletgram-tc" : "twallet-tc" }
+public let SELF_PROTOCOL_SCHEME = "twallet"
+public let TONCONNECT_PROTOCOL_SCHEME = "twallet-tc"
 public var SELF_PROTOCOL: String { "\(SELF_PROTOCOL_SCHEME)://" }
-public var TONCONNECT_UNIVERSAL_URL: String { IS_TWALLETGRAM_WALLET ? "https://connect.gramwallet.io" : "https://connect.mytonwallet.org" }
-public var SHORT_UNIVERSAL_URL: String { IS_TWALLETGRAM_WALLET ? "https://go.gramwallet.io/" : "https://my.tt/" }
-public var SELF_UNIVERSAL_URLS: [String] { IS_TWALLETGRAM_WALLET ? [SHORT_UNIVERSAL_URL] : [SHORT_UNIVERSAL_URL, "https://go.mytonwallet.org/"] }
-public var SELF_UNIVERSAL_URL_HOSTS: Set<String> { IS_TWALLETGRAM_WALLET ? ["go.gramwallet.io"] : ["go.mytonwallet.org", "my.tt"] }
+public let TONCONNECT_UNIVERSAL_URL = "https://connect.mytonwallet.org"
+public let SHORT_UNIVERSAL_URL = "https://my.tt/"
+public let SELF_UNIVERSAL_URLS = [SHORT_UNIVERSAL_URL, "https://go.mytonwallet.org/"]
+public let SELF_UNIVERSAL_URL_HOSTS: Set<String> = ["go.mytonwallet.org", "my.tt"]

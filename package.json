@@ -9,24 +9,6 @@
     "build:dev": "APP_ENV=development webpack --mode development && bash ./deploy/copy_to_dist.sh",
     "build:staging": "cross-env APP_ENV=staging npm run build",
     "build:production": "npm run build",
-    "core:dev": "cross-env IS_CORE_WALLET=1 npm run dev",
-    "twalletgram:dev": "cross-env IS_TWALLETGRAM_WALLET=1 npm run dev",
-    "twalletgram:build": "cross-env IS_TWALLETGRAM_WALLET=1 npm run build",
-    "twalletgram:build:dev": "cross-env IS_TWALLETGRAM_WALLET=1 npm run build:dev",
-    "twalletgram:build:staging": "cross-env IS_TWALLETGRAM_WALLET=1 npm run build:staging",
-    "twalletgram:build:production": "cross-env IS_TWALLETGRAM_WALLET=1 npm run build:production",
-    "tonorg:dev": "cross-env IS_CORE_WALLET=1 IS_TWALLETGRAM_WALLET=1 npm run dev",
-    "tonorg:build": "cross-env IS_CORE_WALLET=1 IS_TWALLETGRAM_WALLET=1 npm run build",
-    "tonorg:build:staging": "cross-env IS_CORE_WALLET=1 IS_TWALLETGRAM_WALLET=1 npm run build:staging",
-    "tonorg:build:production": "cross-env IS_CORE_WALLET=1 IS_TWALLETGRAM_WALLET=1 npm run build:production",
-    "core:build": "cross-env IS_CORE_WALLET=1 npm run build",
-    "core:build:dev": "cross-env IS_CORE_WALLET=1 npm run build:dev",
-    "core:build:staging": "cross-env IS_CORE_WALLET=1 npm run build:staging",
-    "core:build:production": "cross-env IS_CORE_WALLET=1 npm run build:production",
-    "core:extension:dev": "cross-env IS_CORE_WALLET=1 npm run extension:dev",
-    "core:extension-chrome:package": "cross-env IS_CORE_WALLET=1 npm run extension-chrome:package",
-    "core:extension-chrome:package:staging": "cross-env IS_CORE_WALLET=1 npm run extension-chrome:package:staging",
-    "core:extension-chrome:package:production": "cross-env IS_CORE_WALLET=1 npm run extension-chrome:package:production",
     "extension:dev": "cross-env IS_EXTENSION=1 npm run build:dev",
     "extension-chrome:package": "cross-env IS_EXTENSION=1 webpack && bash ./deploy/package_extension.sh chrome",
     "extension-chrome:package:staging": "APP_ENV=staging npm run extension-chrome:package",
@@ -117,13 +99,13 @@
       ]
     },
     {
-      "name": "tWallet",
+      "name": "TWallet",
       "schemes": [
         "twallet"
       ]
     },
     {
-      "name": "WalletConnect tWallet",
+      "name": "WalletConnect TWallet",
       "schemes": [
         "twallet-wc"
       ]
@@ -172,6 +154,7 @@
     "electronmon": "2.0.4",
     "eslint": "9.39.2",
     "git-revision-webpack-plugin": "5.0.0",
+    "glob": "^11.1.0",
     "html-webpack-plugin": "5.6.3",
     "husky": "9.1.7",
     "jest": "30.2.0",

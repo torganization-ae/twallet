@@ -18,7 +18,6 @@ Sign transfers and important actions with your passcode, then confirm them in Te
 This helps protect your funds even if your recovery phrase or keys are compromised.: Bu, kurtarma ifadeniz veya anahtarlarınız ele geçirilse bile fonlarınızı korumaya yardımcı olur.
 "Connection Fee:": "Bağlantı Ücreti:"
 Connect Telegram: Telegram’ı Bağla
-Add in Gram Wallet: Gram Wallet’ta ekle
 Telegram will be used to confirm transfers and important actions.: Telegram, transferleri ve önemli işlemleri onaylamak için kullanılacak.
 My Telegram Account: Telegram Hesabım
 Without username: Kullanıcı adı yok
@@ -880,7 +879,7 @@ DappurlTrustStatusDangerousTitle: Potentially malicious site
 $DappurlTrustStatusDangerousHelp: This domain was flagged as dangerous by security checks. Connecting may put your funds at risk. Only continue if you are absolutely sure.
 $reopen_in_iab: Lütfen bu uyarıdan kaçınmak için %app_name% %mobileAppButton% veya %browserExtensionButton% kullanın.
 $reopen_in_iab_explore: Bu uyarıyı görmemek için uygulamaları %exploreTab% sekmesinden açın.
-tWallet Browser: tWallet Tarayıcısı
+TWallet Browser: TWallet Tarayıcısı
 mobile app: mobil uygulama
 browser extension: tarayıcı uzantısı
 Exit all wallets: Tüm cüzdanlardan çık
@@ -1082,7 +1081,7 @@ Adding wallets is not available in explorer mode: Cüzdan eklemek, kaşif modund
 $explorer_mode_warning: "Kaşif modu: bir adres açmak için View deeplink'i bekleniyor"
 This command is not supported in explorer mode: Bu komut kaşif modunda desteklenmiyor
 $saved_addresses_header: Kaydedildi
-confirm an action in tWallet: tWallet'da bir işlemi onaylayın
+confirm an action in TWallet: TWallet'da bir işlemi onaylayın
 Timed out waiting for account to be ready: Hesabın hazır olması beklenirken zaman aşımı
 $connected_apps:
   otherValue: "%1$d bağlı"
@@ -1147,7 +1146,7 @@ Show All Wallets: Tüm cüzdanları göster
 Ask a Question: Bir Soru Sor
 Learn more: Daha fazla bilgi
 Unsupported link: Bu bağlantı desteklenmiyor
-tWallet Features: tWallet Özellikleri
+TWallet Features: TWallet Özellikleri
 Notifications: Bildirimler
 Wrong passcode, please try again: Kod hatalı, lütfen tekrar deneyin.
 Use biometric authentication or create a passcode to protect it.: Biyometrik kimlik doğrulama kullanın veya bir şifre oluşturun.
@@ -1253,7 +1252,7 @@ Screen Recording: Ekran kaydı
 Disable Screen Record Warning: Ekran kaydı uyarısını devre dışı bırak
 I Understand, Proceed: Anladım, devam et
 Waiting for Network: Ağ bekleniyor
-tWallet: tWallet
+TWallet: TWallet
 $no_activity_history: |
   Bu cüzdanda henüz
   işlem geçmişi yok.
@@ -1329,7 +1328,7 @@ Connecting your wallet: Cüzdanınız bağlanıyor
 Action is not possible on a view-only wallet.: Salt okunur cüzdanda bu işlem yapılamaz.
 No matching chains: Uyumlu ağ yok
 Select multichain wallet: Çoklu zincir cüzdanı seç
-Logged in with tWallet: tWallet ile giriş yapıldı
+Logged in with TWallet: TWallet ile giriş yapıldı
 You have no apps connected to this wallet.: Bu cüzdana bağlı uygulama yok.
 Asset: Varlık
 Sent to: Şuraya gönderildi
@@ -1376,7 +1375,7 @@ Payment Address: Ödeme adresi
 "Install Palette": Paleti yükle
 Ledger: Ledger
 "Moving to staking balance": Stake bakiyesine aktarılıyor
-tWallet uses biometric authentication to unlock and authorize transactions: tWallet, biyometrik doğrulamayla kilidi açar ve işlemleri onaylar
+TWallet uses biometric authentication to unlock and authorize transactions: TWallet, biyometrik doğrulamayla kilidi açar ve işlemleri onaylar
 "Network error": Ağ hatası
 "No Camera Access": Kamera erişimi yok
 "Not all transactions were sent successfully.": Tüm işlemler başarıyla gönderilemedi.

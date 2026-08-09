@@ -56,10 +56,6 @@ android {
       applicationId "app.twallet"
       getIsDefault().set(true)
     }
-    twalletgram {
-      dimension "brand"
-      applicationId "app.twalletgram"
-    }
     prod {
       dimension "env"
     }

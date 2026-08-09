@@ -14,7 +14,6 @@ import {
   APP_VERSION,
   IS_EXPLORER,
   IS_EXTENSION,
-  IS_FEATURE_LIMITED,
   LANG_LIST,
   PROXY_HOSTS,
   SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY,
@@ -90,7 +89,6 @@ import connectedDappsImg from '../../assets/settings/settings_connected-dapps.sv
 import exitImg from '../../assets/settings/settings_exit.svg';
 import installAppImg from '../../assets/settings/settings_install-app.svg';
 import languageImg from '../../assets/settings/settings_language.svg';
-import upgradeImg from '../../assets/settings/settings_mywallet.png';
 import networksImg from '../../assets/settings/settings_networks.svg';
 import notifications from '../../assets/settings/settings_notifications.svg';
 import portfolioImg from '../../assets/settings/settings_portfolio.svg';
@@ -226,10 +224,6 @@ function Settings({
 
   const handlCloseDeveloperModal = useLastCallback(() => {
     closeDeveloperModal();
-
-    if (IS_FEATURE_LIMITED) {
-      handleCloseSettings();
-    }
   });
 
   const handleConnectedDappsOpen = useLastCallback(() => {
@@ -418,17 +412,7 @@ function Settings({
           onScroll={isPortrait ? handleContentScroll : undefined}
         >
 
-          {IS_FEATURE_LIMITED && (
-            <div className={styles.block}>
-              <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleClickInstallApp}>
-                <img className={styles.menuIcon} src={upgradeImg} alt={lang('Upgrade to tWallet')} />
-                <span className={styles.itemTitle}>{lang('Upgrade to tWallet')}</span>
-
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-              </div>
-            </div>
-          )}
-          {!IS_FEATURE_LIMITED && IS_WEB && (
+          {IS_WEB && (
             <div className={styles.block}>
               <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleClickInstallApp}>
                 <img className={styles.menuIcon} src={installAppImg} alt={lang('Install App')} />
@@ -475,11 +459,9 @@ function Settings({
             </div>
           )}
 
-          {!IS_FEATURE_LIMITED && (
-            <p className={buildClassName(styles.blockTitle, styles.blockTitleSmall)}>
-              {lang('Settings')}
-            </p>
-          )}
+          <p className={buildClassName(styles.blockTitle, styles.blockTitleSmall)}>
+            {lang('Settings')}
+          </p>
 
           <div className={styles.block}>
             <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleAppearanceOpen}>
@@ -537,7 +519,7 @@ function Settings({
                 <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
             )}
-            {!IS_FEATURE_LIMITED && IS_DAPP_SUPPORTED && !isViewMode && dapps.length > 0 && (
+            {IS_DAPP_SUPPORTED && !isViewMode && dapps.length > 0 && (
               <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleConnectedDappsOpen}>
                 <img className={styles.menuIcon} src={connectedDappsImg} alt={lang('Apps')} />
                 <div className={styles.itemContent}>
@@ -560,16 +542,14 @@ function Settings({
               </div>
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
-            {!IS_FEATURE_LIMITED && (
-              <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleLanguageOpen}>
-                <img className={styles.menuIcon} src={languageImg} alt={lang('Language')} />
-                <div className={styles.itemContent}>
-                  <span className={styles.itemTitle}>{lang('Language')}</span>
-                  <span className={styles.itemSubtitle}>{activeLang?.name}</span>
-                </div>
-                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleLanguageOpen}>
+              <img className={styles.menuIcon} src={languageImg} alt={lang('Language')} />
+              <div className={styles.itemContent}>
+                <span className={styles.itemTitle}>{lang('Language')}</span>
+                <span className={styles.itemSubtitle}>{activeLang?.name}</span>
               </div>
-            )}
+              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
+            </div>
             <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleNetworksOpen}>
               <img className={styles.menuIcon} src={networksImg} alt={lang('Networks')} />
               <div className={styles.itemContent}>

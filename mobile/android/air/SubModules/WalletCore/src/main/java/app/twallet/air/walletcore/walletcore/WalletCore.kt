@@ -57,10 +57,7 @@ const val TON_CHAIN = "ton"
 
 const val MFA_BOT_URL = "https://t.me/tgmfabot/auth"
 
-fun buildMfaStartParam(id: String): String {
-    val appPrefix = if (ApplicationContextHolder.isGramApp) "g" else "m"
-    return "${appPrefix}_$id"
-}
+fun buildMfaStartParam(id: String): String = "m_$id"
 
 const val TONCOIN_SLUG = "toncoin"
 const val MYCOIN_SLUG = "ton-eqcfvnlrbn"
@@ -162,20 +159,7 @@ private val MYTONWALLET_DEFAULT_SHOWN_TOKENS = mapOf(
     ),
 )
 
-private val GRAM_DEFAULT_SHOWN_TOKENS = mapOf(
-    MBlockchainNetwork.MAINNET to setOf(
-        TONCOIN_SLUG,
-        TON_USDT_SLUG,
-    ),
-    MBlockchainNetwork.TESTNET to setOf(
-        TONCOIN_SLUG,
-        TON_USDT_TESTNET_SLUG,
-    ),
-)
-
-val DEFAULT_SHOWN_TOKENS: Map<MBlockchainNetwork, Set<String>>
-    get() = if (ApplicationContextHolder.isGramApp) GRAM_DEFAULT_SHOWN_TOKENS
-    else MYTONWALLET_DEFAULT_SHOWN_TOKENS
+val DEFAULT_SHOWN_TOKENS: Map<MBlockchainNetwork, Set<String>> = MYTONWALLET_DEFAULT_SHOWN_TOKENS
 
 val TRUSTED_USDT_TOKENS = mapOf(
     MBlockchainNetwork.MAINNET to setOf(

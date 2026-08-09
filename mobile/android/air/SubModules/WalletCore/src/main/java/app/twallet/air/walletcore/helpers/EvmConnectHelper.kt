@@ -9,14 +9,8 @@ import app.twallet.air.walletbasecontext.R as BaseR
 
 object EvmConnectHelper {
 
-    private val isGramWallet: Boolean
-        get() = ApplicationContextHolder.isGramApp
-
-    private val installFlag: String
-        get() = if (isGramWallet) "__twalletGramEvmConnectorInstalled" else "__twalletEvmConnectorInstalled"
-
-    private val rdns: String
-        get() = if (isGramWallet) "app.twalletgram" else "app.twallet"
+    private const val installFlag = "__twalletEvmConnectorInstalled"
+    private const val rdns = "app.twallet"
 
     private val appName: String
         get() = ApplicationContextHolder.applicationContext.getString(BaseR.string.app_locale_name_key)
@@ -60,9 +54,9 @@ object EvmConnectHelper {
         val appNameJson = jsonString(appName)
         val rdnsJson = jsonString(rdns)
         val defaultCaip2Json = jsonString(defaultCaip2)
-        val isTwalletLiteral = if (isGramWallet) "false" else "true"
-        val isGramWalletLiteral = if (isGramWallet) "true" else "false"
-        val svgLiteral = jsonString(InjectedWalletIcon.svg(isGramWallet))
+        val isTwalletLiteral = "true"
+        val isGramWalletLiteral = "false"
+        val svgLiteral = jsonString(InjectedWalletIcon.svg())
 
         return """
         (function() {
