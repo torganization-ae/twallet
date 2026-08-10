@@ -134,7 +134,7 @@ class SendNftVC(
             textFieldTopPadding = 12.dp
             textFieldBottomPadding = 14.dp
             if (chain == MBlockchain.ton) {
-                setHint(LocaleController.getString("tmail or DNS"))
+                setHint(LocaleController.getString("Wallet address, TMail or DNS"))
             }
         }
     }
@@ -354,7 +354,6 @@ class SendNftVC(
         )
         setupNavBar(true)
         navigationBar?.setTitleGravity(Gravity.CENTER)
-        setNavSubtitle(chain.displayName, animated = false)
 
         view.addView(scrollView, ViewGroup.LayoutParams(MATCH_PARENT, 0))
         view.addView(

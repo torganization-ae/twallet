@@ -163,7 +163,7 @@ class SendVC(
         val chain = TokenStore.getToken(viewModel.getTokenSlug())?.mBlockchain ?: MBlockchain.ton
         addressInputView.setHint(
             LocaleController.getString(
-                if (chain == MBlockchain.ton) "tmail or DNS" else "Wallet address or domain"
+                if (chain == MBlockchain.ton) "Wallet address, TMail or DNS" else "Wallet address or domain"
             )
         )
     }
@@ -732,7 +732,6 @@ class SendVC(
         navigationBar?.setTitleView(navSegmentedControl, animated = false)
         navigationBar?.addCloseButton()
         navigationBar?.setTitleGravity(Gravity.CENTER)
-        updateNavNetworkSubtitle(animated = false)
 
         view.addHorizontalGuideline(bottomGuideline)
         view.addView(scrollView, ViewGroup.LayoutParams(MATCH_PARENT, 0))
@@ -1037,18 +1036,12 @@ class SendVC(
         updateCommentViews()
         showServiceTokenWarningIfRequired()
         updateNetworkBanners()
-        updateNavNetworkSubtitle()
 
         navSegmentedControl.setItems(
             buildSegmentedItems(),
             0,
             segmentedDelegate
         )
-    }
-
-    private fun updateNavNetworkSubtitle(animated: Boolean = true) {
-        val displayName = TokenStore.getToken(viewModel.getTokenSlug())?.mBlockchain?.displayName
-        setNavSubtitle(displayName.orEmpty(), animated)
     }
 
     private fun updateNetworkBanners() {

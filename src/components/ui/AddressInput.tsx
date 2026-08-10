@@ -487,7 +487,7 @@ function AddressInput({
         isStatic={isStatic}
         isDisabled={isReadonly}
         label={label}
-        placeholder={chain === 'ton' ? lang('tmail or DNS') : lang('Wallet address or domain')}
+        placeholder={chain === 'ton' ? lang('Wallet address, TMail or DNS') : lang('Wallet address or domain')}
         value={value}
         error={localError || error}
         autoCorrect={false}

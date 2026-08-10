@@ -216,7 +216,7 @@ $fee_value_with_colon: "ค่าธรรมเนียม: %fee%"
 Loading...: กำลังโหลด...
 Recipient Address: ที่อยู่บัญชีผู้รับ
 Wallet address or domain: ที่อยู่บัญชีวอลเล็ตหรือโดเมน
-"tmail or DNS": "tmail หรือ DNS"
+"Wallet address, TMail or DNS": "ที่อยู่วอลเล็ต, TMail หรือ DNS"
 Alias type: ประเภทนามแฝง
 Address or TON DNS: ที่อยู่หรือ TON DNS
 "@tmail.ton alias": "นามแฝง @tmail.ton"

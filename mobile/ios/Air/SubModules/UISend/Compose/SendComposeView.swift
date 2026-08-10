@@ -100,9 +100,6 @@ struct SendComposeTitleView: View {
 
     var body: some View {
         WithPerceptionTracking {
-            // `token` is @PerceptionIgnored on SendModel — track TokenProvider.slug explicitly
-            // so the network subtitle updates when the user switches tokens.
-            let chainTitle = (model.nfts.first?.chain ?? model.$token.token.chain).title
             let titleText: String = {
                 if model.mode.isNftRelated {
                     return model.nfts.count > 1
@@ -112,7 +109,7 @@ struct SendComposeTitleView: View {
                 return lang("Send")
             }()
 
-            VStack(spacing: 2) {
+            Group {
                 if showsMultisendMenu {
                     HStack(spacing: 4) {
                         Text(titleText)
@@ -133,13 +130,6 @@ struct SendComposeTitleView: View {
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(.air.primaryLabel)
                 }
-
-                Text(chainTitle)
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(.secondary)
-                    .allowsTightening(true)
-                    .lineLimit(1)
-                    .offset(y: 1)
             }
             .frame(minWidth: 240, idealWidth: 240)
         }

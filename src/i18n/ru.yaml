@@ -214,7 +214,7 @@ $fee_value_with_colon: "Комиссия: %fee%"
 Loading...: Загрузка...
 Recipient Address: Адрес получателя
 Wallet address or domain: Адрес кошелька или домен
-"tmail or DNS": "tmail или DNS"
+"Wallet address, TMail or DNS": "Адрес кошелька, TMail или DNS"
 Alias type: Тип алиаса
 Address or TON DNS: Адрес или TON DNS
 "@tmail.ton alias": "@tmail.ton алиас"

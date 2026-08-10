@@ -55,7 +55,7 @@ private struct Cell: View {
                 .offset(y: 1)
                 .background(alignment: .leading) {
                     if model.source.isEmpty {
-                        Text(model.chain == .ton ? lang("tmail or DNS") : lang("Wallet address or domain"))
+                        Text(model.chain == .ton ? lang("Wallet address, TMail or DNS") : lang("Wallet address or domain"))
                             .foregroundStyle(Color(UIColor.placeholderText))
                     }
                 }

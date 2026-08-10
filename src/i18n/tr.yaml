@@ -216,7 +216,7 @@ $fee_value_with_colon: "Ücret: %fee%"
 Loading...: Yükleniyor...
 Recipient Address: Alıcının adresi
 Wallet address or domain: Cüzdan adresi veya alan adı
-"tmail or DNS": "tmail veya DNS"
+"Wallet address, TMail or DNS": "Cüzdan adresi, TMail veya DNS"
 Alias type: Takma ad türü
 Address or TON DNS: Adres veya TON DNS
 "@tmail.ton alias": "@tmail.ton takma adı"

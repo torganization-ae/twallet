@@ -22,7 +22,7 @@ import {
   selectIsMultisigWallet,
 } from '../../global/selectors';
 import buildClassName from '../../util/buildClassName';
-import { getChainConfig, getChainTitle } from '../../util/chain';
+import { getChainConfig } from '../../util/chain';
 import { stopEvent } from '../../util/domEvents';
 import { getMaxTransferAmount, isBalanceSufficientForTransfer } from '../../util/fee/transferFee';
 import { vibrate } from '../../util/haptics';
@@ -467,9 +467,6 @@ function TransferInitial({
             <div className={styles.transferTitleText}>
               {lang(isNftTransfer ? (nfts.length > 1 ? 'Send Collectibles' : 'Send Collectible') : 'Send')}
             </div>
-            {chain && (
-              <div className={styles.transferNetwork}>{getChainTitle(chain)}</div>
-            )}
           </div>
 
           {nfts?.length === 1 && <NftInfo nft={nfts[0]} withMediaViewer />}

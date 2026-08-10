@@ -218,7 +218,7 @@ $fee_value_with_colon: "Opłata: %fee%"
 Loading...: Ładowanie...
 Recipient Address: Adres odbiorcy
 Wallet address or domain: Adres portfela lub domena
-"tmail or DNS": "tmail lub DNS"
+"Wallet address, TMail or DNS": "Adres portfela, TMail lub DNS"
 Alias type: Typ aliasu
 Address or TON DNS: Adres lub TON DNS
 "@tmail.ton alias": "alias @tmail.ton"

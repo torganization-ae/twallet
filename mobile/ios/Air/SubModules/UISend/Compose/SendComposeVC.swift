@@ -20,7 +20,6 @@ class SendComposeVC: WViewController, WSensitiveDataProtocol {
     var continueButtonFallbackConstraint: NSLayoutConstraint?
     
     private var continueButton: WButton?
-    private var lastTransferNetworkTitle: String?
     private lazy var accountSwitcher = AccountSwitcher(configuration: .init(accountSupport: .send)) { [weak self] accountId in
         self?.selectAccount(accountId: accountId)
     }
@@ -76,19 +75,9 @@ class SendComposeVC: WViewController, WSensitiveDataProtocol {
                 self.view.layoutIfNeeded()
             }
         }
-        // Rebuild title view when transfer chain changes (token is @PerceptionIgnored).
-        observe { [weak self] in
-            guard let self else { return }
-            let networkTitle = (model.nfts.first?.chain ?? model.$token.token.chain).title
-            guard networkTitle != lastTransferNetworkTitle else { return }
-            lastTransferNetworkTitle = networkTitle
-            buildNavigationItem()
-        }
     }
     
     private func buildNavigationItem() {
-        let networkTitle = (model.nfts.first?.chain ?? model.$token.token.chain).title
-        lastTransferNetworkTitle = networkTitle
         switch model.mode {
         case .burnNft:
             assertionFailure("Should not be available on this screen")
