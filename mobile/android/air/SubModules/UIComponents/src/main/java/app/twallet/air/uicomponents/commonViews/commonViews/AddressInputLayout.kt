@@ -6,6 +6,7 @@ import android.animation.ValueAnimator
 import app.twallet.air.uicomponents.helpers.adaptiveFontSize
 import android.annotation.SuppressLint
 import android.os.Build
+import android.text.InputType
 import android.text.Spanned
 import android.text.TextWatcher
 import android.util.TypedValue
@@ -199,6 +200,11 @@ class AddressInputLayout(
         typeface = WFont.Regular.typeface
         layoutParams = LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         maxLines = 3
+        // Disable spellcheck/autocorrect — address, DNS and tmail aliases are not dictionary words
+        inputType = InputType.TYPE_CLASS_TEXT or
+            InputType.TYPE_TEXT_FLAG_MULTI_LINE or
+            InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or
+            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
         setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN) {
                 onTextEntered(getKeyword())

@@ -111,6 +111,7 @@ public struct AddressTextField: UIViewRepresentable {
         view.backgroundColor = .clear
         view.font = .preferredFont(forTextStyle: .body)
         view.autocorrectionType = .no
+        view.spellCheckingType = .no
         view.autocapitalizationType = .none
         view.keyboardType = .asciiCapable
         view.textContainerInset = .zero
