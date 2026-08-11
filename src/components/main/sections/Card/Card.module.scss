@@ -553,9 +553,11 @@ $signSizeDiff: 0.375rem;
   backdrop-filter: blur(10px);
 }
 
+// No `width: 100%` here: the adaptive mask fills the wrapper, so it must hug the balance text.
+// Centering comes from `.balanceSlide { text-align: center }`
 .sensitiveData,
 .sensitiveDataContent {
-  width: 100% !important;
+  max-width: 100%;
 }
 
 .change {

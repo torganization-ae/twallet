@@ -88,6 +88,28 @@ class WSensitiveDataContainer<V : View>(
         }
     }
 
+    // In adaptive mode the mask is a MATCH_PARENT child, so a `wrap_content` container would
+    //  measure it against the whole available space and grow to it (mask covering the entire
+    //  parent, content jumping as the container resizes). Measure the mask to the content instead.
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        if (!maskConfig.adaptiveGrid) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+            return
+        }
+
+        measureChildWithMargins(contentView, widthMeasureSpec, 0, heightMeasureSpec, 0)
+        val contentWidth = contentView.measuredWidth
+        val contentHeight = contentView.measuredHeight
+        maskView.measure(
+            MeasureSpec.makeMeasureSpec(contentWidth, MeasureSpec.EXACTLY),
+            MeasureSpec.makeMeasureSpec(contentHeight, MeasureSpec.EXACTLY)
+        )
+        setMeasuredDimension(
+            resolveSize(contentWidth + paddingLeft + paddingRight, widthMeasureSpec),
+            resolveSize(contentHeight + paddingTop + paddingBottom, heightMeasureSpec)
+        )
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         if (shouldProtectContentLayoutSize && WGlobalStorage.getIsSensitiveDataProtectionOn()) {

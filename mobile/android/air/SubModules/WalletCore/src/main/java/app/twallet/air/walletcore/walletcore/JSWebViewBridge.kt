@@ -5,8 +5,10 @@ import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -83,6 +85,17 @@ class JSWebViewBridge(context: Context) : WebView(context) {
         loadUrl("file:///android_asset/js/index.html")
 
         addJavascriptInterface(JsWebInterface(this), "androidApp")
+        // ponytail: surfaces SDK bundle errors — otherwise a JS crash is invisible and
+        // every call just reports "airBridge not working!"
+        webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(msg: ConsoleMessage): Boolean {
+                Logger.e(
+                    Logger.LogTag.JS_DEBUG_ERROR,
+                    "console ${msg.messageLevel()}: ${msg.message()} @${msg.sourceId()}:${msg.lineNumber()}"
+                )
+                return true
+            }
+        }
         webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
@@ -194,6 +207,9 @@ class JSWebViewBridge(context: Context) : WebView(context) {
                 if (success) {
                     bridge.callbacks[identifier]?.invoke(result, null)
                 } else {
+                    // ponytail: raw payload of every failed bridge call — without it all
+                    // errors collapse into MBridgeError.UNKNOWN ("no internet")
+                    Logger.e(Logger.LogTag.JS_DEBUG_ERROR, "bridge call failed: $result")
                     try {
                         val obj = JSONObject(result)
                         val errorObj = obj.optJSONObject("error")

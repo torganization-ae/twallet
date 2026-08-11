@@ -4,6 +4,7 @@ import { getActions, withGlobal } from '../../../../global';
 import type { Theme } from '../../../../global/types';
 import { ContentTab } from '../../../../global/types';
 
+import { NO_BACKEND } from '../../../../config';
 import { selectCurrentAccountSettings } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
@@ -67,14 +68,16 @@ function LandscapeNavBar({
         accentColor={accentColor}
         onClick={handleWalletClick}
       />
-      <NavButton
-        isActive={isExploreOpen}
-        label={lang('Explore')}
-        tgsUrl={isExploreOpen ? stickerPaths.iconExploreSolid : stickerPaths.iconExplore}
-        previewUrl={isExploreOpen ? stickerPaths.preview.iconExploreSolid : stickerPaths.preview.iconExplore}
-        accentColor={accentColor}
-        onClick={switchToExplore}
-      />
+      {!NO_BACKEND && (
+        <NavButton
+          isActive={isExploreOpen}
+          label={lang('Explore')}
+          tgsUrl={isExploreOpen ? stickerPaths.iconExploreSolid : stickerPaths.iconExplore}
+          previewUrl={isExploreOpen ? stickerPaths.preview.iconExploreSolid : stickerPaths.preview.iconExplore}
+          accentColor={accentColor}
+          onClick={switchToExplore}
+        />
+      )}
       <NavButton
         isActive={areSettingsOpen}
         label={lang('Settings')}

@@ -48,6 +48,7 @@ import app.twallet.air.walletbasecontext.utils.toBigInteger
 import app.twallet.air.walletcontext.DeeplinkOpenSource
 import app.twallet.air.walletcontext.WalletContextManager
 import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
+import app.twallet.air.walletcontext.helpers.TmailHelpers
 import app.twallet.air.walletcontext.models.MWalletSettingsViewMode
 import app.twallet.air.walletcore.WalletCore
 import app.twallet.air.walletcore.models.MScreenMode
@@ -432,20 +433,28 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
                 if (currentActivityListView.skeletonVisible)
                     return
                 QrScannerDialog.build(context) { qr ->
-                    for (blockchain in MBlockchain.supportedChains) {
-                        if (blockchain.isValidAddress(qr)) {
-                            val navVC = WNavigationController(
-                                window!!,
-                                WNavigationController.PresentationConfig.PreferredFullScreen
-                            )
-                            navVC.setRoot(
-                                SendVC(
-                                    context, blockchain.nativeSlug, SendVC.InitialValues(
-                                        address = qr
-                                    )
+                    val openSend = { slug: String, address: String ->
+                        val navVC = WNavigationController(
+                            window!!,
+                            WNavigationController.PresentationConfig.PreferredFullScreen
+                        )
+                        navVC.setRoot(
+                            SendVC(
+                                context, slug, SendVC.InitialValues(
+                                    address = address
                                 )
                             )
-                            window?.present(navVC)
+                        )
+                        window?.present(navVC)
+                    }
+                    // TMail share QR wraps the mailbox in a URL; Send resolves it like any tmail alias.
+                    TmailHelpers.parseShareQr(qr)?.let { mailbox ->
+                        openSend(MBlockchain.ton.nativeSlug, mailbox)
+                        return@build
+                    }
+                    for (blockchain in MBlockchain.supportedChains) {
+                        if (blockchain.isValidAddress(qr)) {
+                            openSend(blockchain.nativeSlug, qr)
                             return@build
                         }
                     }

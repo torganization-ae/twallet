@@ -22,6 +22,7 @@ import { vibrate, vibrateOnSuccess } from '../../../util/haptics';
 import { getTranslation } from '../../../util/langProvider';
 import { logDebugError } from '../../../util/logs';
 import { getTelegramApp } from '../../../util/telegram';
+import { parseTmailShareQr } from '../../../util/tmail';
 import {
   getIsMobileTelegramApp,
   IS_BIOMETRIC_AUTH_SUPPORTED,
@@ -482,7 +483,10 @@ addActionHandler('requestOpenQrScanner', (global, actions) => {
   }
 });
 
-addActionHandler('handleQrCode', async (global, actions, { data }) => {
+addActionHandler('handleQrCode', async (global, actions, { data: rawData }) => {
+  // TMail share QR wraps the mailbox in a URL; unwrap it so it goes through the usual address path.
+  const data = parseTmailShareQr(rawData) ?? rawData;
+
   if (await processDeeplink(data)) {
     return;
   }

@@ -61,10 +61,12 @@
   margin-top: -0.375rem;
 }
 
+// Same box and offset as `.icon` so the logo and label line up with the other tabs
 .tmailLogo {
-  width: 1.625rem;
-  height: 1.625rem;
-  margin-top: 0.125rem;
+  width: 2.375rem;
+  height: 2.375rem;
+  margin-top: -0.375rem;
+  padding: 0.3125rem;
   object-fit: contain;
 }
 

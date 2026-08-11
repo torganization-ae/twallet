@@ -8,6 +8,7 @@
 import Foundation
 
 private let TMAIL_DOMAIN_SUFFIX = "@tmail.ton"
+private let TMAIL_SHARE_PATH = "/share/"
 private let TMAIL_ALIAS_REGEX = try! NSRegularExpression(
     pattern: "^[a-z0-9]([-_+a-z0-9]{0,62}[a-z0-9])?$",
     options: .caseInsensitive
@@ -36,6 +37,22 @@ public class TmailHelpers {
 
         let range = NSRange(location: 0, length: base.utf16.count)
         return TMAIL_ALIAS_REGEX.firstMatch(in: base, options: [], range: range) != nil ? base : nil
+    }
+
+    /// Mailbox carried by a TMail share QR: `https://<any-host>/share/<url-encoded mailbox>`.
+    /// The host is not checked — dev/staging/prod hosts all differ.
+    public static func parseShareQr(_ raw: String) -> String? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let markerRange = trimmed.range(of: TMAIL_SHARE_PATH) else { return nil }
+
+        // `#` and `@` of a web3 mailbox are percent-encoded in the QR, so cut the tail off before decoding.
+        let encoded = trimmed[markerRange.upperBound...]
+            .prefix { $0 != "?" && $0 != "#" && $0 != "/" }
+        guard let mailbox = String(encoded).removingPercentEncoding?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+              mailbox.contains("@") else { return nil }
+
+        return mailbox
     }
 
     /// Bare local-part alias (no `.` / `@`) that can be resolved as `@tmail.ton` then `.ton` DNS.
