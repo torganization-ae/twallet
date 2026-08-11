@@ -55,8 +55,8 @@
       "addressPrefixRegexFlags": "i",
       "endpoints": {
         "mainnet": {
-          "rpc": "https://toncenter.com",
-          "api": "https://tonapi.io",
+          "rpc": "https://nexus-ton.testprojects.org/toncenter",
+          "api": "https://nexus-ton.testprojects.org/tonapiio",
           "failoverRpc": []
         },
         "testnet": {

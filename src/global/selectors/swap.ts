@@ -4,6 +4,7 @@ import type { AccountSettings, GlobalState, UserSwapToken } from '../types';
 import {
   DEFAULT_SWAP_FIRST_TOKEN_SLUG,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
+  NO_BACKEND,
   TONCOIN,
 } from '../../config';
 import { calculateTokenPrice } from '../../util/calculatePrice';
@@ -230,7 +231,9 @@ export function selectSwapType(global: GlobalState) {
 }
 
 export function selectIsSwapDisabled(global: GlobalState) {
-  return global.restrictions.isSwapDisabled
+  // Swapping is entirely backend-driven (assets, pairs, estimate, build, execute, history).
+  return NO_BACKEND
+    || global.restrictions.isSwapDisabled
     || global.settings.isTestnet
     || selectIsHardwareAccount(global);
 }

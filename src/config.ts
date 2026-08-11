@@ -126,6 +126,13 @@ export const TEMPORARY_ACCOUNT_NAME = 'Wallet';
 
 export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'https://api.mywallet.io';
 export const PROXY_API_BASE_URL = process.env.PROXY_API_BASE_URL || 'https://api.mywallet.io/proxy';
+/**
+ * The `api.mywallet.io` backend allow-lists CORS origins (localhost + *.mywallet.io + `null`),
+ * so every request from a production web origin is blocked. All calls to it are cut and the
+ * features that depend on it are hidden — the same way on every platform.
+ * Set to `false` once the backend is reachable (e.g. behind our own CORS proxy).
+ */
+export const NO_BACKEND = true;
 export const IPFS_GATEWAY_BASE_URL = 'https://ipfs.io/ipfs/';
 export const SSE_BRIDGE_URL = process.env.TONCONNECT_BRIDGE_URL || 'https://bridge.tonapi.io/bridge/';
 

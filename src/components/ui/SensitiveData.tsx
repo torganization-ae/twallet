@@ -106,7 +106,9 @@ function SensitiveData({
     maskClassName,
     styles[align],
   );
-  const wrapperStyle = buildStyle(
+  // In adaptive mode the mask tracks the real content bounds, so the fixed cols/rows sizing
+  //  must not be applied — otherwise the mask covers the whole grid box instead of the content
+  const wrapperStyle = isAdaptive ? undefined : buildStyle(
     `--spoiler-width: calc(${cellSize * resolvedCols}px + var(--sensitive-data-extra-width, 0px))`,
     `min-height: ${cellSize * rows}px`,
     (isMaskActive || shouldHoldSize) && 'min-width: var(--spoiler-width);',
@@ -114,7 +116,7 @@ function SensitiveData({
   const contentFullClassName = buildClassName(
     styles.content,
     contentClassName,
-    isMaskActive && styles.fixedWidth,
+    !isAdaptive && isMaskActive && styles.fixedWidth,
     isActive && styles.noninteractive,
   );
 

@@ -1,6 +1,7 @@
 import { Address } from '@ton/core';
 import { JettonMaster, TonClient } from '@ton/ton';
 
+import { DEFAULT_TON_ENDPOINTS } from '../../api/chains/defaultEndpoints';
 import { safeExecAsync } from '../../util/safeExec';
 import { pause } from '../../util/schedulers';
 import { buildTokenTransferBody, commentToBytes, packBytesAsSnakeCell } from './tonCore';
@@ -106,7 +107,7 @@ export async function findTokenInfo(identifier: string): Promise<RemoteToken | u
 }
 
 const client = new TonClient({
-  endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+  endpoint: `${DEFAULT_TON_ENDPOINTS.mainnet.rpcUrl}/api/v2/jsonRPC`,
 });
 
 const jettonWalletAddressCache: Record<string, Address> = {};

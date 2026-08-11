@@ -3,6 +3,7 @@ import {
   DEFAULT_RETRIES,
   DEFAULT_TIMEOUT,
   IPFS_GATEWAY_BASE_URL,
+  NO_BACKEND,
   PROXY_API_BASE_URL,
 } from '../config';
 import { DEFAULT_EVM_API_BASE } from '../api/chains/defaultEndpoints';
@@ -320,12 +321,15 @@ export function resetFetchStateForTests(): void {
   breaker.reset();
 }
 
+// With `NO_BACKEND` the `api.mywallet.io/proxy` hop is cut, so the asset is loaded straight
+// from its own host. Hosts without CORS headers fail — that is the same outcome as the
+// unreachable proxy, minus the extra round trip.
 export function getProxiedJsonUrl(url: string) {
-  return `${PROXY_API_BASE_URL}/download-json?url=${encodeURIComponent(url)}`;
+  return NO_BACKEND ? url : `${PROXY_API_BASE_URL}/download-json?url=${encodeURIComponent(url)}`;
 }
 
 export function getProxiedLottieUrl(url: string) {
-  return `${PROXY_API_BASE_URL}/download-lottie?url=${encodeURIComponent(url)}`;
+  return NO_BACKEND ? url : `${PROXY_API_BASE_URL}/download-lottie?url=${encodeURIComponent(url)}`;
 }
 
 export function fixIpfsUrl(url: string) {

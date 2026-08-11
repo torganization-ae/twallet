@@ -1,4 +1,3 @@
-import { DEFAULT_TON_ENDPOINTS } from '../api/chains/defaultEndpoints';
 import { pause } from './schedulers';
 
 type FetchInput = string | URL | Request;
@@ -11,9 +10,11 @@ const TONCENTER_MIN_DELAY_MS = 2000;
 /** One attempt only — retrying 429s amplifies the ban window. Next poll cycle will try again. */
 const TONCENTER_RETRIES = 1;
 const TONCENTER_FALLBACK_RETRY_AFTER_MS = 15_000;
+// Only the public toncenter hosts are rate-limited this hard. Our own proxy has a wider limit,
+// so throttling it would just slow the wallet down for nothing.
 const TONCENTER_ORIGINS = new Set([
-  new URL(DEFAULT_TON_ENDPOINTS.mainnet.rpcUrl).origin,
-  new URL(DEFAULT_TON_ENDPOINTS.testnet.rpcUrl).origin,
+  'https://toncenter.com',
+  'https://testnet.toncenter.com',
 ]);
 const throttledFetchers = new Map<string, ThrottledFetcher>();
 

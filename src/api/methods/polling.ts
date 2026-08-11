@@ -14,7 +14,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { NO_MFA, NO_SWAP } from '../../config';
+import { NO_BACKEND, NO_MFA, NO_SWAP } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { findChainConfig } from '../../util/chain';
@@ -87,17 +87,19 @@ export function initPolling(_onUpdate: OnApiUpdate) {
 
   void loadTokensCache();
 
-  void Promise.allSettled([
+  void Promise.allSettled(NO_BACKEND ? [] : [
     tryUpdateKnownAddresses(),
     tryUpdateTokens(),
     tryUpdateCurrencyRates(),
     !NO_SWAP && tryUpdateSwapTokens(),
   ]).then(() => resolveDataPreloadPromise());
 
-  void tryUpdateConfig();
-
   stopCommonBackendPolling?.();
-  stopCommonBackendPolling = setupCommonBackendPolling();
+
+  if (!NO_BACKEND) {
+    void tryUpdateConfig();
+    stopCommonBackendPolling = setupCommonBackendPolling();
+  }
 }
 
 export async function destroyPolling() {
@@ -274,7 +276,7 @@ export async function setActivePollingAccount(
     // Each visible chain is an independent module: start them together. Hidden
     // chains are already filtered out above, so there is no reason to stagger.
     const stopPollingFns: Array<NoneToVoidFunction | undefined> = [
-      setupAccountConfigPolling(accountId, account).stop,
+      NO_BACKEND ? undefined : setupAccountConfigPolling(accountId, account).stop,
       !NO_MFA && doesAccountHaveChain(account, 'ton') ? setupMfaPolling(accountId).stop : undefined,
       ...visibleChains.map((chain) => chains[chain].setupActivePolling(
         accountId,
