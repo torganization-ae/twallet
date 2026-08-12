@@ -199,13 +199,6 @@ class SettingsVM {
                 icon = R.drawable.ic_language,
                 title = LocaleController.getString("Language"),
                 hasTintColor = false
-            ),
-            SettingsItem(
-                identifier = SettingsItem.Identifier.NETWORKS,
-                icon = R.drawable.ic_networks,
-                title = LocaleController.getString("Networks"),
-                subtitle = LocaleController.getString("RPC and API endpoints"),
-                hasTintColor = false
             )
         )
 

@@ -1,6 +1,6 @@
 import type { ApiActivity, ApiChain, ApiSwapActivity, ApiSwapHistoryItem } from '../types';
 
-import { MW_AGGREGATOR_QUERY_ID, SWAP_API_VERSION, TONCOIN } from '../../config';
+import { MW_AGGREGATOR_QUERY_ID, NO_BACKEND, SWAP_API_VERSION, TONCOIN } from '../../config';
 import { Big } from '../../lib/big.js';
 import { parseAccountId } from '../../util/account';
 import { buildBackendSwapId, getActivityTokenSlugs, getIsBackendSwapId, parseTxId } from '../../util/activities';
@@ -122,6 +122,9 @@ export async function patchSwapItem(options: {
   const {
     address, swapId, authToken, msgHash, error,
   } = options;
+
+  // DeDust swaps have no backend history row to patch
+  if (NO_BACKEND) return;
 
   const { swapVersion } = await getBackendConfigCache();
 

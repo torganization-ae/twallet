@@ -42,7 +42,7 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
   methods.initPolling(onUpdate);
   methods.initTransfer(onUpdate);
   methods.initTokens(onUpdate);
-  if (!NO_SWAP && !NO_BACKEND) methods.initSwap(onUpdate);
+  if (!NO_SWAP) methods.initSwap(onUpdate);
   methods.initNfts(onUpdate);
 
   await initProtocolManager(onUpdate, environment);

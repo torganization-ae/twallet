@@ -75,7 +75,6 @@ import app.twallet.air.walletcore.helpers.ExplorerHelpers
 import app.twallet.air.walletcore.models.MAccount
 import app.twallet.air.walletcore.models.MAccount.AccountChain
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
-import app.twallet.air.uisettings.viewControllers.networks.NetworksVC
 import app.twallet.uihome.home.views.UpdateStatusView
 import java.math.BigInteger
 import kotlin.math.max
@@ -791,29 +790,6 @@ class WalletCardView(
                     }
                 }
             }?.toMutableList() ?: mutableListOf()
-        items.add(
-            WMenuPopup.Item(
-                WMenuPopup.Item.Config.Item(
-                    icon = Icon(
-                        R.drawable.ic_networks_menu,
-                        tintColor = WColor.SecondaryText,
-                        iconSize = 28.dp,
-                        iconMargin = 16.dp
-                    ),
-                    title = LocaleController.getString("Networks"),
-                    textMargin = 58.dp
-                ),
-                false,
-            ) {
-                val tabNav =
-                    (window.topNavigationController?.viewControllers?.firstOrNull() as? ITabsVC)?.mainNavigationController
-                if (tabNav != null) {
-                    tabNav.push(NetworksVC(context))
-                } else {
-                    window.navigationControllers.last().push(NetworksVC(context))
-                }
-            }
-        )
 
         popup = WMenuPopup.present(
             anchor,

@@ -87,11 +87,14 @@ export function initPolling(_onUpdate: OnApiUpdate) {
 
   void loadTokensCache();
 
-  void Promise.allSettled(NO_BACKEND ? [] : [
-    tryUpdateKnownAddresses(),
-    tryUpdateTokens(),
-    tryUpdateCurrencyRates(),
-    !NO_SWAP && tryUpdateSwapTokens(),
+  void Promise.allSettled([
+    // The swap token list comes from DeDust, so it doesn't need our backend
+    ...(NO_SWAP ? [] : [tryUpdateSwapTokens()]),
+    ...(NO_BACKEND ? [] : [
+      tryUpdateKnownAddresses(),
+      tryUpdateTokens(),
+      tryUpdateCurrencyRates(),
+    ]),
   ]).then(() => resolveDataPreloadPromise());
 
   stopCommonBackendPolling?.();

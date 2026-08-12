@@ -2,15 +2,22 @@ package app.twallet.air.uiswap.screens.swap.views
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.view.Gravity
 import android.view.MotionEvent
 import android.widget.LinearLayout
 import app.twallet.air.uicomponents.commonViews.AnimatedKeyValueRowView
 import app.twallet.air.uicomponents.commonViews.feeDetailsDialog.FeeDetailsDialog
+import app.twallet.air.uicomponents.extensions.setPaddingDp
+import app.twallet.air.uicomponents.helpers.WFont
 import app.twallet.air.uicomponents.widgets.ExpandableFrameLayout
+import app.twallet.air.uicomponents.widgets.WLabel
+import app.twallet.air.uicomponents.widgets.WThemedView
 import app.twallet.air.uicomponents.widgets.dialog.WDialog
 import app.twallet.air.uiswap.screens.swap.DEFAULT_OUR_SWAP_FEE
 import app.twallet.air.uiswap.screens.swap.models.SwapEstimateResponse
 import app.twallet.air.walletbasecontext.localization.LocaleController
+import app.twallet.air.walletbasecontext.theme.WColor
+import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.toProcessedSpannableStringBuilder
 import app.twallet.air.walletcore.moshi.IApiToken
 import java.math.BigInteger
@@ -22,7 +29,7 @@ class SwapEstimatedInfo(
     private var onSlippageChange: ((Float) -> Unit)?,
     private var onDialogShowListener: ((String, CharSequence) -> Unit)?,
     private var onPresentDialog: (dialog: WDialog?) -> Unit
-) : ExpandableFrameLayout(context) {
+) : ExpandableFrameLayout(context), WThemedView {
     private val linearLayout = object : LinearLayout(context) {
         override fun onInterceptTouchEvent(e: MotionEvent): Boolean {
             // Reject any multi-touch events
@@ -65,6 +72,13 @@ class SwapEstimatedInfo(
         separator.allowSeparator = false
     }
 
+    private val providedByLabel = WLabel(context).apply {
+        text = LocaleController.getString("\$swap_provided_by_dedust")
+        setStyle(13f, WFont.Regular)
+        gravity = Gravity.CENTER
+        setPaddingDp(20, 4, 20, 12)
+    }
+
     init {
         linearLayout.addView(estRate)
         linearLayout.addView(slippageRowView)
@@ -72,6 +86,7 @@ class SwapEstimatedInfo(
         linearLayout.addView(estAggregatorFee)
         linearLayout.addView(estPriceImpact)
         linearLayout.addView(estMinimumReceived)
+        linearLayout.addView(providedByLabel)
 
         estBlockchainFee.setOnClickListener {
             est?.explainedFee?.takeIf { it.excessFee > BigInteger.ZERO }?.let { explainedFee ->
@@ -121,6 +136,12 @@ class SwapEstimatedInfo(
         }
 
         addView(linearLayout)
+
+        updateTheme()
+    }
+
+    override fun updateTheme() {
+        providedByLabel.setTextColor(WColor.SecondaryText.color)
     }
 
     fun setIsCex(isCex: Boolean) {
@@ -129,6 +150,7 @@ class SwapEstimatedInfo(
         estMinimumReceived.visibility = visibility
         estAggregatorFee.visibility = visibility
         slippageRowView.visibility = visibility
+        providedByLabel.visibility = visibility
         estBlockchainFee.separator.allowSeparator = false
     }
 

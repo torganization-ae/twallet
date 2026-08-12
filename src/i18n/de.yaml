@@ -405,6 +405,7 @@ $swap_price_impact_tooltip1: Dies zeigt, wie sehr Ihr Handel den Preis des Token
 $swap_price_impact_tooltip2: Große Trades können den Preis stärker nach oben oder unten bewegen. In der Regel ist ein niedrigerer Wert besser.
 $swap_slippage_tooltip1: Dies legt fest, wie viel sich der Preis ändern darf, bevor Ihr Tausch verarbeitet wird.
 $swap_slippage_tooltip2: Wenn sich während der Verarbeitung Ihres Tausches der Preis um mehr als diesen Wert ändert, wird Ihre Bestellung storniert.
+$swap_provided_by_dedust: Der Tausch wird von dedust.io bereitgestellt
 Coins have been swapped!: Die Coins wurden getauscht!
 Slippage not specified: Schlupf nicht angegeben
 Slippage too high: Schlupf zu hoch

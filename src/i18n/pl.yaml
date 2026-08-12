@@ -407,6 +407,7 @@ $swap_price_impact_tooltip1: Pokazuje, jak bardzo twoja transakcja może zmieni�
 $swap_price_impact_tooltip2: Duże transakcje mogą spowodować większy wzrost lub spadek ceny. Zazwyczaj niższa wartość jest lepsza.
 $swap_slippage_tooltip1: Ustawia, o ile cena może się zmienić przed przetworzeniem twojej wymiany.
 $swap_slippage_tooltip2: Jeśli podczas przetwarzania twojej wymiany cena zmieni się bardziej niż ta wartość, twoje zamówienie zostanie anulowane.
+$swap_provided_by_dedust: Wymiana jest realizowana przez dedust.io
 Coins have been swapped!: Monety zostały wymienione!
 Slippage not specified: Poślizg nie został określony
 Slippage too high: Poślizg jest zbyt duży

@@ -17,7 +17,7 @@ struct AddressesMenuContentRow {
                 AddressesMenuContentRow(chain: chain, accountChain: info)
             }
 
-        var items: [ContextMenuItem] = rows.map { row in
+        let items: [ContextMenuItem] = rows.map { row in
             .custom(
                 .swiftUI(
                     sizing: .fixed(height: 60.0)
@@ -26,18 +26,6 @@ struct AddressesMenuContentRow {
                 }
             )
         }
-
-        items.append(
-            .action(
-                ContextMenuAction(
-                    title: lang("Networks"),
-                    icon: .airBundle("MenuNetworks28"),
-                    handler: {
-                        AppActions.showSettings(section: .networks)
-                    }
-                )
-            )
-        )
 
         return ContextMenuConfiguration(
             rootPage: ContextMenuPage(items: items),

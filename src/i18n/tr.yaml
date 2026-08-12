@@ -401,6 +401,7 @@ $swap_price_impact_tooltip1: Bu, işleminizin token fiyatını ne kadar değişt
 $swap_price_impact_tooltip2: Yüksek hacimli alım satımlar fiyatın daha fazla yükselmesine veya düşmesine neden olabilir. Daha düşük tutarlar genellikle daha iyidir.
 $swap_slippage_tooltip1: Bu, takas talebinizin işleme alınmadan önce fiyatın ne kadar değişmesine izin verileceğini belirler.
 $swap_slippage_tooltip2: Takas işleminiz sırasında fiyat bu değerden daha fazla değişirse, emriniz iptal edilecektir.
+$swap_provided_by_dedust: Takas dedust.io tarafından sağlanır
 Coins have been swapped!: Coin'ler takas edildi!
 Slippage not specified: Kayma toleransı belirtilmemiş
 Slippage too high: Kayma toleransı çok yüksek

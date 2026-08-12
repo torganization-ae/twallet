@@ -399,6 +399,7 @@ $swap_price_impact_tooltip1: 這顯示了您的交易可能對代幣價格造成
 $swap_price_impact_tooltip2: 大型交易可能會使價格上漲或下跌得更多。較低的值通常較好。
 $swap_slippage_tooltip1: 設置此值可以允許價格在進行交換前發生變化的程度。
 $swap_slippage_tooltip2: 如果在處理您的交換時，價格變化超過此值，您的訂單將被取消。
+$swap_provided_by_dedust: 兌換由 dedust.io 提供
 Coins have been swapped!: 币已交换完成！
 Slippage not specified: 未指定下單誤差
 Slippage too high: 下單誤差過高
