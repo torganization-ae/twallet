@@ -18,6 +18,7 @@ import type {
 import { SWAP_API_VERSION } from '../../config';
 import { buildLocalTxId } from '../../util/activities';
 import generateUniqueId from '../../util/generateUniqueId';
+import { logDebugError } from '../../util/logs';
 import chains from '../chains';
 import { fetchStoredAccount, fetchStoredWallet } from '../common/accounts';
 import { callBackendGet, callBackendPost } from '../common/backend';
@@ -212,7 +213,10 @@ export async function swapEstimate(
   try {
     return await dedustEstimate(request);
   } catch (err) {
-    return { error: err instanceof Error ? err.message : String(err) };
+    const message = err instanceof Error ? err.message : String(err);
+    logDebugError('swapEstimate', err);
+    // `fetchWithRetry` prefixes the message with the request details, only the last part is for the user
+    return { error: message.split(' | ').at(-1)! };
   }
 }
 
