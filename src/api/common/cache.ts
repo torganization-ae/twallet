@@ -1,5 +1,6 @@
 import type { ApiBackendConfig } from '../types';
 
+import { NO_BACKEND } from '../../config';
 import Deferred from '../../util/Deferred';
 
 let backendConfig: ApiBackendConfig | undefined;
@@ -8,6 +9,13 @@ const configDeferred = new Deferred();
 export function setBackendConfigCache(config: ApiBackendConfig) {
   backendConfig = config;
   configDeferred.resolve();
+}
+
+// `tryUpdateConfig` is the only caller of `setBackendConfigCache`, and `NO_BACKEND` cuts it. Without a
+// stand-in every `await getBackendConfigCache()` hangs forever — that blocks `swapReplaceActivities`,
+// so the activity feed never loads, and vesting polling never starts.
+if (NO_BACKEND) {
+  setBackendConfigCache({ isLimited: false, isUpdateRequired: false, now: Date.now() });
 }
 
 /** Returns the config provided by the backend */
