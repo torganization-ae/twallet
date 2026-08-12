@@ -1,10 +1,17 @@
-import { APP_ENV, APP_NAME, APP_VERSION, BRILLIANT_API_BASE_URL } from '../../config';
+import { APP_ENV, APP_NAME, APP_VERSION, BRILLIANT_API_BASE_URL, NO_BACKEND } from '../../config';
 import { bucketKey } from '../../util/circuit-breaker';
 import { fetchJson, fetchWithRetry, fetchWithTimeout, handleFetchErrors } from '../../util/fetch';
 import { getEnvironment } from '../environment';
 import { getClientId } from './other';
 
 const BAD_REQUEST_CODE = 400;
+
+/** Thrown instead of hitting `BRILLIANT_API_BASE_URL` while `NO_BACKEND` is on. */
+export class BackendDisabledError extends Error {
+  constructor(path: string) {
+    super(`Backend is disabled, skipped ${path}`);
+  }
+}
 
 export async function callBackendPost<T>(path: string, data: AnyLiteral, options?: {
   authToken?: string;
@@ -13,6 +20,10 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
   shouldRetry?: boolean;
   timeout?: number;
 }): Promise<T> {
+  if (NO_BACKEND) {
+    throw new BackendDisabledError(path);
+  }
+
   const {
     authToken, isAllowBadRequest, method, shouldRetry, timeout,
   } = options ?? {};
@@ -44,6 +55,10 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
 }
 
 export function callBackendGet<T extends AnyLiteral>(path: string, data?: AnyLiteral, headers?: HeadersInit) {
+  if (NO_BACKEND) {
+    return Promise.reject(new BackendDisabledError(path)) as Promise<T>;
+  }
+
   const url = new URL(`${BRILLIANT_API_BASE_URL}${path}`);
 
   return fetchJson<T>(url, data, {
@@ -76,5 +91,7 @@ export function addBackendHeadersToSocketUrl(url: URL) {
 }
 
 export async function fetchBackendReferrer() {
+  if (NO_BACKEND) return undefined;
+
   return (await callBackendGet<{ referrer?: string }>('/referrer/get')).referrer;
 }

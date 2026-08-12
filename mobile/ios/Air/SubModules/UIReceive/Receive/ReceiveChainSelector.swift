@@ -54,7 +54,7 @@ func makeReceiveChainMenuConfig(
         let chains = accountContext.orderedChains.map(\.0)
         let current = selectedChain()
 
-        var items: [ContextMenuItem] = chains.map { chain in
+        let items: [ContextMenuItem] = chains.map { chain in
             .action(
                 ContextMenuAction(
                     title: chain.title,
@@ -67,28 +67,13 @@ func makeReceiveChainMenuConfig(
             )
         }
 
-        items.append(.separator)
-        items.append(
-            .action(
-                ContextMenuAction(
-                    title: lang("Networks"),
-                    icon: .airBundle("MenuNetworks28"),
-                    handler: {
-                        AppActions.showSettings(section: .networks)
-                    }
-                )
-            )
-        )
-
         return ContextMenuConfiguration(
             rootPage: ContextMenuPage(items: items),
             backdrop: .none,
             style: ContextMenuStyle(
                 minWidth: 220.0,
                 maxWidth: 280.0,
-                sourceSpacing: 0.0,
-                // Default 20pt separator block looks too heavy for the Networks footer.
-                separatorHeight: 8.0
+                sourceSpacing: 0.0
             )
         )
     }

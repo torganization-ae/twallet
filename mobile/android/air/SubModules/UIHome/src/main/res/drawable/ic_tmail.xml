@@ -4,7 +4,14 @@
     android:height="28dp"
     android:viewportWidth="216"
     android:viewportHeight="192">
-    <!-- Brand TMail mark (monochrome, tintable). -->
+    <!-- Brand TMail mark (monochrome, tintable).
+         The mark fills its viewport edge to edge, while the other tab icons occupy ~72% of
+         theirs — so it is inset here to read at the same size in the bottom bar. -->
+    <group
+        android:pivotX="108"
+        android:pivotY="96"
+        android:scaleX="0.72"
+        android:scaleY="0.72">
     <path
         android:fillColor="#1C1D21"
         android:fillType="evenOdd"
@@ -27,4 +34,5 @@
     <path
         android:fillColor="#1C1D21"
         android:pathData="M8.08,41.203H56.504L97.426,0H44.569L8.08,41.203Z" />
+    </group>
 </vector>

@@ -1,6 +1,8 @@
 import { Address } from '@ton/core';
 import { JettonMaster, TonClient } from '@ton/ton';
 
+import { NO_BACKEND } from '../../config';
+import { DEFAULT_TON_ENDPOINTS } from '../../api/chains/defaultEndpoints';
 import { safeExecAsync } from '../../util/safeExec';
 import { pause } from '../../util/schedulers';
 import { buildTokenTransferBody, commentToBytes, packBytesAsSnakeCell } from './tonCore';
@@ -28,6 +30,11 @@ export function fetchKnownTokens(): Promise<RemoteToken[]> {
 }
 
 async function fetchTokensFromApi(): Promise<RemoteToken[]> {
+  // `api.mywallet.io` rejects our origin with CORS, so the bundled cache is the only source
+  if (NO_BACKEND) {
+    return fetchTokensFromCache();
+  }
+
   try {
     const response = await fetch('https://api.mywallet.io/assets');
     if (!response.ok) {
@@ -40,21 +47,24 @@ async function fetchTokensFromApi(): Promise<RemoteToken[]> {
     // eslint-disable-next-line no-console
     console.warn('Failed to fetch tokens from main API, trying fallback:', error);
 
-    // Try fallback endpoint
-    try {
-      const fallbackResponse = await fetch('/token-info-cache.json');
-      if (!fallbackResponse.ok) {
-        throw new Error(`Fallback HTTP error! status: ${fallbackResponse.status}`);
-      }
-      const fallbackTokens: RemoteToken[] = await fallbackResponse.json();
+    return fetchTokensFromCache();
+  }
+}
 
-      return fallbackTokens.filter((token) => token.chain === 'ton');
-    } catch (fallbackError) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to fetch tokens from fallback API:', fallbackError);
-
-      return [];
+async function fetchTokensFromCache(): Promise<RemoteToken[]> {
+  try {
+    const response = await fetch('/token-info-cache.json');
+    if (!response.ok) {
+      throw new Error(`Fallback HTTP error! status: ${response.status}`);
     }
+    const tokens: RemoteToken[] = await response.json();
+
+    return tokens.filter((token) => token.chain === 'ton');
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to fetch tokens from fallback API:', error);
+
+    return [];
   }
 }
 
@@ -106,7 +116,7 @@ export async function findTokenInfo(identifier: string): Promise<RemoteToken | u
 }
 
 const client = new TonClient({
-  endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+  endpoint: `${DEFAULT_TON_ENDPOINTS.mainnet.rpcUrl}/api/v2/jsonRPC`,
 });
 
 const jettonWalletAddressCache: Record<string, Address> = {};

@@ -6,6 +6,7 @@ import { getActions, withGlobal } from '../../../../global';
 
 import type { Theme } from '../../../../global/types';
 
+import { NO_BACKEND } from '../../../../config';
 import { selectCurrentAccountSettings } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
@@ -39,7 +40,7 @@ interface StateProps {
 type IconKey = 'iconWallet' | 'iconExplore' | 'iconSettings';
 
 interface TabConfig {
-  index: number;
+  key: number;
   label: string;
   iconKey?: IconKey;
   logoSrc?: string;
@@ -55,7 +56,6 @@ const TAB_EXPLORE = 1;
 const TAB_SETTINGS_FULL = 2;
 const TAB_TMAIL = 3;
 
-const TAB_COUNT = 4;
 const SETTINGS_INDEX = TAB_SETTINGS_FULL;
 
 function BottomBar({
@@ -77,14 +77,15 @@ function BottomBar({
     });
   });
 
-  const activeIndex = getActiveIndex({ isExploreOpen, areSettingsOpen });
-
+  // Explore is the dapp catalog, which only the backend can fill.
   const tabs: TabConfig[] = [
-    { index: TAB_WALLET, label: 'Wallet', iconKey: 'iconWallet', onClick: switchToWallet },
-    { index: TAB_EXPLORE, label: 'Explore', iconKey: 'iconExplore', onClick: switchToExplore },
-    { index: SETTINGS_INDEX, label: 'Settings', iconKey: 'iconSettings', onClick: switchToSettings },
+    { key: TAB_WALLET, label: 'Wallet', iconKey: 'iconWallet', onClick: switchToWallet },
+    ...(NO_BACKEND
+      ? []
+      : [{ key: TAB_EXPLORE, label: 'Explore', iconKey: 'iconExplore', onClick: switchToExplore } as TabConfig]),
+    { key: SETTINGS_INDEX, label: 'Settings', iconKey: 'iconSettings', onClick: switchToSettings },
     {
-      index: TAB_TMAIL,
+      key: TAB_TMAIL,
       label: 'TMail',
       logoSrc: tmailLogo,
       onClick: openProductMenu,
@@ -92,8 +93,11 @@ function BottomBar({
     },
   ];
 
+  const activeKey = getActiveKey({ isExploreOpen, areSettingsOpen });
+  const activeIndex = Math.max(tabs.findIndex((tab) => tab.key === activeKey), 0);
+
   const switchToTabByIndex = useLastCallback((index: number) => {
-    tabs.find((tab) => tab.index === index)?.onClick();
+    tabs[index]?.onClick();
   });
 
   const {
@@ -103,13 +107,13 @@ function BottomBar({
     renderedActiveIndex,
     pointerHandlers,
   } = useDraggablePill({
-    tabCount: TAB_COUNT,
+    tabCount: tabs.length,
     activeIndex,
     onCommit: switchToTabByIndex,
   });
 
   const rootStyle = buildStyle(
-    `--tab-count: ${TAB_COUNT}`,
+    `--tab-count: ${tabs.length}`,
     `--active-index: ${activeIndex}`,
   );
 
@@ -124,13 +128,13 @@ function BottomBar({
         {...pointerHandlers}
       >
         <Pill isDragging={isDragging} squeeze={squeeze} />
-        {tabs.map(({ index, label, iconKey, logoSrc, onClick, buttonRef }) => {
+        {tabs.map(({ key, label, iconKey, logoSrc, onClick, buttonRef }, index) => {
           const isActive = renderedActiveIndex === index;
 
           if (logoSrc) {
             return (
               <TabButton
-                key={index}
+                key={key}
                 buttonRef={buttonRef}
                 isActive={isActive}
                 label={lang(label)}
@@ -144,7 +148,7 @@ function BottomBar({
 
           return (
             <TabButton
-              key={index}
+              key={key}
               isActive={isActive}
               label={lang(label)}
               tgsUrl={stickerPaths[variant]}
@@ -222,7 +226,7 @@ const TabButton = memo(({
   );
 });
 
-function getActiveIndex({
+function getActiveKey({
   isExploreOpen, areSettingsOpen,
 }: Pick<StateProps, 'isExploreOpen' | 'areSettingsOpen'>) {
   if (isExploreOpen) return TAB_EXPLORE;

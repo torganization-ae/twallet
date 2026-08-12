@@ -17,6 +17,7 @@ import {
   LANG_LIST,
   PROXY_HOSTS,
   SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY,
+  TON_ONLY,
   TONCOIN,
 } from '../../config';
 import {
@@ -550,14 +551,16 @@ function Settings({
               </div>
               <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
             </div>
-            <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleNetworksOpen}>
-              <img className={styles.menuIcon} src={networksImg} alt={lang('Networks')} />
-              <div className={styles.itemContent}>
-                <span className={styles.itemTitle}>{lang('Networks')}</span>
-                <span className={styles.itemSubtitle}>{lang('RPC and API endpoints')}</span>
+            {!TON_ONLY && (
+              <div className={buildClassName(styles.item, styles.itemMenu)} onClick={handleNetworksOpen}>
+                <img className={styles.menuIcon} src={networksImg} alt={lang('Networks')} />
+                <div className={styles.itemContent}>
+                  <span className={styles.itemTitle}>{lang('Networks')}</span>
+                  <span className={styles.itemSubtitle}>{lang('RPC and API endpoints')}</span>
+                </div>
+                <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
               </div>
-              <i className={buildClassName(styles.iconChevronRight, 'icon-chevron-right')} aria-hidden />
-            </div>
+            )}
           </div>
 
           {!isPortrait && (
@@ -640,6 +643,8 @@ function Settings({
           />
         );
       case SettingsState.Networks:
+        if (TON_ONLY) return undefined;
+
         return (
           <SettingsNetworks
             isActive={isActive && isSlideActive}

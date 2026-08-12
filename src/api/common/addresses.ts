@@ -1,6 +1,6 @@
 import type { ApiKnownAddresses, ApiKnownAddressInfo, ApiNftSuperCollection } from '../types';
 
-import { RE_LINK_TEMPLATE, RE_TG_BOT_MENTION } from '../../config';
+import { NO_BACKEND, RE_LINK_TEMPLATE, RE_TG_BOT_MENTION } from '../../config';
 import { cleanText } from '../../lib/confusables';
 import Deferred from '../../util/Deferred';
 import { logDebugError } from '../../util/logs';
@@ -12,6 +12,13 @@ let trustedSites = new Set<string>();
 let trustedCollections = new Set<string>();
 let tonNftSuperCollectionsByCollectionAddress: Record<string, ApiNftSuperCollection> = {};
 const nftSuperCollectionsDeferred = new Deferred();
+
+// `tryUpdateKnownAddresses` is the only place that resolves the deferred, and `NO_BACKEND` cuts every
+// call to it. Without this, every `getNftSuperCollectionsByCollectionAddress()` await hangs forever —
+// i.e. the NFT list and the activity feed stay on their loading spinners.
+if (NO_BACKEND) {
+  nftSuperCollectionsDeferred.resolve();
+}
 
 export async function tryUpdateKnownAddresses() {
   try {

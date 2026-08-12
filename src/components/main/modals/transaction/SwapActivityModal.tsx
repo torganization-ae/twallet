@@ -17,6 +17,7 @@ import {
   selectCurrentAccount,
   selectCurrentAccountState,
   selectIsCurrentAccountViewMode,
+  selectIsSwapDisabled,
 } from '../../../../global/selectors';
 import { getIsActivityPendingForUser, getShouldSkipSwapWaitingStatus, parseTxId } from '../../../../util/activities';
 import buildClassName from '../../../../util/buildClassName';
@@ -561,7 +562,7 @@ export default memo(
   withGlobal((global): StateProps => {
     const accountState = selectCurrentAccountState(global);
     const account = selectCurrentAccount(global);
-    const { isSwapDisabled } = global.restrictions;
+    const isSwapDisabled = selectIsSwapDisabled(global);
     const { theme, isSensitiveDataHidden, isTestnet } = global.settings;
 
     const id = accountState?.currentActivityId;

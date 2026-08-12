@@ -6,6 +6,7 @@ import type { IAnchorPosition } from '../../global/types';
 import type { DropdownItem } from '../ui/Dropdown';
 import { SettingsState } from '../../global/types';
 
+import { TON_ONLY } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { getChainTitle } from '../../util/chain';
 import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
@@ -44,13 +45,15 @@ function ReceiveChainSelector({ chains, selectedChain }: OwnProps) {
       noTranslate: true,
     }));
 
-    chainItems.push({
-      value: NETWORKS_VALUE,
-      name: lang('Networks'),
-      icon: <i className={styles.networksMenuIcon} aria-hidden />,
-      // Default item separator is a 1px hairline; `withDelimiter` is a thick section bar.
-      noTranslate: true,
-    });
+    if (!TON_ONLY) {
+      chainItems.push({
+        value: NETWORKS_VALUE,
+        name: lang('Networks'),
+        icon: <i className={styles.networksMenuIcon} aria-hidden />,
+        // Default item separator is a 1px hairline; `withDelimiter` is a thick section bar.
+        noTranslate: true,
+      });
+    }
 
     return chainItems;
   }, [chains, lang]);

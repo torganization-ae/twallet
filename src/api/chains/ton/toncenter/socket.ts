@@ -432,10 +432,11 @@ export function isActivityUpdateFinal(update: DefaultActivitiesUpdate) {
   return update.finality === 'finalized' || !update.activities.length;
 }
 
-function getSocketUrl(network: ApiNetwork) {
+export function getSocketUrl(network: ApiNetwork) {
   const url = new URL(NETWORK_CONFIG[network].toncenterUrl);
   url.protocol = 'wss:';
-  url.pathname = '/api/streaming/v2/ws';
+  // The endpoint may live under a path prefix (our proxy: `.../toncenter`), so append instead of replacing.
+  url.pathname = `${url.pathname.replace(/\/$/, '')}/api/streaming/v2/ws`;
   addBackendHeadersToSocketUrl(url);
 
   // Streaming on public toncenter requires a plan with WS quota; without a key the free

@@ -230,6 +230,7 @@ export function selectSwapType(global: GlobalState) {
 }
 
 export function selectIsSwapDisabled(global: GlobalState) {
+  // On-chain swaps run on the DeDust API, so they don't need our backend.
   return global.restrictions.isSwapDisabled
     || global.settings.isTestnet
     || selectIsHardwareAccount(global);

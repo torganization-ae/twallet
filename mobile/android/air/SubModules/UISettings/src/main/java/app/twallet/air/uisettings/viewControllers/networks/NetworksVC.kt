@@ -265,7 +265,8 @@ class NetworksVC(
             0 -> {
                 (cellHolder.cell as HeaderCell).configure(
                     title = LocaleController.getString("RPC and API endpoints"),
-                    titleColor = WColor.Tint
+                    titleColor = WColor.Tint,
+                    topRounding = HeaderCell.TopRounding.FIRST_ITEM,
                 )
             }
 
@@ -284,7 +285,6 @@ class NetworksVC(
                     title = item.title,
                     subtitle = subtitle,
                     status = statusFor(item),
-                    isFirst = indexPath.row == 0,
                     isLast = indexPath.row == items.size - 1,
                     onClick = { openDetail(item) },
                     onMenuClick = { anchor -> showMenu(anchor, item) },

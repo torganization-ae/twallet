@@ -8,7 +8,6 @@ import type {
   ApiSwapCexLabel,
   ApiSwapEstimateRequest,
   ApiSwapEstimateResponse,
-  ApiSwapExecuteTransactionResult,
   ApiSwapHistoryItem,
   ApiSwapPairAsset,
   ApiSwapTransfer,
@@ -18,10 +17,12 @@ import type {
 
 import { SWAP_API_VERSION } from '../../config';
 import { buildLocalTxId } from '../../util/activities';
+import generateUniqueId from '../../util/generateUniqueId';
 import chains from '../chains';
 import { fetchStoredAccount, fetchStoredWallet } from '../common/accounts';
 import { callBackendGet, callBackendPost } from '../common/backend';
 import { getBackendConfigCache } from '../common/cache';
+import { dedustBuildTransfers, dedustEstimate, dedustGetAssets, dedustGetPairs } from '../common/dedust';
 import {
   convertSwapItemToTrusted,
   getSwapItemSlug,
@@ -45,31 +46,24 @@ export async function swapBuildTransfer(
   password: string,
   request: ApiSwapBuildTransactionRequest,
 ) {
-  const authToken = await getBackendAuthToken(accountId, password);
-
   // Provide version anyway to avoid unnecessary complexity of multichain method
   // it will be used for TON only.
   const { version } = await fetchStoredWallet(accountId, 'ton');
   request.walletVersion = version;
 
-  const buildResponse = await swapBuild(authToken, request);
-
-  if (buildResponse.route !== 'dex' || !buildResponse.chain) {
-    throw new Error('Unexpected non-DEX response for swapBuildTransfer');
+  if (!request.routes?.length) {
+    throw new Error('Missing swap routes');
   }
 
-  const { id, transfers, chain, transaction } = buildResponse;
+  const transfers = await dedustBuildTransfers(request.fromAddress, request.routes, request.slippage);
 
-  const result = await chains[chain].buildOnchainSwapTransfer({
+  return chains.ton.buildOnchainSwapTransfer({
     accountId,
     request,
     transfers,
-    transaction,
-    swapId: id,
-    authToken,
+    swapId: generateUniqueId(),
+    authToken: '',
   });
-
-  return result;
 }
 
 export async function swapSubmit(
@@ -82,8 +76,6 @@ export async function swapSubmit(
   transaction?: string,
 ): Promise<{ activityId?: string; mfaRequestHash?: string; swapId: string } | { error: string }> {
   const swapId = historyItem.id;
-
-  const authToken = await getBackendAuthToken(accountId, password);
 
   const from = getSwapItemSlug(historyItem.from, chain);
   const to = getSwapItemSlug(historyItem.to, chain);
@@ -104,10 +96,9 @@ export async function swapSubmit(
     transaction,
     historyItem,
     isGasless,
-    authToken,
+    authToken: '',
     localSwap,
     swapId,
-    executeSwap: (signedTransaction) => swapExecute(authToken, swapId, signedTransaction),
   }, onUpdate);
 
   if ('error' in result) {
@@ -218,18 +209,14 @@ export async function swapEstimate(
   accountId: string,
   request: ApiSwapEstimateRequest,
 ): Promise<ApiSwapEstimateResponse | { error: string }> {
-  const walletVersion = (await fetchStoredWallet(accountId, 'ton')).version;
-  const { swapVersion } = await getBackendConfigCache();
-
-  return callBackendPost('/swap/estimate', {
-    ...request,
-    swapVersion: swapVersion ?? SWAP_API_VERSION,
-    walletVersion,
-  }, {
-    isAllowBadRequest: true,
-  });
+  try {
+    return await dedustEstimate(request);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
 }
 
+/** Only the CEX (cross-chain) swaps still go through the backend - DeDust is TON-only */
 export async function swapBuild(
   authToken: string,
   request: ApiSwapBuildTransactionRequest,
@@ -245,25 +232,12 @@ export async function swapBuild(
   });
 }
 
-export function swapExecute(
-  authToken: string,
-  swapId: string,
-  signedTransaction: string,
-): Promise<ApiSwapExecuteTransactionResult> {
-  return callBackendPost('/swap/execute', {
-    swapId,
-    signedTransaction,
-  }, {
-    authToken,
-  });
-}
-
 export function swapGetAssets(): Promise<ApiSwapAsset[]> {
-  return callBackendGet('/swap/assets');
+  return dedustGetAssets();
 }
 
 export function swapGetPairs(symbolOrTokenAddress: string): Promise<ApiSwapPairAsset[]> {
-  return callBackendGet('/swap/pairs', { asset: symbolOrTokenAddress });
+  return dedustGetPairs(symbolOrTokenAddress);
 }
 
 export function swapCexValidateAddress(params: { slug: string; address: string; cexLabel?: ApiSwapCexLabel }): Promise<{

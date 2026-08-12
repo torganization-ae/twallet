@@ -91,6 +91,7 @@ struct SwapDetailsView: View {
                 routingFeesRow
                 priceImpactRow
                 minimumReceivedRow
+                providedByRow
             }
             .animation(.snappy, value: slippageExpanded)
         }
@@ -276,6 +277,16 @@ struct SwapDetailsView: View {
                 Text(minAmount.formatted(.defaultAdaptive))
             }
         }
+    }
+
+    @ViewBuilder
+    var providedByRow: some View {
+        Text(lang("$swap_provided_by_dedust"))
+            .font(.system(size: 13))
+            .foregroundStyle(Color.air.secondaryLabel)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
     }
 }
 

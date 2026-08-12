@@ -151,8 +151,10 @@ public final class QRScanVC: WViewController {
         }
     }
 
-    private func handleScannedString(_ string: String) {
+    private func handleScannedString(_ rawString: String) {
         var result: ScanResult?
+
+        let string = TmailHelpers.parseShareQr(rawString) ?? rawString
 
         let chains = ApiChain.allCases.filter { $0.isValidAddressOrDomain(string) }
         if !chains.isEmpty {

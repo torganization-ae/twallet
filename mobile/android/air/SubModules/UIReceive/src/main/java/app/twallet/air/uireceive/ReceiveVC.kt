@@ -38,8 +38,6 @@ import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.ApplicationContextHolder
 import app.twallet.air.walletbasecontext.utils.getDrawableCompat
 import app.twallet.air.walletbasecontext.utils.toProcessedSpannableStringBuilder
-import app.twallet.air.walletcore.WalletCore
-import app.twallet.air.walletcore.WalletEvent
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
 import app.twallet.air.walletcore.stores.AccountStore
 import java.lang.ref.WeakReference
@@ -549,7 +547,7 @@ class ReceiveVC private constructor(
                             title = chain.displayName,
                             textMargin = 52.dp
                         ),
-                        hasSeparator = index == availableChains.lastIndex,
+                        hasSeparator = false,
                     ) {
                         if (index != currentIndex) {
                             qrSegmentView.setActiveIndex(index)
@@ -558,25 +556,6 @@ class ReceiveVC private constructor(
                         }
                     }
                 }.toMutableList()
-
-        items.add(
-            WMenuPopup.Item(
-                WMenuPopup.Item.Config.Item(
-                    icon =
-                        Icon(
-                            R.drawable.ic_networks_menu,
-                            tintColor = WColor.SecondaryText,
-                            iconSize = 28.dp,
-                            iconMargin = 12.dp
-                        ),
-                    title = LocaleController.getString("Networks"),
-                    textMargin = 52.dp
-                ),
-                false,
-            ) {
-                WalletCore.notifyEvent(WalletEvent.OpenNetworksSettings)
-            }
-        )
 
         WMenuPopup.present(
             chainSelectorView,

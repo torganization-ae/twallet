@@ -1,6 +1,6 @@
 import type { ApiInitArgs, OnApiUpdate } from '../types';
 
-import { NO_MFA, NO_SWAP } from '../../config';
+import { NO_BACKEND, NO_MFA, NO_SWAP } from '../../config';
 import { initWindowConnector } from '../../util/windowProvider/connector';
 import { getHiddenChainsStateSnapshot, loadChainVisibility } from '../chains/chainVisibility';
 import { loadRpcOverrides } from '../chains/rpcOverrides';

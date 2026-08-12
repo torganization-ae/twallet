@@ -395,6 +395,7 @@ $swap_price_impact_tooltip1: This shows how much your trade might change the tok
 $swap_price_impact_tooltip2: Big trades can make the price go up or down more. Lower is usually better.
 $swap_slippage_tooltip1: This sets how much the price is allowed to change before your swap is processed.
 $swap_slippage_tooltip2: If during the processing of your swap, the price changes more than this value, your order will be canceled.
+$swap_provided_by_dedust: The swap is provided by dedust.io
 Coins have been swapped!: Coins have been swapped!
 Slippage not specified: Slippage not specified
 Slippage too high: Slippage too high

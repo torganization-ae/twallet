@@ -3,6 +3,7 @@ const mockFetchJson = jest.fn();
 jest.mock('../../config', () => ({
   ...jest.requireActual('../../config'),
   BRILLIANT_API_BASE_URL: 'https://api.example.test',
+  NO_BACKEND: false,
 }));
 
 jest.mock('../../util/fetch', () => ({
@@ -39,5 +40,19 @@ describe('backend API helpers', () => {
       expect.any(Object),
       { bucketKey: 'https://api.example.test/swap' },
     );
+  });
+
+  it('sends nothing while the backend is cut off', async () => {
+    jest.resetModules();
+    jest.doMock('../../config', () => ({
+      ...jest.requireActual('../../config'),
+      NO_BACKEND: true,
+    }));
+
+    const { callBackendGet, callBackendPost } = await import('./backend');
+
+    await expect(callBackendGet('/swap/assets')).rejects.toThrow('Backend is disabled');
+    await expect(callBackendPost('/swap/estimate', {})).rejects.toThrow('Backend is disabled');
+    expect(mockFetchJson).not.toHaveBeenCalled();
   });
 });

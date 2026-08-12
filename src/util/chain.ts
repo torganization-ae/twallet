@@ -33,6 +33,7 @@ import {
   SOLANA_USDT_MAINNET,
   TON_TSUSDE,
   TON_USDE,
+  TON_ONLY,
   TON_USDT_MAINNET,
   TON_USDT_TESTNET,
   TONCOIN,
@@ -174,12 +175,16 @@ export interface ChainConfig {
 // A pasted address is matched against chains in this order and the first match wins, so the chain with the more
 // specific address regex must come first: e.g. a TRON address also matches Solana's regex, so `tron` must precede
 // `solana`; and all EVM chains share the same regex, so the first EVM chain (`ethereum`) is the default match.
-export const CHAIN_ORDER: ApiBuiltinChain[] = getSharedChainOrder();
+export const CHAIN_ORDER: ApiBuiltinChain[] = TON_ONLY
+  ? getSharedChainOrder().filter((chain) => chain === 'ton')
+  : getSharedChainOrder();
 
 // Display order for chains everywhere in the UI. Independent of `CHAIN_ORDER`,
 // which is constrained by address-matching correctness.
 // Must contain the same chains as `CHAIN_ORDER`. Loaded from `shared/networks.json`.
-export const CHAIN_DISPLAY_ORDER: ApiBuiltinChain[] = getSharedDisplayOrder();
+export const CHAIN_DISPLAY_ORDER: ApiBuiltinChain[] = TON_ONLY
+  ? getSharedDisplayOrder().filter((chain) => chain === 'ton')
+  : getSharedDisplayOrder();
 
 const CHAIN_CONFIG: Record<ApiBuiltinChain, ChainConfig> = {
   ton: {
@@ -883,7 +888,8 @@ export const VIEW_ACCOUNT_EVM_PARAM = 'evm';
 if (DEBUG) {
   const configKeys = new Set(Object.keys(CHAIN_CONFIG));
   const supportedSet = new Set<ApiChain>(CHAIN_ORDER);
-  const missing = [...configKeys].filter((k) => !supportedSet.has(k as ApiChain));
+  // A TON-only build drops the other chains from the order on purpose; their configs stay.
+  const missing = TON_ONLY ? [] : [...configKeys].filter((k) => !supportedSet.has(k as ApiChain));
   if (missing.length) {
     throw new Error(`SUPPORTED_CHAINS is missing chains from CHAIN_CONFIG: ${missing.join(', ')}`);
   }

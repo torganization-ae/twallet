@@ -11,11 +11,9 @@ import {
 addActionHandler('loadPriceHistory', async (global, actions, payload) => {
   const { slug, period, currency = global.settings.baseCurrency } = payload ?? {};
 
-  const history = await callApi('fetchPriceHistory', slug, period, currency);
-
-  if (!history) {
-    return;
-  }
+  // An empty list, not `undefined` — the latter keeps the chart in its loading state forever
+  // when the price backend is unreachable (or cut off by `NO_BACKEND`).
+  const history = await callApi('fetchPriceHistory', slug, period, currency) ?? [];
 
   global = getGlobal();
   global = updateTokenPriceHistory(global, slug, { [period]: history });

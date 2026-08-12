@@ -10,7 +10,7 @@ import type {
 } from '../types';
 import type { DefaultNftUpdateArgument } from './websocket/abstractWsClient';
 
-import { BRILLIANT_API_BASE_URL } from '../../config';
+import { BRILLIANT_API_BASE_URL, NO_BACKEND } from '../../config';
 import safeExec from '../../util/safeExec';
 import withCache from '../../util/withCache';
 import { AbstractWebsocketClient } from './websocket/abstractWsClient';
@@ -34,6 +34,10 @@ class BackendSocket extends AbstractWebsocketClient<
 > {
   constructor(network: ApiNetwork) {
     super(getSocketUrl(network));
+  }
+
+  protected isSocketTransportEnabled() {
+    return !NO_BACKEND;
   }
 
   protected handleSocketMessage: InMessageCallback<ApiServerSocketMessage> = (message) => {

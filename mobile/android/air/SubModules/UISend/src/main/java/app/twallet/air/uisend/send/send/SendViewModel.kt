@@ -6,6 +6,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -414,7 +416,20 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
         .flatMapLatest { i ->
             flow {
                 when (i) {
-                    is InputStateFull.Complete -> emit(callEstimate(i))
+                    // ponytail: a draft that failed or never answered was never retried, so the
+                    // button stayed on "Waiting for Network" (or the spinner) until the user
+                    // edited a field. Retry until the estimate gives a real answer; cancelled
+                    // automatically by flatMapLatest as soon as the input changes.
+                    is InputStateFull.Complete -> while (true) {
+                        val result = withTimeoutOrNull(ESTIMATE_TIMEOUT_MS) { callEstimate(i) }
+                        if (result != null) {
+                            emit(result)
+                            if (result !is DraftResult.Error || !result.isTransportFailure)
+                                break
+                        }
+                        delay(ESTIMATE_RETRY_DELAY_MS)
+                    }
+
                     is InputStateFull.Incomplete -> emit(null)
                 }
             }
@@ -433,7 +448,14 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
             val anyError: MApiAnyDisplayError?,
             override val maxToSend: TokenEquivalent?,
             override val dieselStatus: MDieselStatus?,
-        ) : DraftResult()
+        ) : DraftResult() {
+            // The call did not come back with any answer from the API (bridge failure, timeout,
+            // no connection) — the only case worth retrying; real API errors are shown as-is.
+            val isTransportFailure: Boolean
+                get() = error?.parsed != MBridgeError.INSUFFICIENT_BALANCE &&
+                    anyError == null &&
+                    (error?.parsedResult as? MApiCheckTransactionDraftResult)?.error == null
+        }
 
         data class Result(
             override val request: InputStateFull.Complete,
@@ -751,6 +773,9 @@ class SendViewModel : ViewModel(), WalletCore.EventObserver {
     }
 
     companion object {
+        private const val ESTIMATE_TIMEOUT_MS = 30_000L
+        private const val ESTIMATE_RETRY_DELAY_MS = 5_000L
+
         val INVALID_ADDRESS_ERRORS = setOf(
             MApiAnyDisplayError.DOMAIN_NOT_RESOLVED,
             MApiAnyDisplayError.INVALID_ADDRESS,

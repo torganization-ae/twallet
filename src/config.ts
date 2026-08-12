@@ -126,6 +126,13 @@ export const TEMPORARY_ACCOUNT_NAME = 'Wallet';
 
 export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'https://api.mywallet.io';
 export const PROXY_API_BASE_URL = process.env.PROXY_API_BASE_URL || 'https://api.mywallet.io/proxy';
+/**
+ * The `api.mywallet.io` backend allow-lists CORS origins (localhost + *.mywallet.io + `null`),
+ * so every request from a production web origin is blocked. All calls to it are cut and the
+ * features that depend on it are hidden — the same way on every platform.
+ * Set to `false` once the backend is reachable (e.g. behind our own CORS proxy).
+ */
+export const NO_BACKEND = true;
 export const IPFS_GATEWAY_BASE_URL = 'https://ipfs.io/ipfs/';
 export const SSE_BRIDGE_URL = process.env.TONCONNECT_BRIDGE_URL || 'https://bridge.tonapi.io/bridge/';
 
@@ -207,7 +214,7 @@ export const PROXY_HOSTS = process.env.PROXY_HOSTS;
 export const TINY_TRANSFER_MAX_COST = 0.01;
 
 export const IMAGE_CACHE_NAME = IS_EXPLORER ? 'explorer-image' : 'twallet-image';
-export const LANG_CACHE_NAME = 'twallet-lang-328';
+export const LANG_CACHE_NAME = 'twallet-lang-329';
 
 export const LANG_LIST: LangItem[] = [{
   langCode: 'en',
@@ -273,6 +280,11 @@ export const NO_SWAP = process.env.NO_SWAP === '1';
 export const NO_PORTFOLIO = process.env.NO_PORTFOLIO === '1';
 export const NO_MFA = process.env.NO_MFA === '1';
 export const NO_LEDGER = process.env.NO_LEDGER === '1';
+// TON-only build (default): hides the Networks settings page and drops every non-TON chain from
+// the supported/display order, so nothing derives wallets for, polls or renders them. The
+// multichain code stays in the repo — set `TON_ONLY=0` (as the tests do) to bring it back, and
+// flip the NO_TRON/NO_SOLANA/NO_EVM webpack defaults to '0' so the SDKs are bundled again.
+export const TON_ONLY = process.env.TON_ONLY !== '0';
 export const VALIDATION_PERIOD_MS = 65_536_000; // 18.2 h.
 export const ONE_TON = 1_000_000_000n;
 export const DEFAULT_FEE = 15_000_000n; // 0.015 TON

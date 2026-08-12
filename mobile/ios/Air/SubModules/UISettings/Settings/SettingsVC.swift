@@ -329,7 +329,6 @@ public class SettingsVC: SettingsBaseVC, Sendable, WalletCoreData.EventsObserver
         }
         snapshot.appendItems([.notifications])
         snapshot.appendItems([.language])
-        snapshot.appendItems([.networks])
                 
         return snapshot
     }

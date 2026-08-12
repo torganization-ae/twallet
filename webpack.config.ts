@@ -367,6 +367,13 @@ export default function createConfig(
         MFA_API_BASE_URL: '',
         MFA_MASTER_ADDRESS: '',
         MFA_EXTENSION_CODE_HASH: '',
+        // TON-only build: `TON_ONLY` hides the other chains in the UI/polling, the `NO_*` flags
+        // drop their SDKs and deps from the bundle, so nothing can reach their RPCs.
+        TON_ONLY: '1',
+        NO_TON: '0',
+        NO_TRON: '1',
+        NO_SOLANA: '1',
+        NO_EVM: '1',
       }),
       new ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],

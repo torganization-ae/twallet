@@ -21,10 +21,10 @@ const defaultI18nSourceFilename = path.resolve(generatedI18nDir, 'en.yaml');
 const defaultI18nFilename = path.resolve(generatedI18nDir, 'en.json');
 
 const cspConnectSrcHosts = [
-  'https://toncenter.com/',
   'https://raw.githubusercontent.com/ton-blockchain/wallets-list/',
   'https://bridge.tonapi.io/',
   MFA_API_URL,
+  DEFAULT_TON_ENDPOINTS.mainnet.rpcUrl,
   DEFAULT_TON_ENDPOINTS.mainnet.apiUrl,
 ].filter(Boolean).join(' ');
 

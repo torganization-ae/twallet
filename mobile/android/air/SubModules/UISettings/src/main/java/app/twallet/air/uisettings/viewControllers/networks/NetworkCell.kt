@@ -104,9 +104,10 @@ class NetworkCell(
     }
 
     override fun updateTheme() {
+        // The block starts with the header cell, so network cells never round their top
         setBackgroundColor(
             WColor.Background.color,
-            if (isFirst) ViewConstants.TOOLBAR_RADIUS.dp else 0f,
+            0f,
             if (isLast) ViewConstants.BLOCK_RADIUS.dp else 0f
         )
         addRippleEffect(WColor.SecondaryBackground.color)
@@ -120,7 +121,6 @@ class NetworkCell(
         applyStatusDot()
     }
 
-    private var isFirst = false
     private var isLast = false
     private var status: NetworkStatus = NetworkStatus.ACTIVE
     private lateinit var onClick: () -> Unit
@@ -131,12 +131,10 @@ class NetworkCell(
         title: String,
         subtitle: String,
         status: NetworkStatus,
-        isFirst: Boolean,
         isLast: Boolean,
         onClick: () -> Unit,
         onMenuClick: (View) -> Unit,
     ) {
-        this.isFirst = isFirst
         this.isLast = isLast
         this.status = status
         updateTheme()

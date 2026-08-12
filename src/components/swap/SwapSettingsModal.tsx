@@ -295,6 +295,9 @@ function SwapSettingsContent({
           </>
         )}
       </div>
+      {swapType === SwapType.OnChain && (
+        <div className={styles.advancedProvider}>{lang('$swap_provided_by_dedust')}</div>
+      )}
       <div className={modalStyles.buttons}>
         <Button
           className={modalStyles.button}

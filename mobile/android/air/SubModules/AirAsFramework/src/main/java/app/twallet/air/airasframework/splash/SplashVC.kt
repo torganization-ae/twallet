@@ -71,6 +71,7 @@ import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.helpers.AutoLockHelper
 import app.twallet.air.walletcontext.helpers.BiometricHelpers
 import app.twallet.air.walletcontext.helpers.LaunchConfig
+import app.twallet.air.walletcontext.helpers.TmailHelpers
 import app.twallet.air.walletcontext.helpers.WordCheckMode
 import app.twallet.air.walletcontext.models.MBlockchainNetwork
 import app.twallet.air.walletcontext.models.MWalletSettingsViewMode
@@ -585,7 +586,8 @@ class SplashVC(context: Context) : WViewController(context),
         button.setOnClickListener {
             QrScannerDialog.build(context) {
                 val text = it.trim()
-                var address = text
+                // TMail share QR wraps the mailbox in a URL; unwrap it into the address field.
+                var address = TmailHelpers.parseShareQr(text) ?: text
                 if (parseDeepLinks) {
                     val deeplink = runCatching { DeeplinkParser.parse(text.toUri()) }.getOrNull()
                     if (deeplink is Deeplink.Invoice) {
