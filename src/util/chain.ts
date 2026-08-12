@@ -888,7 +888,8 @@ export const VIEW_ACCOUNT_EVM_PARAM = 'evm';
 if (DEBUG) {
   const configKeys = new Set(Object.keys(CHAIN_CONFIG));
   const supportedSet = new Set<ApiChain>(CHAIN_ORDER);
-  const missing = [...configKeys].filter((k) => !supportedSet.has(k as ApiChain));
+  // A TON-only build drops the other chains from the order on purpose; their configs stay.
+  const missing = TON_ONLY ? [] : [...configKeys].filter((k) => !supportedSet.has(k as ApiChain));
   if (missing.length) {
     throw new Error(`SUPPORTED_CHAINS is missing chains from CHAIN_CONFIG: ${missing.join(', ')}`);
   }
