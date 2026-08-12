@@ -280,6 +280,11 @@ export const NO_SWAP = process.env.NO_SWAP === '1';
 export const NO_PORTFOLIO = process.env.NO_PORTFOLIO === '1';
 export const NO_MFA = process.env.NO_MFA === '1';
 export const NO_LEDGER = process.env.NO_LEDGER === '1';
+// TON-only build (default): hides the Networks settings page and drops every non-TON chain from
+// the supported/display order, so nothing derives wallets for, polls or renders them. The
+// multichain code stays in the repo — set `TON_ONLY=0` (as the tests do) to bring it back, and
+// flip the NO_TRON/NO_SOLANA/NO_EVM webpack defaults to '0' so the SDKs are bundled again.
+export const TON_ONLY = process.env.TON_ONLY !== '0';
 export const VALIDATION_PERIOD_MS = 65_536_000; // 18.2 h.
 export const ONE_TON = 1_000_000_000n;
 export const DEFAULT_FEE = 15_000_000n; // 0.015 TON

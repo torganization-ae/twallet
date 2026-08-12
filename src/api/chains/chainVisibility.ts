@@ -1,5 +1,6 @@
 import type { ApiChain, ApiNetwork } from '../types';
 
+import { TON_ONLY } from '../../config';
 import { storage } from '../storages';
 import { getSharedBuiltinChains, isSharedChainDefaultEnabled } from './networksConfig';
 
@@ -115,7 +116,20 @@ async function ensureLoaded() {
 }
 
 export function getHiddenChainsSnapshot(network: ApiNetwork): ReadonlySet<ApiChain> {
-  return new Set(hiddenChainsCache[network] ?? []);
+  const hidden = new Set(hiddenChainsCache[network] ?? []);
+  hideNonTonChains(hidden);
+  return hidden;
+}
+
+/**
+ * TON-only build: every non-TON chain counts as hidden regardless of stored state, so
+ * accounts created before the switch stop being polled and stop showing up in the UI.
+ */
+function hideNonTonChains(hidden: Set<ApiChain>) {
+  if (!TON_ONLY) return;
+  for (const chain of allNonTonChains()) {
+    hidden.add(chain);
+  }
 }
 
 export function getHiddenChainsStateSnapshot(): HiddenChainsByNetwork {
@@ -151,6 +165,7 @@ async function persistVaultAccounts() {
 export async function getHiddenChains(network: ApiNetwork, accountId?: string): Promise<Set<ApiChain>> {
   await ensureLoaded();
   const hidden = new Set(hiddenChainsCache[network] ?? []);
+  hideNonTonChains(hidden);
 
   if (accountId) {
     for (const chain of accountHiddenChainsCache[accountId]?.[network] ?? []) {

@@ -7,6 +7,7 @@ import type { IAnchorPosition } from '../../../../global/types';
 import type { Layout } from '../../../../hooks/useMenuPosition';
 import { SettingsState } from '../../../../global/types';
 
+import { TON_ONLY } from '../../../../config';
 import buildClassName from '../../../../util/buildClassName';
 import { getChainConfig, getChainTitle } from '../../../../util/chain';
 import { copyTextToClipboard } from '../../../../util/clipboard';
@@ -114,7 +115,7 @@ function AddressMenu({
           onMenuClose={onClose}
         />
       ))}
-      <NetworksButton onClick={handleNetworksClick} lang={lang} />
+      {!TON_ONLY && <NetworksButton onClick={handleNetworksClick} lang={lang} />}
     </Menu>
   );
 }

@@ -7,6 +7,10 @@ import { TextDecoder, TextEncoder } from 'node:util';
 
 jest.mock('../src/lib/rlottie/RLottie');
 
+// The shipped build is TON-only, but the multichain code is kept and still covered by these
+// suites. `chain.tonOnly.test.ts` re-imports the modules with the flag on.
+process.env.TON_ONLY = '0';
+
 Object.assign(global, {
   Buffer,
 });
