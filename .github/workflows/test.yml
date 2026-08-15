@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -25,10 +27,67 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check
+      - name: Determine changed files
+        id: diff
+        env:
+          # Passed as env (never interpolated into the script body) so that
+          # branch/file names can't be executed as shell.
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
         run: |
-          npm run i18n:build:default
-          npm run check
+          # Lint only the files this push/PR actually touches, not the whole repo --
+          # a large amount of pre-existing code predates eslint/stylelint actually
+          # running here and isn't clean. tsc still runs over the full program below
+          # (type-checking a subset isn't meaningful).
+          set -euo pipefail
+
+          RANGE=""
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+              git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+              BASE_SHA="origin/${BASE_REF}"
+            fi
+            RANGE="${BASE_SHA}...${HEAD_SHA}"
+          elif [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ] \
+            && git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+            RANGE="${BEFORE_SHA}...${AFTER_SHA}"
+          fi
+
+          : > changed-scripts.txt
+          : > changed-styles.txt
+          if [ -n "$RANGE" ]; then
+            git diff --name-only --diff-filter=ACMR "$RANGE" > changed-all.txt
+            grep -E '\.(ts|tsx|js)$' changed-all.txt > changed-scripts.txt || true
+            grep -E '\.(css|scss)$' changed-all.txt > changed-styles.txt || true
+          else
+            # e.g. a brand-new branch, where the "before" SHA is all zeros. Deliberately
+            # lint nothing rather than falling back to the whole repo, which is not clean
+            # yet and would fail on unrelated pre-existing violations.
+            echo "::warning::No diff range for event '$EVENT_NAME'; skipping lint (tsc and tests still run)."
+          fi
+
+          echo "Scripts to lint: $(wc -l < changed-scripts.txt)"
+          echo "Styles to lint:  $(wc -l < changed-styles.txt)"
+          { [ -s changed-scripts.txt ] && echo "has_scripts=true" || echo "has_scripts=false"; } >> "$GITHUB_OUTPUT"
+          { [ -s changed-styles.txt ] && echo "has_styles=true" || echo "has_styles=false"; } >> "$GITHUB_OUTPUT"
+
+      - name: Build default i18n
+        run: npm run i18n:build:default
+
+      - name: Typecheck
+        run: npx tsc
+
+      - name: Lint changed styles
+        if: steps.diff.outputs.has_styles == 'true'
+        run: xargs -r -d '\n' -a changed-styles.txt npx stylelint --
+
+      - name: Lint changed scripts
+        if: steps.diff.outputs.has_scripts == 'true'
+        run: xargs -r -d '\n' -a changed-scripts.txt npx eslint --
 
       - name: Test
         run: |

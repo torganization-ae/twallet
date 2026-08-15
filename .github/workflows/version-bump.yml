@@ -1,0 +1,72 @@
+# Auto-bumps package.json's patch version (and public/version.txt) on every push to
+# develop -- i.e. every merged PR -- so staging/beta builds show a version that
+# actually changes between builds instead of staying frozen.
+#
+# Skips its own bump commits (tagged "[skip version-bump]") to avoid re-triggering itself.
+
+name: Bump version
+
+on:
+  push:
+    branches:
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bump-version:
+    name: Bump patch version
+    runs-on: ubuntu-latest
+    if: >-
+      github.repository == 'torganization-ae/twallet' &&
+      !contains(github.event.head_commit.message, '[skip version-bump]')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Bump patch version and push
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # If someone pushes to develop while this job runs, our push is rejected as
+          # non-fast-forward. Recompute the bump from the new tip rather than rebasing
+          # the existing commit: the version we picked may already be taken, so the
+          # bump has to be derived from whatever develop actually holds now.
+          for attempt in 1 2 3; do
+            git fetch --no-tags origin '+refs/heads/develop:refs/remotes/origin/develop'
+            git reset --hard origin/develop
+
+            # --ignore-scripts is required: the repo's "postversion" hook runs
+            # `git commit --amend`, which would rewrite develop's tip here.
+            npm version patch --no-git-tag-version --ignore-scripts
+
+            NEW_VERSION=$(node -p "require('./package.json').version")
+            printf '%s' "$NEW_VERSION" > public/version.txt
+
+            git add package.json package-lock.json public/version.txt
+            git commit -m "chore: bump version to $NEW_VERSION [skip version-bump]"
+
+            if git push origin HEAD:develop; then
+              echo "Bumped version to $NEW_VERSION (attempt $attempt)."
+              exit 0
+            fi
+
+            echo "::warning::Push rejected on attempt $attempt (develop moved); retrying from its new tip."
+          done
+
+          echo "::error::Could not push the version bump after 3 attempts."
+          exit 1
