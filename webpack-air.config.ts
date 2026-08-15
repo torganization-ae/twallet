@@ -91,6 +91,7 @@ export default function createConfig(
         SWAP_FEE_ADDRESS: '',
         DIESEL_ADDRESS: '',
         PROXY_API_BASE_URL: '',
+        PRICES_API_BASE_URL: '',
         WALLET_CONNECT_PROJECT_ID: '',
         WALLET_CONNECT_PAY_APP_ID: '',
         MFA_API_BASE_URL: '',

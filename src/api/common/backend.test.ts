@@ -55,4 +55,23 @@ describe('backend API helpers', () => {
     await expect(callBackendPost('/swap/estimate', {})).rejects.toThrow('Backend is disabled');
     expect(mockFetchJson).not.toHaveBeenCalled();
   });
+
+  it('sends price requests to the prices backend while the main one is cut off', async () => {
+    jest.resetModules();
+    jest.doMock('../../config', () => ({
+      ...jest.requireActual('../../config'),
+      NO_BACKEND: true,
+      PRICES_API_BASE_URL: 'https://prices.example.test',
+    }));
+
+    const { callBackendGet } = await import('./backend');
+
+    await callBackendGet('/currency-rates');
+    expect(mockFetchJson.mock.calls[0][0].toString()).toBe('https://prices.example.test/currency-rates');
+
+    await callBackendGet('/prices/chart/ton:TON', { period: '7D' });
+    expect(mockFetchJson.mock.calls[1][0].toString()).toBe('https://prices.example.test/prices/chart/ton:TON');
+
+    await expect(callBackendGet('/swap/assets')).rejects.toThrow('Backend is disabled');
+  });
 });

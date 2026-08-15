@@ -133,6 +133,8 @@ export const PROXY_API_BASE_URL = process.env.PROXY_API_BASE_URL || 'https://api
  * Set to `false` once the backend is reachable (e.g. behind our own CORS proxy).
  */
 export const NO_BACKEND = true;
+export const PRICES_API_BASE_URL = process.env.PRICES_API_BASE_URL || 'https://nexus-ton.testprojects.org';
+export const HAS_PRICES_BACKEND = !NO_BACKEND || Boolean(PRICES_API_BASE_URL);
 export const IPFS_GATEWAY_BASE_URL = 'https://ipfs.io/ipfs/';
 export const SSE_BRIDGE_URL = process.env.TONCONNECT_BRIDGE_URL || 'https://bridge.tonapi.io/bridge/';
 
