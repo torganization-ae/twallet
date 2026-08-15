@@ -69,6 +69,13 @@ export interface ApiToken {
   isVerified?: boolean;
   /** Flagged phishing / dust / unknown spam — shown only in Hidden/Spam folder. */
   isSpam?: boolean;
+  /**
+   * Raw registry status from the backend, when known (`/assets`): 'whitelist' | 'graylist'
+   * | 'blacklist' | 'none'. This is the authoritative signal for default show/hide — see
+   * `isSafeAsset`/`isSpamAsset` in `global/selectors/tokens.ts`. Absent for tokens the backend
+   * hasn't reviewed at all (e.g. a freshly on-chain-discovered jetton).
+   */
+  verification?: 'whitelist' | 'graylist' | 'blacklist' | 'none';
 }
 
 export type ApiTokenWithPrice = ApiToken & {

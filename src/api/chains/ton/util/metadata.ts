@@ -625,10 +625,18 @@ export function parseTonapiioNft(
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     const isWhitelisted = trust === 'whitelist';
+    // `isScam` is the narrow "this looks malicious" signal, used for scam-specific warnings
+    // (activity feed, NFT viewer). A whitelisted collection is trusted outright.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    const isScam = hasScamLink || description === 'SCAM' || trust === 'blacklist';
-    const isHidden = renderType === 'hidden' || isScam;
-    const imageFromPreview = previews!.find((x) => x.resolution === '1500x1500')!.url;
+    const isScam = !isWhitelisted && (hasScamLink || description === 'SCAM' || trust === 'blacklist');
+    // Default-deny: only an explicit TonAPI "whitelist" verdict shows an NFT by default. `trust: 'none'`
+    // (not reviewed) and any other value are hidden, same as a real scam — being unverified is not the
+    // same as being safe. The user can still restore any individual NFT from the Hidden NFTs screen.
+    // `render_type: 'hidden'` (the collection's own placeholder/burned-item marker) hides an NFT even
+    // within an otherwise-whitelisted collection.
+    const isHidden = !isWhitelisted || renderType === 'hidden';
+    // Fallback to first available preview if specific resolution not found
+    const imageFromPreview = previews?.find((x) => x.resolution === '1500x1500')?.url || previews?.[0]?.url;
     const isFragmentGift = getIsFragmentGift(nftSuperCollectionsByCollectionAddress, collectionAddress);
 
     const metadata = {
@@ -648,7 +656,7 @@ export function parseTonapiioNft(
       ownerAddress: owner ? toBase64Address(owner.address, false, network) : undefined,
       address: toBase64Address(address, true, network),
       image: fixIpfsUrl(imageFromPreview || image || ''),
-      thumbnail: previews!.find((x) => x.resolution === '500x500')!.url,
+      thumbnail: previews?.find((x) => x.resolution === '500x500')?.url || previews?.[0]?.url || '',
       isOnSale: Boolean(sale),
       isHidden,
       isScam,

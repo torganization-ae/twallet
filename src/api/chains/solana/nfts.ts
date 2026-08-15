@@ -229,6 +229,7 @@ function parseHeliusNft(rawNft: SolanaSPLToken): ApiNft {
     }
   }
 
+  // TODO (nfts) Add verified/trusted collection support when Helius API provides it
   const isScam = hasScamLink || description === 'SCAM';
 
   const metadata: ApiNftMetadata = {

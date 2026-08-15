@@ -65,11 +65,7 @@ import { logDebugError } from '../../../../util/logs';
 import safeExec from '../../../../util/safeExec';
 import { getIsFragmentGift, readComment } from '../util/metadata';
 import { toBase64Address } from '../util/tonCore';
-import {
-  checkHasScamLink,
-  checkIsTrustedCollection,
-  getNftSuperCollectionsByCollectionAddress,
-} from '../../../common/addresses';
+import { getNftSuperCollectionsByCollectionAddress } from '../../../common/addresses';
 import { updateActivityMetadata } from '../../../common/helpers';
 import { buildTokenSlug, getTokenBySlug } from '../../../common/tokens';
 import {
@@ -1001,18 +997,13 @@ function parseToncenterNft(
       return { nft };
     }
 
-    let hasScamLink = false;
-
-    if (!collectionAddress || !checkIsTrustedCollection(collectionAddress)) {
-      for (const text of [name, description].filter(Boolean)) {
-        if (checkHasScamLink(text)) {
-          hasScamLink = true;
-        }
-      }
-    }
-
-    const isScam = hasScamLink; // TODO (actions) Replace with real value when Toncenter supports it
-    const isHidden = extra?.render_type === 'hidden' || isScam;
+    // Scam/trust status is decided in exactly one place: `parseTonapiioNft` (TonAPI has the `trust`
+    // field needed to tell a scam-looking link in a *verified* collection from a real scam; Toncenter
+    // doesn't). This function only reports what Toncenter actually knows — the NFT's own `render_type`
+    // — and leaves `isScam`/`isHidden` unset otherwise, so this activity-derived snapshot can never
+    // out-vote the authoritative status already stored for the NFT (see the merge in `addNft`,
+    // `src/global/reducers/nfts.ts`).
+    const isHidden = extra?.render_type === 'hidden' || undefined;
     const isFragmentGift = getIsFragmentGift(nftSuperCollectionsByCollectionAddress, collectionAddress);
     const fixedImage = image ? fixIpfsUrl(image) : undefined;
 

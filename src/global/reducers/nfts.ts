@@ -7,8 +7,11 @@ import { updateAccountState } from './misc';
 export function addNft(global: GlobalState, accountId: string, nft: ApiNft, shouldAppendToEnd?: boolean) {
   const nftAddress = nft.address;
   const nfts = selectAccountState(global, accountId)?.nfts;
+  const existingNft = nfts?.byAddress?.[nftAddress];
   const orderedAddresses = (nfts?.orderedAddresses ?? []).filter((address) => address !== nftAddress);
-  const byAddress = { ...nfts?.byAddress, [nftAddress]: nft };
+  // Merge (not replace): a lower-fidelity source (e.g. an activity-derived NFT snapshot) omits fields
+  // it can't determine, and must not erase a known value set by a more authoritative source.
+  const byAddress = { ...nfts?.byAddress, [nftAddress]: existingNft ? { ...existingNft, ...nft } : nft };
 
   return updateAccountState(global, accountId, {
     nfts: {

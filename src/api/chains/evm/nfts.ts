@@ -180,6 +180,7 @@ function parseAlchemyNft(rawNft: AlchemyOwnedNft, chain: EVMChain, ownerAddress:
   const imageUrl = image.cachedUrl || image.originalUrl || '';
   const thumbnailUrl = image.thumbnailUrl || imageUrl;
 
+  // TODO (nfts) Add verified/trusted collection support when Alchemy API provides it
   let isScam = false;
   for (const text of [name, description].filter(Boolean)) {
     if (checkHasScamLink(text)) {
