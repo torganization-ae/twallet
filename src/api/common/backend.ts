@@ -1,6 +1,4 @@
-import {
-  APP_ENV, APP_NAME, APP_VERSION, BRILLIANT_API_BASE_URL, NO_BACKEND, PRICES_API_BASE_URL,
-} from '../../config';
+import { API_BASE_URL, APP_ENV, APP_NAME, APP_VERSION, NO_BACKEND } from '../../config';
 import { bucketKey } from '../../util/circuit-breaker';
 import { fetchJson, fetchWithRetry, fetchWithTimeout, handleFetchErrors } from '../../util/fetch';
 import { getEnvironment } from '../environment';
@@ -8,24 +6,19 @@ import { getClientId } from './other';
 
 const BAD_REQUEST_CODE = 400;
 
-/** Thrown instead of hitting `BRILLIANT_API_BASE_URL` while `NO_BACKEND` is on. */
+/** Thrown instead of hitting `API_BASE_URL` with a path the backend doesn't serve yet. */
 export class BackendDisabledError extends Error {
   constructor(path: string) {
     super(`Backend is disabled, skipped ${path}`);
   }
 }
 
-// Prices, token list and currency rates are also served by our own backend (`PRICES_API_BASE_URL`),
-// with the same contract — those paths go there and stay alive while `NO_BACKEND` cuts the rest.
-const PRICES_PATH_RE = /^\/(assets|currency-rates|prices\/)/;
+// The part of the `api.mywallet.io` contract our backend already implements. Extend it as the
+// backend grows; `NO_BACKEND = false` lifts the restriction entirely.
+const SUPPORTED_PATHS_RE = /^\/(assets|currency-rates|prices\/)/;
 
-/** The host to send `path` to, or `undefined` when no reachable backend serves it. */
-function getBaseUrl(path: string) {
-  if (PRICES_API_BASE_URL && PRICES_PATH_RE.test(path)) {
-    return PRICES_API_BASE_URL;
-  }
-
-  return NO_BACKEND ? undefined : BRILLIANT_API_BASE_URL;
+function isPathSupported(path: string) {
+  return !NO_BACKEND || SUPPORTED_PATHS_RE.test(path);
 }
 
 export async function callBackendPost<T>(path: string, data: AnyLiteral, options?: {
@@ -35,8 +28,7 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
   shouldRetry?: boolean;
   timeout?: number;
 }): Promise<T> {
-  const baseUrl = getBaseUrl(path);
-  if (!baseUrl) {
+  if (!isPathSupported(path)) {
     throw new BackendDisabledError(path);
   }
 
@@ -44,13 +36,13 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
     authToken, isAllowBadRequest, method, shouldRetry, timeout,
   } = options ?? {};
 
-  const url = new URL(`${baseUrl}${path}`);
+  const url = new URL(`${API_BASE_URL}${path}`);
 
   const init: RequestInit = {
     method: method ?? 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(baseUrl === BRILLIANT_API_BASE_URL && getBackendHeaders()),
+      ...(NO_BACKEND ? undefined : getBackendHeaders()),
       ...(authToken && { 'X-Auth-Token': authToken }),
     },
     body: JSON.stringify(data),
@@ -71,17 +63,17 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
 }
 
 export function callBackendGet<T extends AnyLiteral>(path: string, data?: AnyLiteral, headers?: HeadersInit) {
-  const baseUrl = getBaseUrl(path);
-  if (!baseUrl) {
+  if (!isPathSupported(path)) {
     return Promise.reject(new BackendDisabledError(path)) as Promise<T>;
   }
 
-  const url = new URL(`${baseUrl}${path}`);
+  const url = new URL(`${API_BASE_URL}${path}`);
 
   return fetchJson<T>(url, data, {
     headers: {
       ...headers,
-      ...(baseUrl === BRILLIANT_API_BASE_URL && getBackendHeaders()),
+      // Our backend doesn't need them, and unlisted `X-App-*` headers only cost a CORS preflight
+      ...(NO_BACKEND ? undefined : getBackendHeaders()),
     },
   }, {
     bucketKey: bucketKey(url, { includePathPrefix: true }),

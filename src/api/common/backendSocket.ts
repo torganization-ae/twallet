@@ -10,7 +10,7 @@ import type {
 } from '../types';
 import type { DefaultNftUpdateArgument } from './websocket/abstractWsClient';
 
-import { BRILLIANT_API_BASE_URL, NO_BACKEND } from '../../config';
+import { API_BASE_URL, NO_BACKEND } from '../../config';
 import safeExec from '../../util/safeExec';
 import withCache from '../../util/withCache';
 import { AbstractWebsocketClient } from './websocket/abstractWsClient';
@@ -144,7 +144,7 @@ class BackendSocket extends AbstractWebsocketClient<
 }
 
 function getSocketUrl(network: ApiNetwork) {
-  const url = new URL(BRILLIANT_API_BASE_URL);
+  const url = new URL(API_BASE_URL);
   url.protocol = url.protocol === 'http' ? 'ws' : 'wss';
   url.pathname += `${network === 'testnet' ? 'testnet/' : ''}ws`;
   addBackendHeadersToSocketUrl(url);

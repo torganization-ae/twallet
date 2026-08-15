@@ -12,7 +12,7 @@ import type {
   UserToken,
 } from '../../../../global/types';
 
-import { DEFAULT_PRICE_CURRENCY, HAS_PRICES_BACKEND, HISTORY_PERIODS, TONCOIN } from '../../../../config';
+import { DEFAULT_PRICE_CURRENCY, HISTORY_PERIODS, TONCOIN } from '../../../../config';
 import {
   selectCurrentAccountState,
   selectUserTokenMemoized,
@@ -208,8 +208,7 @@ function ChartCard({
   const withChange = !isNetWorthMode && Boolean(change !== undefined);
   const historyStartDay = history?.length ? new Date(history[0][0] * 1000) : undefined;
   const withExplorerButton = Boolean(token?.cmcSlug || tokenAddress);
-  const shouldHideChartPeriodSwitcher = !HAS_PRICES_BACKEND
-    || (!history?.length && (isNetWorthMode || token?.priceUsd === 0));
+  const shouldHideChartPeriodSwitcher = !history?.length && (isNetWorthMode || token?.priceUsd === 0);
 
   const color = useMemo(() => calculateTokenCardColor(token), [token]);
 

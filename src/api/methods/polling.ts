@@ -14,7 +14,7 @@ import type {
   OnApiUpdate,
 } from '../types';
 
-import { HAS_PRICES_BACKEND, NO_BACKEND, NO_MFA, NO_SWAP } from '../../config';
+import { NO_BACKEND, NO_MFA, NO_SWAP } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { findChainConfig } from '../../util/chain';
@@ -90,7 +90,8 @@ export function initPolling(_onUpdate: OnApiUpdate) {
   void Promise.allSettled([
     // The swap token list comes from DeDust, so it doesn't need our backend
     ...(NO_SWAP ? [] : [tryUpdateSwapTokens()]),
-    ...(HAS_PRICES_BACKEND ? [tryUpdateTokens(), tryUpdateCurrencyRates()] : []),
+    tryUpdateTokens(),
+    tryUpdateCurrencyRates(),
     ...(NO_BACKEND ? [] : [tryUpdateKnownAddresses()]),
   ]).then(() => resolveDataPreloadPromise());
 
@@ -100,9 +101,7 @@ export function initPolling(_onUpdate: OnApiUpdate) {
     void tryUpdateConfig();
   }
 
-  if (HAS_PRICES_BACKEND) {
-    stopCommonBackendPolling = setupCommonBackendPolling();
-  }
+  stopCommonBackendPolling = setupCommonBackendPolling();
 }
 
 export async function destroyPolling() {
