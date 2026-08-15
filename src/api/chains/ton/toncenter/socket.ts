@@ -19,7 +19,7 @@ import type {
   StatusSocketMessage,
 } from './types';
 
-import { TONCENTER_ACTIONS_VERSION } from '../../../../config';
+import { API_BASE_URL, TONCENTER_ACTIONS_VERSION } from '../../../../config';
 import { logDebug, logDebugError } from '../../../../util/logs';
 import { type InMessageCallback } from '../../../../util/reconnectingWebsocket';
 import safeExec from '../../../../util/safeExec';
@@ -52,7 +52,16 @@ export function isFatalToncenterSocketError(error: string) {
 /**
  * Free public toncenter hosts advertise `/api/streaming/v2/ws` but allow 0 connections
  * (`connection limit reached: 0`). Opening them only produces open→1006 reconnect noise.
- * With an API key the plan may include streaming, so we still try.
+ *
+ * Our own nexus proxy (default toncenterUrl on mainnet/testnet) tunnels to the same public
+ * toncenter and inherits the 2-connections-per-outbound-IP cap across every wallet user
+ * sharing the deployment — so opening a WS through it turns "connection limit reached: 2"
+ * into a reconnect storm for everyone. Without a user-provided API key we skip streaming
+ * for both origins and let the polling fallback handle updates. Nexus with a paid toncenter
+ * key set on the backend still returns 501 on WS upgrade (see nexus proxy.go), which the
+ * fatal-error check below picks up if the client tries anyway.
+ *
+ * With a user-side API key the plan may include streaming, so we still try.
  */
 export function isToncenterStreamingLikelyAvailable(network: ApiNetwork) {
   if (getEffectiveRpcApiKey('ton', network)) {
@@ -61,9 +70,26 @@ export function isToncenterStreamingLikelyAvailable(network: ApiNetwork) {
 
   try {
     const { hostname } = new URL(NETWORK_CONFIG[network].toncenterUrl);
-    return hostname !== 'toncenter.com' && hostname !== 'testnet.toncenter.com';
+    if (hostname === 'toncenter.com' || hostname === 'testnet.toncenter.com') {
+      return false;
+    }
+    return !isNexusProxyHost(hostname);
   } catch {
     return true;
+  }
+}
+
+const nexusProxyHost = safeHost(API_BASE_URL);
+
+function isNexusProxyHost(hostname: string) {
+  return nexusProxyHost !== undefined && hostname === nexusProxyHost;
+}
+
+function safeHost(url: string): string | undefined {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return undefined;
   }
 }
 

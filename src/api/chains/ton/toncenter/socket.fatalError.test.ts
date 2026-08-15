@@ -25,9 +25,13 @@ describe('isToncenterStreamingLikelyAvailable', () => {
     expect(isToncenterStreamingLikelyAvailable('testnet')).toBe(false);
   });
 
-  it('is true for our own proxy, which allows streaming without a key', () => {
-    // Mainnet default is nexus-ton.testprojects.org/toncenter.
-    expect(isToncenterStreamingLikelyAvailable('mainnet')).toBe(true);
+  it('is false for our own nexus proxy without an API key', () => {
+    // Mainnet default is nexus-ton.testprojects.org/toncenter. The proxy tunnels to bare
+    // public toncenter and inherits its 2-connections-per-outbound-IP cap across every
+    // wallet user of the deployment — opening a WS through it just re-triggers
+    // "connection limit reached" for the whole pool. Streaming is only usable when the
+    // wallet itself is configured with a paid API key (getEffectiveRpcApiKey).
+    expect(isToncenterStreamingLikelyAvailable('mainnet')).toBe(false);
   });
 });
 

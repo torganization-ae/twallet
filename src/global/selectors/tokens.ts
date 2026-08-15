@@ -64,9 +64,14 @@ function isSafeAsset(
 ): boolean {
   if (accountSettings.alwaysShownSlugs?.includes(slug)) return true;
   if (accountSettings.importedSlugs?.includes(slug)) return true;
-  if (token.isVerified || token.isPopular || token.isFromBackend) return true;
   if (getDefaultEnabledSlugs(network).has(slug)) return true;
   if (PRICELESS_TOKEN_HASHES.has(token.codeHash!)) return true;
+  // The backend's registry status is authoritative when known: only an explicit "whitelist" is
+  // safe by default (same default-deny policy as NFT `trust`). Merely being listed by the backend
+  // (`isFromBackend`) only means "not rug-pulled", not "reviewed safe" — so it's not enough on
+  // its own once a real verification status is available.
+  if (token.verification) return token.verification === 'whitelist';
+  if (token.isVerified || token.isPopular || token.isFromBackend) return true;
 
   const balanceUsd = toBig(balance, token.decimals).mul(token.priceUsd ?? 0);
   return balanceUsd.gte(dustThresholdUsd);
@@ -80,7 +85,7 @@ function isSpamAsset(
   dustThresholdUsd: number,
   network: ReturnType<typeof parseAccountId>['network'],
 ): boolean {
-  if (token.isSpam) return true;
+  if (token.isSpam || token.verification === 'blacklist') return true;
   if (accountSettings.importedSlugs?.includes(slug)) return false;
   if (accountSettings.alwaysShownSlugs?.includes(slug)) return false;
   if (isSafeAsset(slug, token, balance, accountSettings, dustThresholdUsd, network)) return false;

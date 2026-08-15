@@ -18,7 +18,7 @@ import { NO_BACKEND, NO_MFA, NO_SWAP } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { findChainConfig } from '../../util/chain';
-import { omit } from '../../util/iteratees';
+import { omit, split } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { OrGate } from '../../util/orGate';
 import { forbidConcurrency } from '../../util/schedulers';
@@ -65,7 +65,11 @@ function isChainRpcConfigured(chain: ApiChain, network: ApiNetwork): boolean {
   return !isRpcFieldDefault(chain, network, 'rpc') && Boolean(getEffectiveRpcUrl(chain, network));
 }
 
-const MAX_POST_TOKENS = 1500;
+// Server-side cap on the number of assets accepted in a single POST /assets body
+// (nexus-ton-provider: prices.AssetsDetailsMax = 200). Sending more used to fail the whole
+// tryUpdateTokens cycle with `too many assets requested, limit is 200`, so prices stopped
+// refreshing for the entire list. We now chunk the request instead.
+const POST_TOKENS_CHUNK_SIZE = 200;
 
 let onUpdate: OnApiUpdate;
 let stopCommonBackendPolling: NoneToVoidFunction | undefined;
@@ -160,11 +164,17 @@ async function tryUpdateTokens() {
       return result;
     }, [] as string[]);
 
-    // POST is used to retrieve data due to the potentially large number of addresses
-    const nonBackendTokenDetails = nonBackendTokenAddresses.length
-      ? await callBackendPost<ApiTokenDetails[]>('/assets', {
-        assets: nonBackendTokenAddresses.slice(0, MAX_POST_TOKENS),
-      }) : undefined;
+    // POST is used to retrieve data due to the potentially large number of addresses.
+    // Chunked to POST_TOKENS_CHUNK_SIZE because the server rejects bodies over that limit
+    // outright (see the constant); doing it sequentially keeps the per-IP rate budget calm.
+    let nonBackendTokenDetails: ApiTokenDetails[] | undefined;
+    if (nonBackendTokenAddresses.length) {
+      nonBackendTokenDetails = [];
+      for (const chunk of split(nonBackendTokenAddresses, POST_TOKENS_CHUNK_SIZE)) {
+        const chunkDetails = await callBackendPost<ApiTokenDetails[]>('/assets', { assets: chunk });
+        nonBackendTokenDetails.push(...chunkDetails);
+      }
+    }
 
     await updateTokens(tokens, () => sendUpdateTokens(onUpdate), nonBackendTokenDetails, true);
   } catch (err) {
