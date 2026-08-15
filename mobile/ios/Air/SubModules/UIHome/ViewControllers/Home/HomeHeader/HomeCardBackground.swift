@@ -28,14 +28,22 @@ struct HomeCardBackground: View {
 
 private struct _GradientBackground: View {
     let accentColorIndex: Int
-    
+    @State private var isShifted = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         LinearGradient(
             colors: cardGradientColors(for: accentColorIndex),
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
+            startPoint: isShifted ? .top : .topLeading,
+            endPoint: isShifted ? .bottomTrailing : .bottom
         )
             .clipShape(.rect(cornerRadius: 26))
             .containerShape(.rect(cornerRadius: 26))
+            .onAppear {
+                guard !reduceMotion else { return }
+                withAnimation(.easeInOut(duration: 12).repeatForever(autoreverses: true)) {
+                    isShifted = true
+                }
+            }
     }
 }

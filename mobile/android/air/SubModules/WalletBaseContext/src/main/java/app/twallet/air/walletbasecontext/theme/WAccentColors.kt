@@ -31,9 +31,20 @@ object NftAccentColors {
     )
 }
 
+// Shifts a color in HSL: [saturate] and [lighten] are multipliers.
+private fun shiftColor(color: Int, saturate: Float, lighten: Float): Int {
+    val hsl = FloatArray(3)
+    ColorUtils.colorToHSL(color, hsl)
+    hsl[1] = (hsl[1] * saturate).coerceAtMost(0.92f)
+    // Additive part keeps near-black colors from collapsing into a flat gradient.
+    hsl[2] = (hsl[2] * lighten + if (lighten > 1f) 0.05f else 0f).coerceIn(0f, 0.88f)
+
+    return ColorUtils.HSLToColor(hsl)
+}
+
 fun cardGradientColors(index: Int?): IntArray {
     val color = NftAccentColors.light.getOrNull(index ?: -1) ?: "#27B1FA"
-    val startColor = Color.parseColor(color)
+    val baseColor = Color.parseColor(color)
 
-    return intArrayOf(startColor, ColorUtils.blendARGB(startColor, Color.WHITE, 0.35f))
+    return intArrayOf(shiftColor(baseColor, 1.2f, 1.06f), shiftColor(baseColor, 1.3f, 0.78f))
 }

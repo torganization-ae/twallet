@@ -201,8 +201,7 @@ export const IFRAME_WHITELIST = [
   'https://testnet.tonscan.org',
   'https://tonviewer.com',
   'https://testnet.tonviewer.com',
-  'https://app.tmail.ae',
-  'https://tmarket.ae',
+  'https://tmail.ae',
 ];
 export const SUBPROJECT_URL_MASK = 'https://*.mywallet.io';
 

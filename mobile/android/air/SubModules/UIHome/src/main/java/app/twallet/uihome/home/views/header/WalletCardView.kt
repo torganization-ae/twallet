@@ -1,5 +1,6 @@
 package app.twallet.uihome.home.views.header
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.Rect
@@ -14,6 +15,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
+import androidx.core.graphics.ColorUtils
 import androidx.core.text.buildSpannedString
 import androidx.core.text.inSpans
 import androidx.core.view.isGone
@@ -99,10 +101,25 @@ class WalletCardView(
     // PRIVATE VARIABLES ///////////////////////////////////////////////////////////////////////////
     var account: MAccount? = null
         private set
+    private var cardGradientBaseColors = cardGradientColors(null)
     private val cardGradient = GradientDrawable(
         GradientDrawable.Orientation.TL_BR,
-        cardGradientColors(null)
+        cardGradientBaseColors
     )
+
+    // Subtle brightness breathing, matching the shimmering card gradient on web.
+    private val cardGradientAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+        duration = 6000
+        repeatCount = ValueAnimator.INFINITE
+        repeatMode = ValueAnimator.REVERSE
+        addUpdateListener {
+            val weight = 0.12f * (it.animatedValue as Float)
+            cardGradient.colors = intArrayOf(
+                ColorUtils.blendARGB(cardGradientBaseColors[0], Color.WHITE, weight),
+                ColorUtils.blendARGB(cardGradientBaseColors[1], cardGradientBaseColors[0], weight)
+            )
+        }
+    }
     private var balanceAmount: BigInteger? = null
     private var isShowingSkeletons = false
     private var isPresentingImage = false
@@ -350,6 +367,12 @@ class WalletCardView(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         resumeBlurringIfNeeded()
+        cardGradientAnimator.start()
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        cardGradientAnimator.cancel()
     }
 
     override fun updateTheme() {
@@ -489,7 +512,8 @@ class WalletCardView(
 
     fun updateCardImage() {
         updateTheme()
-        cardGradient.colors = cardGradientColors(account?.accountId?.let(WGlobalStorage::getAccentColorIndex))
+        cardGradientBaseColors = cardGradientColors(account?.accountId?.let(WGlobalStorage::getAccentColorIndex))
+        cardGradient.colors = cardGradientBaseColors
         img.background = cardGradient
         clippedContainer.setConstraints {
             allEdges(img)

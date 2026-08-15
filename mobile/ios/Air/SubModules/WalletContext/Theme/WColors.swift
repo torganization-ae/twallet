@@ -42,6 +42,31 @@ public let ACCENT_SILVER_INDEX = 14
 public let ACCENT_GOLD_INDEX = 15
 public let ACCENT_BNW_INDEX = 16
 
+/// Shifts a color in HSL (via UIKit's HSB): `saturate` and `lighten` are multipliers.
+private func shiftColor(_ color: UIColor, saturate: CGFloat, lighten: CGFloat) -> UIColor? {
+    var hue: CGFloat = 0
+    var saturation: CGFloat = 0
+    var brightness: CGFloat = 0
+    var alpha: CGFloat = 0
+    guard color.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha) else {
+        return nil
+    }
+
+    var lightness = brightness * (1 - saturation / 2)
+    var hslSaturation = min(lightness, 1 - lightness) > 0
+        ? (brightness - lightness) / min(lightness, 1 - lightness)
+        : 0
+
+    hslSaturation = min(hslSaturation * saturate, 0.92)
+    // Additive part keeps near-black colors from collapsing into a flat gradient.
+    lightness = min(max(lightness * lighten + (lighten > 1 ? 0.05 : 0), 0), 0.88)
+
+    let newBrightness = lightness + hslSaturation * min(lightness, 1 - lightness)
+    let newSaturation = newBrightness > 0 ? 2 * (1 - lightness / newBrightness) : 0
+
+    return UIColor(hue: hue, saturation: newSaturation, brightness: newBrightness, alpha: alpha)
+}
+
 public func cardGradientColors(for accentColorIndex: Int?) -> [Color] {
     let hex: String
     if let accentColorIndex, ACCENT_COLORS_LIGHT.indices.contains(accentColorIndex) {
@@ -51,23 +76,12 @@ public func cardGradientColors(for accentColorIndex: Int?) -> [Color] {
     }
     let baseColor = UIColor(hex: hex)
 
-    var red: CGFloat = 0
-    var green: CGFloat = 0
-    var blue: CGFloat = 0
-    var alpha: CGFloat = 0
-    guard baseColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else {
+    guard let from = shiftColor(baseColor, saturate: 1.2, lighten: 1.06),
+          let to = shiftColor(baseColor, saturate: 1.3, lighten: 0.78) else {
         return [Color(uiColor: baseColor), .white]
     }
 
-    let whiteWeight: CGFloat = 0.35
-    let highlightedColor = UIColor(
-        red: red + (1 - red) * whiteWeight,
-        green: green + (1 - green) * whiteWeight,
-        blue: blue + (1 - blue) * whiteWeight,
-        alpha: alpha
-    )
-
-    return [Color(uiColor: baseColor), Color(uiColor: highlightedColor)]
+    return [Color(uiColor: from), Color(uiColor: to)]
 }
 
 public func closestAccentColor(for color: UIColor) -> UIColor {
