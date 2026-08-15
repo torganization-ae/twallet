@@ -5,7 +5,7 @@ import { ApiCommonError } from '../../types';
 
 import { TMAIL_DOMAIN_SUFFIX } from '../../../config';
 import { getDnsDomainZone, isTonChainDns } from '../../../util/dns';
-import { isBareTonAlias, isTmailAlias } from '../../../util/tmail';
+import { isBareTonAlias, isTmailAlias, normalizeTmailDomain } from '../../../util/tmail';
 import { dnsResolve } from './util/dns';
 import { getTonClient, toBase64Address } from './util/tonCore';
 import { getKnownAddressInfo } from '../../common/addresses';
@@ -69,7 +69,9 @@ async function resolveDomainWithName(network: ApiNetwork, domain: string): Promi
   address: string;
   name: string;
 } | undefined> {
-  const trimmed = domain.trim().toLowerCase();
+  // `@tmail.ae` is a web2-style alias for the same web3 identity — rewritten to `@tmail.ton`
+  // upfront so it resolves (and is displayed) exactly like the original tmail.ton alias.
+  const trimmed = normalizeTmailDomain(domain);
   if (!trimmed) {
     return undefined;
   }

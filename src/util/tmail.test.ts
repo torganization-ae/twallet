@@ -1,4 +1,36 @@
-import { parseTmailShareQr } from './tmail';
+import { getTmailAliasBase, isTmailAlias, normalizeTmailDomain, parseTmailShareQr } from './tmail';
+
+describe('normalizeTmailDomain', () => {
+  it('rewrites the @tmail.ae suffix to @tmail.ton', () => {
+    expect(normalizeTmailDomain('alice@tmail.ae')).toBe('alice@tmail.ton');
+    expect(normalizeTmailDomain('Alice@TMail.AE')).toBe('alice@tmail.ton');
+  });
+
+  it('leaves other domains untouched (only trims/lowercases)', () => {
+    expect(normalizeTmailDomain(' Alice@Tmail.Ton ')).toBe('alice@tmail.ton');
+    expect(normalizeTmailDomain('example.ton')).toBe('example.ton');
+  });
+});
+
+describe('isTmailAlias', () => {
+  it('accepts both @tmail.ton and @tmail.ae', () => {
+    expect(isTmailAlias('alice@tmail.ton')).toBe(true);
+    expect(isTmailAlias('alice@tmail.ae')).toBe(true);
+    expect(isTmailAlias('Alice@TMail.AE')).toBe(true);
+  });
+
+  it('rejects unrelated domains', () => {
+    expect(isTmailAlias('alice@tmail.com')).toBe(false);
+    expect(isTmailAlias('alice@example.ton')).toBe(false);
+  });
+});
+
+describe('getTmailAliasBase', () => {
+  it('extracts the same base regardless of the tmail.ton/tmail.ae suffix', () => {
+    expect(getTmailAliasBase('alice@tmail.ton')).toBe('alice');
+    expect(getTmailAliasBase('alice@tmail.ae')).toBe('alice');
+  });
+});
 
 describe('parseTmailShareQr', () => {
   it('extracts a web2 mailbox', () => {
