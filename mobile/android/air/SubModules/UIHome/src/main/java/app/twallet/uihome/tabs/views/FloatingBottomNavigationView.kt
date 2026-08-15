@@ -578,6 +578,4 @@ class FloatingBottomNavigationView(
     override fun getMinimizedWidth(): Int = pillW
 
     override fun getSettingsItemView(): View? = tabs[ID_SETTINGS]?.container
-
-    override fun getTabItemView(itemId: Int): View? = tabs[itemId]?.container
 }

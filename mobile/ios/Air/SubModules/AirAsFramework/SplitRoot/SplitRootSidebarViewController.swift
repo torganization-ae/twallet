@@ -383,8 +383,7 @@ final class SplitRootSidebarViewController: WViewController, WalletCoreData.Even
         switch item {
         case .tab(let tabId):
             if tabId.isActionOnly {
-                let source = collectionView.cellForItem(at: indexPath) ?? collectionView
-                AppActions.showProductChooser(from: source)
+                AppActions.openTmail()
             } else {
                 viewModel.onTabTap(tabId)
             }

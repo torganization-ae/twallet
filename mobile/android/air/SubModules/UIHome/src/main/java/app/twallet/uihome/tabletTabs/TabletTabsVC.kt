@@ -47,7 +47,7 @@ import app.twallet.uihome.home.status.HomeStatusController
 import app.twallet.uihome.home.views.header.HomeHeaderView
 import app.twallet.uihome.tabletTabs.views.TabletSidePanelView
 import app.twallet.uihome.tabs.BaseTabsVC
-import app.twallet.uihome.tabs.ProductChooserHelper
+import app.twallet.uihome.tabs.TmailLauncher
 import app.twallet.uihome.tabs.views.IBottomNavigationView
 import app.twallet.uihome.walletsTabs.WalletsTabsVC
 import kotlin.math.abs
@@ -385,8 +385,7 @@ class TabletTabsVC(context: Context) : BaseTabsVC(context), WThemedView,
 
     private fun selectTab(id: Int) {
         if (id == IBottomNavigationView.ID_TMAIL) {
-            val anchor = sidePanel.getTabRowView(IBottomNavigationView.ID_TMAIL) ?: sidePanel
-            ProductChooserHelper.present(anchor, this)
+            TmailLauncher.open(this)
             return
         }
         if (id == currentTabId) return

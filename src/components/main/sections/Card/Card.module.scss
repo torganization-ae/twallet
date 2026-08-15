@@ -75,10 +75,18 @@ $signSizeDiff: 0.375rem;
   background-image: linear-gradient(
     125deg,
     var(--card-gradient-from, #27B1FA),
-    var(--card-gradient-to, #0874F8)
+    var(--card-gradient-to, #0874F8),
+    var(--card-gradient-from, #27B1FA)
   );
+  background-size: 220% 220%;
+
+  animation: shimmer-gradient 12s ease-in-out infinite;
 
   @include mixins.transition('transform var(--slide-transition), filter var(--slide-transition) !important');
+
+  :global(html.animation-level-0) & {
+    animation: none;
+  }
 
   &.backstage {
     transform: translateY(-0.5625rem) scale(0.9);
@@ -933,4 +941,15 @@ $signSizeDiff: 0.375rem;
   height: 0.375rem !important;
 
   opacity: 0.75 !important;
+}
+
+@keyframes shimmer-gradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }

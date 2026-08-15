@@ -52,7 +52,7 @@ export const LEGACY_APP_HOSTS = ['mytonwallet.app'];
 // the wallet context (addresses included) and open it in the in-app iframe browser - where the site renders blank
 // under `X-Frame-Options: Deny`. `utm_source` attributes the migrated traffic.
 export const NEW_APP_URL = `${PRODUCTION_URL}?utm_source=legacy_web`;
-export const APP_INSTALL_URL = 'https://get.mywallet.io/';
+export const APP_INSTALL_URL = 'https://wallet.tmail.ae/downloads';
 export const APP_REPO_URL = 'https://github.com/torganization-ae/twallet';
 export const SELF_UNIVERSAL_HOST_URL = 'https://my.tt';
 export const APP_WEBSITE_URL = 'https://mywallet.io';
@@ -193,8 +193,7 @@ export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
 export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
 export const EMPTY_HASH_VALUE = 'NOHASH';
 
-export const TMAIL_APP_URL = 'https://app.tmail.ae';
-export const MINT_APP_URL = 'https://tmarket.ae';
+export const TMAIL_APP_URL = 'https://tmail.ae';
 
 export const IFRAME_WHITELIST = [
   'http://localhost:*',
@@ -202,8 +201,7 @@ export const IFRAME_WHITELIST = [
   'https://testnet.tonscan.org',
   'https://tonviewer.com',
   'https://testnet.tonviewer.com',
-  'https://app.tmail.ae',
-  'https://tmarket.ae',
+  'https://tmail.ae',
 ];
 export const SUBPROJECT_URL_MASK = 'https://*.mywallet.io';
 

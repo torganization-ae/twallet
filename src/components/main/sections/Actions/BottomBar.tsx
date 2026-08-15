@@ -1,16 +1,14 @@
-import type { ElementRef } from '../../../../lib/teact/teact';
-import React, {
-  memo, useRef, useState,
-} from '../../../../lib/teact/teact';
+import React, { memo, useState } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { Theme } from '../../../../global/types';
 
-import { NO_BACKEND } from '../../../../config';
+import { NO_BACKEND, TMAIL_APP_URL } from '../../../../config';
 import { selectCurrentAccountSettings } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
 import buildStyle from '../../../../util/buildStyle';
+import { openSite } from '../../../explore/helpers/utils';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useAppTheme from '../../../../hooks/useAppTheme';
@@ -24,7 +22,6 @@ import useDraggablePill from './hooks/useDraggablePill';
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 import Pill from './Pill';
-import ProductChooserMenu from './ProductChooserMenu';
 
 import styles from './BottomBar.module.scss';
 
@@ -45,7 +42,6 @@ interface TabConfig {
   iconKey?: IconKey;
   logoSrc?: string;
   onClick: NoneToVoidFunction;
-  buttonRef?: ElementRef<HTMLButtonElement>;
 }
 
 const ICON_SIZE_PX = 38;
@@ -68,8 +64,10 @@ function BottomBar({
   const appTheme = useAppTheme(theme);
   const stickerPaths = ANIMATED_STICKERS_PATHS[appTheme];
   const accentColor = accentColorIndex !== undefined ? ACCENT_COLORS[appTheme][accentColorIndex] : undefined;
-  const tmailTriggerRef = useRef<HTMLButtonElement>();
-  const [isProductMenuOpen, openProductMenu, closeProductMenu] = useFlag();
+  const handleTmailClick = useLastCallback(() => {
+    switchToExplore();
+    openSite(TMAIL_APP_URL, undefined, lang('TMail'));
+  });
 
   useEffectOnce(() => {
     return subscribeToBottomBarVisibility(() => {
@@ -88,8 +86,7 @@ function BottomBar({
       key: TAB_TMAIL,
       label: 'TMail',
       logoSrc: tmailLogo,
-      onClick: openProductMenu,
-      buttonRef: tmailTriggerRef,
+      onClick: handleTmailClick,
     },
   ];
 
@@ -128,14 +125,13 @@ function BottomBar({
         {...pointerHandlers}
       >
         <Pill isDragging={isDragging} squeeze={squeeze} />
-        {tabs.map(({ key, label, iconKey, logoSrc, onClick, buttonRef }, index) => {
+        {tabs.map(({ key, label, iconKey, logoSrc, onClick }, index) => {
           const isActive = renderedActiveIndex === index;
 
           if (logoSrc) {
             return (
               <TabButton
                 key={key}
-                buttonRef={buttonRef}
                 isActive={isActive}
                 label={lang(label)}
                 logoSrc={logoSrc}
@@ -159,11 +155,6 @@ function BottomBar({
           );
         })}
       </div>
-      <ProductChooserMenu
-        isOpen={isProductMenuOpen}
-        triggerRef={tmailTriggerRef}
-        onClose={closeProductMenu}
-      />
     </div>
   );
 }
@@ -180,9 +171,8 @@ export default memo(withGlobal((global): StateProps => {
 })(BottomBar));
 
 const TabButton = memo(({
-  buttonRef, isActive, label, tgsUrl, previewUrl, logoSrc, accentColor, onClick,
+  isActive, label, tgsUrl, previewUrl, logoSrc, accentColor, onClick,
 }: {
-  buttonRef?: ElementRef<HTMLButtonElement>;
   isActive?: boolean;
   label: string;
   tgsUrl?: string;
@@ -200,7 +190,6 @@ const TabButton = memo(({
 
   return (
     <Button
-      ref={buttonRef}
       isSimple
       className={buildClassName(styles.button, isActive && styles.active)}
       onClick={handleClick}

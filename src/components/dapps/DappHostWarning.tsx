@@ -32,7 +32,7 @@ function DappHostWarning({ url, iconClassName, urlTrustStatus = 'unknown' }: Own
         app_name: APP_NAME,
         mobileAppButton: (
           <a
-            href={`${APP_INSTALL_URL}/mobile`}
+            href={APP_INSTALL_URL}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -41,7 +41,7 @@ function DappHostWarning({ url, iconClassName, urlTrustStatus = 'unknown' }: Own
         ),
         browserExtensionButton: (
           <a
-            href={`${APP_INSTALL_URL}/chrome-extension`}
+            href={APP_INSTALL_URL}
             target="_blank"
             rel="noopener noreferrer"
           >
