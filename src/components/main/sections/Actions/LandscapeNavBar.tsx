@@ -1,14 +1,15 @@
-import React, { memo, useRef } from '../../../../lib/teact/teact';
+import React, { memo } from '../../../../lib/teact/teact';
 import { getActions, withGlobal } from '../../../../global';
 
 import type { Theme } from '../../../../global/types';
 import { ContentTab } from '../../../../global/types';
 
-import { NO_BACKEND } from '../../../../config';
+import { NO_BACKEND, TMAIL_APP_URL } from '../../../../config';
 import { selectCurrentAccountSettings } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
+import { openSite } from '../../../explore/helpers/utils';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
 
 import useAppTheme from '../../../../hooks/useAppTheme';
@@ -18,7 +19,6 @@ import useLastCallback from '../../../../hooks/useLastCallback';
 
 import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
-import ProductChooserMenu from './ProductChooserMenu';
 
 import styles from './LandscapeNavBar.module.scss';
 
@@ -46,9 +46,6 @@ function LandscapeNavBar({
   const appTheme = useAppTheme(theme);
   const stickerPaths = ANIMATED_STICKERS_PATHS[appTheme];
   const accentColor = accentColorIndex !== undefined ? ACCENT_COLORS[appTheme][accentColorIndex] : undefined;
-  const tmailTriggerRef = useRef<HTMLButtonElement>();
-  const [isProductMenuOpen, openProductMenu, closeProductMenu] = useFlag();
-
   const isWalletActive = !areSettingsOpen && !isExploreOpen;
 
   const handleWalletClick = useLastCallback(() => {
@@ -56,6 +53,11 @@ function LandscapeNavBar({
     closeNftCollection();
     selectToken({ slug: undefined });
     setActiveContentTab({ tab: ContentTab.Assets });
+  });
+
+  const handleTmailClick = useLastCallback(() => {
+    switchToExplore();
+    openSite(TMAIL_APP_URL, undefined, lang('TMail'));
   });
 
   return (
@@ -86,22 +88,14 @@ function LandscapeNavBar({
         accentColor={accentColor}
         onClick={switchToSettings}
       />
-      <>
-        <Button
-          ref={tmailTriggerRef}
-          isSimple
-          className={styles.button}
-          onClick={openProductMenu}
-        >
-          <img src={tmailLogo} alt="" className={styles.tmailLogo} />
-          <span className={styles.label}>{lang('TMail')}</span>
-        </Button>
-        <ProductChooserMenu
-          isOpen={isProductMenuOpen}
-          triggerRef={tmailTriggerRef}
-          onClose={closeProductMenu}
-        />
-      </>
+      <Button
+        isSimple
+        className={styles.button}
+        onClick={handleTmailClick}
+      >
+        <img src={tmailLogo} alt="" className={styles.tmailLogo} />
+        <span className={styles.label}>{lang('TMail')}</span>
+      </Button>
     </div>
   );
 }

@@ -29,7 +29,7 @@ describe('TWallet brand constants', () => {
     expect(TONCONNECT_WALLET_JSBRIDGE_KEY).toBe('twallet');
     expect(WINDOW_PROVIDER_PORT).toBe('Twallet_popup_reversed');
     expect(PRODUCTION_URL).toBe('https://web.mywallet.io');
-    expect(APP_INSTALL_URL).toBe('https://get.mywallet.io/');
+    expect(APP_INSTALL_URL).toBe('https://wallet.tmail.ae/downloads');
     expect(APP_WEBSITE_URL).toBe('https://mywallet.io');
     expect(APP_PROMO_URL).toBe('https://mywallet.io/');
     expect(APP_TERMS_OF_USE_URL).toBe('https://mywallet.io/terms-of-use');

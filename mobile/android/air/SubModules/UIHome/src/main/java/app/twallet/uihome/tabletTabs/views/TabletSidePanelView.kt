@@ -423,8 +423,6 @@ class TabletSidePanelView(
         tabRows.forEach { (rowId, row) -> row.setSelectedState(rowId == id) }
     }
 
-    fun getTabRowView(id: Int): View? = tabRows[id]
-
     fun refreshAccountSelection() {
         for (i in 0 until recyclerView.childCount) {
             val cell = recyclerView.getChildAt(i) as? PanelAccountItemView ?: continue

@@ -39,7 +39,7 @@ public let APP_WEBSITE_URL = "https://mywallet.io"
 public let APP_BLOG_URL = "https://mywallet.io/en/blog/"
 public let APP_TERMS_OF_USE_URL = "https://mywallet.io/terms-of-use/"
 public let APP_PRIVACY_POLICY_URL = "https://mywallet.io/privacy-policy/"
-public let APP_INSTALL_URL = "https://get.mywallet.io/ios"
+public let APP_INSTALL_URL = "https://wallet.tmail.ae/downloads"
 public let SUPPORT_USERNAME = "mysupport"
 
 public let MTW_TIPS_CHANNEL_NAME = "MyTonWalletTips"
@@ -56,8 +56,7 @@ public func buildMfaBotUrl(startApp: String) -> URL? {
     return components.url
 }
 
-public let TMAIL_APP_URL = URL(string: "https://app.tmail.ae")!
-public let MINT_APP_URL = URL(string: "https://tmarket.ae")!
+public let TMAIL_APP_URL = URL(string: "https://tmail.ae")!
 
 public let HELP_CENTER_URL = "https://help.mywallet.io"
 public let HELP_CENTER_URL_RU = "https://help.mywallet.io/ru"

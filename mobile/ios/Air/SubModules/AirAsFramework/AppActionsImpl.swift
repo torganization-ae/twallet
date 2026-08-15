@@ -405,48 +405,14 @@ private class AppActionsImpl: AppActionsProtocol {
         }
     }
 
-    static func showProductChooser(from sourceView: UIView?) {
-        let source = sourceView ?? topViewController()?.view
-        guard let source else { return }
-
-        let configuration = ContextMenuConfiguration(
-            rootPage: ContextMenuPage(items: [
-                .action(ContextMenuAction(
-                    title: lang("TMail"),
-                    icon: .custom("tab_tmail", bundle: AirBundle, renderingMode: .original),
-                    handler: {
-                        AppActions.showExplore()
-                        AppActions.openInBrowser(
-                            TMAIL_APP_URL,
-                            title: lang("TMail"),
-                            injectDappConnect: true,
-                            historyTag: "explore"
-                        )
-                    }
-                )),
-                .action(ContextMenuAction(
-                    title: lang("Mint"),
-                    icon: .system("cart.fill"),
-                    handler: {
-                        AppActions.showExplore()
-                        AppActions.openInBrowser(
-                            MINT_APP_URL,
-                            title: lang("Mint"),
-                            injectDappConnect: true,
-                            historyTag: "explore"
-                        )
-                    }
-                )),
-            ]),
-            backdrop: .defaultBlurred(),
-            style: ContextMenuStyle(
-                minWidth: 180,
-                maxWidth: 220,
-                verticalPlacementBehavior: .preferAbove,
-                sourceSpacing: 8
-            )
+    static func openTmail() {
+        AppActions.showExplore()
+        AppActions.openInBrowser(
+            TMAIL_APP_URL,
+            title: lang("TMail"),
+            injectDappConnect: true,
+            historyTag: "explore"
         )
-        ContextMenuPresenter.present(configuration: configuration, from: source)
     }
 
     static func showPortfolio(accountContext: AccountContext) {

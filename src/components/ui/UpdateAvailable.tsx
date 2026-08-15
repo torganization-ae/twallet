@@ -6,15 +6,10 @@ import {
   APP_NAME,
   APP_REPO_URL,
   IS_ANDROID_DIRECT,
-  IS_FIREFOX_EXTENSION,
 } from '../../config';
 import buildClassName from '../../util/buildClassName';
 import { openUrl } from '../../util/openUrl';
-import {
-  IS_CHROME_EXTENSION,
-  IS_EDGE,
-  IS_WEB,
-} from '../../util/windowEnvironment';
+import { IS_WEB } from '../../util/windowEnvironment';
 
 import useLang from '../../hooks/useLang';
 import useShowTransition from '../../hooks/useShowTransition';
@@ -67,14 +62,6 @@ function getUrl(appVersion?: string) {
     return appVersion
       ? `${APP_REPO_URL}/releases/download/v${encodeURIComponent(appVersion || '')}/${encodeURIComponent(APP_NAME)}.apk`
       : `${APP_REPO_URL}/releases/latest`;
-  }
-
-  if (IS_CHROME_EXTENSION) {
-    return `${APP_INSTALL_URL}${IS_EDGE ? 'edge-extension' : 'chrome-extension'}`;
-  }
-
-  if (IS_FIREFOX_EXTENSION) {
-    return `${APP_INSTALL_URL}firefox-extension`;
   }
 
   return APP_INSTALL_URL;

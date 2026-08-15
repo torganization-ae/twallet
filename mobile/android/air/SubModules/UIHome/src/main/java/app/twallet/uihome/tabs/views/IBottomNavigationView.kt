@@ -32,8 +32,6 @@ abstract class IBottomNavigationView(context: Context) : FrameLayout(context), W
 
     open fun getSettingsItemView(): View? = null
 
-    open fun getTabItemView(itemId: Int): View? = null
-
     open fun getMinimizedWidth(): Int? = null
 
     open fun pauseBlurring() {}
