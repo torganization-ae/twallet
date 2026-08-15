@@ -90,19 +90,18 @@ export function initPolling(_onUpdate: OnApiUpdate) {
   void Promise.allSettled([
     // The swap token list comes from DeDust, so it doesn't need our backend
     ...(NO_SWAP ? [] : [tryUpdateSwapTokens()]),
-    ...(NO_BACKEND ? [] : [
-      tryUpdateKnownAddresses(),
-      tryUpdateTokens(),
-      tryUpdateCurrencyRates(),
-    ]),
+    tryUpdateTokens(),
+    tryUpdateCurrencyRates(),
+    ...(NO_BACKEND ? [] : [tryUpdateKnownAddresses()]),
   ]).then(() => resolveDataPreloadPromise());
 
   stopCommonBackendPolling?.();
 
   if (!NO_BACKEND) {
     void tryUpdateConfig();
-    stopCommonBackendPolling = setupCommonBackendPolling();
   }
+
+  stopCommonBackendPolling = setupCommonBackendPolling();
 }
 
 export async function destroyPolling() {
@@ -126,8 +125,7 @@ function setupCommonBackendPolling() {
       async poll() {
         await Promise.all([
           tryUpdateTokens(),
-          tryUpdateKnownAddresses(),
-          tryUpdateConfig(),
+          ...(NO_BACKEND ? [] : [tryUpdateKnownAddresses(), tryUpdateConfig()]),
           !NO_SWAP && tryUpdateSwapTokens(),
         ]);
       },

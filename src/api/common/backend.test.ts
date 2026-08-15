@@ -2,7 +2,7 @@ const mockFetchJson = jest.fn();
 
 jest.mock('../../config', () => ({
   ...jest.requireActual('../../config'),
-  BRILLIANT_API_BASE_URL: 'https://api.example.test',
+  API_BASE_URL: 'https://api.example.test',
   NO_BACKEND: false,
 }));
 
@@ -54,5 +54,24 @@ describe('backend API helpers', () => {
     await expect(callBackendGet('/swap/assets')).rejects.toThrow('Backend is disabled');
     await expect(callBackendPost('/swap/estimate', {})).rejects.toThrow('Backend is disabled');
     expect(mockFetchJson).not.toHaveBeenCalled();
+  });
+
+  it('keeps the implemented paths alive while the rest is cut off', async () => {
+    jest.resetModules();
+    jest.doMock('../../config', () => ({
+      ...jest.requireActual('../../config'),
+      API_BASE_URL: 'https://api.example.test',
+      NO_BACKEND: true,
+    }));
+
+    const { callBackendGet } = await import('./backend');
+
+    await callBackendGet('/currency-rates');
+    expect(mockFetchJson.mock.calls[0][0].toString()).toBe('https://api.example.test/currency-rates');
+
+    await callBackendGet('/prices/chart/ton:TON', { period: '7D' });
+    expect(mockFetchJson.mock.calls[1][0].toString()).toBe('https://api.example.test/prices/chart/ton:TON');
+
+    await expect(callBackendGet('/swap/assets')).rejects.toThrow('Backend is disabled');
   });
 });

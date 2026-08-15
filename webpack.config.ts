@@ -20,7 +20,7 @@ import {
   APP_ENV,
   APP_NAME,
   BASE_URL,
-  BRILLIANT_API_BASE_URL,
+  API_BASE_URL,
   EXTENSION_DESCRIPTION,
   EXTENSION_NAME,
   IFRAME_WHITELIST,
@@ -57,8 +57,8 @@ const cspFrameSrcExtra = [
 // Custom RPC endpoints are user-configured and therefore arbitrary (same approach as MetaMask).
 // Default backend hosts remain listed explicitly for documentation and websocket allowances.
 const cspConnectSrcHosts = Array.from(new Set([
-  BRILLIANT_API_BASE_URL,
-  BRILLIANT_API_BASE_URL.replace(/^http(s?):/, 'ws$1:'),
+  API_BASE_URL,
+  API_BASE_URL.replace(/^http(s?):/, 'ws$1:'),
   ensureTrailingSlash(PROXY_API_BASE_URL),
   ...getDefaultEndpointHosts(),
   WALLET_CONNECT_BRIDGE_PATTERNS,
@@ -346,7 +346,7 @@ export default function createConfig(
         APP_VERSION: appVersion,
         APP_COMMIT_HASH: appCommitHash ?? '',
         TEST_SESSION: '',
-        BRILLIANT_API_BASE_URL: '',
+        API_BASE_URL: '',
         PROXY_HOSTS: '',
         IS_PACKAGED_ELECTRON: 'false',
         IS_ANDROID_DIRECT: 'false',

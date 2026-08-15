@@ -124,13 +124,13 @@ export const THEME_DEFAULT = 'system';
 export const MAIN_ACCOUNT_ID = '0-ton-mainnet';
 export const TEMPORARY_ACCOUNT_NAME = 'Wallet';
 
-export const BRILLIANT_API_BASE_URL = process.env.BRILLIANT_API_BASE_URL || 'https://api.mywallet.io';
+export const API_BASE_URL = process.env.API_BASE_URL || 'https://nexus-ton.testprojects.org';
 export const PROXY_API_BASE_URL = process.env.PROXY_API_BASE_URL || 'https://api.mywallet.io/proxy';
 /**
- * The `api.mywallet.io` backend allow-lists CORS origins (localhost + *.mywallet.io + `null`),
- * so every request from a production web origin is blocked. All calls to it are cut and the
- * features that depend on it are hidden — the same way on every platform.
- * Set to `false` once the backend is reachable (e.g. behind our own CORS proxy).
+ * Our backend implements only a part of the `api.mywallet.io` contract so far — prices, the token
+ * list and currency rates (see `SUPPORTED_PATHS_RE` in `api/common/backend.ts`). Everything else is
+ * cut off and the features that depend on it are hidden — the same way on every platform.
+ * Set to `false` once the whole contract is served.
  */
 export const NO_BACKEND = true;
 export const IPFS_GATEWAY_BASE_URL = 'https://ipfs.io/ipfs/';

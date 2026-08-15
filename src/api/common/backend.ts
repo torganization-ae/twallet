@@ -1,4 +1,4 @@
-import { APP_ENV, APP_NAME, APP_VERSION, BRILLIANT_API_BASE_URL, NO_BACKEND } from '../../config';
+import { API_BASE_URL, APP_ENV, APP_NAME, APP_VERSION, NO_BACKEND } from '../../config';
 import { bucketKey } from '../../util/circuit-breaker';
 import { fetchJson, fetchWithRetry, fetchWithTimeout, handleFetchErrors } from '../../util/fetch';
 import { getEnvironment } from '../environment';
@@ -6,11 +6,19 @@ import { getClientId } from './other';
 
 const BAD_REQUEST_CODE = 400;
 
-/** Thrown instead of hitting `BRILLIANT_API_BASE_URL` while `NO_BACKEND` is on. */
+/** Thrown instead of hitting `API_BASE_URL` with a path the backend doesn't serve yet. */
 export class BackendDisabledError extends Error {
   constructor(path: string) {
     super(`Backend is disabled, skipped ${path}`);
   }
+}
+
+// The part of the `api.mywallet.io` contract our backend already implements. Extend it as the
+// backend grows; `NO_BACKEND = false` lifts the restriction entirely.
+const SUPPORTED_PATHS_RE = /^\/(assets|currency-rates|prices\/)/;
+
+function isPathSupported(path: string) {
+  return !NO_BACKEND || SUPPORTED_PATHS_RE.test(path);
 }
 
 export async function callBackendPost<T>(path: string, data: AnyLiteral, options?: {
@@ -20,7 +28,7 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
   shouldRetry?: boolean;
   timeout?: number;
 }): Promise<T> {
-  if (NO_BACKEND) {
+  if (!isPathSupported(path)) {
     throw new BackendDisabledError(path);
   }
 
@@ -28,13 +36,13 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
     authToken, isAllowBadRequest, method, shouldRetry, timeout,
   } = options ?? {};
 
-  const url = new URL(`${BRILLIANT_API_BASE_URL}${path}`);
+  const url = new URL(`${API_BASE_URL}${path}`);
 
   const init: RequestInit = {
     method: method ?? 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...getBackendHeaders(),
+      ...(NO_BACKEND ? undefined : getBackendHeaders()),
       ...(authToken && { 'X-Auth-Token': authToken }),
     },
     body: JSON.stringify(data),
@@ -55,16 +63,17 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
 }
 
 export function callBackendGet<T extends AnyLiteral>(path: string, data?: AnyLiteral, headers?: HeadersInit) {
-  if (NO_BACKEND) {
+  if (!isPathSupported(path)) {
     return Promise.reject(new BackendDisabledError(path)) as Promise<T>;
   }
 
-  const url = new URL(`${BRILLIANT_API_BASE_URL}${path}`);
+  const url = new URL(`${API_BASE_URL}${path}`);
 
   return fetchJson<T>(url, data, {
     headers: {
       ...headers,
-      ...getBackendHeaders(),
+      // Our backend doesn't need them, and unlisted `X-App-*` headers only cost a CORS preflight
+      ...(NO_BACKEND ? undefined : getBackendHeaders()),
     },
   }, {
     bucketKey: bucketKey(url, { includePathPrefix: true }),

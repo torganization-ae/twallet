@@ -86,7 +86,7 @@ export default function createConfig(
         PLATFORM_ENV: '',
         IS_AIR_APP: '1',
         IS_ANDROID_DIRECT: '0',
-        BRILLIANT_API_BASE_URL: '',
+        API_BASE_URL: '',
         PROXY_HOSTS: '',
         SWAP_FEE_ADDRESS: '',
         DIESEL_ADDRESS: '',

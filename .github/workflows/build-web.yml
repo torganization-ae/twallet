@@ -12,11 +12,11 @@ concurrency:
 
 # Optional repository variables (Settings → Secrets and variables → Actions → Variables):
 #   BUILD_PRODUCTION=true          → production builds; unset/false → staging
-#   STAKING_POOLS, BRILLIANT_API_BASE_URL, SWAP_FEE_ADDRESS,
+#   STAKING_POOLS, API_BASE_URL, SWAP_FEE_ADDRESS,
 #   DIESEL_ADDRESS  → baked into the client at build time when set
 env:
   STAKING_POOLS: ${{ vars.STAKING_POOLS }}
-  BRILLIANT_API_BASE_URL: ${{ vars.BRILLIANT_API_BASE_URL }}
+  API_BASE_URL: ${{ vars.API_BASE_URL }}
   SWAP_FEE_ADDRESS: ${{ vars.SWAP_FEE_ADDRESS }}
   DIESEL_ADDRESS: ${{ vars.DIESEL_ADDRESS }}
 
