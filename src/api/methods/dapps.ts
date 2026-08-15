@@ -24,7 +24,7 @@ import {
   removeNetworkAccountsValue,
   setAccountValue,
 } from '../common/accounts';
-import { callBackendGet } from '../common/backend';
+import { BackendDisabledError, callBackendGet } from '../common/backend';
 import { isUpdaterAlive } from '../common/helpers';
 import { createMfaRequest } from '../common/mfa';
 import {
@@ -193,10 +193,20 @@ export function setSseLastEventId(lastEventId: string) {
   return storage.setItem('sseLastEventId', lastEventId);
 }
 
-export function loadExploreSites(
+export async function loadExploreSites(
   { isLandscape, langCode }: { isLandscape: boolean; langCode: LangCode },
 ): Promise<{ categories: ApiSiteCategory[]; sites: ApiSite[] }> {
-  return callBackendGet('/v2/dapp/catalog', { isLandscape, langCode });
+  try {
+    return await callBackendGet('/v2/dapp/catalog', { isLandscape, langCode });
+  } catch (err) {
+    // /v2/dapp/catalog isn't implemented by our nexus backend — the shared postMessage plumbing
+    // would otherwise log this expected rejection on every wallet start (`[DEBUG][loadExploreSites]
+    // BackendDisabledError`). Return an empty catalog so the caller keeps whatever it already had.
+    if (err instanceof BackendDisabledError) {
+      return { categories: [], sites: [] };
+    }
+    throw err;
+  }
 }
 
 export async function signDappProof(

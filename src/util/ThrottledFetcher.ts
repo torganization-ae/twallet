@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import { pause } from './schedulers';
 
 type FetchInput = string | URL | Request;
@@ -5,17 +6,33 @@ type FetchInput = string | URL | Request;
 type CleanupAbortSignal = AbortSignal & { cleanup?: () => void };
 
 const DEFAULT_TIMEOUT_MS = 30000;
-/** Public toncenter (no API key) rate-limits at ~1 rps; stay well under and serialize callers. */
-const TONCENTER_MIN_DELAY_MS = 2000;
-/** One attempt only — retrying 429s amplifies the ban window. Next poll cycle will try again. */
-const TONCENTER_RETRIES = 1;
-const TONCENTER_FALLBACK_RETRY_AFTER_MS = 15_000;
-// Only the public toncenter hosts are rate-limited this hard. Our own proxy has a wider limit,
-// so throttling it would just slow the wallet down for nothing.
-const TONCENTER_ORIGINS = new Set([
-  'https://toncenter.com',
-  'https://testnet.toncenter.com',
+
+// One attempt only — retrying 429s amplifies the ban window. Next poll cycle will try again.
+// Applies to every throttled origin: an aggressive retry loop is what turns a transient rate-limit
+// into a sustained ban on both public toncenter and our own proxy (nexus per-IP guard).
+const THROTTLED_RETRIES = 1;
+
+// Per-origin policy. Public toncenter tolerates ~1 rps without an API key; our own proxy runs a
+// per-IP token bucket that copes with a real wallet burst but still returns 429 + Retry-After when
+// exceeded — so we serialize per origin and honour Retry-After from the response headers below.
+type ThrottlePolicy = {
+  /** Minimum spacing between requests. Zero = no artificial delay, only respect Retry-After. */
+  minDelayMs: number;
+  /** Used when a 429 comes back without a Retry-After header. */
+  fallbackRetryAfterMs: number;
+};
+
+const TONCENTER_POLICY: ThrottlePolicy = { minDelayMs: 2000, fallbackRetryAfterMs: 15_000 };
+const NEXUS_POLICY: ThrottlePolicy = { minDelayMs: 0, fallbackRetryAfterMs: 5_000 };
+
+const throttlePolicies = new Map<string, ThrottlePolicy>([
+  ['https://toncenter.com', TONCENTER_POLICY],
+  ['https://testnet.toncenter.com', TONCENTER_POLICY],
+  // Our own proxy: origin taken from config so a self-hosted deployment (API_BASE_URL override)
+  // also gets serialization and Retry-After semantics, not just the default nexus host.
+  ...safeOrigin(API_BASE_URL).map((origin): [string, ThrottlePolicy] => [origin, NEXUS_POLICY]),
 ]);
+
 const throttledFetchers = new Map<string, ThrottledFetcher>();
 
 export type ProviderFetchRetryPolicy = {
@@ -101,13 +118,14 @@ export async function fetchWithThrottledProvider(
 
 export function getProviderFetchRetryPolicy(input: FetchInput): ProviderFetchRetryPolicy | undefined {
   const url = getUrl(input);
-  if (!url || !shouldThrottleUrl(url)) {
+  const policy = url && throttlePolicies.get(url.origin);
+  if (!policy) {
     return undefined;
   }
 
   return {
-    retries: TONCENTER_RETRIES,
-    fallbackRetryAfterMs: TONCENTER_FALLBACK_RETRY_AFTER_MS,
+    retries: THROTTLED_RETRIES,
+    fallbackRetryAfterMs: policy.fallbackRetryAfterMs,
   };
 }
 
@@ -135,13 +153,14 @@ export function resetThrottledProviderFetchers() {
 }
 
 function shouldThrottleUrl(url: URL) {
-  return TONCENTER_ORIGINS.has(url.origin);
+  return throttlePolicies.has(url.origin);
 }
 
 function getProviderFetcher(origin: string) {
   let fetcher = throttledFetchers.get(origin);
   if (!fetcher) {
-    fetcher = new ThrottledFetcher(TONCENTER_MIN_DELAY_MS);
+    const policy = throttlePolicies.get(origin) ?? TONCENTER_POLICY;
+    fetcher = new ThrottledFetcher(policy.minDelayMs);
     throttledFetchers.set(origin, fetcher);
   }
 
@@ -153,13 +172,22 @@ function adjustProviderDelay(origin: string, response: Response) {
     return;
   }
 
-  const retryAfterMs = getRetryAfterMs(response.headers) ?? TONCENTER_FALLBACK_RETRY_AFTER_MS;
+  const policy = throttlePolicies.get(origin) ?? TONCENTER_POLICY;
+  const retryAfterMs = getRetryAfterMs(response.headers) ?? policy.fallbackRetryAfterMs;
   const fetcher = throttledFetchers.get(origin);
   if (!fetcher) {
     return;
   }
 
-  fetcher.delayNextRequest(Math.max(TONCENTER_MIN_DELAY_MS, retryAfterMs));
+  fetcher.delayNextRequest(Math.max(policy.minDelayMs, retryAfterMs));
+}
+
+function safeOrigin(url: string): string[] {
+  try {
+    return [new URL(url).origin];
+  } catch {
+    return [];
+  }
 }
 
 function getUrl(input: FetchInput): URL | undefined {
