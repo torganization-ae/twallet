@@ -913,6 +913,8 @@ export const RENEWABLE_TON_DNS_COLLECTIONS = new Set<string>(
 
 export const TMAIL_DNS_COLLECTION_ADDRESS = 'EQDPcCeltOvzIsxKWWwf08gUoGPh37ZzOSxKqhAPWTQi-VQc';
 export const TMAIL_DOMAIN_SUFFIX = '@tmail.ton';
+// Web2-style alias domain that maps 1:1 onto the web3 `@tmail.ton` alias (same local part, different suffix).
+export const TMAIL_DOMAIN_ALT_SUFFIX = '@tmail.ae';
 export const TMAIL_ALIAS_REGEX = /^[a-z0-9]([-_+a-z0-9]{0,62}[a-z0-9])?$/;
 
 export const DEFAULT_AUTOLOCK_OPTION: AutolockValueType = '3';

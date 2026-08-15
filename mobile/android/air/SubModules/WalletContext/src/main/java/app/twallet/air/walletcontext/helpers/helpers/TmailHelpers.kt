@@ -6,11 +6,20 @@ import android.net.Uri
 object TmailHelpers {
 
     private const val TMAIL_DOMAIN_SUFFIX = "@tmail.ton"
+    // Web2-style alias domain that maps 1:1 onto the web3 `@tmail.ton` alias (same local part, different suffix).
+    private const val TMAIL_DOMAIN_ALT_SUFFIX = "@tmail.ae"
     private const val TMAIL_SHARE_PATH = "/share/"
     private val TMAIL_ALIAS_REGEX = Regex("^[a-z0-9]([-_+a-z0-9]{0,62}[a-z0-9])?$", RegexOption.IGNORE_CASE)
 
-    fun isTmailAlias(value: String): Boolean {
+    /** Rewrites the `@tmail.ae` alias domain to its canonical web3 form `@tmail.ton`; otherwise trims/lowercases as-is. */
+    fun normalizeTmailDomain(value: String): String {
         val trimmed = value.trim().lowercase()
+        if (!trimmed.endsWith(TMAIL_DOMAIN_ALT_SUFFIX)) return trimmed
+        return trimmed.dropLast(TMAIL_DOMAIN_ALT_SUFFIX.length) + TMAIL_DOMAIN_SUFFIX
+    }
+
+    fun isTmailAlias(value: String): Boolean {
+        val trimmed = normalizeTmailDomain(value)
         if (!trimmed.endsWith(TMAIL_DOMAIN_SUFFIX)) return false
 
         val base = trimmed.dropLast(TMAIL_DOMAIN_SUFFIX.length)
@@ -20,7 +29,7 @@ object TmailHelpers {
     }
 
     fun tmailAliasBase(value: String): String? {
-        val trimmed = value.trim().lowercase()
+        val trimmed = normalizeTmailDomain(value)
         if (!trimmed.endsWith(TMAIL_DOMAIN_SUFFIX)) return null
 
         val base = trimmed.dropLast(TMAIL_DOMAIN_SUFFIX.length)

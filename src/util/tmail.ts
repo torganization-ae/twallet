@@ -1,9 +1,17 @@
-import { TMAIL_ALIAS_REGEX, TMAIL_DOMAIN_SUFFIX } from '../config';
+import { TMAIL_ALIAS_REGEX, TMAIL_DOMAIN_ALT_SUFFIX, TMAIL_DOMAIN_SUFFIX } from '../config';
 
 // Tmail alias detection helpers. Kept separate from DNS helpers (`dns.ts`) so the two detectors don't mix.
 
-export function isTmailAlias(value: string) {
+/** Rewrites the `@tmail.ae` alias domain to its canonical web3 form `@tmail.ton`; otherwise trims/lowercases as-is. */
+export function normalizeTmailDomain(value: string) {
   const trimmed = value.trim().toLowerCase();
+  return trimmed.endsWith(TMAIL_DOMAIN_ALT_SUFFIX)
+    ? `${trimmed.slice(0, -TMAIL_DOMAIN_ALT_SUFFIX.length)}${TMAIL_DOMAIN_SUFFIX}`
+    : trimmed;
+}
+
+export function isTmailAlias(value: string) {
+  const trimmed = normalizeTmailDomain(value);
   if (!trimmed.endsWith(TMAIL_DOMAIN_SUFFIX)) {
     return false;
   }
@@ -13,7 +21,7 @@ export function isTmailAlias(value: string) {
 }
 
 export function getTmailAliasBase(value: string) {
-  const trimmed = value.trim().toLowerCase();
+  const trimmed = normalizeTmailDomain(value);
   if (!trimmed.endsWith(TMAIL_DOMAIN_SUFFIX)) {
     return undefined;
   }

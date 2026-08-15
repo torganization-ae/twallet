@@ -8,6 +8,8 @@
 import Foundation
 
 private let TMAIL_DOMAIN_SUFFIX = "@tmail.ton"
+// Web2-style alias domain that maps 1:1 onto the web3 `@tmail.ton` alias (same local part, different suffix).
+private let TMAIL_DOMAIN_ALT_SUFFIX = "@tmail.ae"
 private let TMAIL_SHARE_PATH = "/share/"
 private let TMAIL_ALIAS_REGEX = try! NSRegularExpression(
     pattern: "^[a-z0-9]([-_+a-z0-9]{0,62}[a-z0-9])?$",
@@ -17,8 +19,15 @@ private let TMAIL_ALIAS_REGEX = try! NSRegularExpression(
 public class TmailHelpers {
     private init() {}
 
-    public static func isTmailAlias(_ value: String) -> Bool {
+    /// Rewrites the `@tmail.ae` alias domain to its canonical web3 form `@tmail.ton`; otherwise trims/lowercases as-is.
+    public static func normalizeTmailDomain(_ value: String) -> String {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard trimmed.hasSuffix(TMAIL_DOMAIN_ALT_SUFFIX) else { return trimmed }
+        return String(trimmed.dropLast(TMAIL_DOMAIN_ALT_SUFFIX.count)) + TMAIL_DOMAIN_SUFFIX
+    }
+
+    public static func isTmailAlias(_ value: String) -> Bool {
+        let trimmed = normalizeTmailDomain(value)
         guard trimmed.hasSuffix(TMAIL_DOMAIN_SUFFIX) else { return false }
 
         let base = String(trimmed.dropLast(TMAIL_DOMAIN_SUFFIX.count))
@@ -29,7 +38,7 @@ public class TmailHelpers {
     }
 
     public static func tmailAliasBase(_ value: String) -> String? {
-        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let trimmed = normalizeTmailDomain(value)
         guard trimmed.hasSuffix(TMAIL_DOMAIN_SUFFIX) else { return nil }
 
         let base = String(trimmed.dropLast(TMAIL_DOMAIN_SUFFIX.count))
