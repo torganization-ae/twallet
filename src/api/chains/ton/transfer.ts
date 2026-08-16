@@ -444,11 +444,38 @@ export async function checkToAddress(network: ApiNetwork, toAddress: string) {
   if ('error' in resolved) return resolved;
   toAddress = resolved.address;
 
-  const { isUserFriendly, isTestOnly, isBounceable } = parseAddress(toAddress);
+  const parsedAddress = parseAddress(toAddress);
+  let { isUserFriendly, isTestOnly, isBounceable } = parsedAddress;
+
+  if (parsedAddress.isRaw) {
+    // A raw address carries no bounceable flag of its own. Wallets are always safe to address
+    // non-bounceably (UQ), whether or not they're deployed yet — that's the common case for a
+    // plain transfer. Only an already active *non-wallet* contract gets EQ, so that a failed
+    // call still bounces the funds back instead of getting stuck; this mirrors what the domain
+    // address book (toncenter) already returns for `.ton`/tmail names, which mostly resolve to
+    // wallets. This also keeps the inactive-contract check below meaningful.
+    //
+    // Caught locally (rather than left to the caller) so a network failure here is reported the
+    // same way on every platform, instead of depending on how each one's API transport happens
+    // to handle a thrown error.
+    let isInitialized: boolean;
+    let isWallet: boolean | undefined;
+    try {
+      ({ isInitialized, isWallet } = await getContractInfo(network, toAddress));
+    } catch {
+      return { error: ApiCommonError.ServerError };
+    }
+
+    const isBounceableAddress = isInitialized && !isWallet;
+    toAddress = toBase64Address(toAddress, isBounceableAddress, network);
+    isUserFriendly = true;
+    isTestOnly = network === 'testnet';
+    isBounceable = isBounceableAddress;
+  }
 
   const result = {
     addressName: resolved.name,
-    resolvedAddress: resolved.address,
+    resolvedAddress: toAddress,
     isMemoRequired: resolved.isMemoRequired,
     isScam: resolved.isScam,
     isBounceable,
@@ -867,9 +894,9 @@ async function isTokenBalanceInsufficient(
   walletAddress: string,
   messages: TonTransferParams[],
 ): Promise<{
-    hasInsufficientTokenBalance: boolean;
-    parsedPayloads: (ApiParsedPayload | undefined)[];
-  }> {
+  hasInsufficientTokenBalance: boolean;
+  parsedPayloads: (ApiParsedPayload | undefined)[];
+}> {
   const payloadParsingResults = await Promise.all(
     messages.map(async ({ payload, toAddress }) => {
       if (!payload) return { tokenResult: undefined, parsedPayload: undefined };
@@ -1150,7 +1177,7 @@ export async function signTransfers(
   | ApiSignedTransfer<DappProtocolType.TonConnect>[]
   | { mfaRequest: SignedMfaRequest }
   | { error: ApiAnyDisplayError }
-  > {
+> {
   const account = await fetchStoredChainAccount(accountId, 'ton');
   const { network } = parseAccountId(accountId);
 

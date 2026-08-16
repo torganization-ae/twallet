@@ -49,9 +49,9 @@
         "cmcSlug": "toncoin"
       },
       "derivationPath": "m/44'/607'/{index}'",
-      "addressRegex": "^([-\\w_]{48}|0:[\\da-h]{64})$",
+      "addressRegex": "^([-\\w_]{48}|-?\\d+:[\\da-f]{64})$",
       "addressRegexFlags": "i",
-      "addressPrefixRegex": "^([-\\w_]{1,48}|0:[\\da-h]{0,64})$",
+      "addressPrefixRegex": "^([-\\w_]{1,48}|-?\\d+:[\\da-f]{0,64})$",
       "addressPrefixRegexFlags": "i",
       "endpoints": {
         "mainnet": {
