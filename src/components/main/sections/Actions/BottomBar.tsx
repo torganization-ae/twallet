@@ -196,7 +196,10 @@ const TabButton = memo(({
       {isMailIcon ? (
         <span
           className={styles.tmailLogo}
-          style={accentColor ? buildStyle(`--tmail-icon-color: ${accentColor}`) : undefined}
+          style={buildStyle(
+            `width: ${ICON_SIZE_PX}px; height: ${ICON_SIZE_PX}px`,
+            accentColor && `--tmail-icon-color: ${accentColor}`,
+          )}
         />
       ) : (
         <AnimatedIconWithPreview

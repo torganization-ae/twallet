@@ -1,4 +1,7 @@
-<svg width="48" height="48" viewBox="12 12.5 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Cropped to the mark itself, with no padding baked in: the nav bars render it at the same box
+     size as the animated tab icons and inset it via `mask-size`, so one asset stays correct at
+     every size. Baking the inset in here instead would shrink it wherever the box is smaller. -->
+<svg width="42" height="37" viewBox="15 18 42 37" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M17.2345 27.5798H25.722L33.3476 42.2732L17.2345 27.5798Z" fill="#000"/>
 <path d="M54.8312 27.5798H46.3437L38.7181 42.2732L54.8312 27.5798Z" fill="#000"/>
 <path d="M44.6197 27.5798H27.5121L35.9333 44.2798L44.6197 27.5798Z" fill="#000"/>

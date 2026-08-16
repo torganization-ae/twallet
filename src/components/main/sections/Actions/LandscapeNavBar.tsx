@@ -94,7 +94,10 @@ function LandscapeNavBar({
       >
         <span
           className={styles.tmailLogo}
-          style={accentColor ? buildStyle(`--tmail-icon-color: ${accentColor}`) : undefined}
+          style={buildStyle(
+            `width: ${ANIMATED_ICON_SIZE_PX}px; height: ${ANIMATED_ICON_SIZE_PX}px`,
+            accentColor && `--tmail-icon-color: ${accentColor}`,
+          )}
         />
         <span className={styles.label}>{lang('TMail')}</span>
       </Button>

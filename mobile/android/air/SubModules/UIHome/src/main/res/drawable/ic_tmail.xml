@@ -2,14 +2,16 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="28dp"
     android:height="28dp"
-    android:viewportWidth="48"
-    android:viewportHeight="48">
+    android:viewportWidth="58.33"
+    android:viewportHeight="58.33">
     <!-- TMail mail mark (monochrome, tintable via setColorFilter at bind time).
-         Path data is in the original 72x72 art space, cropped to its bounding box
-         via translate so it fills the viewport edge-to-edge like the sibling tab icons. -->
+         Path data is in the original 72x72 art space, where the mark is 42x37 centred on
+         (36, 36.5). The viewport is sized so the mark takes up 72% of it, matching how much
+         of their own viewport the sibling tab icons' artwork occupies (measured: ic_home_thin
+         0.72, ic_explore_thin 0.71) — otherwise it reads larger than its neighbours. -->
     <group
-        android:translateX="-12"
-        android:translateY="-12.5">
+        android:translateX="-6.833"
+        android:translateY="-7.333">
     <path
         android:fillColor="#1C1D21"
         android:pathData="M17.2345,27.5798H25.722L33.3476,42.2732L17.2345,27.5798Z" />

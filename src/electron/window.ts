@@ -27,6 +27,15 @@ import {
 
 const ALLOWED_DEVICE_ORIGINS = ['http://localhost:4321', 'file://', BASE_URL];
 
+function isSafeExternalUrl(url: string): boolean {
+  try {
+    const { protocol } = new URL(url);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 export function createWindow() {
   const windowState = windowStateKeeper({
     file: WINDOW_STATE_FILE,
@@ -72,7 +81,12 @@ export function createWindow() {
   windowState.manage(mainWindow);
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    void shell.openExternal(url);
+    // `url` is whatever web content inside the window (including embedded dapps) passes to
+    // `window.open`, so it must be scheme-checked before reaching the OS shell handler — a
+    // non-http(s) scheme could otherwise be used to invoke an unintended local protocol handler.
+    if (isSafeExternalUrl(url)) {
+      void shell.openExternal(url);
+    }
     return { action: 'deny' };
   });
 
