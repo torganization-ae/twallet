@@ -8,6 +8,7 @@ import { NO_BACKEND, TMAIL_APP_URL } from '../../../../config';
 import { selectCurrentAccountSettings } from '../../../../global/selectors';
 import { ACCENT_COLORS } from '../../../../util/accentColor/constants';
 import buildClassName from '../../../../util/buildClassName';
+import buildStyle from '../../../../util/buildStyle';
 import { IS_TOUCH_ENV } from '../../../../util/windowEnvironment';
 import { openSite } from '../../../explore/helpers/utils';
 import { ANIMATED_STICKERS_PATHS } from '../../../ui/helpers/animatedAssets';
@@ -21,8 +22,6 @@ import AnimatedIconWithPreview from '../../../ui/AnimatedIconWithPreview';
 import Button from '../../../ui/Button';
 
 import styles from './LandscapeNavBar.module.scss';
-
-import tmailLogo from '../../../../assets/tmail-logo.svg';
 
 const ANIMATED_ICON_SIZE_PX = 34;
 const ANIMATED_STICKER_SPEED = 2;
@@ -93,7 +92,10 @@ function LandscapeNavBar({
         className={styles.button}
         onClick={handleTmailClick}
       >
-        <img src={tmailLogo} alt="" className={styles.tmailLogo} />
+        <span
+          className={styles.tmailLogo}
+          style={accentColor ? buildStyle(`--tmail-icon-color: ${accentColor}`) : undefined}
+        />
         <span className={styles.label}>{lang('TMail')}</span>
       </Button>
     </div>

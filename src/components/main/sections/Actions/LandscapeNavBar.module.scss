@@ -64,7 +64,12 @@
   width: 1.625rem;
   height: 1.625rem;
   margin: 0.125rem 0.1875rem;
-  object-fit: contain;
+
+  background-color: var(--tmail-icon-color, currentColor);
+
+  // stylelint-disable-next-line property-no-vendor-prefix
+  -webkit-mask: url('../../../../assets/tmail-logo.svg') center / contain no-repeat;
+  mask: url('../../../../assets/tmail-logo.svg') center / contain no-repeat;
 }
 
 .label {
