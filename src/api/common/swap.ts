@@ -155,6 +155,9 @@ async function swapReplaceCexActivities(
   slug?: string,
   isToNow?: boolean,
 ): Promise<ApiActivity[]> {
+  // Same as `patchSwapItem`: there is no backend to ask for CEX swap history.
+  if (NO_BACKEND) return activities;
+
   if (!activities.length || parseAccountId(accountId).network === 'testnet' || !canHaveCexSwap(slug, activities)) {
     return activities;
   }

@@ -89,7 +89,7 @@ describe('selectTokenInfoUserTokens', () => {
 describe('selectAccountTokens native visibility', () => {
   it('keeps native tokens enabled below the dust threshold when Hide Tokens With No Cost is on', () => {
     const global = buildGlobal();
-    // 0.005 SOL ≈ $0.37 — below DEFAULT_DUST_THRESHOLD_USD ($1)
+    // 0.005 SOL ≈ $0.37 — above the $0.01 no-cost threshold, but this exercises the native-token bypass regardless
     global.byAccountId[ACCOUNT_ID] = {
       ...global.byAccountId[ACCOUNT_ID],
       balances: {

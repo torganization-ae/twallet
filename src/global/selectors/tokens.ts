@@ -32,9 +32,6 @@ import {
 
 const EMPTY_BALANCES: ApiBalanceBySlug = {};
 
-/** Default Safe-Assets dust threshold (USD) — unknown tokens below this go to Spam/Dust. */
-export const DEFAULT_DUST_THRESHOLD_USD = 1;
-
 function getHasConfirmedActivities(activities: AccountState['activities']) {
   const confirmedCount = (activities?.idsMain?.length ?? 0)
     - (activities?.localActivityIds?.length ?? 0)
@@ -59,7 +56,6 @@ function isSafeAsset(
   token: ApiTokenWithPrice,
   balance: bigint,
   accountSettings: AccountSettings,
-  dustThresholdUsd: number,
   network: ReturnType<typeof parseAccountId>['network'],
 ): boolean {
   if (accountSettings.alwaysShownSlugs?.includes(slug)) return true;
@@ -74,7 +70,7 @@ function isSafeAsset(
   if (token.isVerified || token.isPopular || token.isFromBackend) return true;
 
   const balanceUsd = toBig(balance, token.decimals).mul(token.priceUsd ?? 0);
-  return balanceUsd.gte(dustThresholdUsd);
+  return balanceUsd.gte(TINY_TRANSFER_MAX_COST);
 }
 
 function isSpamAsset(
@@ -82,16 +78,15 @@ function isSpamAsset(
   token: ApiTokenWithPrice,
   balance: bigint,
   accountSettings: AccountSettings,
-  dustThresholdUsd: number,
   network: ReturnType<typeof parseAccountId>['network'],
 ): boolean {
   if (token.isSpam || token.verification === 'blacklist') return true;
   if (accountSettings.importedSlugs?.includes(slug)) return false;
   if (accountSettings.alwaysShownSlugs?.includes(slug)) return false;
-  if (isSafeAsset(slug, token, balance, accountSettings, dustThresholdUsd, network)) return false;
-  // Unknown token with zero/dust value → spam/dust folder
+  if (isSafeAsset(slug, token, balance, accountSettings, network)) return false;
+  // Unknown token with a near-zero (< $0.01) value → spam/dust folder
   const balanceUsd = toBig(balance, token.decimals).mul(token.priceUsd ?? 0);
-  return balance > 0n && balanceUsd.lt(dustThresholdUsd);
+  return balance > 0n && balanceUsd.lt(TINY_TRANSFER_MAX_COST);
 }
 
 export const selectAccountTokensMemoizedFor = withCache((accountId: string) => memoize((
@@ -107,7 +102,6 @@ export const selectAccountTokensMemoizedFor = withCache((accountId: string) => m
   const hiddenChains = getHiddenChainsSnapshot(network);
   const shouldShowOnlyDefaultTokens = !hasActivities && getAreAllBalancesNearZero(balancesBySlug, tokenInfo);
   const pinnedSlugs = accountSettings.pinnedSlugs ?? [];
-  const dustThresholdUsd = accountSettings.dustThresholdUsd ?? DEFAULT_DUST_THRESHOLD_USD;
 
   const tokens = Object
     .entries(balancesBySlug)
@@ -117,27 +111,28 @@ export const selectAccountTokensMemoizedFor = withCache((accountId: string) => m
     .filter(([slug, balance]) => {
       const token = tokenInfo.bySlug[slug];
       // Keep spam out of the main list (unless user forced it visible)
-      return !isSpamAsset(slug, token, balance, accountSettings, dustThresholdUsd, network);
+      return !isSpamAsset(slug, token, balance, accountSettings, network);
     })
     .map(([slug, balance]): UserToken => {
       const {
         symbol, name, image, decimals, cmcSlug, color, chain, tokenAddress, codeHash,
-        type, label, keywords, percentChange24h = 0, priceUsd, isVerified, isSpam,
+        type, label, keywords, percentChange24h = 0, priceUsd, isVerified, isSpam, verification,
       } = tokenInfo.bySlug[slug];
 
       const price = calculateTokenPrice(priceUsd ?? 0, baseCurrency, currencyRates);
       const balanceBig = toBig(balance, decimals);
       const totalValue = balanceBig.mul(price).round(decimals).toString();
-      const hasCost = balanceBig.mul(priceUsd ?? 0).gte(
-        areTokensWithNoCostHidden ? dustThresholdUsd : TINY_TRANSFER_MAX_COST,
-      );
+      const hasCost = balanceBig.mul(priceUsd ?? 0).gte(TINY_TRANSFER_MAX_COST);
       const isPricelessTokenWithBalance = PRICELESS_TOKEN_HASHES.has(codeHash!) && balance > 0n;
-      const isSafe = isSafeAsset(slug, tokenInfo.bySlug[slug], balance, accountSettings, dustThresholdUsd, network);
-      // Native gas tokens should stay visible at any non-zero balance, even below the dust / no-cost threshold.
+      const isSafe = isSafeAsset(slug, tokenInfo.bySlug[slug], balance, accountSettings, network);
+      // Native gas tokens should stay visible at any non-zero balance, even below the no-cost threshold.
       const isNativeWithBalance = getIsNativeToken(slug) && balance > 0n;
+      // Whitelisted tokens are always shown, regardless of value.
+      const isWhitelisted = verification === 'whitelist';
 
       const isEnabled = accountSettings.alwaysShownSlugs?.includes(slug)
         || isNativeWithBalance
+        || isWhitelisted
         || (shouldShowOnlyDefaultTokens
           ? getDefaultEnabledSlugs(network).has(slug)
           : (isSafe && (hasCost || isPricelessTokenWithBalance || (!areTokensWithNoCostHidden && balance > 0n))));
@@ -216,7 +211,6 @@ export function selectHiddenSpamTokens(global: GlobalState): UserToken[] {
 
   const accountSettings = selectAccountSettings(global, accountId) ?? {};
   const { network } = parseAccountId(accountId);
-  const dustThresholdUsd = accountSettings.dustThresholdUsd ?? DEFAULT_DUST_THRESHOLD_USD;
   const { baseCurrency } = global.settings;
   const hiddenChains = getHiddenChainsSnapshot(network);
 
@@ -225,7 +219,7 @@ export function selectHiddenSpamTokens(global: GlobalState): UserToken[] {
     .filter(([slug]) => !hiddenChains.has(getChainBySlug(slug)))
     .filter(([slug]) => slug in global.tokenInfo.bySlug && !accountSettings.deletedSlugs?.includes(slug))
     .filter(([slug, balance]) => (
-      isSpamAsset(slug, global.tokenInfo.bySlug[slug], balance, accountSettings, dustThresholdUsd, network)
+      isSpamAsset(slug, global.tokenInfo.bySlug[slug], balance, accountSettings, network)
     ))
     .map(([slug, balance]): UserToken => {
       const token = global.tokenInfo.bySlug[slug];

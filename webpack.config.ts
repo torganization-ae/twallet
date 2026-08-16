@@ -16,11 +16,11 @@ import WatchFilePlugin from './lib/webpack-watch-file-plugin/index';
 import { convertI18nYamlToJson } from './dev/locales/convertI18nYamlToJson';
 import { getDefaultEndpointHosts } from './src/api/chains/defaultEndpoints';
 import {
+  API_BASE_URL,
   APP_COMMIT_HASH,
   APP_ENV,
   APP_NAME,
   BASE_URL,
-  API_BASE_URL,
   EXTENSION_DESCRIPTION,
   EXTENSION_NAME,
   IFRAME_WHITELIST,
@@ -322,17 +322,16 @@ export default function createConfig(
       }),
       new PreloadWebpackPlugin({
         include: 'allAssets',
+        // Only assets visible on the initial wallet/portfolio screen belong here. Icons for
+        // Settings, the theme picker, and the duck illustrations render later, on demand;
+        // preloading them forced the browser to fetch and hold every one on first load,
+        // which just produced "preloaded but not used" console warnings.
         fileWhitelist: [
-          /duck_.*?\.png/, // Lottie thumbs
           /coin_.*?\.png/, // Coin icons
-          /theme_.*?\.png/, // Theme icons
           /chain_.*?\.png/, // Chain icons
-          /settings_.*?\.svg/, // Settings icons (svg)
         ],
-        as(entry: string) {
-          if (/\.png$/.test(entry)) return 'image';
-          if (/\.svg$/.test(entry)) return 'image';
-          return 'script';
+        as() {
+          return 'image';
         },
       }),
       new MiniCssExtractPlugin({

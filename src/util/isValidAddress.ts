@@ -1,3 +1,5 @@
+import { Address } from '@ton/core';
+
 import type { ApiChain } from '../api/types';
 
 import { getChainConfig, getSupportedChains } from './chain';
@@ -8,6 +10,19 @@ export function isValidAddress(address: string, chain: ApiChain, allowPrefix?: b
   if (!address) {
     return false;
   }
+
+  // `Address.parse` can't validate a string still being typed, so the regex stays for that case.
+  // For a complete address it also verifies the friendly-format CRC16 checksum, catching typos
+  // that a shape-only regex would let through.
+  if (chain === 'ton' && !allowPrefix) {
+    try {
+      Address.parse(address);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   const config = getChainConfig(chain);
   return config[allowPrefix ? 'addressPrefixRegex' : 'addressRegex'].test(address);
 }

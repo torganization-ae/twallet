@@ -452,6 +452,12 @@ addActionHandler('afterCongratulations', (global, actions, { isImporting }) => {
   if (isImporting) {
     actions.afterConfirmDisclaimer();
   } else {
+    // Same as `afterConfirmDisclaimer`: activate polling now instead of relying on a page reload.
+    const accountId = selectCurrentAccountId(global);
+    if (accountId) {
+      void callApi('activateAccount', accountId, selectNewestActivityTimestamps(global, accountId));
+    }
+
     actions.afterSignIn();
 
     if (selectIsOneAccount(global)) {
@@ -574,6 +580,10 @@ addActionHandler('afterConfirmDisclaimer', (global, actions) => {
   global = updateAuth(global, { state: AuthState.ready });
   setGlobal(global);
   syncVaultAccountsFromGlobal(global);
+
+  // Without this, the freshly imported/created account never starts balance/NFT polling: it only
+  // gets picked up on the next full page load, when `initApi` finds `currentAccountId` persisted.
+  void callApi('activateAccount', accountId, selectNewestActivityTimestamps(global, accountId));
 
   actions.afterSignIn();
   if (selectIsOneAccount(global)) {
