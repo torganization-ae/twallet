@@ -1,4 +1,5 @@
 import { TMAIL_ALIAS_REGEX, TMAIL_DOMAIN_ALT_SUFFIX, TMAIL_DOMAIN_SUFFIX } from '../config';
+import { getChainConfig, getSupportedChains } from './chain';
 
 // Tmail alias detection helpers. Kept separate from DNS helpers (`dns.ts`) so the two detectors don't mix.
 
@@ -57,10 +58,17 @@ export function parseTmailShareQr(raw: string) {
 
 /** Bare local-part alias (no `.` / `@`) that can be resolved as `@tmail.ton` then `.ton` DNS. */
 export function isBareTonAlias(value: string) {
-  const trimmed = value.trim().toLowerCase();
+  const trimmed = value.trim();
   if (!trimmed || trimmed.includes('.') || trimmed.includes('@')) {
     return false;
   }
 
-  return TMAIL_ALIAS_REGEX.test(trimmed);
+  // A real chain address must never be mistaken for an alias: `TMAIL_ALIAS_REGEX` is a loose
+  // charset check and would otherwise match plenty of case-sensitive addresses (e.g. TON,
+  // 48 chars of `[-\w_]`), silently lowercasing and misrouting them into alias resolution.
+  if (getSupportedChains().some((chain) => getChainConfig(chain).addressRegex.test(trimmed))) {
+    return false;
+  }
+
+  return TMAIL_ALIAS_REGEX.test(trimmed.toLowerCase());
 }

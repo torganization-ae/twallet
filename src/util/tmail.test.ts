@@ -1,4 +1,6 @@
-import { getTmailAliasBase, isTmailAlias, normalizeTmailDomain, parseTmailShareQr } from './tmail';
+import {
+  getTmailAliasBase, isBareTonAlias, isTmailAlias, normalizeTmailDomain, parseTmailShareQr,
+} from './tmail';
 
 describe('normalizeTmailDomain', () => {
   it('rewrites the @tmail.ae suffix to @tmail.ton', () => {
@@ -22,6 +24,29 @@ describe('isTmailAlias', () => {
   it('rejects unrelated domains', () => {
     expect(isTmailAlias('alice@tmail.com')).toBe(false);
     expect(isTmailAlias('alice@example.ton')).toBe(false);
+  });
+});
+
+describe('isBareTonAlias', () => {
+  it('accepts a short handle', () => {
+    expect(isBareTonAlias('alice')).toBe(true);
+    expect(isBareTonAlias('Alice')).toBe(true);
+  });
+
+  it('rejects real chain addresses instead of treating them as an alias', () => {
+    // TON user-friendly (48 chars, case-sensitive)
+    expect(isBareTonAlias('EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N')).toBe(false);
+    // EVM checksummed
+    expect(isBareTonAlias('0x55712bf80d1370183f78dd995e38fb99fbeca06f')).toBe(false);
+    // Solana base58
+    expect(isBareTonAlias('2xmoSUHGovXAmxeYVGEH6mWme5ECpDvxQ6PVkmi3wqa2')).toBe(false);
+    // Tron base58
+    expect(isBareTonAlias('TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf')).toBe(false);
+  });
+
+  it('rejects values containing "." or "@"', () => {
+    expect(isBareTonAlias('alice.ton')).toBe(false);
+    expect(isBareTonAlias('alice@tmail.ton')).toBe(false);
   });
 });
 

@@ -582,8 +582,6 @@ export interface AccountSettings {
   areAssetsHidden?: boolean;
   areCollectiblesHidden?: boolean;
   overviewCellSize?: OverviewCellSize;
-  /** USD value below which unknown tokens are treated as dust/spam. Defaults to 1. */
-  dustThresholdUsd?: number;
 }
 
 export type OverviewCellSize = 'small' | 'medium' | 'big';
