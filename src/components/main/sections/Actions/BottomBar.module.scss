@@ -61,13 +61,17 @@
   margin-top: -0.375rem;
 }
 
-// Same box and offset as `.icon` so the logo and label line up with the other tabs
+// Same box and offset as `.icon` so the logo and label line up with the other tabs: the box is
+// sized inline from `ICON_SIZE_PX`, the same constant the animated icons use. The mark is drawn at
+// 60.8% of it to match their artwork's extent within their own canvas — a percentage rather than a
+// fixed size, so the proportion holds wherever the box is rendered at a different size.
 .tmailLogo {
-  width: 2.375rem;
-  height: 2.375rem;
   margin-top: -0.375rem;
-  padding: 0.3125rem;
-  object-fit: contain;
+  background-color: var(--tmail-icon-color, currentColor);
+
+  // stylelint-disable-next-line property-no-vendor-prefix
+  -webkit-mask: url('../../../../assets/tmail-logo.svg') center / 60.8% no-repeat;
+  mask: url('../../../../assets/tmail-logo.svg') center / 60.8% no-repeat;
 }
 
 .label {

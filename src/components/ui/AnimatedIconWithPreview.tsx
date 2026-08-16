@@ -15,14 +15,14 @@ import AnimatedIcon from './AnimatedIcon';
 
 import styles from './AnimatedIconWithPreview.module.scss';
 
-type OwnProps =
-  Partial<AnimatedIconProps>
-  & {
-    iconPreviewClass?: string;
-    previewUrl?: string;
-    thumbDataUri?: string;
-    noPreviewTransition?: boolean;
-  };
+type OwnProps
+  = Partial<AnimatedIconProps>
+    & {
+      iconPreviewClass?: string;
+      previewUrl?: string;
+      thumbDataUri?: string;
+      noPreviewTransition?: boolean;
+    };
 
 interface StateProps {
   noAnimation?: boolean;
@@ -30,6 +30,13 @@ interface StateProps {
 
 const loadedPreviewUrls = new Set();
 const DEFAULT_SIZE = 150;
+
+// `previewUrl` can come from untrusted sources (e.g. NFT metadata), and it's interpolated into a raw
+// CSS string below (`style.cssText`), so an unescaped quote could break out of the `url("...")` context
+// and inject arbitrary CSS. Backslash-escaping `\` and `"` is the standard CSS string-escaping rule.
+function escapeCssUrl(url: string) {
+  return url.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
 
 function AnimatedIconWithPreview(props: OwnProps & StateProps) {
   const {
@@ -42,6 +49,12 @@ function AnimatedIconWithPreview(props: OwnProps & StateProps) {
     noPreviewTransition,
     ...otherProps
   } = props;
+
+  // The worker paints every pixel of the animation with this color, keeping only the alpha
+  // (see `applyColor` in `rlottie.worker`), so a colored animation is just its own silhouette.
+  // The preview is a still of the *uncolored* animation, so it has to be tinted the same way —
+  // otherwise its baked-in color shows until the animation loads and then visibly changes.
+  const tintColor = otherProps.color;
 
   const [isPreviewLoaded, markPreviewLoaded] = useFlag(
     Boolean(iconPreviewClass) || Boolean(thumbDataUri) || loadedPreviewUrls.has(previewUrl),
@@ -73,14 +86,32 @@ function AnimatedIconWithPreview(props: OwnProps & StateProps) {
         // eslint-disable-next-line jsx-a11y/alt-text
         <img src={thumbDataUri} className={styles.preview} />
       )}
-      {previewUrl && !isAnimationReady && (
+      {previewUrl && !isAnimationReady && (tintColor ? (
+        <>
+          {/* Zero-sized and never painted: it only exists to load the image and fire `onLoad`,
+              so the mask below is applied from cache and can't flash while it is still loading. */}
+          {/* eslint-disable-next-line jsx-a11y/alt-text */}
+          <img src={previewUrl} className={styles.previewLoader} onLoad={handlePreviewLoad} aria-hidden />
+          {isPreviewLoaded && (
+            <span
+              className={buildClassName(styles.preview, styles.previewTinted)}
+              style={buildStyle(
+                `background-color: ${tintColor}`,
+                `-webkit-mask-image: url("${escapeCssUrl(previewUrl)}")`,
+                `mask-image: url("${escapeCssUrl(previewUrl)}")`,
+              )}
+              aria-hidden
+            />
+          )}
+        </>
+      ) : (
         // eslint-disable-next-line jsx-a11y/alt-text
         <img
           src={previewUrl}
           className={styles.preview}
           onLoad={handlePreviewLoad}
         />
-      )}
+      ))}
       {iconPreviewClass && !isAnimationReady && (
         <i className={buildClassName(styles.preview, iconPreviewClass)} aria-hidden />
       )}

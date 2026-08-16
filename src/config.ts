@@ -193,7 +193,7 @@ export const GETGEMS_BASE_MAINNET_URL = 'https://getgems.io/';
 export const GETGEMS_BASE_TESTNET_URL = 'https://testnet.getgems.io/';
 export const EMPTY_HASH_VALUE = 'NOHASH';
 
-export const TMAIL_APP_URL = 'https://tmail.ae';
+export const TMAIL_APP_URL = 'https://app.tmail.ae';
 
 export const IFRAME_WHITELIST = [
   'http://localhost:*',
@@ -201,7 +201,7 @@ export const IFRAME_WHITELIST = [
   'https://testnet.tonscan.org',
   'https://tonviewer.com',
   'https://testnet.tonviewer.com',
-  'https://tmail.ae',
+  'https://app.tmail.ae',
 ];
 export const SUBPROJECT_URL_MASK = 'https://*.mywallet.io';
 

@@ -60,11 +60,16 @@
   margin: -0.25rem;
 }
 
+// Same box and offset as `.icon`: the box is sized inline from `ANIMATED_ICON_SIZE_PX`, the same
+// constant the animated icons use, with the mark inset to the 60.8% their artwork occupies of its
+// own canvas. See the note in `BottomBar.module.scss`.
 .tmailLogo {
-  width: 1.625rem;
-  height: 1.625rem;
-  margin: 0.125rem 0.1875rem;
-  object-fit: contain;
+  margin: -0.25rem;
+  background-color: var(--tmail-icon-color, currentColor);
+
+  // stylelint-disable-next-line property-no-vendor-prefix
+  -webkit-mask: url('../../../../assets/tmail-logo.svg') center / 60.8% no-repeat;
+  mask: url('../../../../assets/tmail-logo.svg') center / 60.8% no-repeat;
 }
 
 .label {

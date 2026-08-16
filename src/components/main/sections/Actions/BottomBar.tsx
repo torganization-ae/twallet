@@ -25,8 +25,6 @@ import Pill from './Pill';
 
 import styles from './BottomBar.module.scss';
 
-import tmailLogo from '../../../../assets/tmail-logo.svg';
-
 interface StateProps {
   theme: Theme;
   areSettingsOpen?: boolean;
@@ -40,7 +38,7 @@ interface TabConfig {
   key: number;
   label: string;
   iconKey?: IconKey;
-  logoSrc?: string;
+  isMailIcon?: boolean;
   onClick: NoneToVoidFunction;
 }
 
@@ -85,7 +83,7 @@ function BottomBar({
     {
       key: TAB_TMAIL,
       label: 'TMail',
-      logoSrc: tmailLogo,
+      isMailIcon: true,
       onClick: handleTmailClick,
     },
   ];
@@ -125,16 +123,17 @@ function BottomBar({
         {...pointerHandlers}
       >
         <Pill isDragging={isDragging} squeeze={squeeze} />
-        {tabs.map(({ key, label, iconKey, logoSrc, onClick }, index) => {
+        {tabs.map(({ key, label, iconKey, isMailIcon, onClick }, index) => {
           const isActive = renderedActiveIndex === index;
 
-          if (logoSrc) {
+          if (isMailIcon) {
             return (
               <TabButton
                 key={key}
                 isActive={isActive}
                 label={lang(label)}
-                logoSrc={logoSrc}
+                isMailIcon
+                accentColor={accentColor}
                 onClick={onClick}
               />
             );
@@ -171,13 +170,13 @@ export default memo(withGlobal((global): StateProps => {
 })(BottomBar));
 
 const TabButton = memo(({
-  isActive, label, tgsUrl, previewUrl, logoSrc, accentColor, onClick,
+  isActive, label, tgsUrl, previewUrl, isMailIcon, accentColor, onClick,
 }: {
   isActive?: boolean;
   label: string;
   tgsUrl?: string;
   previewUrl?: string;
-  logoSrc?: string;
+  isMailIcon?: boolean;
   accentColor?: string;
   onClick: NoneToVoidFunction;
 }) => {
@@ -194,8 +193,14 @@ const TabButton = memo(({
       className={buildClassName(styles.button, isActive && styles.active)}
       onClick={handleClick}
     >
-      {logoSrc ? (
-        <img src={logoSrc} alt="" className={styles.tmailLogo} />
+      {isMailIcon ? (
+        <span
+          className={styles.tmailLogo}
+          style={buildStyle(
+            `width: ${ICON_SIZE_PX}px; height: ${ICON_SIZE_PX}px`,
+            accentColor && `--tmail-icon-color: ${accentColor}`,
+          )}
+        />
       ) : (
         <AnimatedIconWithPreview
           play={isAnimating}

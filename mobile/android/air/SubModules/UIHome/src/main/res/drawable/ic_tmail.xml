@@ -2,37 +2,37 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="28dp"
     android:height="28dp"
-    android:viewportWidth="216"
-    android:viewportHeight="192">
-    <!-- Brand TMail mark (monochrome, tintable).
-         The mark fills its viewport edge to edge, while the other tab icons occupy ~72% of
-         theirs — so it is inset here to read at the same size in the bottom bar. -->
+    android:viewportWidth="58.33"
+    android:viewportHeight="58.33">
+    <!-- TMail mail mark (monochrome, tintable via setColorFilter at bind time).
+         Path data is in the original 72x72 art space, where the mark is 42x37 centred on
+         (36, 36.5). The viewport is sized so the mark takes up 72% of it, matching how much
+         of their own viewport the sibling tab icons' artwork occupies (measured: ic_home_thin
+         0.72, ic_explore_thin 0.71) — otherwise it reads larger than its neighbours. -->
     <group
-        android:pivotX="108"
-        android:pivotY="96"
-        android:scaleX="0.72"
-        android:scaleY="0.72">
+        android:translateX="-6.833"
+        android:translateY="-7.333">
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M17.2345,27.5798H25.722L33.3476,42.2732L17.2345,27.5798Z" />
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M54.8312,27.5798H46.3437L38.7181,42.2732L54.8312,27.5798Z" />
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M44.6197,27.5798H27.5121L35.9333,44.2798L44.6197,27.5798Z" />
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M43.6251,25.9615H28.2415L35.9487,18.1294L43.6251,25.9615Z" />
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M55.4281,25.9615H46.0123L38.0553,18H48.3993L55.4281,25.9615Z" />
+    <path
+        android:fillColor="#1C1D21"
+        android:pathData="M16.5711,25.9615H25.9869L33.9439,18H23.6662L16.5711,25.9615Z" />
     <path
         android:fillColor="#1C1D21"
         android:fillType="evenOdd"
-        android:pathData="M96.274,140.074C99.63,143.144 103.768,144.864 108,145.239C112.232,144.864 116.37,143.144 119.726,140.074L135.994,125.192L161.872,191.485H54.128L80.006,125.192L96.274,140.074ZM0,52L72.773,118.575L43.303,191.485H20C8.954,191.485 0,182.53 0,171.485V52ZM216,52L143.227,118.575L172.697,191.485H196C207.046,191.485 216,182.53 216,171.485V52Z" />
-    <path
-        android:fillColor="#1C1D21"
-        android:pathData="M11.492,49.578H55.142L94.359,125.62L11.492,49.578Z" />
-    <path
-        android:fillColor="#1C1D21"
-        android:pathData="M204.846,49.578H161.196L121.979,125.62L204.846,49.578Z" />
-    <path
-        android:fillColor="#1C1D21"
-        android:pathData="M152.33,49.578H64.348L107.657,136.005L152.33,49.578Z" />
-    <path
-        android:fillColor="#1C1D21"
-        android:pathData="M147.215,41.203H68.099L107.736,0.67L147.215,41.203Z" />
-    <path
-        android:fillColor="#1C1D21"
-        android:pathData="M207.916,41.203H159.492L118.57,0H171.768L207.916,41.203Z" />
-    <path
-        android:fillColor="#1C1D21"
-        android:pathData="M8.08,41.203H56.504L97.426,0H44.569L8.08,41.203Z" />
+        android:pathData="M33.7199,45.066C34.3725,45.6592 35.1771,45.9916 36,46.064C36.8229,45.9916 37.6275,45.6592 38.2801,45.066L41.4433,42.1904L46.4751,55H36H25.5249L30.5567,42.1904L33.7199,45.066ZM15,28.0478L29.1503,40.9118L23.42,55H20.2624H18.8889C16.7411,55 15,53.2697 15,51.1355V28.0478ZM57,28.0478L42.8497,40.9118L48.58,55H51.7376H53.1111C55.2589,55 57,53.2697 57,51.1355V28.0478Z" />
     </group>
 </vector>

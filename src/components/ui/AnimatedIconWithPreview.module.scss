@@ -12,3 +12,21 @@
   width: 100%;
   height: 100%;
 }
+
+// Stretched to the box like the `<img>` it replaces, so the silhouette lines up frame for frame
+// with the animation that takes over.
+.previewTinted {
+  // stylelint-disable property-no-vendor-prefix
+  -webkit-mask-repeat: no-repeat;
+  // stylelint-enable property-no-vendor-prefix
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.previewLoader {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
