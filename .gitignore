@@ -50,3 +50,7 @@ AGENTS.md
 *.jks
 *.keystore
 !mobile/android/debugSigningKey.jks
+
+.mcp.json
+.gortex.yaml
+.claude/

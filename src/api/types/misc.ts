@@ -1,4 +1,3 @@
-import type { NftItem } from 'tonapi-sdk-js';
 import type { Base58EncodedBytes } from '@solana/kit';
 
 import type { LangCode } from '../../global/types';
@@ -10,15 +9,15 @@ import type { ApiParsedPayload } from './payload';
 import type { ApiSseOptions, ApiWalletByChain } from './storage';
 import type { ApiUpdatingStatus } from './updates';
 
-export type BuiltinEVMChain =
-  'ethereum'
-  | 'base'
-  | 'bnb'
-  | 'polygon'
-  | 'arbitrum'
-  | 'monad'
-  | 'avalanche'
-  | 'hyperliquid';
+export type BuiltinEVMChain
+  = 'ethereum'
+    | 'base'
+    | 'bnb'
+    | 'polygon'
+    | 'arbitrum'
+    | 'monad'
+    | 'avalanche'
+    | 'hyperliquid';
 export type EVMChain = BuiltinEVMChain;
 export type ApiBuiltinChain = 'ton' | 'tron' | 'solana' | BuiltinEVMChain;
 export type ApiChain = ApiBuiltinChain;
@@ -195,13 +194,6 @@ export interface ApiNftCollection {
   address: string;
 }
 
-export interface ApiDomainData {
-  domain: string;
-  linkedAddress?: string;
-  lastFillUpTime: string;
-  nft: NftItem;
-}
-
 export type ApiHistoryList = Array<[number, number]>;
 
 export interface ApiDappPermissions {
@@ -319,9 +311,9 @@ export type ApiNftMarketplace = 'fragment' | 'getgems' | 'opensea';
 
 export type OnUpdatingStatusChange = (kind: ApiUpdatingStatus['kind'], isUpdating: boolean) => void;
 
-type ApiWalletVariantMetadata =
-  | { type: 'version'; version: ApiTonWalletVersion }
-  | { type: 'path'; path: string; label?: string };
+type ApiWalletVariantMetadata
+  = | { type: 'version'; version: ApiTonWalletVersion }
+    | { type: 'path'; path: string; label?: string };
 
 export type ApiWalletVariant<T extends ApiChain> = {
   chain: T;
