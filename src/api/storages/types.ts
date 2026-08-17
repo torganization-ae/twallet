@@ -43,6 +43,11 @@ export type StorageKey = 'accounts'
   | 'accountHiddenChainsByNetwork'
   | 'vaultAccountIds'
   | 'hiddenChainsSeededV1'
+  // Names (tmail alias / DNS domain) the user sent to, kept so the history doesn't fall back to reverse DNS
+  | 'sentAddressNames'
+  // Same purpose as `sentAddressNames`, but keyed by transaction hash instead of address - used where an
+  // address-keyed cache doesn't fit (NFT transfers, domain linking; see `sentActivityNames.ts`)
+  | 'sentActivityNames'
   // For extension
   | 'dapps'
   | 'dappMethods:lastAccountId'

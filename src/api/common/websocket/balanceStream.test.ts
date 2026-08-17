@@ -536,4 +536,80 @@ describe('BalanceStream freshness guard', () => {
 
     stream.destroy();
   });
+
+  it('never runs two socket balance batches concurrently', async () => {
+    jest.useFakeTimers();
+
+    // The socket handler is async: it imports metadata for unknown tokens over the network before applying their
+    // balances. If the throttle does not await it, a second batch starts while the first is still in flight, and
+    // whichever finishes last stamps the freshness clock - letting an older delta out-version a newer one.
+    let concurrentCalls = 0;
+    let maxConcurrentCalls = 0;
+    const importGates: Deferred[] = [];
+
+    const importUnknownTokens = jest.fn(async () => {
+      concurrentCalls += 1;
+      maxConcurrentCalls = Math.max(maxConcurrentCalls, concurrentCalls);
+
+      const gate = new Deferred();
+      importGates.push(gate);
+      try {
+        await gate.promise;
+      } finally {
+        concurrentCalls -= 1;
+      }
+    });
+
+    let onBalanceUpdate: BalanceUpdateCallback | undefined;
+    const wsClient = {
+      watchWallets: jest.fn((_wallets, callbacks: Partial<WalletWatcherInternal>) => {
+        onBalanceUpdate = callbacks.onBalanceUpdate;
+        return { isConnected: false, destroy: jest.fn() };
+      }),
+    } as unknown as AbstractWebsocketClient<any, any, any, any, any>;
+
+    const stream = new BalanceStream({
+      chain: 'ton',
+      wsClient,
+      network: 'mainnet',
+      address: 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ',
+      sendUpdateTokens: jest.fn(),
+      fallbackPollingOptions: FAST_POLLING_OPTIONS,
+      fetchBalancesCb: jest.fn().mockResolvedValue({ toncoin: 1n }),
+      importUnknownTokens,
+    });
+    stream.start();
+    await jest.advanceTimersByTimeAsync(1);
+
+    // An address absent from the token registry, so the handler takes the `importUnknownTokens` path.
+    const unknownTokenAddress = 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
+    const deliver = (balance: bigint) => onBalanceUpdate!({
+      address: 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ',
+      tokenAddress: unknownTokenAddress,
+      balance,
+      finality: 'confirmed',
+    });
+
+    deliver(1n);
+    await jest.advanceTimersByTimeAsync(SOCKET_THROTTLE_DELAY);
+    expect(importUnknownTokens).toHaveBeenCalledTimes(1);
+
+    // A newer delta arrives while the first batch is still importing.
+    deliver(2n);
+    await jest.advanceTimersByTimeAsync(SOCKET_THROTTLE_DELAY * 3);
+
+    // The second batch must still be queued behind the first, not running alongside it.
+    expect(importUnknownTokens).toHaveBeenCalledTimes(1);
+
+    importGates[0].resolve();
+    await jest.advanceTimersByTimeAsync(SOCKET_THROTTLE_DELAY);
+    expect(importUnknownTokens).toHaveBeenCalledTimes(2);
+
+    importGates[1].resolve();
+    await jest.advanceTimersByTimeAsync(SOCKET_THROTTLE_DELAY);
+
+    expect(maxConcurrentCalls).toBe(1);
+
+    stream.destroy();
+  });
 });

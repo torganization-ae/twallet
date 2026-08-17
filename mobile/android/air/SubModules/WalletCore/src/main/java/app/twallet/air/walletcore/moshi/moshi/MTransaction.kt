@@ -471,6 +471,11 @@ sealed class MApiTransaction : WEquatable<MApiTransaction> {
                     if (type != null && !isOutgoingBouncedSpam && !isMint) {
                         return false
                     }
+                    // The user's own outgoing transfers must stay visible even when tiny (e.g. 1 NOT).
+                    // Outgoing bounced spam is still hidden by the cost check below.
+                    if (!isIncoming && !isOutgoingBouncedSpam) {
+                        return false
+                    }
                     token.priceUsd * amount.doubleAbsRepresentation(
                         token.decimals
                     ) < 0.01

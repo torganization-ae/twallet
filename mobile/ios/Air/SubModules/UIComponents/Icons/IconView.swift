@@ -681,8 +681,13 @@ public class IconView: UIView {
 
     private func configureTokenImage(token: ApiToken, tokenChanged: Bool, imageChanged: Bool) {
         guard let url = Self.validTokenImageURL(from: token.image?.nilIfEmpty) else {
-            tokenImageState = .failed
-            showTokenPlaceholder(for: token)
+            if token.isNative {
+                tokenImageState = .loaded
+                showNativeTokenIcon(for: token)
+            } else {
+                tokenImageState = .failed
+                showTokenPlaceholder(for: token)
+            }
             return
         }
 
@@ -730,6 +735,15 @@ public class IconView: UIView {
                 }
             }
         }
+    }
+
+    private func showNativeTokenIcon(for token: ApiToken) {
+        imageView.kf.cancelDownloadTask()
+        imageView.contentMode = .scaleAspectFill
+        imageView.image = UIImage(named: "chain_\(token.chain.rawValue)", in: AirBundle, compatibleWith: nil)
+        gradientLayer.isHidden = true
+        hideTokenLoadingPlaceholder()
+        hideTokenPlaceholder()
     }
 
     private func showTokenPlaceholder(for token: ApiToken) {

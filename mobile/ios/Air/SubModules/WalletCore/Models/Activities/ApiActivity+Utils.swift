@@ -327,6 +327,12 @@ public extension ApiActivity {
             if type != nil && !isOutgoingBouncedSpam && !isMint {
                 return false
             }
+
+            // The user's own outgoing transfers must stay visible even when tiny (e.g. 1 NOT).
+            // Outgoing bounced spam is still hidden by the cost check below.
+            if !transaction.isIncoming && !isOutgoingBouncedSpam {
+                return false
+            }
             
             guard let token = TokenStore.tokens[slug] else {
                 return false

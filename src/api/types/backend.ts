@@ -3,6 +3,19 @@ import type { ApiChain, ApiTokenWithPrice } from './misc';
 
 export type ApiTokenDetails = Pick<ApiTokenWithPrice, 'slug' | 'type' | 'priceUsd' | 'percentChange24h'>;
 
+/**
+ * A POST /assets response row for a *held* token address, enriched with the same classifying
+ * metadata GET /assets carries (verification, name, symbol, decimals, chain, tokenAddress, image).
+ * Lets the client resolve a held token by its own address without waiting for it to rank into the
+ * popularity-ordered GET /assets registry — e.g. a whitelisted jetton with too few holders to make
+ * that list. All the metadata fields are optional: an address the backend doesn't recognize at all
+ * still returns only `slug` (same as `ApiTokenDetails`); `tokenAddress` presence is what marks a
+ * row as "the backend knows this token" (see `src/api/chains/ton/tokens.ts`'s `importTokensFromBackend`).
+ */
+export type ApiTokenDetailsWithMetadata = ApiTokenDetails & Partial<
+  Pick<ApiTokenWithPrice, 'name' | 'symbol' | 'decimals' | 'chain' | 'tokenAddress' | 'image' | 'verification'>
+>;
+
 export type ApiSwapDexLabel = 'dedust' | 'ston' | 'jupiter';
 export type ApiSwapCexLabel = 'changelly' | 'near-intents';
 export type ApiSwapFeeMode = 'extra' | 'included';
@@ -153,9 +166,9 @@ export type ApiSwapBuildTransferResponse = {
   transaction?: string;
 };
 
-export type ApiSwapBuildTransactionResponse =
-  | ({ route: 'dex' } & ApiSwapBuildTransferResponse)
-  | ({ route: 'cex' } & ApiSwapCexCreateTransactionResponse);
+export type ApiSwapBuildTransactionResponse
+  = | ({ route: 'dex' } & ApiSwapBuildTransferResponse)
+    | ({ route: 'cex' } & ApiSwapCexCreateTransactionResponse);
 
 export type ApiSwapExecuteTransactionResult = {
   swapId: string;

@@ -50,9 +50,17 @@ export async function updateTokens(
     const cachedToken = tokensCache.bySlug[slug] as ApiTokenWithPrice | undefined;
     const mergedToken = mergeTokenWithCache(token, detailsBySlug, cachedToken);
 
-    if (!(token.slug in tokensCache)) {
-      shouldSendUpdate = true;
-    }
+    // Any call that passes `sendUpdate` re-publishes the whole registry to the UI, unconditionally. The
+    // redundancy is deliberate and load-bearing: the UI prunes `tokenInfo` down to the slugs in use when it
+    // persists state (`reducedGlobal.tokenInfo` in `src/global/cache.ts`), and both asset lists hide any balance
+    // whose slug is missing from `tokenInfo`. Re-sending on every balance poll is what repairs a pruned registry
+    // when the backend `/assets` call is unavailable and cannot force the update itself. The reducer
+    // deep-compares before storing, so an unchanged payload costs a message and nothing else.
+    //
+    // (The original condition here read `token.slug in tokensCache`, testing the `{ bySlug }` wrapper rather
+    // than the map inside it, so it was never false. Made explicit rather than "fixed" - narrowing it to a
+    // real change check reintroduces the invisible-token bug above.)
+    shouldSendUpdate = true;
 
     tokensCache.bySlug[token.slug] = mergedToken;
     if (token.tokenAddress) {

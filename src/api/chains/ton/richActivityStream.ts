@@ -5,6 +5,7 @@ import { parseAccountId } from '../../../util/account';
 import { mergeSortedActivities } from '../../../util/activities/order';
 import { createCallbackManager } from '../../../util/callbacks';
 import { areSortedArraysEqual, extractKey } from '../../../util/iteratees';
+import { logDebugError } from '../../../util/logs';
 import { OrGate } from '../../../util/orGate';
 import { throttle } from '../../../util/schedulers';
 import { fetchStoredWallet } from '../../common/accounts';
@@ -84,12 +85,25 @@ export class RichActivityStream {
   #enrichAndReportActivities = throttle(async () => {
     if (this.#isDestroyed) return;
 
+    const rawConfirmedActivities = this.#confirmedActivitiesToReport;
+    this.#confirmedActivitiesToReport = [];
+
     try {
       this.#isLoading.on('enrich');
 
-      const rawConfirmedActivities = this.#confirmedActivitiesToReport;
-      this.#confirmedActivitiesToReport = [];
-      const richConfirmedActivities = await enrichActivities(this.#accountId, rawConfirmedActivities);
+      // Enrichment is a best-effort embellishment (fee details, CEX swap replacement). The activities are already
+      // drained from the buffer at this point, so letting a failure escape used to drop them permanently - they
+      // would only reappear after an app restart re-ran the initial history load. Outgoing transfers are the ones
+      // at risk, since they are the only activities marked `shouldLoadDetails`. Fall back to the raw activities.
+      let richConfirmedActivities: ApiActivity[];
+      try {
+        richConfirmedActivities = await enrichActivities(this.#accountId, rawConfirmedActivities);
+      } catch (err) {
+        logDebugError('enrichActivities', err);
+        richConfirmedActivities = rawConfirmedActivities;
+      }
+
+      if (this.#isDestroyed) return;
 
       this.#pendingActivities.updateAfterEnrichment(rawConfirmedActivities);
       this.#reportActivities(richConfirmedActivities);

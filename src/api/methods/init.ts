@@ -1,6 +1,6 @@
 import type { ApiInitArgs, OnApiUpdate } from '../types';
 
-import { NO_BACKEND, NO_MFA, NO_SWAP } from '../../config';
+import { NO_MFA, NO_SWAP } from '../../config';
 import { initWindowConnector } from '../../util/windowProvider/connector';
 import { getHiddenChainsStateSnapshot, loadChainVisibility } from '../chains/chainVisibility';
 import { loadRpcOverrides } from '../chains/rpcOverrides';
@@ -8,6 +8,8 @@ import * as ton from '../chains/ton';
 import { fetchBackendReferrer } from '../common/backend';
 import { connectUpdater, disconnectUpdater, tryMigrateStorage } from '../common/helpers';
 import { initClientId } from '../common/other';
+import { loadSentActivityNames } from '../common/sentActivityNames';
+import { loadSentAddressNames } from '../common/sentAddressNames';
 import { getProtocolManager, initProtocolManager } from '../dappProtocols';
 import { setEnvironment } from '../environment';
 import { addHooks } from '../hooks';
@@ -29,6 +31,9 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
     await tryMigrateStorage(onUpdate, ton, args.accountIds);
     await loadRpcOverrides();
     await loadChainVisibility();
+    // Must settle before any polling starts, because `updateActivityMetadata` reads them synchronously.
+    await loadSentAddressNames();
+    await loadSentActivityNames();
     onUpdate({
       type: 'updateChainVisibility',
       hiddenChainsByNetwork: getHiddenChainsStateSnapshot(),

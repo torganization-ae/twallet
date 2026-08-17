@@ -2,6 +2,7 @@ import React, { memo, useMemo } from '../../lib/teact/teact';
 
 import type { ApiTokenWithPrice } from '../../api/types';
 
+import { TONCOIN } from '../../config';
 import getChainNetworkIcon from '../../util/swap/getChainNetworkIcon';
 import { getIsNativeToken, getIsRwaStockToken } from '../../util/tokens';
 
@@ -11,6 +12,8 @@ import useLastCallback from '../../hooks/useLastCallback';
 import Dropdown, { type DropdownItem } from './Dropdown';
 
 import styles from './TokenDropdown.module.scss';
+
+import gramIcon from '../../assets/token_gram.svg';
 
 export type TokenWithId = Pick<ApiTokenWithPrice, 'slug' | 'symbol' | 'image' | 'chain' | 'keywords'> & {
   /**
@@ -102,9 +105,14 @@ export function getTokenId(token: TokenWithId) {
 }
 
 export function tokenToDropdownItem(token: TokenWithId, isMultichainAccount?: boolean): DropdownItem {
+  const isNativeToken = getIsNativeToken(token.slug);
+  const icon = token.slug === TONCOIN.slug
+    ? gramIcon
+    : token.image || (isNativeToken && token.chain ? getChainNetworkIcon(token.chain) : undefined);
+
   return {
     value: getTokenId(token),
-    icon: token.image,
+    icon,
     iconClassName: getIsRwaStockToken(token) ? styles.rwaStockIcon : undefined,
     overlayIcon: isMultichainAccount && !getIsNativeToken(token.slug) ? getChainNetworkIcon(token.chain) : undefined,
     name: token.symbol,

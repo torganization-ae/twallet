@@ -154,6 +154,7 @@ addActionHandler('submitDomainLinking', async (global, actions, { password } = {
     nft,
     checkAddressResult.resolvedAddress,
     realFee,
+    checkAddressResult.addressName,
   );
 
   handleDomainOperationResult<'linking'>(

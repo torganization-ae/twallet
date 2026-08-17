@@ -4,6 +4,7 @@ import { TONCOIN } from '../../config';
 import { buildCollectionByKey, extractKey } from '../../util/iteratees';
 import * as ton from '../chains/ton';
 import { fetchStoredWallet } from '../common/accounts';
+import { rememberActivityName } from '../common/sentActivityNames';
 import { publishSignedMfaRequest } from './mfa';
 import { createLocalTransactions } from './transfer';
 
@@ -66,6 +67,7 @@ export async function submitDnsChangeWallet(
   nft: ApiNft,
   address: string,
   realFee = 0n,
+  addressName?: string,
 ) {
   const { address: walletAddress } = await fetchStoredWallet(accountId, 'ton');
   const result = await ton.submitDnsChangeWallet(accountId, password, nft.address, address);
@@ -76,6 +78,12 @@ export async function submitDnsChangeWallet(
 
   if ('mfaRequest' in result) {
     return publishSignedMfaRequest(accountId, 'ton', result.mfaRequest);
+  }
+
+  if (addressName) {
+    // Keyed by tx hash, not by `address`: this activity's own `normalizedAddress` is the domain NFT's
+    // contract address (see below), not the linked wallet, so an address-keyed cache couldn't apply here anyway.
+    rememberActivityName(result.msgHashNormalized, addressName);
   }
 
   const [activity] = createLocalTransactions(accountId, 'ton', [{

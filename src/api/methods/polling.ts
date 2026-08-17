@@ -25,9 +25,8 @@ import { forbidConcurrency } from '../../util/schedulers';
 import { getNativeToken } from '../../util/tokens';
 import chains from '../chains';
 import { isChainHidden } from '../chains/chainVisibility';
-import { isEvmChain } from '../chains/defaultEndpoints';
 import { hasSharedDefaultRpc } from '../chains/networksConfig';
-import { getEffectiveRpcUrl, isEvmEnhancedApiEnabled, isRpcFieldDefault } from '../chains/rpcOverrides';
+import { getEffectiveRpcUrl, isRpcFieldDefault } from '../chains/rpcOverrides';
 import {
   doesAccountHaveChain,
   fetchMaybeStoredAccount,
@@ -66,10 +65,10 @@ function isChainRpcConfigured(chain: ApiChain, network: ApiNetwork): boolean {
 }
 
 // Server-side cap on the number of assets accepted in a single POST /assets body
-// (nexus-ton-provider: prices.AssetsDetailsMax = 200). Sending more used to fail the whole
-// tryUpdateTokens cycle with `too many assets requested, limit is 200`, so prices stopped
+// (nexus-ton-provider: prices.AssetsDetailsMax = 100). Sending more used to fail the whole
+// tryUpdateTokens cycle with `too many assets requested, limit is 100`, so prices stopped
 // refreshing for the entire list. We now chunk the request instead.
-const POST_TOKENS_CHUNK_SIZE = 200;
+const POST_TOKENS_CHUNK_SIZE = 100;
 
 let onUpdate: OnApiUpdate;
 let stopCommonBackendPolling: NoneToVoidFunction | undefined;
@@ -482,34 +481,18 @@ function createInactiveAccountsPollingManager() {
   async function startAccountPolling(accountId: string, account: ApiAccountAny) {
     if (stopByAccount[accountId]) return;
     const { network } = parseAccountId(accountId);
-    const visibleChains = await Promise.all(
-      (Object.keys(account.byChain) as ApiChain[]).map(async (apiChain) => {
-        if (!findChainConfig(apiChain) || !chains[apiChain]) return undefined;
-        if (!doesAccountHaveChain(account, apiChain)) return undefined;
-        if (!isChainRpcConfigured(apiChain, network)) return undefined;
-        // Skip public-RPC EVM for inactive wallets — biggest N×8 amplification with empty indexer.
-        if (isEvmChain(apiChain) && !isEvmEnhancedApiEnabled(apiChain, network)) {
-          return undefined;
-        }
-        // Solana without indexer still hits RPC; skip for inactive wallets.
-        if (apiChain === 'solana') {
-          return undefined;
-        }
-        const hidden = await isChainHidden(apiChain, network, accountId);
-        return hidden ? undefined : apiChain;
-      }),
-    );
 
-    // Prefer not polling inactive accounts at all (see switchNetwork). Kept for the
-    // account-switch path that re-polls the previous active wallet lightly (TON only).
-    const tonOnly = visibleChains.filter((chain) => chain === 'ton');
+    // Prefer not polling inactive accounts at all (see switchNetwork). Kept for the account-switch path that
+    // re-polls the previous active wallet lightly (TON only) — so only TON's own config/visibility need checking;
+    // no other chain can ever survive this, however it answers.
+    const canPollTon = Boolean(findChainConfig('ton') && chains.ton)
+      && doesAccountHaveChain(account, 'ton')
+      && isChainRpcConfigured('ton', network)
+      && !(await isChainHidden('ton', network, accountId));
 
     const stopFns = [
       !NO_MFA && doesAccountHaveChain(account, 'ton') ? setupMfaPolling(accountId).stop : undefined,
-      ...tonOnly.map((chain) => {
-        if (!chain) return undefined;
-        return chains[chain].setupInactivePolling(accountId, account as any, onUpdate);
-      }),
+      canPollTon ? chains.ton.setupInactivePolling(accountId, account as any, onUpdate) : undefined,
     ];
 
     stopByAccount[accountId] = () => {

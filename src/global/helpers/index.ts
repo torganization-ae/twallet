@@ -13,6 +13,11 @@ export function getIsTinyOrScamTransaction(transaction: ApiTransaction, token?: 
 
   if (transaction.type && !isOutgoingBouncedSpam && !isMint) return false;
 
+  // The user's own outgoing transfers are intentional and must stay visible even when their
+  // value is below TINY_TRANSFER_MAX_COST (e.g. sending 1 NOT) or the token has no USD price.
+  // Outgoing bounced spam is still hidden by the cost check below.
+  if (!transaction.isIncoming && !isOutgoingBouncedSpam) return false;
+
   const cost = toBig(transaction.amount, token.decimals).abs().mul(token.priceUsd ?? 0);
   return cost.lt(TINY_TRANSFER_MAX_COST);
 }
