@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from '../../lib/teact/teact';
 import { getActions, getGlobal, withGlobal } from '../../global';
 
-import type { ApiToken } from '../../api/types';
+import type { ApiBaseCurrency, ApiToken } from '../../api/types';
 import type { ActionPayloads, AssetPairs, GlobalState, UserSwapToken } from '../../global/types';
 import type { LangFn } from '../../hooks/useLang';
 import type { ExplainedSwapFee } from '../../util/fee/swapFee';
@@ -19,6 +19,7 @@ import { getChainConfig } from '../../util/chain';
 import { fromDecimal, toDecimal } from '../../util/decimals';
 import { stopEvent } from '../../util/domEvents';
 import { explainSwapFee, getMaxSwapAmount, isBalanceSufficientForSwap } from '../../util/fee/swapFee';
+import { formatCurrency, getShortCurrencySymbol } from '../../util/formatNumber';
 import { vibrate } from '../../util/haptics';
 import { findNativeToken, getChainBySlug } from '../../util/tokens';
 import { ANIMATED_STICKERS_PATHS } from '../ui/helpers/animatedAssets';
@@ -54,6 +55,7 @@ interface StateProps {
   isSensitiveDataHidden?: true;
   pairsBySlug?: Record<string, AssetPairs>;
   isComplete?: boolean;
+  baseCurrency: ApiBaseCurrency;
 }
 
 const ESTIMATE_REQUEST_INTERVAL = 1_000;
@@ -92,6 +94,7 @@ function SwapInitial({
   swapType,
   isSensitiveDataHidden,
   pairsBySlug,
+  baseCurrency,
 }: OwnProps & StateProps) {
   const {
     setDefaultSwapParams,
@@ -314,6 +317,36 @@ function SwapInitial({
     );
   }
 
+  function renderTokenBalance(token: UserSwapToken | undefined, onClick?: NoneToVoidFunction) {
+    if (!token) {
+      return undefined;
+    }
+
+    return (
+      <div
+        className={buildClassName(styles.tokenBalance, onClick && styles.tokenBalanceClickable)}
+        role={onClick && 'button'}
+        tabIndex={onClick && 0}
+        onClick={onClick}
+      >
+        <i className={buildClassName(styles.tokenBalanceIcon, 'icon-wallet')} aria-hidden />
+        {isSensitiveDataHidden
+          ? `*** ${token.symbol}`
+          : formatCurrency(toDecimal(token.amount, token.decimals), token.symbol)}
+      </div>
+    );
+  }
+
+  function renderFiatAmount(amount: string | undefined, token: UserSwapToken | undefined) {
+    const value = (Number(amount) || 0) * (token?.price ?? 0);
+
+    return (
+      <div className={styles.fiatAmount}>
+        ≈&thinsp;{formatCurrency(value, getShortCurrencySymbol(baseCurrency), undefined, true)}
+      </div>
+    );
+  }
+
   function renderFee() {
     const shouldShow = (amountIn && amountOut) // We aim to synchronize the disappearing of the fee with the DEX chooser disappearing
       || ((amountIn || amountOut) && errorType); // Without this sub-condition the fee wouldn't be shown when the amount is outside the CEX limits
@@ -447,6 +480,10 @@ function SwapInitial({
               isStatic={isStatic}
             >
               <SelectTokenButton token={tokenIn as ApiToken} onClick={handleSelectTokenInModalOpen} />
+              <div className={styles.inputBottomRow}>
+                {renderFiatAmount(amountIn, tokenIn)}
+                {renderTokenBalance(tokenIn, handleMaxAmountClick)}
+              </div>
             </RichNumberInput>
           </div>
 
@@ -472,6 +509,10 @@ function SwapInitial({
               isStatic={isStatic}
             >
               <SelectTokenButton token={tokenOut as ApiToken} onClick={handleSelectTokenOutModalOpen} />
+              <div className={styles.inputBottomRow}>
+                {renderFiatAmount(amountOutValue, tokenOut)}
+                {renderTokenBalance(tokenOut)}
+              </div>
             </RichNumberInput>
           </div>
         </div>
@@ -529,6 +570,7 @@ export default memo(
         swapType: selectSwapType(global),
         isSensitiveDataHidden: global.settings.isSensitiveDataHidden,
         pairsBySlug: global.swapPairs?.bySlug,
+        baseCurrency: global.settings.baseCurrency,
         isComplete: global.currentSwap.state === SwapState.Complete,
       };
     },

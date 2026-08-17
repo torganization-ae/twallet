@@ -58,6 +58,26 @@ class AddAccountOptionsVC(
     private val accountId: String
         get() = AccountStore.activeAccountId ?: ""
 
+    private val createDailyWalletRow: SettingsItemCell by lazy {
+        SettingsItemCell(context, 64f, SettingsItemCell.SIMPLE_ROW_HEIGHT).apply {
+            configure(
+                item = SettingsItem(
+                    SettingsItem.Identifier.NONE,
+                    app.twallet.air.uicreatewallet.R.drawable.ic_add_create,
+                    LocaleController.getString("Daily Wallet"),
+                    LocaleController.getString("Multi-chain everyday use"),
+                    value = null,
+                    hasTintColor = false
+                ),
+                subtitle = null,
+                isFirst = true,
+                isLast = false,
+                isEnabled = true,
+                onTap = { startCreateWallet(isVault = false) }
+            )
+        }
+    }
+
     private val createVaultWalletRow: SettingsItemCell by lazy {
         SettingsItemCell(context, 64f, SettingsItemCell.SIMPLE_ROW_HEIGHT).apply {
             configure(
@@ -70,7 +90,7 @@ class AddAccountOptionsVC(
                     hasTintColor = false
                 ),
                 subtitle = null,
-                isFirst = true,
+                isFirst = false,
                 isLast = !showCreateSubWalletButton,
                 isEnabled = true,
                 onTap = { startCreateWallet(isVault = true) }
@@ -108,13 +128,16 @@ class AddAccountOptionsVC(
 
     private val createNewWalletView: WView by lazy {
         WView(context).apply {
+            addView(createDailyWalletRow, FrameLayout.LayoutParams(0, WRAP_CONTENT))
             addView(createVaultWalletRow, FrameLayout.LayoutParams(0, WRAP_CONTENT))
             if (showCreateSubWalletButton) {
                 addView(createSubWalletRow, FrameLayout.LayoutParams(0, WRAP_CONTENT))
             }
             addView(orImportTitleView, FrameLayout.LayoutParams(0, WRAP_CONTENT))
             setConstraints {
-                toTop(createVaultWalletRow)
+                toTop(createDailyWalletRow)
+                toCenterX(createDailyWalletRow, ViewConstants.HORIZONTAL_PADDINGS.toFloat())
+                topToBottom(createVaultWalletRow, createDailyWalletRow)
                 toCenterX(createVaultWalletRow, ViewConstants.HORIZONTAL_PADDINGS.toFloat())
                 if (showCreateSubWalletButton) {
                     topToBottom(createSubWalletRow, createVaultWalletRow)

@@ -6,10 +6,15 @@ import {
   type OnApiUpdate,
 } from '../types';
 
+import { POPULAR_SWAP_TOKENS } from '../../config';
 import { getTokenInfo } from '../../util/chain';
 import Deferred from '../../util/Deferred';
 import { buildCollectionByKey, omitUndefined } from '../../util/iteratees';
 import { tokenRepository } from '../db';
+
+const POPULAR_TOKEN_IMAGES: Record<string, string> = Object.fromEntries(
+  POPULAR_SWAP_TOKENS.filter(({ image }) => image).map(({ slug, image }) => [slug, image!]),
+);
 
 export const tokensPreload = new Deferred();
 const tokensCache: {
@@ -61,6 +66,13 @@ export async function updateTokens(
     // than the map inside it, so it was never false. Made explicit rather than "fixed" - narrowing it to a
     // real change check reintroduces the invisible-token bug above.)
     shouldSendUpdate = true;
+
+    // The popular swap list ships its own logos, because the ones these tokens carry themselves are often
+    // `ipfs://` (or SVG) images that only the web UI can render.
+    const popularImage = POPULAR_TOKEN_IMAGES[slug];
+    if (popularImage) {
+      mergedToken.image = popularImage;
+    }
 
     tokensCache.bySlug[token.slug] = mergedToken;
     if (token.tokenAddress) {

@@ -1,6 +1,7 @@
 import { Address } from '@ton/core';
 
 import type {
+  ApiHistoryList,
   ApiSwapAsset,
   ApiSwapDexEstimateResponse,
   ApiSwapEstimateRequest,
@@ -9,9 +10,12 @@ import type {
   ApiSwapTransfer,
 } from '../types';
 
-import { TONCOIN } from '../../config';
+import { DEFAULT_PRICE_CURRENCY, POPULAR_SWAP_TOKENS, TONCOIN } from '../../config';
 import { fromDecimal, toDecimal } from '../../util/decimals';
 import { fetchJson } from '../../util/fetch';
+import { logDebugError } from '../../util/logs';
+import { MINUTE } from '../constants';
+import { callBackendGet } from './backend';
 import { buildTokenSlug, getTokenByAddress, getTokensCache, tokensPreload } from './tokens';
 
 const ROUTER_URL = 'https://api-mainnet.dedust.io/v1/router';
@@ -51,6 +55,9 @@ type DedustSwapResponse = {
 
 /** Decimals of the assets DeDust knows but the wallet doesn't (needed to convert amounts) */
 const dedustDecimals: Record<string, number> = {};
+
+const POPULAR_PRICES_CACHE_TTL = 5 * MINUTE;
+let popularPricesCache: { timestamp: number; bySlug: Record<string, number> } | undefined;
 
 function post<T extends AnyLiteral>(path: string, body: AnyLiteral) {
   return fetchJson<T>(`${ROUTER_URL}${path}`, undefined, {
@@ -218,7 +225,65 @@ export async function dedustGetAssets(): Promise<ApiSwapAsset[]> {
     };
   }
 
+  // The "Popular" section is a fixed list, so its tokens must be swappable even when neither DeDust nor the
+  // wallet knows them. Metadata comes from the config, the price (if any) from whatever is already known.
+  for (const token of POPULAR_SWAP_TOKENS) {
+    if (token.tokenAddress) {
+      dedustDecimals[token.tokenAddress] = token.decimals;
+    }
+
+    bySlug[token.slug] = {
+      ...bySlug[token.slug],
+      ...token,
+      image: token.image ?? bySlug[token.slug]?.image,
+      priceUsd: bySlug[token.slug]?.priceUsd ?? 0,
+      isPopular: true,
+    };
+  }
+
+  const pricesBySlug = await getPopularPrices(POPULAR_SWAP_TOKENS.filter(
+    ({ slug }) => !bySlug[slug].priceUsd,
+  ));
+
+  for (const [slug, priceUsd] of Object.entries(pricesBySlug)) {
+    bySlug[slug].priceUsd = priceUsd;
+  }
+
   return Object.values(bySlug);
+}
+
+/**
+ * Neither DeDust nor our `/assets` list reports a price for every popular token, and without one the UI shows
+ * "No Price". The price chart does cover them, so its last point is used as the current price.
+ */
+async function getPopularPrices(tokens: { slug: string; tokenAddress?: string }[]) {
+  if (popularPricesCache && Date.now() - popularPricesCache.timestamp < POPULAR_PRICES_CACHE_TTL) {
+    return popularPricesCache.bySlug;
+  }
+
+  const bySlug: Record<string, number> = {};
+
+  await Promise.all(tokens.map(async ({ slug, tokenAddress }) => {
+    if (!tokenAddress) return;
+
+    try {
+      const history = await callBackendGet<ApiHistoryList>(`/prices/chart/ton:${tokenAddress}`, {
+        base: DEFAULT_PRICE_CURRENCY,
+        period: '1D',
+      });
+      const lastPrice = history.at(-1)?.[1];
+
+      if (lastPrice) {
+        bySlug[slug] = lastPrice;
+      }
+    } catch (err) {
+      logDebugError('getPopularPrices', err);
+    }
+  }));
+
+  popularPricesCache = { timestamp: Date.now(), bySlug };
+
+  return bySlug;
 }
 
 /**

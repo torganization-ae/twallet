@@ -215,8 +215,9 @@ enum class MBlockchain(
             return entries.firstOrNull { it.name == normalized }
         }
 
+        // Keep in sync with POPULAR_SWAP_TOKENS in src/config.ts, which decides what is popular at all
         val POPULAR_TOKEN_ORDER = listOf(
-            "TON", "USD₮", "USDT", "BTC", "ETH", "jUSDT", "jWBTC"
+            "GRAM", "USD₮", "DUST", "STON", "UTYA", "STORM", "MY", "GRM"
         )
 
         val POPULAR_TOKEN_ORDER_MAP =

@@ -87,35 +87,44 @@ open class WCustomImageView @JvmOverloads constructor(
             }
         }
 
+        updateClipPath()
+    }
+
+    private fun updateClipPath() {
         val chainRadius = chainSize / 2f
+        val cornerRadius = cornerRadius()
 
         path.reset()
-        path.addRect(
+        path.addRoundRect(
             0f,
             0f,
             measuredWidth.toFloat(),
             measuredHeight.toFloat(),
+            cornerRadius,
+            cornerRadius,
             Path.Direction.CW
         )
-        path.addCircle(
-            measuredWidth - chainRadius + chainOffsetX,
-            measuredHeight - chainRadius + chainOffsetY,
-            chainRadius + chainSizeGap,
-            Path.Direction.CCW
-        )
+        // The cut-out only makes sense under a chain badge - the clip itself now always applies
+        if (chainDrawable != null && chainSize > 0) {
+            path.addCircle(
+                measuredWidth - chainRadius + chainOffsetX,
+                measuredHeight - chainRadius + chainOffsetY,
+                chainRadius + chainSizeGap,
+                Path.Direction.CCW
+            )
+        }
         path.close()
     }
 
     override fun onDraw(canvas: Canvas) {
-        val needClip = chainDrawable != null && chainSize > 0
-        if (needClip) {
-            canvas.save()
-            canvas.clipPath(path)
-        }
+        val hasChain = chainDrawable != null && chainSize > 0
+        // Fresco rounds bitmaps only, so animated images (e.g. GIF token logos) come out square without this
+        canvas.save()
+        canvas.clipPath(path)
 
         super.onDraw(canvas)
-        if (needClip) {
-            canvas.restore()
+        canvas.restore()
+        if (hasChain) {
             chainDrawable?.let {
                 it.setBounds(
                     (measuredWidth - chainSize + chainOffsetX).toInt(),
@@ -144,6 +153,7 @@ open class WCustomImageView @JvmOverloads constructor(
 
         this.content = content
         this.lowResUrl = lowResUrl
+        updateClipPath()
         invalidate()
     }
 
@@ -206,6 +216,7 @@ open class WCustomImageView @JvmOverloads constructor(
                 .setOldController(controller)
                 .setImageRequest(ImageRequest.fromUri(image.url))
                 .setLowResImageRequest(ImageRequest.fromUri(lowResUrl))
+                .setAutoPlayAnimations(true)
                 .setControllerListener(controllerListener)
                 .build()
         }
@@ -239,6 +250,15 @@ open class WCustomImageView @JvmOverloads constructor(
     private fun getPlaceholderMode(content: Content) =
         if (content.placeholder !is Content.Placeholder.Default)
             content.placeholder else defaultPlaceholder
+
+    private fun cornerRadius(): Float {
+        val size = minOf(measuredWidth, measuredHeight).toFloat()
+        return when (val rounding = content?.let { getRoundingMode(it) }) {
+            is Content.Rounding.Radius -> rounding.radius
+            is Content.Rounding.RadiusRatio -> size * rounding.ratio
+            else -> size / 2f
+        }
+    }
 
     private fun getRoundingParams(content: Content): RoundingParams {
         return when (val rounding = getRoundingMode(content)) {

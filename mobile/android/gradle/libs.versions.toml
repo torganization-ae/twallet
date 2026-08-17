@@ -53,6 +53,8 @@ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecyc
 
 lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
 fresco = { group = "com.facebook.fresco", name = "fresco", version.ref = "fresco" }
+# Without it Fresco cannot decode GIFs at all (some token logos are animated GIFs)
+fresco-animated-gif = { group = "com.facebook.fresco", name = "animated-gif", version.ref = "fresco" }
 fresco-middleware = { group = "com.facebook.fresco", name = "middleware", version.ref = "fresco" }
 fresco-ui-common = { group = "com.facebook.fresco", name = "ui-common", version.ref = "fresco" }
 androidsvg = { group = "com.caverock", name = "androidsvg-aar", version.ref = "androidsvg" }
