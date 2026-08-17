@@ -1,4 +1,5 @@
-import { dedustBuildTransfers, dedustEstimate } from './dedust';
+import { POPULAR_SWAP_TOKENS } from '../../config';
+import { dedustBuildTransfers, dedustEstimate, dedustGetAssets } from './dedust';
 
 jest.mock('../../util/fetch', () => ({
   fetchJson: jest.fn(),
@@ -93,6 +94,24 @@ describe('dedustEstimate', () => {
 
     expect(await dedustEstimate({ from: 'TON', to: USDT_ADDRESS, fromAmount: '1' }))
       .toEqual({ error: 'Insufficient liquidity' });
+  });
+});
+
+describe('dedustGetAssets', () => {
+  it('adds the fixed popular list, priced from the chart, even when DeDust does not list it', async () => {
+    fetchJson.mockReset();
+    fetchJson.mockImplementation((url: URL | string) => Promise.resolve(
+      url.toString().includes('/prices/chart/') ? [[1, 0.033]] : [],
+    ));
+
+    const assets = await dedustGetAssets();
+    const bySlug = Object.fromEntries(assets.map((asset) => [asset.slug, asset]));
+
+    for (const token of POPULAR_SWAP_TOKENS) {
+      // TONCOIN has no address, so there is no chart to fall back to
+      const priceUsd = token.tokenAddress ? 0.033 : 0;
+      expect(bySlug[token.slug]).toMatchObject({ ...token, isPopular: true, priceUsd });
+    }
   });
 });
 

@@ -7,6 +7,7 @@ import android.text.TextUtils
 import android.text.method.DigitsKeyListener
 import android.view.Gravity
 import android.view.ViewGroup
+import androidx.core.widget.doOnTextChanged
 import app.twallet.air.uicomponents.drawable.SeparatorBackgroundDrawable
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.extensions.setPaddingLocalized
@@ -20,11 +21,19 @@ import app.twallet.air.uicomponents.widgets.WTokenMaxButton
 import app.twallet.air.uicomponents.widgets.WTokenSymbolIconView
 import app.twallet.air.uicomponents.widgets.setBackgroundColor
 import app.twallet.air.walletbasecontext.localization.LocaleController
+import app.twallet.air.walletbasecontext.models.MBaseCurrency
 import app.twallet.air.walletbasecontext.theme.ViewConstants
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
+import app.twallet.air.walletbasecontext.utils.smartDecimalsCount
+import app.twallet.air.walletbasecontext.utils.toString
 import app.twallet.air.walletbasecontext.utils.getDrawableCompat
+import app.twallet.air.walletcontext.utils.CoinUtils
+import app.twallet.air.walletcore.WalletCore
+import app.twallet.air.walletcore.helpers.TokenEquivalent
 import app.twallet.air.walletcore.moshi.IApiToken
+import app.twallet.air.walletcore.stores.TokenStore
+import java.math.BigInteger
 
 class SwapAssetInputView(context: Context) : WCell(context), WThemedView {
     private val leftTopLabel = WLabel(context).apply {
@@ -69,6 +78,22 @@ class SwapAssetInputView(context: Context) : WCell(context), WThemedView {
         }
     }
 
+    private val equivalentLabel = WLabel(context).apply {
+        id = generateViewId()
+        layoutParams = LayoutParams(0, LayoutParams.WRAP_CONTENT)
+        isSingleLine = true
+        ellipsize = TextUtils.TruncateAt.END
+        setStyle(14f, WFont.Regular)
+    }
+
+    private val balanceLabel = WLabel(context).apply {
+        id = generateViewId()
+        layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+        isSingleLine = true
+        ellipsize = TextUtils.TruncateAt.END
+        setStyle(14f, WFont.Regular)
+    }
+
     private val separatorBackgroundDrawable: SeparatorBackgroundDrawable by lazy {
         SeparatorBackgroundDrawable().apply {
             backgroundWColor = WColor.Background
@@ -80,14 +105,20 @@ class SwapAssetInputView(context: Context) : WCell(context), WThemedView {
         SELL, BUY
     }
 
+    companion object {
+        const val HEIGHT = 118
+    }
+
     init {
-        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 96.dp)
+        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEIGHT.dp)
         clipChildren = false
 
         addView(leftTopLabel)
         addView(rightTopButton)
         addView(assetView)
         addView(this.amountEditText)
+        addView(equivalentLabel)
+        addView(balanceLabel)
 
         setConstraints {
             toStart(leftTopLabel, 20f)
@@ -103,10 +134,56 @@ class SwapAssetInputView(context: Context) : WCell(context), WThemedView {
             endToStart(this@SwapAssetInputView.amountEditText, assetView)
 
             startToEnd(assetView, this@SwapAssetInputView.amountEditText, 8f)
-            toBottom(assetView, 14f)
+            toBottom(assetView, 36f)
             toEnd(assetView, 20f)
+
+            toStart(equivalentLabel, 20f)
+            endToStart(equivalentLabel, balanceLabel, 8f)
+            topToBottom(equivalentLabel, this@SwapAssetInputView.amountEditText)
+
+            toEnd(balanceLabel, 20f)
+            centerYToCenterY(balanceLabel, equivalentLabel)
         }
+
+        amountEditText.doOnTextChanged { _, _, _, _ -> updateEquivalent() }
+
         updateTheme()
+    }
+
+    private fun updateEquivalent() {
+        val token = currentAsset
+        if (token == null) {
+            equivalentLabel.text = null
+            return
+        }
+
+        val price = TokenStore.getToken(token.slug)?.price ?: 0.0
+        val amount = CoinUtils.fromDecimal(amountEditText.text?.toString(), token.decimals)
+            ?: BigInteger.ZERO
+
+        equivalentLabel.text = "≈ " + TokenEquivalent.fromToken(
+            price = price.toBigDecimal(),
+            token = token,
+            amount = amount,
+            currency = WalletCore.baseCurrency ?: MBaseCurrency.USD
+        ).getFmt(currency = true)
+    }
+
+    private var currentBalance: BigInteger? = null
+
+    fun setTokenBalance(balance: BigInteger?) {
+        currentBalance = balance
+        val token = currentAsset
+        balanceLabel.text = if (token == null || balance == null) {
+            null
+        } else {
+            balance.toString(
+                decimals = token.decimals,
+                currency = token.symbol ?: "",
+                currencyDecimals = balance.smartDecimalsCount(token.decimals),
+                showPositiveSign = false
+            )
+        }
     }
 
     private var mode = Mode.SELL
@@ -138,6 +215,8 @@ class SwapAssetInputView(context: Context) : WCell(context), WThemedView {
             amountEditText.amountTextWatcher.decimals = null
             amountEditText.text?.clear()
         }
+        updateEquivalent()
+        setTokenBalance(currentBalance)
     }
 
     fun setBalance(subtitle: String?) {
@@ -146,6 +225,7 @@ class SwapAssetInputView(context: Context) : WCell(context), WThemedView {
 
     fun setOnMaxBalanceClickListener(onClickListener: OnClickListener?) {
         rightTopButton.setOnClickListener(onClickListener)
+        balanceLabel.setOnClickListener(onClickListener)
     }
 
     override fun updateTheme() {
@@ -156,6 +236,8 @@ class SwapAssetInputView(context: Context) : WCell(context), WThemedView {
         }
         separatorBackgroundDrawable.invalidateSelf()
         leftTopLabel.setTextColor(WColor.SecondaryText.color)
+        equivalentLabel.setTextColor(WColor.SecondaryText.color)
+        balanceLabel.setTextColor(WColor.SubtitleText.color)
         rightTopButton.background = ViewHelpers.roundedRippleDrawable(
             null, WColor.tintRippleColor, 8f.dp
         )

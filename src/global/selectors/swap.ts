@@ -4,6 +4,7 @@ import type { AccountSettings, GlobalState, UserSwapToken } from '../types';
 import {
   DEFAULT_SWAP_FIRST_TOKEN_SLUG,
   DEFAULT_SWAP_SECOND_TOKEN_SLUG,
+  POPULAR_SWAP_TOKENS,
   TONCOIN,
 } from '../../config';
 import { calculateTokenPrice } from '../../util/calculatePrice';
@@ -71,25 +72,12 @@ const selectPopularTokensMemoizedFor = withCache((accountId: string) => memoize(
   baseCurrency: ApiBaseCurrency,
   currencyRates: ApiCurrencyRates,
 ) => {
-  const popularTokenOrder = [
-    'TON',
-    'USD₮',
-    'USDT',
-    'BTC',
-    'ETH',
-    'SOL',
-    'TRX',
-    'XLM',
-    'XMR',
-    'USDC',
-    'LTC',
-  ];
-  const orderMap = new Map(popularTokenOrder.map((item, index) => [item, index]));
+  const orderMap = new Map(POPULAR_SWAP_TOKENS.map((token, index) => [token.slug, index]));
 
   const filterFn = (token: ApiSwapAsset) => token.isPopular;
   const sortFn = (tokenA: ApiSwapAsset, tokenB: ApiSwapAsset) => {
-    const orderIndexA = orderMap.has(tokenA.symbol) ? orderMap.get(tokenA.symbol)! : popularTokenOrder.length;
-    const orderIndexB = orderMap.has(tokenB.symbol) ? orderMap.get(tokenB.symbol)! : popularTokenOrder.length;
+    const orderIndexA = orderMap.get(tokenA.slug) ?? POPULAR_SWAP_TOKENS.length;
+    const orderIndexB = orderMap.get(tokenB.slug) ?? POPULAR_SWAP_TOKENS.length;
 
     return orderIndexA - orderIndexB;
   };

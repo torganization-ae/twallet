@@ -34,12 +34,65 @@
   margin-bottom: 0;
 }
 
+.fiatAmount {
+  overflow: hidden;
+
+  min-width: 0;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: var(--color-gray-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tokenBalance {
+  overflow: hidden;
+
+  min-width: 0;
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: var(--color-gray-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tokenBalanceIcon {
+  margin-inline-end: 0.1875rem;
+  font-size: 0.875rem;
+  vertical-align: -0.125rem;
+}
+
+.tokenBalanceClickable {
+  cursor: var(--custom-cursor, pointer);
+
+  @media (hover: hover) {
+    &:hover {
+      color: var(--color-gray-2);
+    }
+  }
+}
+
 .inputLabel {
   margin-bottom: 0.3125rem;
 }
 
+// The fiat equivalent and the balance are wrapped to the second row, below the digits and the token button
 .amountInputInner {
+  flex-wrap: wrap;
   padding-right: 0.5rem;
+}
+
+.inputBottomRow {
+  display: flex;
+  flex: 0 0 100%;
+  gap: 0.5rem;
+  justify-content: space-between;
+
+  padding: 0 0.5rem 0.5rem 0.625rem;
 }
 
 .advancedSlippageContainer {

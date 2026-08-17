@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.biometric)
     implementation(libs.fresco)
+    implementation(libs.fresco.animated.gif)
     implementation(libs.zxing)
     implementation(project("$airSubModulePath:UIComponents"))
     implementation(project("$airSubModulePath:UICreateWallet"))

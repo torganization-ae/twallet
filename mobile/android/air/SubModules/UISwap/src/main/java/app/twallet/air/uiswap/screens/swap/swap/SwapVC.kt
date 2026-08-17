@@ -214,7 +214,7 @@ class SwapVC(
             swapAssetsButton,
             FrameLayout.LayoutParams(32.dp, 32.dp).apply {
                 gravity = Gravity.CENTER_HORIZONTAL or Gravity.TOP
-                topMargin = 80.dp + topSpace
+                topMargin = (SwapAssetInputView.HEIGHT - 16).dp + topSpace
             })
 
         sendAmount.setMode(SwapAssetInputView.Mode.SELL)
@@ -330,7 +330,9 @@ class SwapVC(
             cexProviderInfoView.expanded = it.isCex && lastCex?.providerName != null
             sendAmount.setAsset(it.tokenToSend)
             sendAmount.setBalance(it.tokenToSendMaxAmount)
+            sendAmount.setTokenBalance(it.tokenToSend?.slug?.let(it.wallet.balances::get))
             receiveAmount.setAsset(it.tokenToReceive)
+            receiveAmount.setTokenBalance(it.tokenToReceive?.slug?.let(it.wallet.balances::get))
             if (it.isCex && receiveAmount.amountEditText.isFocused) {
                 sendAmount.amountEditText.requestFocus()
             }

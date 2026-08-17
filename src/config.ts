@@ -684,6 +684,81 @@ export const INIT_SWAP_ASSETS: Record<'in' | 'out', ApiSwapAsset> = {
   },
 };
 
+/**
+ * The fixed "Popular" section of the swap token selector, in display order. Prices are not fetched for these:
+ * whatever the token registry already knows is used, the rest show zeros until the user holds the token.
+ */
+export const POPULAR_SWAP_TOKENS: Omit<ApiSwapAsset, 'isPopular' | 'priceUsd'>[] = [
+  {
+    name: TONCOIN.name, symbol: TONCOIN.symbol, slug: TONCOIN.slug, decimals: TONCOIN.decimals, chain: 'ton',
+  },
+  {
+    name: TON_USDT_MAINNET.name,
+    symbol: TON_USDT_MAINNET.symbol,
+    slug: TON_USDT_MAINNET.slug,
+    decimals: TON_USDT_MAINNET.decimals,
+    chain: 'ton',
+    tokenAddress: TON_USDT_MAINNET.tokenAddress,
+    image: TON_USDT_MAINNET.image,
+    label: TON_USDT_MAINNET.label,
+  },
+  {
+    name: 'DeDust',
+    symbol: 'DUST',
+    slug: 'ton-eqblqsm144',
+    decimals: 9,
+    chain: 'ton',
+    tokenAddress: 'EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE',
+    // The DeDust asset list still calls this token Scaleton and points at a dead `scale.png`
+    image: 'https://assets.dedust.io/images/dust.gif',
+  },
+  {
+    name: 'STON',
+    symbol: 'STON',
+    slug: 'ton-eqa2kcvnwv',
+    decimals: 9,
+    chain: 'ton',
+    tokenAddress: 'EQA2kCVNwVsil2EM2mB0SkXytxCqQjS4mttjDpnXmwG9T6bO',
+    image: 'https://static.ston.fi/logo/ston_symbol.png',
+  },
+  {
+    name: 'Utya',
+    symbol: 'UTYA',
+    slug: 'ton-eqbacguwoo',
+    decimals: 9,
+    chain: 'ton',
+    tokenAddress: 'EQBaCgUwOoc6gHCNln_oJzb0mVs79YG7wYoavh-o1ItaneLA',
+    image: 'https://x-xoxox.github.io/utya/256.png',
+  },
+  {
+    name: 'STORM',
+    symbol: 'STORM',
+    slug: 'ton-eqbsosmczr',
+    decimals: 9,
+    chain: 'ton',
+    tokenAddress: 'EQBsosmcZrD6FHijA7qWGLw5wo_aH8UN435hi935jJ_STORM',
+    image: 'https://static.storm.tg/TOKEN.png',
+  },
+  {
+    name: MYCOIN_MAINNET.name,
+    symbol: MYCOIN_MAINNET.symbol,
+    slug: MYCOIN_MAINNET.slug,
+    decimals: MYCOIN_MAINNET.decimals,
+    chain: 'ton',
+    tokenAddress: MYCOIN_MAINNET.minterAddress,
+    image: MYCOIN_MAINNET.image,
+  },
+  {
+    name: 'Grm',
+    symbol: 'GRM',
+    slug: 'ton-eqc47093ox',
+    decimals: 9,
+    chain: 'ton',
+    tokenAddress: 'EQC47093oX5Xhb0xuk2lCr2RhS8rj-vul61u4W2UH5ORmG_O',
+    image: 'https://gramcoin.org/img/icon.png',
+  },
+];
+
 export const DEFAULT_SWAP_FIRST_TOKEN_SLUG = TONCOIN.slug;
 export const DEFAULT_SWAP_SECOND_TOKEN_SLUG = TON_USDT_MAINNET.slug;
 export const DEFAULT_SWAP_AMOUNT = '10';

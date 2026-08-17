@@ -18,6 +18,7 @@ import { NO_BACKEND, NO_MFA, NO_SWAP } from '../../config';
 import { parseAccountId } from '../../util/account';
 import { areDeepEqual } from '../../util/areDeepEqual';
 import { findChainConfig } from '../../util/chain';
+import { fixIpfsUrl } from '../../util/fetch';
 import { omit, split } from '../../util/iteratees';
 import { logDebugError } from '../../util/logs';
 import { OrGate } from '../../util/orGate';
@@ -148,6 +149,11 @@ async function tryUpdateTokens() {
 
     for (const token of tokens) {
       token.isFromBackend = true;
+      // The backend passes the raw token metadata through, so an `ipfs://` image arrives as is. Only the web UI
+      // resolves that scheme; the native apps hand the URL to the system image loader, which fails on it.
+      if (token.image) {
+        token.image = fixIpfsUrl(token.image);
+      }
     }
 
     await tokensPreload.promise;
