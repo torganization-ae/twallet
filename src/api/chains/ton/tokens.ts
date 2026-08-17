@@ -6,6 +6,7 @@ import {
   type ApiBalanceBySlug,
   type ApiNetwork,
   type ApiToken,
+  type ApiTokenDetailsWithMetadata,
   type ApiTokenWithMaybePrice,
   type ApiTokenWithPrice,
 } from '../../types';
@@ -13,6 +14,7 @@ import {
 import { UNKNOWN_TOKEN } from '../../../config';
 import { getToncoinAmountForTransfer } from '../../../util/fee/getTonOperationFees';
 import { fetchJsonWithProxy, fixIpfsUrl } from '../../../util/fetch';
+import { split } from '../../../util/iteratees';
 import { logDebugError } from '../../../util/logs';
 import withCacheAsync from '../../../util/withCacheAsync';
 import { fetchJettonMetadata, fixBase64ImageData, parsePayloadBase64 } from './util/metadata';
@@ -24,6 +26,7 @@ import {
   resolveTokenWalletAddress,
   toBase64Address, toRawAddress,
 } from './util/tonCore';
+import { callBackendPost } from '../../common/backend';
 import { buildTokenSlug, getTokenByAddress, updateTokens } from '../../common/tokens';
 import { callToncenterV3 } from './toncenter/other';
 import { DEFAULT_DECIMALS, TOKEN_TRANSFER_FORWARD_AMOUNT } from './constants';
@@ -50,12 +53,96 @@ type JettonWalletsResponse = {
   metadata?: MetadataMap;
 };
 
-async function getTokenBalances(network: ApiNetwork, address: string) {
+async function getTokenBalances(network: ApiNetwork, address: string, sendUpdateTokens: NoneToVoidFunction) {
   const { jettonWallets, metadata } = await fetchJettonWallets(network, address);
+
+  // Enrich held tokens with backend classification (verification, decimals, etc.) *before* parsing
+  // balances, so `parseTokenBalance`'s local-registry lookup below can resolve a token that Toncenter
+  // didn't return metadata for and that isn't yet in `tokenInfo` - instead of dropping its balance.
+  const heldTokenAddresses = jettonWallets.map((wallet) => toBase64Address(wallet.jetton, true, network));
+  await importTokensFromBackend(network, heldTokenAddresses, sendUpdateTokens);
+
   const parsed = await Promise.all(
     jettonWallets.map((wallet) => parseTokenBalance(network, wallet, metadata)),
   );
   return parsed.filter(Boolean);
+}
+
+// Held-token addresses this session has already asked the backend about, whether or not the backend
+// knew them. Session-lifetime (module-level, not persisted): resets on app reload, when a re-ask is
+// cheap and the backend registry may have changed since. A network failure does *not* add an address
+// here (see `importTokensFromBackend`), so a transient outage gets retried on the next poll rather
+// than being treated as a permanent "unknown".
+const attemptedBackendImportAddresses = new Set<string>();
+
+// Mirrors POST_TOKENS_CHUNK_SIZE in src/api/methods/polling.ts (server cap: nexus-ton-provider
+// prices.AssetsDetailsMax = 100). Kept as a separate constant since this module doesn't import
+// polling.ts.
+const BACKEND_TOKEN_IMPORT_CHUNK_SIZE = 100;
+
+/**
+ * Enriches held tokens with backend classification (verification + name/symbol/decimals/image) by
+ * their own address, via POST /assets - the only channel that carries `verification`, since a
+ * whitelisted-but-unpopular token (e.g. low holder count) never ranks into the popularity-ordered
+ * GET /assets list that seeds `tokenInfo` otherwise. Called on every balance poll, but each address
+ * is only ever POSTed once per app session: an address already backend-classified, or already asked
+ * and confirmed unknown this session, is filtered out before any network call - so steady-state
+ * polls (no newly-held token) cost nothing beyond an in-memory `Set` lookup.
+ *
+ * Deliberately scoped to the caller's held addresses only, chunked to stay under the server's cap -
+ * this never fetches the backend's whole token registry, only what the wallet actually holds.
+ */
+export async function importTokensFromBackend(
+  network: ApiNetwork,
+  tokenAddresses: string[],
+  sendUpdateTokens: NoneToVoidFunction,
+) {
+  const addressesToAsk = tokenAddresses.filter((tokenAddress) => (
+    !attemptedBackendImportAddresses.has(tokenAddress) && !getTokenByAddress(tokenAddress)?.isFromBackend
+  ));
+  if (!addressesToAsk.length) return;
+
+  for (const chunk of split(addressesToAsk, BACKEND_TOKEN_IMPORT_CHUNK_SIZE)) {
+    let chunkDetails: ApiTokenDetailsWithMetadata[];
+
+    try {
+      chunkDetails = await callBackendPost<ApiTokenDetailsWithMetadata[]>('/assets', { assets: chunk });
+    } catch (err) {
+      // Leave this chunk's addresses un-attempted so the next poll retries them, rather than
+      // permanently giving up on a token we simply failed to ask about this time.
+      logDebugError('importTokensFromBackend', err);
+      continue;
+    }
+
+    // The backend gave a definitive answer (known or not) for every requested address - mark them
+    // all attempted now, even the ones the response left out of `chunkDetails` entirely.
+    for (const tokenAddress of chunk) {
+      attemptedBackendImportAddresses.add(tokenAddress);
+    }
+
+    // `tokenAddress` presence is the "backend knows this token" signal (mirrors the backend's own
+    // doc comment on `TokenPriceDetails`): `decimals` alone can't be used for that, since a real
+    // token can legitimately have `decimals: 0`, which JSON `omitempty` would drop from the wire.
+    const knownTokens: ApiTokenWithPrice[] = chunkDetails
+      .filter((details) => Boolean(details.tokenAddress))
+      .map((details) => ({
+        slug: details.slug,
+        name: details.name || UNKNOWN_TOKEN.symbol,
+        symbol: details.symbol || UNKNOWN_TOKEN.symbol,
+        decimals: details.decimals ?? DEFAULT_DECIMALS,
+        chain: details.chain ?? 'ton',
+        tokenAddress: details.tokenAddress!,
+        image: details.image,
+        verification: details.verification,
+        isFromBackend: true,
+        priceUsd: details.priceUsd,
+        percentChange24h: details.percentChange24h,
+      }));
+
+    if (knownTokens.length) {
+      await updateTokens(knownTokens, sendUpdateTokens);
+    }
+  }
 }
 
 const JETTON_WALLETS_LIMIT = 1000;
@@ -103,14 +190,35 @@ async function parseTokenBalance(
 ): Promise<TokenBalanceParsed | undefined> {
   try {
     const tokenAddress = toBase64Address(wallet.jetton, true, network);
-    const jettonMetadata = getJettonMetadataFromMap(wallet.jetton, metadata)
-      ?? await fetchJettonMetadata(network, tokenAddress).catch((error) => {
-        logDebugError('fetchJettonMetadata', error);
-        return undefined;
-      });
-    if (!jettonMetadata || ('error' in jettonMetadata)) return undefined;
+    const jettonMetadata = getJettonMetadataFromMap(wallet.jetton, metadata);
 
-    const token = buildTokenByMetadata(tokenAddress, jettonMetadata);
+    let token: ApiToken | undefined;
+
+    if (jettonMetadata) {
+      token = buildTokenByMetadata(tokenAddress, jettonMetadata);
+    } else {
+      // Toncenter omitted this jetton from the response `metadata` map. Consult the local token registry before
+      // paying for a separate metadata round trip: it is fed by the backend `/assets` whitelist and persisted in
+      // IndexedDB (`tokenRepository`), so for an already-known token the fetch is pure waste - `mergeTokenWithCache`
+      // makes the cached entry win over freshly fetched metadata for non-backend tokens anyway. Previously every
+      // poll re-issued an on-chain `get_jetton_data` (plus an off-chain content fetch) for these tokens.
+      token = getTokenByAddress(tokenAddress);
+
+      if (!token) {
+        const fetchedMetadata = await fetchJettonMetadata(network, tokenAddress).catch((error) => {
+          logDebugError('fetchJettonMetadata', error);
+          return undefined;
+        });
+
+        // Giving up here drops the balance along with the metadata, which is what used to make a known token
+        // vanish from the wallet entirely on a transient API failure - missing from the main list and from
+        // Hidden Tokens alike, since both filter out slugs absent from `tokenInfo`. The registry lookup above is
+        // what prevents that; reaching this point means the token is genuinely unidentifiable.
+        if (!fetchedMetadata || ('error' in fetchedMetadata)) return undefined;
+
+        token = buildTokenByMetadata(tokenAddress, fetchedMetadata);
+      }
+    }
 
     return {
       slug: token.slug,
@@ -430,7 +538,7 @@ export async function loadTokenBalances(
   address: string,
   sendUpdateTokens: NoneToVoidFunction,
 ): Promise<ApiBalanceBySlug> {
-  const tokenBalances = await getTokenBalances(network, address);
+  const tokenBalances = await getTokenBalances(network, address, sendUpdateTokens);
   const tokens: ApiTokenWithMaybePrice[] = tokenBalances.map(({ token }) => ({
     ...token,
     priceUsd: undefined,

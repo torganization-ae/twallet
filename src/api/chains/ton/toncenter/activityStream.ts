@@ -180,7 +180,7 @@ export class ActivityStream {
       // Sequential on purpose: toncenter public limits ~1 rps; parallel doubles 429 risk.
       const pendingActivities = await loadPendingActivities(this.#network, this.#address);
       if (this.#isDestroyed) return;
-      const newFinalizedActivities = await this.#loadNewFinalizedActivities();
+      const { activities: newFinalizedActivities, didFail } = await this.#loadNewFinalizedActivities();
 
       if (this.#isDestroyed) return;
 
@@ -193,8 +193,13 @@ export class ActivityStream {
       );
 
       this.#doesNeedToRestoreHistory = false;
-      this.#hasLoadedOnce = true;
-      this.#lastSuccessfulPollAt = Date.now();
+
+      // A failed fetch also returns an empty list. Marking it as a successful poll would arm the cooldown above
+      // and suppress the retry for the next 30 seconds, leaving the history stale for no reason.
+      if (!didFail) {
+        this.#hasLoadedOnce = true;
+        this.#lastSuccessfulPollAt = Date.now();
+      }
     } finally {
       if (showLoading && !this.#isDestroyed) {
         this.#loadingListeners.runCallbacks(false);
@@ -202,17 +207,20 @@ export class ActivityStream {
     }
   };
 
-  async #loadNewFinalizedActivities() {
+  /** `didFail` distinguishes "no new activities" from "could not load them", which the caller must not conflate. */
+  async #loadNewFinalizedActivities(): Promise<{ activities: ApiActivity[]; didFail?: boolean }> {
     let attempt = 0;
     while (!this.#isDestroyed) {
       try {
-        return await fetchActions({
-          network: this.#network,
-          filter: { address: this.#address },
-          walletAddress: this.#address,
-          fromTimestamp: this.#newestConfirmedActivityTimestamp,
-          limit: FIRST_TRANSACTIONS_LIMIT,
-        });
+        return {
+          activities: await fetchActions({
+            network: this.#network,
+            filter: { address: this.#address },
+            walletAddress: this.#address,
+            fromTimestamp: this.#newestConfirmedActivityTimestamp,
+            limit: FIRST_TRANSACTIONS_LIMIT,
+          }),
+        };
       } catch (err) {
         logDebugError('loadNewFinalizedActivities', err);
         attempt += 1;
@@ -227,7 +235,7 @@ export class ActivityStream {
       }
     }
 
-    return [];
+    return { activities: [], didFail: true };
   }
 
   /** The method expected one of `allPendingActivities` and `pendingUpdates`, not both at the same time */

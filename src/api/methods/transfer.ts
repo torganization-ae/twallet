@@ -18,6 +18,7 @@ import { getNativeToken } from '../../util/tokens';
 import chains from '../chains';
 import { fetchStoredAddress } from '../common/accounts';
 import { buildLocalTransaction } from '../common/helpers';
+import { rememberSentAddressName } from '../common/sentAddressNames';
 import { bytesToBase64 } from '../common/utils';
 import { FAKE_TX_ID } from '../constants';
 import { publishSignedMfaRequest, registerMfaConfirmationHandler } from './mfa';
@@ -150,6 +151,13 @@ export async function submitTransfer(
 
   const fromAddress = await fetchStoredAddress(accountId, chain);
   const localMetadata = addressName ? { name: addressName } : undefined;
+
+  if (addressName) {
+    // Persist it so the history keeps showing this name after a reload, when the local activity that carries
+    // `localMetadata` is gone and only Toncenter's reverse-DNS domain would remain.
+    const { network } = parseAccountId(accountId);
+    rememberSentAddressName(chains[chain].normalizeAddress(toAddress, network), addressName);
+  }
 
   let result: ApiSubmitGasfullTransferResult | ApiSubmitGaslessTransferResult | { error: string };
 

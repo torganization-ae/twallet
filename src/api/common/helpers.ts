@@ -24,13 +24,14 @@ import * as migrations from '../migrations';
 import { storage } from '../storages';
 import airStorage from '../storages/airStorage';
 import idbStorage from '../storages/idb';
-import localStorage from '../storages/localStorage';
 import {
   checkHasScamLink,
   checkHasTelegramBotMention,
   getKnownAddresses,
   getScamMarkers,
 } from './addresses';
+import { getActivityName } from './sentActivityNames';
+import { getSentAddressName } from './sentAddressNames';
 import { hexToBytes } from './utils';
 
 const actualStateVersion = 22;
@@ -61,7 +62,7 @@ export function updateActivityMetadata<T extends ApiActivity>(activity: T): T {
   }
 
   const {
-    normalizedAddress, comment, isIncoming, type, nft, status, isScam,
+    normalizedAddress, comment, isIncoming, type, nft, status, isScam, externalMsgHashNorm,
   } = activity;
   let { metadata = {} } = activity;
   const knownAddresses = getKnownAddresses();
@@ -77,6 +78,20 @@ export function updateActivityMetadata<T extends ApiActivity>(activity: T): T {
   if (normalizedAddress in knownAddresses) {
     // Prefer activity metadata (e.g. send-time tmail/DNS alias) over the static known-address book.
     metadata = { ...knownAddresses[normalizedAddress], ...metadata };
+  }
+
+  if (!isIncoming) {
+    // For outgoing transfers, the name the user actually sent to outranks the counterparty's reverse-DNS domain
+    // that Toncenter puts into `metadata.name`. Without this, a transfer to `w2@tmail.ton` gets relabelled with
+    // the address's `.ton` DNS domain as soon as the local activity is gone (i.e. after a reload).
+    // The hash-keyed lookup (tied to this specific transaction) takes priority over the address-keyed one: an
+    // address-keyed name can go stale (e.g. a TMail alias resolves via NFT ownership, so the same address could
+    // later belong to a different domain) or simply not apply (domain-linking activities are keyed by the domain
+    // NFT's own address, not the linked wallet, so only the hash-keyed lookup can ever match there).
+    const sentName = getActivityName(externalMsgHashNorm) ?? getSentAddressName(normalizedAddress);
+    if (sentName) {
+      metadata = { ...metadata, name: sentName };
+    }
   }
 
   if (hasScamMarkers || hasScamInComment || isScam) {
@@ -474,4 +489,3 @@ async function iosBackupAndMigrateKeychainMode() {
     }
   }
 }
-

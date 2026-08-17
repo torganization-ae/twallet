@@ -1,5 +1,6 @@
 import { DEFAULT_TIMEOUT } from '../config';
 import { createCallbackManager } from './callbacks';
+import { onAppFocus } from './focusAwareDelay';
 import { logDebug, logDebugError } from './logs';
 import { setCancellableTimeout } from './schedulers';
 
@@ -10,8 +11,14 @@ export type DisconnectCallback = (isUnexpected: boolean) => void;
 
 const RECONNECT_BASE_DELAY = 500;
 const RECONNECT_MAX_DELAY = 5000;
-/** Give up auto-reconnect after this many failed opens/closes without a healthy session. */
+/** After this many failed opens/closes without a healthy session, back off to `RECONNECT_IDLE_DELAY`. */
 const RECONNECT_MAX_ATTEMPTS = 8;
+/**
+ * Retry pace once the fast attempts are exhausted. The socket must never stop retrying on its own: a backgrounded
+ * mobile app burns through the fast attempts in well under a minute, and permanently disabling auto-reconnect left
+ * the wallet with no live balance or activity updates until the app was restarted.
+ */
+const RECONNECT_IDLE_DELAY = 30000;
 
 /**
  * Like WebSocket, but reconnects automatically when the socket disconnects
@@ -43,8 +50,11 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
 
   #disconnectListeners = createCallbackManager<DisconnectCallback>();
 
+  #unsubscribeAppFocus: NoneToVoidFunction;
+
   constructor(url: string | URL) {
     this.#url = url.toString();
+    this.#unsubscribeAppFocus = onAppFocus(this.#handleAppFocus);
     this.#startSocket();
   }
 
@@ -71,6 +81,8 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
   /** Closes the current socket connection and creates a new one. Call it when you suspect the socket has hung. */
   public reconnect() {
     this.#autoReconnect = true;
+    // `close()` unsubscribes; re-arm so a reopened socket keeps recovering on foreground.
+    this.#unsubscribeAppFocus = onAppFocus(this.#handleAppFocus);
     this.#stopSocket();
 
     if (this.#isConnected) {
@@ -108,6 +120,7 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
    */
   public close() {
     this.#autoReconnect = false;
+    this.#unsubscribeAppFocus();
     this.#stopSocket();
 
     if (this.#isConnected) {
@@ -193,21 +206,30 @@ export default class ReconnectingWebSocket<OutMessage, InMessage> {
     }
 
     this.#reconnectAttemptCount++;
-    if (this.#reconnectAttemptCount > RECONNECT_MAX_ATTEMPTS) {
-      this.#autoReconnect = false;
-      logDebugError(
-        'WebSocket giving up after repeated failures',
-        this.#url,
-        `attempts=${this.#reconnectAttemptCount}`,
+
+    // Past the fast-retry budget, keep trying at a relaxed pace instead of shutting auto-reconnect off for good.
+    // `#handleAppFocus` additionally short-circuits the wait as soon as the user comes back to the app.
+    const reconnectDelay = this.#reconnectAttemptCount > RECONNECT_MAX_ATTEMPTS
+      ? RECONNECT_IDLE_DELAY
+      : Math.min(
+        (RECONNECT_BASE_DELAY + (2000 * Math.random())) * this.#reconnectAttemptCount,
+        RECONNECT_MAX_DELAY,
       );
+
+    this.#cancelTimeout = setCancellableTimeout(reconnectDelay, () => this.#startSocket());
+  };
+
+  /**
+   * A socket dropped while the app was backgrounded may sit in the long idle retry window. Returning to the
+   * foreground is the moment the user expects fresh data, so retry immediately with a fresh attempt budget.
+   */
+  #handleAppFocus = () => {
+    if (!this.#autoReconnect || this.#isConnected) {
       return;
     }
 
-    const reconnectDelay = Math.min(
-      (RECONNECT_BASE_DELAY + (2000 * Math.random())) * this.#reconnectAttemptCount,
-      RECONNECT_MAX_DELAY,
-    );
-    this.#cancelTimeout = setCancellableTimeout(reconnectDelay, () => this.#startSocket());
+    this.#reconnectAttemptCount = 0;
+    this.#startSocket();
   };
 
   #handleSocketMessage = ({ data }: MessageEvent<string | ArrayBuffer>) => {

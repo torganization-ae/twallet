@@ -47,9 +47,26 @@ export function focusAwareDelay(ms: number, msWhenNotFocused: number) {
 }
 
 export function setIsAppFocused(_isFocused: boolean) {
+  if (isFocused === _isFocused) {
+    return;
+  }
+
   isFocused = _isFocused;
 
   if (_isFocused) {
     focusListeners.runCallbacks();
   }
+}
+
+export function getIsAppFocused() {
+  return isFocused;
+}
+
+/**
+ * Subscribes to the moment the app returns to the foreground. Unlike the internal focus listeners used by
+ * `onFocusAwareDelay`, the callback stays registered across transitions, so long-lived resources (sockets) can use
+ * it to recover after a background stint.
+ */
+export function onAppFocus(cb: NoneToVoidFunction) {
+  return focusListeners.addCallback(cb);
 }

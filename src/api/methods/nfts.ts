@@ -10,6 +10,7 @@ import { fetchNftByAddress as fetchRawNftByAddress } from '../chains/ton/util/to
 import { fetchStoredWallet, getCurrentAccountId } from '../common/accounts';
 import { getNftSuperCollectionsByCollectionAddress } from '../common/addresses';
 import { setCollectiblesPollingActive } from '../common/polling/collectiblesPolling';
+import { rememberActivityName } from '../common/sentActivityNames';
 import { publishSignedMfaRequest, refreshMfaState, registerMfaConfirmationHandler } from './mfa';
 import { createLocalTransactions } from './transfer';
 
@@ -86,6 +87,10 @@ export async function submitNftTransfers(
     const realFeePerNft = bigintDivideToNumber(totalRealFee, nfts.length);
 
     registerMfaConfirmationHandler(mfaRequestHash, (txHash) => {
+      if (addressName) {
+        rememberActivityName(txHash, addressName);
+      }
+
       createLocalTransactions(accountId, chain, nfts.map((nft) => ({
         id: txHash,
         amount: 0n,
@@ -115,6 +120,10 @@ export async function submitNftTransfers(
   }
 
   const realFeePerNft = bigintDivideToNumber(totalRealFee, Object.keys(result.transfers).length);
+
+  if (addressName) {
+    rememberActivityName(result.msgHashNormalized, addressName);
+  }
 
   const localActivities = createLocalTransactions(accountId, chain, result.transfers.map((transfer, index) => ({
     id: result.msgHashNormalized,

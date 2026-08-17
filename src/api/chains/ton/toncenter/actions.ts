@@ -200,7 +200,9 @@ export function parseActionsToActivities(actions: AnyAction[], options: ParseOpt
   const activities: ApiActivity[] = [];
 
   for (const action of actions) {
-    const parsedAction = parseAction(action, options);
+    const parsedAction = safeParseAction(action, options);
+    if (!parsedAction) continue;
+
     for (const activity of parsedAction.activities) {
       activities.push(activity);
     }
@@ -210,7 +212,22 @@ export function parseActionsToActivities(actions: AnyAction[], options: ParseOpt
 }
 
 export function parseActions(actions: AnyAction[], options: ParseOptions): ParsedAction[] {
-  return actions.map((action) => parseAction(action, options));
+  return actions.map((action) => safeParseAction(action, options) ?? { action, activities: [] });
+}
+
+/**
+ * The parsers index `addressBook` directly (`addressBook[raw].user_friendly`), so an action referencing an address
+ * that Toncenter omitted from the address book throws. Thrown from here, that used to abort the whole batch, so a
+ * single malformed action silently erased an entire page of history - including the user's own outgoing transfers.
+ * Skip just the offending action instead.
+ */
+function safeParseAction(action: AnyAction, options: ParseOptions): ParsedAction | undefined {
+  try {
+    return parseAction(action, options);
+  } catch (err) {
+    logDebugError('parseAction', action.type, action.action_id, err);
+    return undefined;
+  }
 }
 
 function parseAction(action: AnyAction, options: ParseOptions): ParsedAction {

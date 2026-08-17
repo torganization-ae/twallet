@@ -20,7 +20,12 @@ export type BalanceStreamUpdateSource = 'poll' | 'socket';
 export type OnBalancesUpdate = (balances: ApiBalanceBySlug, updateSource: BalanceStreamUpdateSource) => void;
 export type OnLoadingChange = (isLoading: boolean) => void;
 
-type OnSocketBalancesUpdate = (balances: BalanceByTokenAddress) => void;
+/**
+ * Returns a promise so `throttleSocketBalanceUpdates` can await it. The handler is async (it imports unknown token
+ * metadata over the network), and overlapping runs would apply their balances - and stamp `#clock` - out of order,
+ * letting an older delta out-version a newer one.
+ */
+type OnSocketBalancesUpdate = (balances: BalanceByTokenAddress) => MaybePromise<void>;
 type BalanceByTokenAddress = Record<string, bigint>;
 
 export type BalanceUpdateCallback = (update: BalanceUpdate) => void;
@@ -95,7 +100,7 @@ export class BalanceStream {
   #fetchBalancesCb: (
     network: ApiNetwork,
     address: string,
-    sendUpdateTokens: NoneToVoidFunction
+    sendUpdateTokens: NoneToVoidFunction,
   ) => Promise<ApiBalanceBySlug>;
 
   #fetchCrosschainBalancesCb?: (
@@ -107,7 +112,7 @@ export class BalanceStream {
   #importUnknownTokens?: ((
     network: ApiNetwork,
     tokenAddresses: string[],
-    sendUpdateTokens: NoneToVoidFunction
+    sendUpdateTokens: NoneToVoidFunction,
   ) => Promise<void>);
 
   #isDestroyed = false;
@@ -279,7 +284,24 @@ export class BalanceStream {
 
     if (this.#isDestroyed) return;
 
-    this.#setBalancesPartially(pick(newBalances, tokenAddresses.unknown));
+    // The import is best-effort: it silently gives up when the token metadata can't be fetched. Writing a balance
+    // for a slug that has no `tokenInfo` entry makes the asset invisible in the UI (both the main list and Hidden
+    // Tokens filter such slugs out), so only publish the ones that actually became known, and let the HTTP poll
+    // retry the rest - it can resolve them from the backend token registry.
+    const { known: importedAddresses, unknown: stillUnknownAddresses } = await splitKnownAndUnknownTokens(
+      pick(newBalances, tokenAddresses.unknown),
+    );
+
+    this.#setBalancesPartially(pick(newBalances, importedAddresses));
+
+    if (stillUnknownAddresses.length) {
+      logDebug('balanceStream: token metadata missing, re-polling', {
+        chain: this.#chain,
+        address: this.#address,
+        tokenAddresses: stillUnknownAddresses,
+      });
+      this.#fallbackPollingScheduler?.forceImmediatePoll();
+    }
   };
 
   /** Fetches all balances when the socket is not connected or has just connected */
@@ -318,7 +340,7 @@ export class BalanceStream {
         // fetch is recognised as newer than this snapshot.
         const pollVersion = ++this.#clock;
         const crosschainBalances
-        = await this.#fetchCrosschainBalancesCb?.(this.#network, this.#address, this.#sendUpdateTokens);
+          = await this.#fetchCrosschainBalancesCb?.(this.#network, this.#address, this.#sendUpdateTokens);
 
         if (crosschainBalances) {
           const knownChains = getSupportedChains();
@@ -452,10 +474,12 @@ export class BalanceStream {
 function throttleSocketBalanceUpdates(onUpdate: OnSocketBalancesUpdate): BalanceUpdateCallback {
   let pendingUpdates: BalanceByTokenAddress = {};
 
+  // Returning the promise matters: `throttle` waits for the callback to settle before scheduling the next run, so
+  // this is what actually serializes the async handler. Dropping the promise here let two batches interleave.
   const notifyThrottled = throttle(() => {
     const updates = pendingUpdates;
     pendingUpdates = {};
-    onUpdate(updates);
+    return onUpdate(updates);
   }, SOCKET_THROTTLE_DELAY, false);
 
   return ({ tokenAddress, balance }) => {

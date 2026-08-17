@@ -2,6 +2,8 @@ import type { ApiNft } from '../types';
 
 import { makeMockTransactionActivity } from '../../../tests/mocks';
 import { updateActivityMetadata } from './helpers';
+import { rememberActivityName } from './sentActivityNames';
+import { rememberSentAddressName } from './sentAddressNames';
 
 // Mock the addresses module to control scam detection
 jest.mock('./addresses', () => ({
@@ -169,5 +171,70 @@ describe('updateActivityMetadata - scam comment detection', () => {
       const result = updateActivityMetadata(swapActivity);
       expect(result).toEqual(swapActivity);
     });
+  });
+});
+
+describe('updateActivityMetadata - sent name priority', () => {
+  it('prefers the hash-keyed name (NFT/domain-linking) over Toncenter\'s reverse-DNS guess', () => {
+    const hash = 'hash-priority-1';
+    rememberActivityName(hash, 'w2@tmail.ton');
+
+    const activity = makeMockTransactionActivity({
+      isIncoming: false,
+      externalMsgHashNorm: hash,
+      metadata: { name: 'reverse-dns-guess.ton' },
+    });
+
+    const result = updateActivityMetadata(activity);
+    expect(result.metadata?.name).toBe('w2@tmail.ton');
+  });
+
+  it('falls back to the address-keyed name when no hash-keyed entry exists', () => {
+    const normalizedAddress = 'address-priority-fallback';
+    rememberSentAddressName(normalizedAddress, 'w3@tmail.ton');
+
+    const activity = makeMockTransactionActivity({
+      isIncoming: false,
+      normalizedAddress,
+      externalMsgHashNorm: 'hash-with-nothing-remembered',
+      metadata: { name: 'reverse-dns-guess.ton' },
+    });
+
+    const result = updateActivityMetadata(activity);
+    expect(result.metadata?.name).toBe('w3@tmail.ton');
+  });
+
+  it('prefers the hash-keyed name over the address-keyed one when both exist for the same activity', () => {
+    const hash = 'hash-priority-2';
+    const normalizedAddress = 'address-priority-2';
+    rememberSentAddressName(normalizedAddress, 'stale-domain-for-this-address.ton');
+    rememberActivityName(hash, 'w2@tmail.ton');
+
+    const activity = makeMockTransactionActivity({
+      isIncoming: false,
+      normalizedAddress,
+      externalMsgHashNorm: hash,
+      metadata: { name: 'reverse-dns-guess.ton' },
+    });
+
+    const result = updateActivityMetadata(activity);
+    expect(result.metadata?.name).toBe('w2@tmail.ton');
+  });
+
+  it('does not apply a remembered sent name to an incoming activity', () => {
+    const hash = 'hash-priority-incoming';
+    const normalizedAddress = 'address-priority-incoming';
+    rememberActivityName(hash, 'w2@tmail.ton');
+    rememberSentAddressName(normalizedAddress, 'w2@tmail.ton');
+
+    const activity = makeMockTransactionActivity({
+      isIncoming: true,
+      normalizedAddress,
+      externalMsgHashNorm: hash,
+      metadata: { name: 'senders-own-dns.ton' },
+    });
+
+    const result = updateActivityMetadata(activity);
+    expect(result.metadata?.name).toBe('senders-own-dns.ton');
   });
 });
