@@ -41,8 +41,8 @@ export const IS_EXPLORER = process.env.IS_EXPLORER === '1';
 
 export const ELECTRON_HOST_URL = 'https://dumb-host';
 export const INACTIVE_MARKER = '[Inactive]';
-export const PRODUCTION_URL = 'https://web.mywallet.io';
-export const BETA_URL = 'https://beta.mywallet.io';
+export const PRODUCTION_URL = 'https://web.twallet.ae';
+export const BETA_URL = 'https://beta.twallet.ae';
 // The pre-rebrand host still serves this very build - it is an extra domain of the same site, kept alive because
 // outdated desktop clients poll it for update manifests. Listed explicitly rather than derived by negating
 // PRODUCTION_URL, which would also match self-hosted installations.
@@ -55,8 +55,8 @@ export const NEW_APP_URL = `${PRODUCTION_URL}?utm_source=legacy_web`;
 export const APP_INSTALL_URL = 'https://wallet.tmail.ae/downloads';
 export const APP_REPO_URL = 'https://github.com/torganization-ae/twallet';
 export const SELF_UNIVERSAL_HOST_URL = 'https://my.tt';
-export const APP_WEBSITE_URL = 'https://mywallet.io';
-export const APP_ICON_URL = 'https://mywallet.io/icon-512x512.png';
+export const APP_WEBSITE_URL = 'https://twallet.ae';
+export const APP_ICON_URL = 'https://twallet.ae/icon-512x512.png';
 
 // GitHub workflow uses an empty string as the default value if it's not in repository variables, so we cannot define a default value here
 export const BASE_URL = process.env.BASE_URL || PRODUCTION_URL;
@@ -70,7 +70,7 @@ export const DEBUG_ALERT_MSG = 'Shoot!\nSomething went wrong, please see the err
 
 export const PIN_LENGTH = 4;
 export const NATIVE_BIOMETRICS_USERNAME = 'Twallet';
-export const NATIVE_BIOMETRICS_SERVER = 'https://web.mywallet.io';
+export const NATIVE_BIOMETRICS_SERVER = 'https://web.twallet.ae';
 export const NATIVE_BIOMETRICS_PROMPT_KEY = 'confirm an action in TWallet';
 
 /**
@@ -174,13 +174,13 @@ export const NFT_MARKETPLACE_TITLES: Record<ApiNftMarketplace, string> = {
   fragment: 'Fragment',
   opensea: 'OpenSea',
 };
-export const APP_PROMO_URL = 'https://mywallet.io/';
-export const APP_WEBSITE_HOST = 'mywallet.io';
-export const APP_TERMS_OF_USE_URL = 'https://mywallet.io/terms-of-use';
-export const APP_PRIVACY_POLICY_URL = 'https://mywallet.io/privacy-policy';
+export const APP_PROMO_URL = 'https://twallet.ae/';
+export const APP_WEBSITE_HOST = 'twallet.ae';
+export const APP_TERMS_OF_USE_URL = 'https://twallet.ae/terms-of-use';
+export const APP_PRIVACY_POLICY_URL = 'https://twallet.ae/privacy-policy';
 export const MY_WALLET_BLOG: Partial<Record<LangCode, string>> = {
-  en: 'https://mywallet.io/en/blog/',
-  ru: 'https://mywallet.io/ru/blog/',
+  en: 'https://twallet.ae/en/blog/',
+  ru: 'https://twallet.ae/ru/blog/',
 };
 
 export const MULTISEND_DAPP_URL = process.env.MULTISEND_DAPP_URL || 'https://multisend.mywallet.io/';
@@ -203,7 +203,7 @@ export const IFRAME_WHITELIST = [
   'https://testnet.tonviewer.com',
   'https://app.tmail.ae',
 ];
-export const SUBPROJECT_URL_MASK = 'https://*.mywallet.io';
+export const SUBPROJECT_URL_MASK = 'https://*.twallet.ae';
 
 export const CEX_WAITING_DEADLINE = 3 * 60 * 60 * 1000; // 3 hours
 
@@ -849,16 +849,16 @@ export const JVAULT_URL = 'https://jvault.xyz';
 
 export const HELP_CENTER_URL = {
   home: {
-    en: 'https://help.mywallet.io/',
-    ru: 'https://help.mywallet.io/ru',
+    en: 'https://help.twallet.ae/',
+    ru: 'https://help.twallet.ae/ru',
   },
   domainScam: {
-    en: 'https://help.mywallet.io/intro/scams/.ton-domain-scams',
-    ru: 'https://help.mywallet.io/ru/baza-znanii/moshennichestvo-i-skamy/moshennichestvo-s-ispolzovaniem-domenov-.ton',
+    en: 'https://help.twallet.ae/intro/scams/.ton-domain-scams',
+    ru: 'https://help.twallet.ae/ru/baza-znanii/moshennichestvo-i-skamy/moshennichestvo-s-ispolzovaniem-domenov-.ton',
   },
   seedScam: {
-    en: 'https://help.mywallet.io/intro/scams/leaked-seed-phrases',
-    ru: 'https://help.mywallet.io/ru/baza-znanii/moshennichestvo-i-skamy/slitye-sid-frazy',
+    en: 'https://help.twallet.ae/intro/scams/leaked-seed-phrases',
+    ru: 'https://help.twallet.ae/ru/baza-znanii/moshennichestvo-i-skamy/slitye-sid-frazy',
   },
 };
 

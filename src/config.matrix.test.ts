@@ -28,19 +28,19 @@ describe('TWallet brand constants', () => {
     expect(ACTIVE_TAB_STORAGE_KEY).toBe('twallet-active-tab');
     expect(TONCONNECT_WALLET_JSBRIDGE_KEY).toBe('twallet');
     expect(WINDOW_PROVIDER_PORT).toBe('Twallet_popup_reversed');
-    expect(PRODUCTION_URL).toBe('https://web.mywallet.io');
+    expect(PRODUCTION_URL).toBe('https://web.twallet.ae');
     expect(APP_INSTALL_URL).toBe('https://wallet.tmail.ae/downloads');
-    expect(APP_WEBSITE_URL).toBe('https://mywallet.io');
-    expect(APP_PROMO_URL).toBe('https://mywallet.io/');
-    expect(APP_TERMS_OF_USE_URL).toBe('https://mywallet.io/terms-of-use');
-    expect(APP_PRIVACY_POLICY_URL).toBe('https://mywallet.io/privacy-policy');
+    expect(APP_WEBSITE_URL).toBe('https://twallet.ae');
+    expect(APP_PROMO_URL).toBe('https://twallet.ae/');
+    expect(APP_TERMS_OF_USE_URL).toBe('https://twallet.ae/terms-of-use');
+    expect(APP_PRIVACY_POLICY_URL).toBe('https://twallet.ae/privacy-policy');
     expect(SHOULD_GENERATE_TON_MNEMONIC).toBe(false);
     expect(SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY).toBe(false);
   });
 
   it('uses TWallet deeplink constants', () => {
     expect(SELF_PROTOCOL).toBe('twallet://');
-    expect(TONCONNECT_UNIVERSAL_URL).toBe('https://connect.mytonwallet.org');
+    expect(TONCONNECT_UNIVERSAL_URL).toBe('https://connect.twallet.ae');
     expect(SELF_UNIVERSAL_URLS).toEqual(expect.arrayContaining(['https://my.tt']));
   });
 });
