@@ -608,7 +608,6 @@ function AccountSelectorModal({
             canAddSubwallet={canAddSubwallet}
             shouldHideBackButton={shouldHideAddAccountBackButton}
             onBack={handleBackFromAddAccount}
-            onNewAccountClick={handleNewAccountClick}
             onNewVaultAccountClick={handleNewVaultAccountClick}
             onNewSubwalletClick={handleNewSubwalletClick}
             onImportAccountClick={handleImportAccountClick}

@@ -21,14 +21,6 @@ struct AccountTypePickerView: View {
                     InsetSection(addDividers: false) {
                         WalletPickerOptionRow(
                             icon: "CreateWalletIcon30",
-                            title: lang("Daily Wallet"),
-                            subtitle: lang("Multi-chain everyday use"),
-                            showsDivider: true,
-                            onTap: { onCreate(isVault: false) }
-                        )
-
-                        WalletPickerOptionRow(
-                            icon: "CreateWalletIcon30",
                             title: lang("Vault Wallet"),
                             subtitle: lang("TON-only cold storage with unlock"),
                             showsDivider: canCreateSubwallet,
