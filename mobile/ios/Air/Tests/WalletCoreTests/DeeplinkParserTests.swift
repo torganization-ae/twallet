@@ -32,11 +32,11 @@ struct DeeplinkParserTests {
             expectedRequestLink: walletConnectRequestLink
         ),
         .init(
-            url: "https://connect.mywallet.io/wc?uri=\(walletConnectRequestLink)",
+            url: "https://connect.twallet.ae/wc?uri=\(walletConnectRequestLink)",
             expectedRequestLink: walletConnectRequestLink
         ),
         .init(
-            url: "https://connect.mywallet.io/wc/wc?uri=\(walletConnectRequestLink)",
+            url: "https://connect.twallet.ae/wc/wc?uri=\(walletConnectRequestLink)",
             expectedRequestLink: walletConnectRequestLink
         ),
         .init(

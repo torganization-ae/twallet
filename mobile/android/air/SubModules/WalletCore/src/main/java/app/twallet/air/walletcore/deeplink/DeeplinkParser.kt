@@ -114,7 +114,7 @@ class DeeplinkParser {
     companion object {
         private val WC_WRAPPER_SCHEMES = setOf("twallet-wc")
         private val WC_WRAPPER_UNIVERSAL_HOSTS = setOf(
-            "connect.mywallet.io",
+            "connect.twallet.ae",
             "connect.mytonwallet.org",
         )
 

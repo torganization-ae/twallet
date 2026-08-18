@@ -51,7 +51,7 @@ public extension Deeplink {
 private var compatibleWalletConnectSelfProtocolSchemes: Set<String> { [SELF_PROTOCOL_SCHEME] }
 private var compatibleWalletConnectWrapperProtocolSchemes: Set<String> { ["twallet-wc"] }
 private let compatibleWalletConnectUniversalHosts: Set<String> = [
-    "connect.mywallet.io",
+    "connect.twallet.ae",
     "connect.mytonwallet.org",
 ]
 private var compatibleTonConnectProtocolSchemes: Set<String> {
