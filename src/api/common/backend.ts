@@ -13,7 +13,7 @@ export class BackendDisabledError extends Error {
   }
 }
 
-// The part of the `api.mywallet.io` contract our backend already implements. Extend it as the
+// The part of the `server.twallet.ae` contract our backend already implements. Extend it as the
 // backend grows; `NO_BACKEND = false` lifts the restriction entirely.
 const SUPPORTED_PATHS_RE = /^\/(assets|currency-rates|prices\/)/;
 
@@ -64,7 +64,7 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
 
 export function callBackendGet<T extends AnyLiteral>(path: string, data?: AnyLiteral, headers?: HeadersInit) {
   if (!isPathSupported(path)) {
-    return Promise.reject(new BackendDisabledError(path)) as Promise<T>;
+    return Promise.reject(new BackendDisabledError(path));
   }
 
   const url = new URL(`${API_BASE_URL}${path}`);

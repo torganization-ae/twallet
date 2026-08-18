@@ -16,7 +16,7 @@ public let PRICELESS_TOKEN_HASHES: Set<String?> = [
   "5d01684bdf1d5c9be2682c4e36074202432628bd3477d77518d66b0976b78cca", // USDT Storm LP (for example, EQAzm06UMMsnFQrNKEubV1myIR-mm2ZOCnoic36frCgD8MLR)
 ]
 
-public let MYTONWALLET_MULTISEND_DAPP_URL = "https://multisend.mywallet.io/";
+public let MYTONWALLET_MULTISEND_DAPP_URL = "https://multisend.twallet.ae/";
 
 public let NFT_MARKETPLACE_URL = "https://opensea.io/"
 public let NFT_MARKETPLACE_TITLE = "OpenSea"
@@ -58,12 +58,12 @@ public func buildMfaBotUrl(startApp: String) -> URL? {
 
 public let TMAIL_APP_URL = URL(string: "https://app.tmail.ae")!
 
-public let HELP_CENTER_URL = "https://help.mywallet.io"
-public let HELP_CENTER_URL_RU = "https://help.mywallet.io/ru"
-public let HELP_CENTER_DOMAIN_SCAM_URL = "https://help.mywallet.io/intro/scams/.ton-domain-scams"
-public let HELP_CENTER_DOMAIN_SCAM_URL_RU = "https://help.mywallet.io/ru/baza-znanii/moshennichestvo-i-skamy/moshennichestvo-s-ispolzovaniem-domenov-.ton"
-public let HELP_CENTER_SEED_SCAM_URL = "https://help.mywallet.io/intro/scams/leaked-seed-phrases"
-public let HELP_CENTER_SEED_SCAM_URL_RU = "https://help.mywallet.io/ru/baza-znanii/moshennichestvo-i-skamy/slitye-sid-frazy"
+public let HELP_CENTER_URL = "https://help.twallet.ae"
+public let HELP_CENTER_URL_RU = "https://help.twallet.ae/ru"
+public let HELP_CENTER_DOMAIN_SCAM_URL = "https://help.twallet.ae/intro/scams/.ton-domain-scams"
+public let HELP_CENTER_DOMAIN_SCAM_URL_RU = "https://help.twallet.ae/ru/baza-znanii/moshennichestvo-i-skamy/moshennichestvo-s-ispolzovaniem-domenov-.ton"
+public let HELP_CENTER_SEED_SCAM_URL = "https://help.twallet.ae/intro/scams/leaked-seed-phrases"
+public let HELP_CENTER_SEED_SCAM_URL_RU = "https://help.twallet.ae/ru/baza-znanii/moshennichestvo-i-skamy/slitye-sid-frazy"
 public var DOMAIN_SCAM_REGEX: Regex<Substring> { /^[-\w]{26,}\./ }
 
 public let CARD_RATIO: CGFloat = 176/358

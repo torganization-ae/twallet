@@ -29,7 +29,7 @@ type MenuHandler = 'reload' | 'openInBrowser' | 'copyUrl' | 'close';
 
 const TITLES: Record<string, string> = {
   'tonscan.org': 'TON Explorer',
-  'multisend.mywallet.io': 'Multi-Send',
+  'multisend.twallet.ae': 'Multi-Send',
   'localhost:4323': 'Multi-Send',
 };
 

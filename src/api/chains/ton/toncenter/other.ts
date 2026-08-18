@@ -160,7 +160,7 @@ export function getToncenterHeaders(network: ApiNetwork) {
 function isOwnToncenterHost(toncenterUrl: string) {
   try {
     const { hostname } = new URL(toncenterUrl);
-    return hostname === 'mywallet.io' || hostname.endsWith('.mywallet.io');
+    return hostname === 'mywallet.io' || hostname.endsWith('.twallet.ae');
   } catch {
     return false;
   }

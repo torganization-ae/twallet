@@ -3,7 +3,7 @@ productName: "TWallet"
 copyright: "Copyright © 2026 TWallet"
 # Pinned by config.test.ts: change ONLY together with ARTIFACT_NAME_BASE in
 # package-and-publish.yml (workflow artifact names must match electron-builder output) and the
-# get.mywallet.io download page. Renaming is safe for installed clients: the update feed
+# get.twallet.ae download page. Renaming is safe for installed clients: the update feed
 # (latest*.yml) and the files it points at are generated together into the same release, so old
 # clients download whatever name the new feed declares.
 artifactName: "Twallet-${arch}.${ext}"

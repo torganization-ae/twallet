@@ -321,7 +321,7 @@ export function resetFetchStateForTests(): void {
   breaker.reset();
 }
 
-// With `NO_BACKEND` the `api.mywallet.io/proxy` hop is cut, so the asset is loaded straight
+// With `NO_BACKEND` the `server.twallet.ae/proxy` hop is cut, so the asset is loaded straight
 // from its own host. Hosts without CORS headers fail — that is the same outcome as the
 // unreachable proxy, minus the extra round trip.
 export function getProxiedJsonUrl(url: string) {

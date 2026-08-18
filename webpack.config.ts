@@ -426,11 +426,11 @@ export default function createConfig(
 
               // Consolidate the retiring mytonwallet.app brand host onto mywallet.io in search. The app
               // keeps serving on .app (installed PWAs and deeplinks pin it), so this is a canonical
-              // header rather than a redirect; the same site also answers on web(.beta).mywallet.io, which
+              // header rather than a redirect; the same site also answers on web(.beta).twallet.ae, which
               // self-canonicalizes. Omitted for Gram/core: those builds are a different brand
               // (wallet.ton.org ships to ton-blockchain/ton-wallet) and must never point at mywallet.io.
-              const canonical = APP_ENV === 'staging' ? 'https://web-beta.mywallet.io/'
-                : 'https://web.mywallet.io/';
+              const canonical = APP_ENV === 'staging' ? 'https://web-beta.twallet.ae/'
+                : 'https://web.twallet.ae/';
               return canonical
                 ? headers.replace('{{CANONICAL}}', canonical)
                 : headers.replace(/^.*\{\{CANONICAL\}\}.*\n?/m, '');

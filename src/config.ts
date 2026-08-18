@@ -48,7 +48,7 @@ export const BETA_URL = 'https://beta.twallet.ae';
 // PRODUCTION_URL, which would also match self-hosted installations.
 export const LEGACY_APP_HOSTS = ['mytonwallet.app'];
 // Where a legacy-host visitor is nudged to continue on the current brand. Opened via a plain anchor or `window.open`,
-// never `openUrl`: `SUBPROJECT_URL_MASK` treats every `*.mywallet.io` host as a subproject, so `openUrl` would append
+// never `openUrl`: `SUBPROJECT_URL_MASK` treats every `*.twallet.ae` host as a subproject, so `openUrl` would append
 // the wallet context (addresses included) and open it in the in-app iframe browser - where the site renders blank
 // under `X-Frame-Options: Deny`. `utm_source` attributes the migrated traffic.
 export const NEW_APP_URL = `${PRODUCTION_URL}?utm_source=legacy_web`;
@@ -125,9 +125,9 @@ export const MAIN_ACCOUNT_ID = '0-ton-mainnet';
 export const TEMPORARY_ACCOUNT_NAME = 'Wallet';
 
 export const API_BASE_URL = process.env.API_BASE_URL || 'https://nexus-ton.testprojects.org';
-export const PROXY_API_BASE_URL = process.env.PROXY_API_BASE_URL || 'https://api.mywallet.io/proxy';
+export const PROXY_API_BASE_URL = process.env.PROXY_API_BASE_URL || 'https://server.twallet.ae/proxy';
 /**
- * Our backend implements only a part of the `api.mywallet.io` contract so far — prices, the token
+ * Our backend implements only a part of the `server.twallet.ae` contract so far — prices, the token
  * list and currency rates (see `SUPPORTED_PATHS_RE` in `api/common/backend.ts`). Everything else is
  * cut off and the features that depend on it are hidden — the same way on every platform.
  * Set to `false` once the whole contract is served.
@@ -183,7 +183,7 @@ export const MY_WALLET_BLOG: Partial<Record<LangCode, string>> = {
   ru: 'https://twallet.ae/ru/blog/',
 };
 
-export const MULTISEND_DAPP_URL = process.env.MULTISEND_DAPP_URL || 'https://multisend.mywallet.io/';
+export const MULTISEND_DAPP_URL = process.env.MULTISEND_DAPP_URL || 'https://multisend.twallet.ae/';
 
 export const NFT_MARKETPLACE_URL = 'https://opensea.io/';
 export const NFT_MARKETPLACE_TITLE = NFT_MARKETPLACE_TITLES.opensea;
@@ -785,7 +785,7 @@ export const SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY = false;
 export const DEFAULT_PRICE_CURRENCY = 'USD';
 export const CURRENCIES: Record<
   ApiBaseCurrency,
-  // Get the fallback rates at https://api.mywallet.io/currency-rates
+  // Get the fallback rates at https://server.twallet.ae/currency-rates
   { name: string; decimals: number; shortSymbol?: string; shortSymbolPosition?: 'start' | 'end'; fallbackRate: string }
 > = {
   USD: {

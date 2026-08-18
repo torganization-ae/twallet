@@ -18,7 +18,7 @@
         <category android:name="android.intent.category.BROWSABLE" />
 
         <data
-          android:host="connect.mywallet.io"
+          android:host="connect.twallet.ae"
           android:scheme="https" />
       </intent-filter>
       <intent-filter android:autoVerify="true">
