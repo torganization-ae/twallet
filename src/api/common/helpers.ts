@@ -30,6 +30,7 @@ import {
   getKnownAddresses,
   getScamMarkers,
 } from './addresses';
+import { setBackendNetworkErrorUpdater } from './backendNetworkError';
 import { getActivityName } from './sentActivityNames';
 import { getSentAddressName } from './sentAddressNames';
 import { hexToBytes } from './utils';
@@ -105,10 +106,12 @@ let currentOnUpdate: OnApiUpdate | undefined;
 
 export function connectUpdater(onUpdate: OnApiUpdate) {
   currentOnUpdate = onUpdate;
+  setBackendNetworkErrorUpdater(onUpdate);
 }
 
 export function disconnectUpdater() {
   currentOnUpdate = undefined;
+  setBackendNetworkErrorUpdater(undefined);
 }
 
 export function getCurrentUpdater() {

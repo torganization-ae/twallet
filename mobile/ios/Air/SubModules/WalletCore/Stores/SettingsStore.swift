@@ -33,7 +33,7 @@ public final class SettingsStore: Sendable {
     }
 
     public var theme: NightMode {
-        NightMode(rawValue: _row.withLock { $0.theme }) ?? .system
+        NightMode(rawValue: _row.withLock { $0.theme }) ?? .dark
     }
 
     public func setTheme(_ theme: NightMode) {

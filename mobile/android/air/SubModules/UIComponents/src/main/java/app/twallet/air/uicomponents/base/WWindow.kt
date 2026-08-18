@@ -16,6 +16,7 @@ import android.util.SparseArray
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.WindowManager
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
@@ -33,6 +34,7 @@ import androidx.core.view.doOnLayout
 import androidx.core.view.isGone
 import com.facebook.drawee.backends.pipeline.Fresco
 import app.twallet.air.uicomponents.AnimationConstants
+import app.twallet.air.uicomponents.commonViews.toast.ToastHost
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.PopupHelpers
 import app.twallet.air.uicomponents.helpers.TiltSensorManager
@@ -89,6 +91,12 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
         }
     }
 
+    private val errorToastHost: ToastHost by lazy {
+        ToastHost(this, errorBulletins = true).apply {
+            id = View.generateViewId()
+        }
+    }
+
     // Window view is the host for all our navigation controllers and fragments
     val windowView: WView by lazy {
         object : WView(this, LayoutParams(MATCH_PARENT, MATCH_PARENT)) {
@@ -105,10 +113,17 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
             override fun onViewAdded(view: View?) {
                 super.onViewAdded(view)
                 bringChildToFront(popupHost)
+                bringChildToFront(errorToastHost)
             }
         }.apply {
             addView(touchBlockerView, ConstraintLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
             addView(popupHost, ConstraintLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+            addView(errorToastHost, ConstraintLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+            setConstraints {
+                toTop(errorToastHost)
+                toStart(errorToastHost)
+                toEnd(errorToastHost)
+            }
             fitsSystemWindows = true
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 requestedFrameRate = View.REQUESTED_FRAME_RATE_CATEGORY_HIGH
@@ -315,6 +330,7 @@ abstract class WWindow : AppCompatActivity(), WThemedView, WProtectedView {
             systemBars =
                 insets.getInsets(WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.systemBars())
             imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
+            errorToastHost.setPadding(0, systemBars?.top ?: 0, 0, 0)
             notifyInsetsUpdated()
             WindowInsetsCompat.CONSUMED
         }

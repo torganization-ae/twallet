@@ -7,6 +7,7 @@ import {
   PROXY_API_BASE_URL,
 } from '../config';
 import { DEFAULT_EVM_API_BASE } from '../api/chains/defaultEndpoints';
+import { BACKEND_NETWORK_ERROR_PROXY, reportBackendNetworkError } from '../api/common/backendNetworkError';
 import { getIsNegVerdictCacheEnabled } from '../api/common/cache';
 import { ApiServerError } from '../api/errors';
 import {
@@ -150,7 +151,10 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
   }
 
   const slot = breaker.acquire(bucketKey);
-  if (!slot) throw new CircuitOpenError(bucketKey);
+  if (!slot) {
+    reportProxyFailureIfNeeded(urlString);
+    throw new CircuitOpenError(bucketKey);
+  }
 
   let message = 'Unknown error.';
   let statusCode: number | undefined;
@@ -212,6 +216,7 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
           }
           cacheNegativeVerdictIfEligible();
           settled = true;
+          reportProxyFailureIfNeeded(urlString);
           throw new ApiServerError(buildFetchErrorMessage(method, urlString, message, i, statusCode), statusCode);
         }
 
@@ -232,6 +237,7 @@ export async function fetchWithRetry(url: string | URL, init?: RequestInit, opti
     }
     cacheNegativeVerdictIfEligible();
     settled = true;
+    reportProxyFailureIfNeeded(urlString);
     throw new ApiServerError(buildFetchErrorMessage(method, urlString, message, retries, statusCode), statusCode);
   } finally {
     if (!settled) slot.cancelled();
@@ -321,9 +327,19 @@ export function resetFetchStateForTests(): void {
   breaker.reset();
 }
 
-// With `NO_BACKEND` the `server.twallet.ae/proxy` hop is cut, so the asset is loaded straight
-// from its own host. Hosts without CORS headers fail — that is the same outcome as the
-// unreachable proxy, minus the extra round trip.
+function reportProxyFailureIfNeeded(urlString: string) {
+  if (NO_BACKEND || !PROXY_API_BASE_URL) return;
+
+  const proxyBase = PROXY_API_BASE_URL.replace(/\/+$/, '');
+  if (
+    proxyBase
+    && urlString.startsWith(proxyBase)
+    && (urlString.includes('/download-json') || urlString.includes('/download-lottie'))
+  ) {
+    reportBackendNetworkError(BACKEND_NETWORK_ERROR_PROXY);
+  }
+}
+
 export function getProxiedJsonUrl(url: string) {
   return NO_BACKEND ? url : `${PROXY_API_BASE_URL}/download-json?url=${encodeURIComponent(url)}`;
 }

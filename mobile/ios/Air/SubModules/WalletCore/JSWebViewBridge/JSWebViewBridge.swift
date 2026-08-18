@@ -99,6 +99,10 @@ let LOGGING_FETCH = """
 
 private let log = Log("JSWebViewBridge")
 private let console = Log("console")
+private var sdkIndexFileURL: URL {
+    Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "JS")!
+}
+private let sdkReadAccessURL = sdkIndexFileURL.deletingLastPathComponent()
 
 // The bridge to use mytonwallet js logic in Swift applications.
 public class JSWebViewBridge: UIViewController {
@@ -152,7 +156,6 @@ public class JSWebViewBridge: UIViewController {
 //        userContentController.addUserScript(logFetchScript)
 
         webViewConfiguration.userContentController = userContentController
-        webViewConfiguration.setURLSchemeHandler(SdkAssetSchemeHandler(), forURLScheme: SdkWebViewOrigin.scheme)
         // create web view
         webView = WKWebView(
             frame: CGRect(x: 0, y: 0, width: 1, height: 1),
@@ -195,7 +198,7 @@ public class JSWebViewBridge: UIViewController {
     
     private func loadHtml() {
         StartupTrace.markOnce("bridge.loadHtml")
-        webView?.load(URLRequest(url: SdkWebViewOrigin.indexURL))
+        webView?.loadFileURL(sdkIndexFileURL, allowingReadAccessTo: sdkReadAccessURL)
     }
     
     private func _callApiImpl(methodName: String, args: [AnyEncodable?]) async throws -> String? {
@@ -360,6 +363,17 @@ public class JSWebViewBridge: UIViewController {
                 WalletContextManager.delegate?.bridgeIsReady()
                 self?.onBridgeReady?()
                 self?.onBridgeReady = nil
+                self?.loadApiHostMark()
+            }
+        }
+    }
+
+    private func loadApiHostMark() {
+        Task { @MainActor in
+            do {
+                apiHostMark = try await Api.getEnvironmentVariables().apiHostMark
+            } catch {
+                // Keep the settings version label without a host mark.
             }
         }
     }
@@ -852,6 +866,16 @@ extension JSWebViewBridge: WKScriptMessageHandler { // todo: move to a separate 
                         Task { @MainActor in
                             AppActions.showError(error: error)
                         }
+                    }
+
+                case "backendNetworkError":
+                    let code = (data["code"] as? Int) ?? (data["code"] as? NSNumber)?.intValue ?? 0
+                    Task { @MainActor in
+                        AppActions.showToast(
+                            message: "Problem connect network \(code)",
+                            duration: 10,
+                            isError: true
+                        )
                     }
 
                 case "tonConnectOnline":

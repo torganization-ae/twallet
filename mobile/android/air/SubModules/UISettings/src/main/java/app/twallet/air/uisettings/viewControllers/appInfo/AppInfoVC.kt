@@ -10,7 +10,6 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.isGone
 import app.twallet.air.uicomponents.AnimationConstants
 import app.twallet.air.uicomponents.R
@@ -42,6 +41,7 @@ import app.twallet.air.walletbasecontext.theme.color
 import app.twallet.air.walletbasecontext.utils.getDrawableCompat
 import app.twallet.air.walletbasecontext.utils.toProcessedSpannableStringBuilder
 import app.twallet.air.walletcore.models.InAppBrowserConfig
+import app.twallet.air.walletcore.stores.EnvironmentStore
 import java.lang.ref.WeakReference
 import kotlin.math.max
 
@@ -76,13 +76,7 @@ class AppInfoVC(context: Context) : WViewController(context) {
 
     private val titleLabel = WLabel(context).apply {
         setStyle(20f, WFont.Medium)
-        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-        val versionName = packageInfo.versionName ?: ""
-        val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo).toString()
-        text = LocaleController.getFormattedString(
-            "${context.getString(BaseR.string.app_locale_name_key)} v%1$@ (%2$@)",
-            listOf(versionName, versionCode)
-        )
+        text = displayedTitle()
     }
 
     private val subtitleLabel = WLabel(context).apply {
@@ -222,17 +216,13 @@ class AppInfoVC(context: Context) : WViewController(context) {
                 topToBottom(readBlogRow, resourcesLabel)
             }
             topToBottom(helpRow, readBlogRow)
-            toBottomPx(
-                helpRow,
-                navigationController?.bottomInset ?: 0
-            )
         }
         v
     }
 
     private val scrollView: WScrollView by lazy {
         val sv = WScrollView(WeakReference(this))
-        sv.addView(scrollingContentView, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        sv.addView(scrollingContentView, ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
         sv
     }
 
@@ -260,7 +250,19 @@ class AppInfoVC(context: Context) : WViewController(context) {
             }
             setTopBlur(y > 0, animated = true)
         }
+        EnvironmentStore.loadEnvVariable {
+            titleLabel.text = displayedTitle()
+        }
         updateTheme()
+    }
+
+    private fun displayedTitle(): String {
+        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        val versionName = packageInfo.versionName ?: ""
+        return LocaleController.getFormattedString(
+            "${context.getString(BaseR.string.app_locale_name_key)} v%1$@",
+            listOf(EnvironmentStore.formatDisplayedVersion(versionName))
+        )
     }
 
     override fun insetsUpdated() {
@@ -269,17 +271,11 @@ class AppInfoVC(context: Context) : WViewController(context) {
             ViewConstants.HORIZONTAL_PADDINGS.dp + additionalTabletPadding + systemBarStartInset,
             0,
             ViewConstants.HORIZONTAL_PADDINGS.dp + systemBarEndInset,
-            0
-        )
-        scrollingContentView.setConstraints {
-            toBottomPx(
-                helpRow,
-                max(
-                    (navigationController?.bottomInset ?: 0),
-                    (navigationController?.imeInsetBottom ?: 0)
-                )
+            max(
+                navigationController?.bottomInset ?: 0,
+                navigationController?.imeInsetBottom ?: 0
             )
-        }
+        )
     }
 
     override val isTinted = true

@@ -79,6 +79,12 @@ public final class _TokenStore: Sendable {
         if var tokensDict = AppStorageHelper.tokensDict() {
             self.baseCurrency = baseCurrency
             tokensDict.merge(Self.defaultTokens) { old, _ in old }
+            tokensDict = tokensDict.mapValues { token in
+                var token = token
+                token.priceUsd = 0
+                token.percentChange24h = 0
+                return token
+            }
             self.tokens = tokensDict
             WalletCoreData.notify(event: .tokensChanged)
         } else {
@@ -126,9 +132,6 @@ public final class _TokenStore: Sendable {
     private func process(newTokens: [String: ApiToken]) {
         assert(!Thread.isMainThread)
         guard !newTokens.isEmpty else { return }
-        if let toncoin = newTokens[TONCOIN_SLUG], toncoin.priceUsd == 3.1 {
-            return
-        }
         var tokens = self.tokens
         let removedSlugs =  Set(tokens.keys).subtracting(Set(newTokens.keys).union(Set(Self.defaultTokens.keys)))
         for removedSlug in removedSlugs {
@@ -153,9 +156,6 @@ public final class _TokenStore: Sendable {
     
     private func _merge(cached: ApiToken?, incoming: ApiToken) -> ApiToken {
         guard let cached else { return incoming }
-        
-        let priceIsInvalid: Bool = (incoming.priceUsd == 0 && Self.invalidPriceSlugs.contains(incoming.slug))
-            || (incoming.slug == TONCOIN_SLUG && incoming.priceUsd == 1.95)
 
         let merged = ApiToken(
             slug: incoming.slug,
@@ -177,8 +177,8 @@ public final class _TokenStore: Sendable {
             codeHash: incoming.codeHash?.nilIfEmpty ?? cached.codeHash,
             label: incoming.label?.nilIfEmpty ?? cached.label,
             isFromBackend: incoming.isFromBackend ?? cached.isFromBackend,
-            priceUsd: priceIsInvalid ? cached.priceUsd : incoming.priceUsd,
-            percentChange24h: priceIsInvalid ? cached.percentChange24h : incoming.percentChange24h
+            priceUsd: incoming.priceUsd ?? cached.priceUsd,
+            percentChange24h: incoming.percentChange24h ?? cached.percentChange24h
         )
         return merged
     }
@@ -284,33 +284,6 @@ public final class _TokenStore: Sendable {
         HYPERLIQUID_USDC_MAINNET_SLUG: .HYPERLIQUID_USDC_MAINNET,
     ]
 
-    private static let invalidPriceSlugs: Set<String> = [
-        TONCOIN_SLUG,
-        TON_USDT_SLUG,
-        TON_USDE_SLUG,
-        MYCOIN_SLUG,
-        TRX_SLUG,
-        TRON_USDT_SLUG,
-        SOLANA_SLUG,
-        SOLANA_USDT_MAINNET_SLUG,
-        SOLANA_USDC_MAINNET_SLUG,
-        ETH_SLUG,
-        ETH_USDT_MAINNET_SLUG,
-        ETH_USDC_MAINNET_SLUG,
-        BASE_SLUG,
-        BASE_USDT_MAINNET_SLUG,
-        BASE_USDC_MAINNET_SLUG,
-        BNB_SLUG,
-        BSC_USDT_MAINNET_SLUG,
-        POLYGON_SLUG,
-        ARBITRUM_SLUG,
-        MONAD_SLUG,
-        AVALANCHE_SLUG,
-        AVALANCHE_USDT_MAINNET_SLUG,
-        HYPERLIQUID_SLUG,
-        HYPERLIQUID_USDC_MAINNET_SLUG,
-    ]
-    
     
     // MARK: - Cached history data
     

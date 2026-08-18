@@ -4,7 +4,6 @@ import android.content.Context
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.widget.ScrollView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintLayout.generateViewId
 import androidx.core.view.isGone
@@ -404,11 +403,13 @@ class SecurityVC(context: Context, private var currentPasscode: String) : WViewC
             toCenterX(allowSuspiciousActionsFooterLabel, 16f)
             topToBottom(spacer4, allowSuspiciousActionsFooterLabel, 4f)
             topToBottom(disableScreenRecordWarningRow, spacer4)
-            toBottomPx(
-                disableScreenRecordWarningRow,
-                (navigationController?.bottomInset ?: 0)
-            )
         }
+        v.setPaddingLocalized(
+            ViewConstants.HORIZONTAL_PADDINGS.dp + additionalTabletPadding,
+            0,
+            ViewConstants.HORIZONTAL_PADDINGS.dp,
+            navigationController?.bottomInset ?: 0
+        )
         v
     }
 
@@ -421,7 +422,6 @@ class SecurityVC(context: Context, private var currentPasscode: String) : WViewC
             setOnScrollChangeListener { _, _, _, _, _ ->
                 updateBlurViews(scrollView = this)
             }
-            overScrollMode = ScrollView.OVER_SCROLL_ALWAYS
         }
     }
 
@@ -459,7 +459,7 @@ class SecurityVC(context: Context, private var currentPasscode: String) : WViewC
             ViewConstants.HORIZONTAL_PADDINGS.dp + additionalTabletPadding + systemBarStartInset,
             0,
             ViewConstants.HORIZONTAL_PADDINGS.dp + systemBarEndInset,
-            0
+            navigationController?.bottomInset ?: 0
         )
     }
 

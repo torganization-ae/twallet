@@ -43,14 +43,18 @@ class MToken(json: JSONObject) : IApiToken, WEquatable<MToken> {
     val codeHash: String? = json.optString("codeHash")
     override val label: String? = json.optString("label").ifBlank { null }
 
-    var percentChange24hReal: Double = json.optDouble("percentChange24h")
+    var percentChange24hReal: Double = parseJsonDouble(json, "percentChange24h")
     var percentChange24h: Double =
         if (percentChange24hReal.isFinite()) BigDecimal(percentChange24hReal).setScale(
             2,
             RoundingMode.HALF_UP
         ).toDouble() else percentChange24hReal
-    var priceUsd: Double = json.optDouble("priceUsd")
+    var priceUsd: Double = parseJsonDouble(json, "priceUsd")
     val isFromBackend: Boolean = json.optBoolean("isFromBackend")
+    /** Backend registry status: whitelist | graylist | blacklist | none. */
+    val verification: String? = json.optString("verification").ifBlank { null }
+    val isVerified: Boolean = json.optBoolean("isVerified")
+    val isSpam: Boolean = json.optBoolean("isSpam")
     val type: String = json.optString("type")
     override val keywords: List<String>? = json.optJSONArray("keywords")?.let {
         List(it.length()) { i -> it.optString(i) }
@@ -99,6 +103,9 @@ class MToken(json: JSONObject) : IApiToken, WEquatable<MToken> {
             put("isPopular", isPopular)
             put("chain", chain)
             put("isFromBackend", isFromBackend)
+            put("verification", verification)
+            put("isVerified", isVerified)
+            put("isSpam", isSpam)
             put("type", type)
             put("keywords", keywords)
             put("cmcSlug", cmcSlug)
@@ -120,36 +127,81 @@ class MToken(json: JSONObject) : IApiToken, WEquatable<MToken> {
         if (ChainVisibilityStore.isHidden(chain, account.network.value)) {
             return true
         }
-        val assetsAndActivityData = assetsAndActivityData ?: AccountStore.assetsAndActivityData
-        val shouldHide = assetsAndActivityData.hiddenTokens.contains(slug)
-        if (shouldHide) {
+        val settings = assetsAndActivityData ?: AccountStore.assetsAndActivityData
+        if (settings.deletedTokens.contains(slug)) {
             return true
         }
-        val isVisibleToken = assetsAndActivityData.visibleTokens.contains(slug)
-        if (isVisibleToken) {
-            return false
+        val balance = BalanceStore.getBalances(account.accountId)?.get(slug) ?: BigInteger.ZERO
+        // Same as web `selectAccountTokens`: spam is out of the main list, then `isDisabled`.
+        // src/global/selectors/tokens.ts
+        if (isSpamAsset(balance, settings, account)) {
+            return true
         }
-        val tokenBalance =
-            (BalanceStore.getBalances(account.accountId)?.get(slug) ?: BigInteger.ZERO)
-        // Keep native gas tokens visible at any non-zero balance.
-        if (mBlockchain?.nativeSlug == slug && tokenBalance > BigInteger.ZERO) {
-            return false
+        if (settings.hiddenTokens.contains(slug)) {
+            return true
         }
-        if (DEFAULT_SHOWN_TOKENS[account.network]?.contains(slug) == true && account.isNew)
-            return false
-        if (PRICELESS_TOKEN_HASHES.contains(codeHash) && tokenBalance > BigInteger.ZERO)
-            return false
-        if (WGlobalStorage.getAreNoCostTokensHidden()) {
-            return priceUsd * tokenBalance.doubleAbsRepresentation(decimals) < 0.01
+        return !isEnabled(balance, settings, account)
+    }
+
+    // Mirrors `isSafeAsset` in src/global/selectors/tokens.ts
+    private fun isSafeAsset(
+        balance: BigInteger,
+        settings: MAssetsAndActivityData,
+        account: MAccount
+    ): Boolean {
+        if (settings.visibleTokens.contains(slug)) return true
+        if (settings.addedTokens.contains(slug)) return true
+        if (DEFAULT_SHOWN_TOKENS[account.network]?.contains(slug) == true) return true
+        if (PRICELESS_TOKEN_HASHES.contains(codeHash)) return true
+        if (verification != null) return verification == "whitelist"
+        if (isVerified || isPopular || isFromBackend) return true
+        return hasCost(balance)
+    }
+
+    // Mirrors `isSpamAsset` in src/global/selectors/tokens.ts
+    private fun isSpamAsset(
+        balance: BigInteger,
+        settings: MAssetsAndActivityData,
+        account: MAccount
+    ): Boolean {
+        if (isSpam || verification == "blacklist") return true
+        if (settings.addedTokens.contains(slug)) return false
+        if (settings.visibleTokens.contains(slug)) return false
+        if (isSafeAsset(balance, settings, account)) return false
+        return balance > BigInteger.ZERO && !hasCost(balance)
+    }
+
+    // Mirrors `isEnabled` in src/global/selectors/tokens.ts
+    private fun isEnabled(
+        balance: BigInteger,
+        settings: MAssetsAndActivityData,
+        account: MAccount
+    ): Boolean {
+        if (settings.visibleTokens.contains(slug)) return true
+        if (mBlockchain?.nativeSlug == slug && balance > BigInteger.ZERO) return true
+        if (verification == "whitelist") return true
+        if (account.isNew) {
+            return DEFAULT_SHOWN_TOKENS[account.network]?.contains(slug) == true
         }
-        return false
+        val pricelessWithBalance =
+            PRICELESS_TOKEN_HASHES.contains(codeHash) && balance > BigInteger.ZERO
+        val hideNoCost = WGlobalStorage.getAreNoCostTokensHidden()
+        return isSafeAsset(balance, settings, account) && (
+            hasCost(balance) ||
+                pricelessWithBalance ||
+                (!hideNoCost && balance > BigInteger.ZERO)
+            )
+    }
+
+    private fun hasCost(balance: BigInteger): Boolean {
+        val usd = if (priceUsd.isFinite()) priceUsd else 0.0
+        return usd * balance.doubleAbsRepresentation(decimals) >= TINY_TRANSFER_MAX_COST
     }
 
     val price: Double?
         get() {
-            return TokenStore.baseCurrencyRate?.let { baseCurrencyRate ->
-                priceUsd * baseCurrencyRate
-            }
+            val usd = if (priceUsd.isFinite()) priceUsd else 0.0
+            return usd * TokenStore.baseCurrencyRate
         }
 
     val isOnChain: Boolean
@@ -171,5 +223,19 @@ class MToken(json: JSONObject) : IApiToken, WEquatable<MToken> {
 
     override fun isChanged(comparing: WEquatable<*>): Boolean {
         return true
+    }
+
+    companion object {
+        // src/config.ts TINY_TRANSFER_MAX_COST
+        private const val TINY_TRANSFER_MAX_COST = 0.01
+
+        fun parseJsonDouble(json: JSONObject, key: String): Double {
+            if (!json.has(key) || json.isNull(key)) return 0.0
+            return when (val value = json.opt(key)) {
+                is Number -> value.toDouble()
+                is String -> value.toDoubleOrNull() ?: 0.0
+                else -> 0.0
+            }
+        }
     }
 }

@@ -1,10 +1,10 @@
 import { Address } from '@ton/core';
 import { JettonMaster, TonClient } from '@ton/ton';
 
-import { NO_BACKEND } from '../../config';
 import { safeExecAsync } from '../../util/safeExec';
 import { pause } from '../../util/schedulers';
 import { DEFAULT_TON_ENDPOINTS } from '../../api/chains/defaultEndpoints';
+import { callBackendGet } from '../../api/common/backend';
 import { buildTokenTransferBody, commentToBytes, packBytesAsSnakeCell } from './tonCore';
 
 // Remote API token interface
@@ -30,22 +30,13 @@ export function fetchKnownTokens(): Promise<RemoteToken[]> {
 }
 
 async function fetchTokensFromApi(): Promise<RemoteToken[]> {
-  // `server.twallet.ae` rejects our origin with CORS, so the bundled cache is the only source
-  if (NO_BACKEND) {
-    return fetchTokensFromCache();
-  }
-
   try {
-    const response = await fetch('https://server.twallet.ae/assets');
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const tokens: RemoteToken[] = await response.json();
+    const tokens = await callBackendGet<RemoteToken[]>('/assets');
 
     return tokens.filter((token) => token.chain === 'ton');
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.warn('Failed to fetch tokens from main API, trying fallback:', error);
+    console.warn('Failed to fetch tokens from API, trying fallback:', error);
 
     return fetchTokensFromCache();
   }

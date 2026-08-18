@@ -51,6 +51,8 @@ import app.twallet.air.walletcontext.globalStorage.WGlobalStorage
 import app.twallet.air.walletcontext.helpers.TmailHelpers
 import app.twallet.air.walletcontext.models.MWalletSettingsViewMode
 import app.twallet.air.walletcore.WalletCore
+import app.twallet.air.walletcore.api.activateAccount
+import app.twallet.air.walletcore.api.refreshAccountData
 import app.twallet.air.walletcore.models.MScreenMode
 import app.twallet.air.walletcore.models.SwapType
 import app.twallet.air.walletcore.models.blockchain.MBlockchain
@@ -133,14 +135,7 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         if (verticalOffset > 0)
             phoneHeaderView.updateScroll(verticalOffset.coerceAtLeast(0), 0f, false)
         rvMode = phoneHeaderView.mode
-        if (phoneHeaderView.mode == HomeHeaderView.Mode.Collapsed) {
-            allActivityListViews.forEach {
-                it.recyclerView.setupOverScroll()
-                it.recyclerView.setMaxOverscrollOffset(
-                    if (phoneHeaderView.canExpandForHeight) phoneHeaderView.diffPx else 0f
-                )
-            }
-        }
+        allActivityListViews.forEach { it.syncOverScrollForHeaderMode() }
     }
 
     private fun swapActionsView(wide: Boolean) {
@@ -314,9 +309,6 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
             },
             onExpandPressed = {
                 expand()
-                allActivityListViews.forEach {
-                    it.recyclerView.removeOverScroll()
-                }
             },
             onHeaderPressed = {
                 scrollToTop()
@@ -329,11 +321,7 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
         v.apply {
             background = null
             onLayoutRecalculated = {
-                if (mode == HomeHeaderView.Mode.Collapsed) {
-                    currentActivityListView.recyclerView.setMaxOverscrollOffset(
-                        if (canExpandForHeight) diffPx else 0f
-                    )
-                }
+                currentActivityListView.applyMaxOverscrollOffset()
             }
         }
     }
@@ -559,11 +547,7 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
             if (isWideHome)
                 stickyHeaderView.update(Mode.WideScreen, null, false)
             else
-                allActivityListViews.forEach {
-                    it.recyclerView.setMaxOverscrollOffset(
-                        if (phoneHeaderView.canExpandForHeight) phoneHeaderView.diffPx else 0f
-                    )
-                }
+                allActivityListViews.forEach { it.syncOverScrollForHeaderMode() }
         }
 
         WalletCore.doOnBridgeReady {
@@ -1125,6 +1109,12 @@ class HomeVC(context: Context, private val mode: MScreenMode) :
             it.headerModeChanged()
         }
         sortViews()
+    }
+
+    override fun onPullToRefresh() {
+        update(UpdateStatusView.State.Updating, animated = true)
+        currentActivityListView.activityLoader?.askForActivities()
+        WalletCore.refreshAccountData()
     }
 
     private fun updateActionsAlpha() {

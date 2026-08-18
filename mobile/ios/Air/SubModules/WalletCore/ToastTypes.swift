@@ -23,9 +23,12 @@ public struct ToastConfig {
     public var transition: ToastTransition
     public var actionTitle: String?
     public var action: (() -> ())?
+    public var isError: Bool
+    public var pinToTop: Bool
 
     public init(style: ToastStyle? = nil, icon: ToastIcon? = nil, message: String, duration: Double? = nil,
-                transition: ToastTransition? = nil, actionTitle: String? = nil, action: (() -> ())? = nil) {
+                transition: ToastTransition? = nil, actionTitle: String? = nil, action: (() -> ())? = nil,
+                isError: Bool = false, pinToTop: Bool? = nil) {
         self.style = style ?? .standard
         self.icon = icon
         self.message = message
@@ -33,5 +36,7 @@ public struct ToastConfig {
         self.transition = transition ?? .fadeIn
         self.actionTitle = actionTitle
         self.action = action
+        self.isError = isError
+        self.pinToTop = pinToTop ?? isError
     }
 }

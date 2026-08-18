@@ -26,10 +26,19 @@ const tokensCache: {
 export async function loadTokensCache() {
   try {
     const tokens = await tokenRepository.all();
-    await updateTokens(tokens);
+    // Metadata only: last-session quotes must not paint the UI if `/assets` fails this launch.
+    await updateTokens(tokens.map((token) => ({ ...token, priceUsd: 0, percentChange24h: 0 })));
   } finally {
     tokensPreload.resolve();
   }
+}
+
+/** Drop every cached quote so the UI shows 0 until `/assets` succeeds. */
+export function clearTokenPrices(sendUpdate?: NoneToVoidFunction) {
+  for (const [slug, token] of Object.entries(tokensCache.bySlug)) {
+    tokensCache.bySlug[slug] = { ...token, priceUsd: 0, percentChange24h: 0 };
+  }
+  sendUpdate?.();
 }
 
 export async function updateTokens(

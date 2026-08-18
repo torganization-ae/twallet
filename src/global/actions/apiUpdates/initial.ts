@@ -10,6 +10,7 @@ import { areDeepEqual } from '../../../util/areDeepEqual';
 import { buildCollectionByKey, unique } from '../../../util/iteratees';
 import { openUrl } from '../../../util/openUrl';
 import { setHiddenChainsSnapshot } from '../../../api/chains/chainVisibility';
+import { formatBackendNetworkError } from '../../../api/common/backendNetworkError';
 import { omitAccounts } from '../../helpers/auth';
 import { addActionHandler, setGlobal } from '../../index';
 import {
@@ -256,6 +257,15 @@ addActionHandler('apiUpdate', (global, actions, update) => {
 
     case 'openUrl': {
       void openUrl(update.url, { isExternal: update.isExternal, title: update.title, subtitle: update.subtitle });
+      break;
+    }
+
+    case 'backendNetworkError': {
+      actions.showToast({
+        message: formatBackendNetworkError(update.code),
+        isError: true,
+        durationMs: 10_000,
+      });
       break;
     }
 

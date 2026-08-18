@@ -74,6 +74,7 @@ class ToastView(context: Context) : WView(context), WThemedView {
     private var actionListener: (() -> Unit)? = null
     private var dismissListener: (() -> Unit)? = null
     private var isBlurPlaying = false
+    private var isError = false
 
     init {
         isClickable = true
@@ -134,6 +135,7 @@ class ToastView(context: Context) : WView(context), WThemedView {
         }
         actionListener = onAction
         dismissListener = onDismiss
+        isError = toast.isError
         updateTheme()
     }
 
@@ -167,21 +169,27 @@ class ToastView(context: Context) : WView(context), WThemedView {
     }
 
     override fun updateTheme() {
-        val isBlurEnabled = WGlobalStorage.isBlurEnabled() && blurRootView != null
+        val isBlurEnabled = !isError && WGlobalStorage.isBlurEnabled() && blurRootView != null
+        val iconColor = if (isError) Color.WHITE else WColor.PrimaryText.color
+        val closeColor = if (isError) Color.WHITE else WColor.SecondaryText.color
 
-        iconView.drawable?.setTint(WColor.PrimaryText.color)
-        textLabel.updateTheme()
+        iconView.drawable?.setTint(iconColor)
+        textLabel.setTextColor(if (isError) WColor.White else WColor.PrimaryText)
         actionLabel.updateTheme()
         actionRipple.rippleColor = WColor.TintRipple.color
-        closeRipple.rippleColor = WColor.SecondaryText.color
+        closeRipple.rippleColor = closeColor
         closeButton.setImageDrawable(
             context.getDrawableCompat(R.drawable.ic_close)?.mutate()?.also {
-                it.setTint(WColor.SecondaryText.color)
+                it.setTint(closeColor)
             }
         )
 
         setBackgroundColor(
-            if (isBlurEnabled) Color.TRANSPARENT else WColor.SearchFieldBackground.color,
+            when {
+                isError -> WColor.Red.color
+                isBlurEnabled -> Color.TRANSPARENT
+                else -> WColor.SearchFieldBackground.color
+            },
             CORNER_RADIUS_DP.dp,
             clipToBounds = true
         )
@@ -212,7 +220,7 @@ class ToastView(context: Context) : WView(context), WThemedView {
 
     private fun syncBlurView() {
         val blurRootView = blurRootView
-        val isBlurEnabled = WGlobalStorage.isBlurEnabled() && blurRootView != null
+        val isBlurEnabled = !isError && WGlobalStorage.isBlurEnabled() && blurRootView != null
         var blurView = this.blurView
         if (isBlurEnabled && blurView == null) {
             blurView = WBlurryBackgroundView(context, fadeSide = null).also {

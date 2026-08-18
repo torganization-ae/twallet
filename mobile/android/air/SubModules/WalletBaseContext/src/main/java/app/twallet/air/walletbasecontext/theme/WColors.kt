@@ -82,8 +82,8 @@ object ThemeManager : ITheme {
     const val THEME_LIGHT = "light"
     const val THEME_DARK = "dark"
 
-    private var colors = THEME_LIGHT_PRESET
-    private var activeTheme: String = THEME_LIGHT // will be dark or light, not system
+    private var colors = THEME_DARK_PRESET
+    private var activeTheme: String = THEME_DARK // will be dark or light, not system
 
     val isDark: Boolean
         get() {

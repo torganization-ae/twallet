@@ -8,10 +8,11 @@ object EnvironmentStore : IStore {
 
     private var environmentVariables: MEnvironmentVariables? = null
 
-    fun loadEnvVariable() {
+    fun loadEnvVariable(onLoaded: (() -> Unit)? = null) {
         WalletCore.call(ApiMethod.Other.GetEnvironmentVariables(), { res, _ ->
             if (res != null)
                 environmentVariables = res
+            onLoaded?.invoke()
         })
     }
 
@@ -35,4 +36,14 @@ object EnvironmentStore : IStore {
         get() {
             return environmentVariables?.appVersion
         }
+
+    val apiHostMark: String?
+        get() {
+            return environmentVariables?.apiHostMark
+        }
+
+    fun formatDisplayedVersion(versionName: String): String {
+        val mark = apiHostMark
+        return if (mark.isNullOrEmpty()) versionName else "$versionName $mark"
+    }
 }

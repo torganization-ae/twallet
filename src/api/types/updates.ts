@@ -117,6 +117,12 @@ export type ApiUpdateShowError = {
   error?: ApiAnyDisplayError | string;
 };
 
+export type ApiUpdateBackendNetworkError = {
+  type: 'backendNetworkError';
+  /** 567 = `/assets`, 345 = proxy hop on our backend. */
+  code: number;
+};
+
 export type ApiUpdateDappSignData = {
   type: 'dappSignData';
   promiseId: string;
@@ -439,58 +445,59 @@ export type ApiUpdateChainVisibility = {
   hiddenChainsByNetwork: Partial<Record<ApiNetwork, ApiChain[]>>;
 };
 
-export type ApiUpdate =
-  | ApiUpdateBalances
-  | ApiUpdateInitialActivities
-  | ApiUpdateNewActivities
-  | ApiUpdateNewLocalActivities
-  | ApiUpdateTokens
-  | ApiUpdateSwapTokens
-  | ApiUpdateCurrencyRates
-  | ApiUpdateCreateTransaction
-  | ApiUpdateCompleteTransaction
-  | ApiUpdateCreateSignature
-  | ApiUpdateDappSendTransactions
-  | ApiUpdateTonConnectOnline
-  | ApiUpdateDappConnect
-  | ApiUpdateDappConnectComplete
-  | ApiUpdateDappAlreadyConnected
-  | ApiUpdateDappDisconnected
-  | ApiUpdateDappDisconnect
-  | ApiUpdateDappLoading
-  | ApiUpdateDappCloseLoading
-  | ApiUpdateDappSignData
-  | ApiUpdateDapps
-  | ApiUpdateDappTransferComplete
-  | ApiUpdateDappSignDataComplete
-  | ApiUpdateWalletConnectPaySignTransaction
-  | ApiUpdateWalletConnectPaySignData
-  | ApiUpdateWalletConnectPayLoading
-  | ApiUpdateWalletConnectPayCloseLoading
-  | ApiUpdateWalletConnectPayDataCollection
-  | ApiUpdateWalletConnectPayDataCollectionComplete
-  | ApiUpdateWalletConnectPayOptionSelection
-  | ApiUpdateWalletConnectPayOptionSelectionComplete
-  | ApiUpdateWalletConnectPayProcessing
-  | ApiUpdateWalletConnectPayPaymentComplete
-  | ApiUpdatePrepareTransaction
-  | ApiUpdateProcessDeeplink
-  | ApiUpdateShowError
-  | ApiUpdateNfts
-  | ApiNftUpdate
-  | ApiUpdateAccount
-  | ApiUpdateConfig
-  | ApiUpdateWalletVersions
-  | ApiOpenUrl
-  | ApiRequestReconnect
-  | ApiUpdateIncorrectTime
-  | ApiUpdateVesting
-  | ApiUpdatingStatus
-  | ApiUpdateSettings
-  | ApiMigrateCoreApplication
-  | ApiUpdateRemoveAccounts
-  | ApiUpdateAccountConfig
-  | ApiUpdateAccountDomainData
-  | ApiUpdateChainVisibility;
+export type ApiUpdate
+  = | ApiUpdateBalances
+    | ApiUpdateInitialActivities
+    | ApiUpdateNewActivities
+    | ApiUpdateNewLocalActivities
+    | ApiUpdateTokens
+    | ApiUpdateSwapTokens
+    | ApiUpdateCurrencyRates
+    | ApiUpdateCreateTransaction
+    | ApiUpdateCompleteTransaction
+    | ApiUpdateCreateSignature
+    | ApiUpdateDappSendTransactions
+    | ApiUpdateTonConnectOnline
+    | ApiUpdateDappConnect
+    | ApiUpdateDappConnectComplete
+    | ApiUpdateDappAlreadyConnected
+    | ApiUpdateDappDisconnected
+    | ApiUpdateDappDisconnect
+    | ApiUpdateDappLoading
+    | ApiUpdateDappCloseLoading
+    | ApiUpdateDappSignData
+    | ApiUpdateDapps
+    | ApiUpdateDappTransferComplete
+    | ApiUpdateDappSignDataComplete
+    | ApiUpdateWalletConnectPaySignTransaction
+    | ApiUpdateWalletConnectPaySignData
+    | ApiUpdateWalletConnectPayLoading
+    | ApiUpdateWalletConnectPayCloseLoading
+    | ApiUpdateWalletConnectPayDataCollection
+    | ApiUpdateWalletConnectPayDataCollectionComplete
+    | ApiUpdateWalletConnectPayOptionSelection
+    | ApiUpdateWalletConnectPayOptionSelectionComplete
+    | ApiUpdateWalletConnectPayProcessing
+    | ApiUpdateWalletConnectPayPaymentComplete
+    | ApiUpdatePrepareTransaction
+    | ApiUpdateProcessDeeplink
+    | ApiUpdateShowError
+    | ApiUpdateBackendNetworkError
+    | ApiUpdateNfts
+    | ApiNftUpdate
+    | ApiUpdateAccount
+    | ApiUpdateConfig
+    | ApiUpdateWalletVersions
+    | ApiOpenUrl
+    | ApiRequestReconnect
+    | ApiUpdateIncorrectTime
+    | ApiUpdateVesting
+    | ApiUpdatingStatus
+    | ApiUpdateSettings
+    | ApiMigrateCoreApplication
+    | ApiUpdateRemoveAccounts
+    | ApiUpdateAccountConfig
+    | ApiUpdateAccountDomainData
+    | ApiUpdateChainVisibility;
 
 export type OnApiUpdate = (update: ApiUpdate) => void;

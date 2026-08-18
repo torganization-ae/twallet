@@ -25,7 +25,7 @@ open class WScrollView(
     init {
         id = generateViewId()
         isVerticalScrollBarEnabled = false
-        overScrollMode = OVER_SCROLL_ALWAYS
+        overScrollMode = OVER_SCROLL_IF_CONTENT_SCROLLS
     }
 
     var onScrollChange: ((Int) -> Unit)? = null

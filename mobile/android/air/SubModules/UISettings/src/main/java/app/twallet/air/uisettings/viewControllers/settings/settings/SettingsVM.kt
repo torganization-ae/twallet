@@ -208,6 +208,9 @@ class SettingsVM {
     fun contentHeight(): Int {
         var sum = SettingsHeaderView.HEIGHT_NORMAL.dp
         settingsSections.forEach { section ->
+            if (section.title.isNotEmpty()) {
+                sum += SECTION_HEADER_HEIGHT.dp
+            }
             section.children.forEachIndexed { index, item ->
                 val isLast = index == section.children.size - 1
                 sum += when (item.identifier) {
@@ -221,5 +224,9 @@ class SettingsVM {
         }
         sum += SettingsVersionCell.HEIGHT.dp
         return sum
+    }
+
+    companion object {
+        private const val SECTION_HEADER_HEIGHT = 40
     }
 }

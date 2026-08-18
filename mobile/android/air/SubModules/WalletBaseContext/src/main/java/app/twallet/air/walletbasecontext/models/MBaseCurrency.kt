@@ -46,6 +46,17 @@ enum class MBaseCurrency(val currencyCode: String) {
             TON -> LocaleController.getString("Gram")
         }
 
+    /** Used when `/currency-rates` has not arrived yet so the home card is not stuck on a skeleton. */
+    val fallbackExchangeRate: Double
+        get() = when (this) {
+            USD -> 1.0
+            EUR -> 1.0 / 1.1
+            RUB -> 80.0
+            CNY -> 7.2
+            BTC -> 1.0 / 100_000.0
+            TON -> 1.0 / 3.0
+        }
+
     companion object {
         val forcedToRight = setOf(RUB, BTC, TON).map { it.sign }
 

@@ -202,7 +202,6 @@ private extension ApiToken {
             image: TON_USDT_MAINNET_IMAGE,
             label: "TON",
             isFromBackend: true,
-            priceUsd: 1
         )
     }
     
@@ -216,7 +215,6 @@ private extension ApiToken {
             tokenAddress: TON_USDT_TESTNET_ADDRESS,
             image: nil,
             label: "TON",
-            priceUsd: 1
         )
     }
     
@@ -266,7 +264,6 @@ private extension ApiToken {
             image: TON_USDT_MAINNET_IMAGE,
             label: "SOL",
             isFromBackend: true,
-            priceUsd: 1
         )
     }
 
@@ -281,7 +278,6 @@ private extension ApiToken {
             image: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
             label: "SOL",
             isFromBackend: true,
-            priceUsd: 1
         )
     }
     

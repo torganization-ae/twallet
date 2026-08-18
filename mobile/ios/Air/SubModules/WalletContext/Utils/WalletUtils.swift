@@ -70,6 +70,13 @@ public let supportedTonConnectVersion = 2
 
 public var appName: String { APP_NAME }
 public let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+/// First letter of the JS SDK backend hostname. Filled after the bridge is ready.
+public var apiHostMark: String?
+
+public func displayedAppVersion(_ version: String = appVersion) -> String {
+    guard let mark = apiHostMark, !mark.isEmpty else { return version }
+    return "\(version) \(mark)"
+}
 
 public func formatStartEndAddress(_ address: String, prefix: Int = 6, suffix: Int = 6, separator: String = "···") -> String {
     if address.count < prefix + suffix + 3 {

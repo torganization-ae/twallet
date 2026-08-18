@@ -17,7 +17,10 @@ import app.twallet.air.uicomponents.helpers.CubicBezierInterpolator
 import app.twallet.air.uicomponents.widgets.WFrameLayout
 import kotlin.time.Duration
 
-class ToastHost(context: Context) : WFrameLayout(context) {
+class ToastHost(
+    context: Context,
+    private val errorBulletins: Boolean = false,
+) : WFrameLayout(context) {
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private val toastQueue = ArrayDeque<ToastManager.Toast>()
@@ -48,6 +51,9 @@ class ToastHost(context: Context) : WFrameLayout(context) {
     }
 
     private fun onToastRequested(presentation: ToastManager.Toast) {
+        if (presentation.isError != errorBulletins) {
+            return
+        }
         toastQueue.addLast(presentation)
         showNextIfPossible()
     }
@@ -117,7 +123,7 @@ class ToastHost(context: Context) : WFrameLayout(context) {
             alpha = 0f
             scaleX = 0.9f
             scaleY = 0.9f
-            translationY = 12f.dp
+            translationY = enterOffsetY()
             syncShadow()
             resumeBlurring()
         }
@@ -151,7 +157,7 @@ class ToastHost(context: Context) : WFrameLayout(context) {
             .alpha(0f)
             .scaleX(0.9f)
             .scaleY(0.9f)
-            .translationY(12f.dp)
+            .translationY(enterOffsetY())
             .setDuration(AnimationConstants.VERY_QUICK_ANIMATION)
             .setUpdateListener {
                 toastView.syncShadow()
@@ -213,6 +219,10 @@ class ToastHost(context: Context) : WFrameLayout(context) {
             pauseBlurring()
         }
         isInvisible = true
+    }
+
+    private fun enterOffsetY(): Float {
+        return if (errorBulletins) (-12f).dp else 12f.dp
     }
 
     private fun getOrCreateToastView(): ToastView {

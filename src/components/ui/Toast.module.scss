@@ -54,6 +54,12 @@ $safeZone: 1.5rem;
   background: var(--color-background-drop-down);
   backdrop-filter: blur(30px);
   box-shadow: 0 0 1.25rem 0.625rem rgba(0, 0, 0, 0.15);
+
+  &_error {
+    color: #FFF;
+    background: #E53935;
+    backdrop-filter: none;
+  }
 }
 
 .content {
@@ -132,6 +138,10 @@ $safeZone: 1.5rem;
 
   &:active {
     opacity: 0.5;
+  }
+
+  &_error {
+    color: rgba(255, 255, 255, 0.85);
   }
 }
 

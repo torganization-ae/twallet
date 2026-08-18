@@ -35,7 +35,7 @@ public struct MSettings: Equatable, Hashable, Codable, Sendable, FetchableRecord
 
     public init(
         id: Int64 = SINGLETON_TABLE_ROW_ID,
-        theme: String = NightMode.system.rawValue,
+        theme: String = NightMode.dark.rawValue,
         areAnimationsDisabled: Bool = false,
         canPlaySounds: Bool = true,
         areTinyTransfersHidden: Bool = true,
@@ -73,7 +73,7 @@ public struct MSettings: Equatable, Hashable, Codable, Sendable, FetchableRecord
 
     @MainActor public init(global: GlobalStorage, currentAccountId: String? = nil) {
         self.init(
-            theme: global.getString(key: "settings.theme") ?? NightMode.system.rawValue,
+            theme: global.getString(key: "settings.theme") ?? NightMode.dark.rawValue,
             areAnimationsDisabled: (global.getInt(key: "settings.animationLevel") ?? 2) <= 0,
             canPlaySounds: global.getBool(key: "settings.canPlaySounds") ?? true,
             areTinyTransfersHidden: global.getBool(key: "settings.areTinyTransfersHidden") ?? true,

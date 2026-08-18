@@ -119,6 +119,8 @@ export type ToastType = {
   id: number;
   icon?: string;
   message: string;
+  isError?: boolean;
+  durationMs?: number;
 } & (
   | { action?: undefined; actionText?: undefined }
   | { action: ToastAction; actionText: string }

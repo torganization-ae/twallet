@@ -41,7 +41,14 @@ import {
   retargetCollectiblesPollingAccount,
 } from '../common/polling/collectiblesPolling';
 import { pollingLoop } from '../common/polling/utils';
-import { getTokensCache, loadTokensCache, sendUpdateTokens, tokensPreload, updateTokens } from '../common/tokens';
+import {
+  clearTokenPrices,
+  getTokensCache,
+  loadTokensCache,
+  sendUpdateTokens,
+  tokensPreload,
+  updateTokens,
+} from '../common/tokens';
 import { MINUTE, SEC } from '../constants';
 import { storage } from '../storages';
 import { refreshMfaStateAndNotify } from './mfa';
@@ -116,6 +123,19 @@ export async function destroyPolling() {
   await setActivePollingAccount(undefined, {});
 }
 
+/** Pull-to-refresh: re-fetch quotes and restart the active account's balance/activity polls. */
+export async function refreshAccountData() {
+  await Promise.allSettled([
+    tryUpdateTokens(),
+    tryUpdateCurrencyRates(),
+    ...(NO_SWAP ? [] : [tryUpdateSwapTokens()]),
+  ]);
+  const accountId = lastActivePollingAccountId;
+  if (accountId) {
+    await setActivePollingAccount(accountId, lastActivePollingTimestamps);
+  }
+}
+
 function setupCommonBackendPolling() {
   const stopFns = [
     pollingLoop({
@@ -172,18 +192,26 @@ async function tryUpdateTokens() {
     // POST is used to retrieve data due to the potentially large number of addresses.
     // Chunked to POST_TOKENS_CHUNK_SIZE because the server rejects bodies over that limit
     // outright (see the constant); doing it sequentially keeps the per-IP rate budget calm.
+    // A failed POST must not discard the GET `/assets` list — that used to leave every token
+    // on last-session (or seed) prices.
     let nonBackendTokenDetails: ApiTokenDetails[] | undefined;
     if (nonBackendTokenAddresses.length) {
-      nonBackendTokenDetails = [];
-      for (const chunk of split(nonBackendTokenAddresses, POST_TOKENS_CHUNK_SIZE)) {
-        const chunkDetails = await callBackendPost<ApiTokenDetails[]>('/assets', { assets: chunk });
-        nonBackendTokenDetails.push(...chunkDetails);
+      try {
+        nonBackendTokenDetails = [];
+        for (const chunk of split(nonBackendTokenAddresses, POST_TOKENS_CHUNK_SIZE)) {
+          const chunkDetails = await callBackendPost<ApiTokenDetails[]>('/assets', { assets: chunk });
+          nonBackendTokenDetails.push(...chunkDetails);
+        }
+      } catch (err) {
+        logDebugError('tryUpdateTokens:post', err);
+        nonBackendTokenDetails = undefined;
       }
     }
 
     await updateTokens(tokens, () => sendUpdateTokens(onUpdate), nonBackendTokenDetails, true);
   } catch (err) {
     logDebugError('tryUpdateTokens', err);
+    clearTokenPrices(() => sendUpdateTokens(onUpdate));
   }
 }
 
