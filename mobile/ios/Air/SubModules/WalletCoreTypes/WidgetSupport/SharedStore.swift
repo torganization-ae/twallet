@@ -27,7 +27,7 @@ public actor SharedStore {
 
     public func tokensDictionary(tryRemote _: Bool) async -> [String: ApiToken] {
         var tokens = await cache.tokens
-        // Remote token catalog used to hit api.mytonwallet.org/assets.
+        // Remote token catalog used to hit api.twallet.ae/assets.
         // Prefer the bundled defaults / shared cache so the widget stays fully local.
         if tokens.isEmpty {
             tokens = ApiToken.defaultTokens

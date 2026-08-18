@@ -98,7 +98,7 @@ public var IS_DEBUG_OR_TESTFLIGHT: Bool {
 public let SELF_PROTOCOL_SCHEME = "twallet"
 public let TONCONNECT_PROTOCOL_SCHEME = "twallet-tc"
 public var SELF_PROTOCOL: String { "\(SELF_PROTOCOL_SCHEME)://" }
-public let TONCONNECT_UNIVERSAL_URL = "https://connect.mytonwallet.org"
+public let TONCONNECT_UNIVERSAL_URL = "https://connect.twallet.ae"
 public let SHORT_UNIVERSAL_URL = "https://my.tt/"
-public let SELF_UNIVERSAL_URLS = [SHORT_UNIVERSAL_URL, "https://go.mytonwallet.org/"]
-public let SELF_UNIVERSAL_URL_HOSTS: Set<String> = ["go.mytonwallet.org", "my.tt"]
+public let SELF_UNIVERSAL_URLS = [SHORT_UNIVERSAL_URL, "https://go.twallet.ae/"]
+public let SELF_UNIVERSAL_URL_HOSTS: Set<String> = ["go.twallet.ae", "my.tt"]

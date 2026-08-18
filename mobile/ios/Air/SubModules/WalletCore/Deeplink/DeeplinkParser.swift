@@ -52,7 +52,7 @@ private var compatibleWalletConnectSelfProtocolSchemes: Set<String> { [SELF_PROT
 private var compatibleWalletConnectWrapperProtocolSchemes: Set<String> { ["twallet-wc"] }
 private let compatibleWalletConnectUniversalHosts: Set<String> = [
     "connect.twallet.ae",
-    "connect.mytonwallet.org",
+    "connect.twallet.ae",
 ]
 private var compatibleTonConnectProtocolSchemes: Set<String> {
     ["tc", TONCONNECT_PROTOCOL_SCHEME]
@@ -281,7 +281,7 @@ private func parseMtwUrl(_ url: URL) -> Deeplink? {
                 r = String(pathname[rRange])
             }
         }
-        let urlString = "https://checkin.mytonwallet.org/\(r != nil ? "?r=\(r!)" : "")"
+        let urlString = "https://checkin.twallet.ae/\(r != nil ? "?r=\(r!)" : "")"
         let url = URL(string: urlString)!
         return .url(url: url, title: "Checkin", injectDappConnect: true)
         

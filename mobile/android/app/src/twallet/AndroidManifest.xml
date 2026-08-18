@@ -28,7 +28,7 @@
         <category android:name="android.intent.category.BROWSABLE" />
 
         <data
-          android:host="connect.mytonwallet.org"
+          android:host="connect.twallet.ae"
           android:scheme="https" />
       </intent-filter>
       <intent-filter android:autoVerify="true">
@@ -38,7 +38,7 @@
         <category android:name="android.intent.category.BROWSABLE" />
 
         <data
-          android:host="go.mytonwallet.org"
+          android:host="go.twallet.ae"
           android:scheme="https" />
       </intent-filter>
       <intent-filter android:autoVerify="true">
