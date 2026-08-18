@@ -99,10 +99,6 @@ let LOGGING_FETCH = """
 
 private let log = Log("JSWebViewBridge")
 private let console = Log("console")
-private var sdkIndexFileURL: URL {
-    Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "JS")!
-}
-private let sdkReadAccessURL = sdkIndexFileURL.deletingLastPathComponent()
 
 // The bridge to use mytonwallet js logic in Swift applications.
 public class JSWebViewBridge: UIViewController {
@@ -156,6 +152,7 @@ public class JSWebViewBridge: UIViewController {
 //        userContentController.addUserScript(logFetchScript)
 
         webViewConfiguration.userContentController = userContentController
+        webViewConfiguration.setURLSchemeHandler(SdkAssetSchemeHandler(), forURLScheme: SdkWebViewOrigin.scheme)
         // create web view
         webView = WKWebView(
             frame: CGRect(x: 0, y: 0, width: 1, height: 1),
@@ -198,7 +195,7 @@ public class JSWebViewBridge: UIViewController {
     
     private func loadHtml() {
         StartupTrace.markOnce("bridge.loadHtml")
-        webView?.loadFileURL(sdkIndexFileURL, allowingReadAccessTo: sdkReadAccessURL)
+        webView?.load(URLRequest(url: SdkWebViewOrigin.indexURL))
     }
     
     private func _callApiImpl(methodName: String, args: [AnyEncodable?]) async throws -> String? {

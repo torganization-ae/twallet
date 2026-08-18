@@ -9,9 +9,12 @@ import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewCompat
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonReader
@@ -58,6 +61,11 @@ import java.math.BigInteger
 const val INIT_SCRIPT =
     "window.airBridge.initApi((data) => {androidApp.onUpdate(JSON.stringify(data))}, {isAndroidApp: true})"
 
+/** HTTPS origin of the hidden SDK WebView: `https://<applicationId>`. */
+internal fun sdkWebViewOrigin(packageName: String) = "https://$packageName"
+
+internal fun sdkIndexUrl(packageName: String) = "${sdkWebViewOrigin(packageName)}/assets/js/index.html"
+
 @SuppressLint("SetJavaScriptEnabled")
 class JSWebViewBridge(context: Context) : WebView(context) {
 
@@ -82,7 +90,11 @@ class JSWebViewBridge(context: Context) : WebView(context) {
 
         Logger.d(Logger.LogTag.JS_WEBVIEW_BRIDGE, "setupBridge: WebViewVersion=$webViewVersion")
 
-        loadUrl("file:///android_asset/js/index.html")
+        val host = context.packageName
+        val assetLoader = WebViewAssetLoader.Builder()
+            .setDomain(host)
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
+            .build()
 
         addJavascriptInterface(JsWebInterface(this), "androidApp")
         // ponytail: surfaces SDK bundle errors — otherwise a JS crash is invisible and
@@ -97,6 +109,13 @@ class JSWebViewBridge(context: Context) : WebView(context) {
             }
         }
         webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest
+            ): WebResourceResponse? {
+                return assetLoader.shouldInterceptRequest(request.url)
+            }
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 post {
@@ -122,6 +141,8 @@ class JSWebViewBridge(context: Context) : WebView(context) {
                 return true
             }
         }
+
+        loadUrl(sdkIndexUrl(host))
     }
 
     var isRenderProcessGone: Boolean = false
