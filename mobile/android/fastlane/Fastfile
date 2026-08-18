@@ -30,7 +30,7 @@ $variant = env_value('APP_VARIANT', 'twallet').downcase
 $variant_config = {
   'twallet' => {
     package_name: 'com.sveves.twallet',
-    firebase_app_id: '1:155616896352:android:2d448728d65b6d277eaa05',
+    firebase_app_id: '1:1035649294028:android:cb616b12fd53972843ac69',
     beta_gradle_task: 'assembleTwalletBetaRelease',
     release_gradle_task: 'bundleTwalletProdRelease',
     direct_gradle_task: 'assembleTwalletProdRelease',
