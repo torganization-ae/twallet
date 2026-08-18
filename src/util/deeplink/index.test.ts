@@ -454,7 +454,7 @@ describe('processSelfDeeplink', () => {
 
     it('should start swap with custom parameters for buying', async () => {
       const result = await processSelfDeeplink(
-        'https://go.mytonwallet.org/buy-with-crypto?in=ton-usdt&out=toncoin&amount=200',
+        'https://go.twallet.ae/buy-with-crypto?in=ton-usdt&out=toncoin&amount=200',
       );
 
       expect(result).toBe(true);
@@ -491,14 +491,14 @@ describe('processSelfDeeplink', () => {
       const result = await processSelfDeeplink('twallet://r/');
 
       expect(result).toBe(true);
-      expect(openUrl).toHaveBeenCalledWith('https://checkin.mytonwallet.org');
+      expect(openUrl).toHaveBeenCalledWith('https://checkin.twallet.ae');
     });
 
     it('should open checkin URL with referral code', async () => {
       const result = await processSelfDeeplink('https://my.tt/r/ABC123');
 
       expect(result).toBe(true);
-      expect(openUrl).toHaveBeenCalledWith('https://checkin.mytonwallet.org?r=ABC123');
+      expect(openUrl).toHaveBeenCalledWith('https://checkin.twallet.ae?r=ABC123');
     });
   });
 
@@ -713,8 +713,8 @@ describe('processSelfDeeplink', () => {
       expect(mockActions.switchToPortfolio).toHaveBeenCalled();
     });
 
-    it('should handle https://go.mytonwallet.org protocol', async () => {
-      const result = await processSelfDeeplink('https://go.mytonwallet.org/portfolio');
+    it('should handle https://go.twallet.ae protocol', async () => {
+      const result = await processSelfDeeplink('https://go.twallet.ae/portfolio');
 
       expect(result).toBe(true);
       expect(mockActions.switchToPortfolio).toHaveBeenCalled();

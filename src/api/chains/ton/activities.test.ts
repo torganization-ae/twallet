@@ -645,7 +645,7 @@ describe('parseTrace + calculateActivityDetails', () => {
 });
 
 /**
- * `traceResponse` is the JSON from the https://toncenter.mytonwallet.org/api/v3/traces?... response body
+ * `traceResponse` is the JSON from the https://toncenter.twallet.ae/api/v3/traces?... response body
  */
 function parseTraceResponse(network: ApiNetwork, walletAddress: string, traceResponse: TracesResponse) {
   return parseTrace({

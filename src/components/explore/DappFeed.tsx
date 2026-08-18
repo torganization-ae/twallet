@@ -26,7 +26,7 @@ interface StateProps {
 type DappWithLastOpenedDate = StoredDappConnection & { lastOpenedAt?: number };
 
 const MAX_DAPPS_FOR_PILL_MODE = 3;
-const HIDDEN_FROM_FEED_DAPP_URLS = new Set(['https://checkin.mytonwallet.org']);
+const HIDDEN_FROM_FEED_DAPP_URLS = new Set(['https://checkin.twallet.ae']);
 
 function DappFeed({ dapps: dappsFromState, dappLastOpenedDatesByUrl }: StateProps) {
   const { openSettingsWithState, closeExplore } = getActions();

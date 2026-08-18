@@ -83,7 +83,7 @@ struct TokenWithChartWidgetTimelineProvider: AppIntentTimelineProvider {
     }
 
     private func fetchChartData(assetId: String, baseCurrency: MBaseCurrency, period: PricePeriod) async throws -> [(Double, Double)] {
-        // Public tonapi rates chart (replaces former api.mytonwallet.org proxy)
+        // Public tonapi rates chart (replaces former api.twallet.ae proxy)
         var components = URLComponents(string: "https://tonapi.io/v2/rates/chart")!
         components.queryItems = [
             URLQueryItem(name: "token", value: assetId),

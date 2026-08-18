@@ -115,7 +115,7 @@ class DeeplinkParser {
         private val WC_WRAPPER_SCHEMES = setOf("twallet-wc")
         private val WC_WRAPPER_UNIVERSAL_HOSTS = setOf(
             "connect.twallet.ae",
-            "connect.mytonwallet.org",
+            "connect.twallet.ae",
         )
 
         fun parse(intent: Intent): Deeplink? {
@@ -198,8 +198,8 @@ class DeeplinkParser {
         }
 
         private fun handleHttpsDeeplinks(uri: Uri): Deeplink? {
-            val universalHosts = setOf("my.tt", "go.mytonwallet.org")
-            val tonconnectHosts = setOf("connect.mytonwallet.org")
+            val universalHosts = setOf("twallet.ae", "go.twallet.ae")
+            val tonconnectHosts = setOf("connect.twallet.ae")
             val host = uri.host
             when {
                 host != null && host.lowercase() in WC_WRAPPER_UNIVERSAL_HOSTS &&
@@ -307,7 +307,7 @@ class DeeplinkParser {
                 "r" -> {
                     val rId = extractId(uri.toString(), "r/([^/]+)")
                     val urlString =
-                        "https://checkin.mytonwallet.org/" + if (rId != null) "?r=$rId" else ""
+                        "https://checkin.twallet.ae/" + if (rId != null) "?r=$rId" else ""
                     val config = InAppBrowserConfig(
                         url = urlString,
                         title = "Checkin",
