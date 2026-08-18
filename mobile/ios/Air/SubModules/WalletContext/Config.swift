@@ -56,7 +56,7 @@ public func buildMfaBotUrl(startApp: String) -> URL? {
     return components.url
 }
 
-public let TMAIL_APP_URL = URL(string: "https://tmail.ae")!
+public let TMAIL_APP_URL = URL(string: "https://app.tmail.ae")!
 
 public let HELP_CENTER_URL = "https://help.mywallet.io"
 public let HELP_CENTER_URL_RU = "https://help.mywallet.io/ru"

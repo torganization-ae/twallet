@@ -53,7 +53,7 @@ android {
   productFlavors {
     twallet {
       dimension "brand"
-      applicationId "app.twallet"
+      applicationId "com.sveves.twallet"
       getIsDefault().set(true)
     }
     prod {

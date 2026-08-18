@@ -253,8 +253,8 @@ describe('isInIframeWhitelist', () => {
   });
 
   it('accepts the TMail origin', () => {
-    expect(isInIframeWhitelist('https://tmail.ae')).toBe(true);
-    expect(isInIframeWhitelist('https://tmail.ae/inbox')).toBe(true);
+    expect(isInIframeWhitelist('https://app.tmail.ae')).toBe(true);
+    expect(isInIframeWhitelist('https://app.tmail.ae/inbox')).toBe(true);
   });
 
   it('accepts localhost on any port', () => {

@@ -12,6 +12,7 @@ import {
   PRODUCTION_URL,
   SHOULD_GENERATE_TON_MNEMONIC,
   SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY,
+  TMAIL_APP_URL,
   TONCONNECT_WALLET_JSBRIDGE_KEY,
   WINDOW_PROVIDER_PORT,
 } from './config';
@@ -30,6 +31,7 @@ describe('TWallet brand constants', () => {
     expect(WINDOW_PROVIDER_PORT).toBe('Twallet_popup_reversed');
     expect(PRODUCTION_URL).toBe('https://web.twallet.ae');
     expect(APP_INSTALL_URL).toBe('https://wallet.tmail.ae/downloads');
+    expect(TMAIL_APP_URL).toBe('https://app.tmail.ae');
     expect(APP_WEBSITE_URL).toBe('https://twallet.ae');
     expect(APP_PROMO_URL).toBe('https://twallet.ae/');
     expect(APP_TERMS_OF_USE_URL).toBe('https://twallet.ae/terms-of-use');
