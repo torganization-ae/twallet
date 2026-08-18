@@ -12,6 +12,7 @@
 import type { ApiBuiltinChain, ApiNetwork } from '../types';
 
 import networksJson from '../../../shared/networks.json';
+import { API_BASE_URL } from '../../config';
 
 export type SharedNetworkEndpoints = {
   rpc: string;
@@ -100,6 +101,18 @@ export type SharedNetworksFile = {
 };
 
 const CONFIG = networksJson as SharedNetworksFile;
+
+function resolveEndpointUrl(url: string): string {
+  return url.startsWith('/') ? `${API_BASE_URL.replace(/\/+$/, '')}${url}` : url;
+}
+
+for (const chain of Object.values(CONFIG.chains)) {
+  for (const endpoints of Object.values(chain.endpoints)) {
+    endpoints.rpc = resolveEndpointUrl(endpoints.rpc);
+    endpoints.api = resolveEndpointUrl(endpoints.api);
+    endpoints.failoverRpc = endpoints.failoverRpc?.map(resolveEndpointUrl);
+  }
+}
 
 export function getSharedNetworksConfig(): SharedNetworksFile {
   return CONFIG;

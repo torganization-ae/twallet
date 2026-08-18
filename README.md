@@ -36,6 +36,12 @@ cp .env.example .env
 npm ci
 ```
 
+`API_BASE_URL` in `.env` points the build at your own nexus deployment: it is used for the
+backend/socket calls **and** re-points the default TON endpoints from `shared/networks.json`
+(`/toncenter`, `/tonapiio`) plus the CSP `connect-src` allow-list. Leave it empty to keep the
+built-in defaults. It is inlined at build time, so rebuild after changing it; endpoints already
+overridden by hand in Settings → Networks keep winning over the default.
+
 ### Dev mode
 
 ```sh
