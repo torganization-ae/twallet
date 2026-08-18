@@ -8,7 +8,7 @@ import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletcore.models.InAppBrowserConfig
 
 object TmailLauncher {
-    const val TMAIL_APP_URL = "https://tmail.ae"
+    const val TMAIL_APP_URL = "https://app.tmail.ae"
 
     fun open(host: WViewController) {
         // Match iOS (showExplore) / web (switchToExplore) before opening the dapp browser.

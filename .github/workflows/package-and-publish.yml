@@ -651,7 +651,7 @@ jobs:
           case "$APP_VARIANT" in
             twallet)
               echo "ANDROID_APP_NAME=Twallet" >> "$GITHUB_ENV"
-              echo "ANDROID_PACKAGE_NAME=app.twallet" >> "$GITHUB_ENV"
+              echo "ANDROID_PACKAGE_NAME=com.sveves.twallet" >> "$GITHUB_ENV"
               echo "ANDROID_ARTIFACT_NAME=${{ env.ARTIFACT_NAME_BASE }}.apk" >> "$GITHUB_ENV"
               ;;
             *)
