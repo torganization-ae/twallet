@@ -1,8 +1,9 @@
 {
   "app_name": "twallet",
   "name": "TWallet",
-  "image": "https://raw.githubusercontent.com/torganization-ae/twallet/45e8fca5594d671ba0a3459a4baa6b8c1f0eea88/brand/288%C3%97288_black_gr.png",
-  "about_url": "https://twallet.ae/",
+  "image": "https://twallet.ae/assets/tonconnect-icon.png",
+  "tondns": "tmail.ton",
+  "about_url": "https://twallet.ae",
   "universal_url": "https://connect.twallet.ae",
   "deepLink": "twallet-tc://",
   "bridge": [
