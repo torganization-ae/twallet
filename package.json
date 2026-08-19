@@ -1,6 +1,6 @@
 {
   "name": "twallet",
-  "version": "26.7.19",
+  "version": "26.7.20",
   "description": "Self-custodial multichain wallet based on MyTonWallet — fork of mytonwallet-org/mytonwallet.",
   "main": "index.js",
   "scripts": {
