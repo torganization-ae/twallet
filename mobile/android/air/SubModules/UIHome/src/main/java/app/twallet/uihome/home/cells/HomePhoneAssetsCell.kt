@@ -64,6 +64,7 @@ class HomePhoneAssetsCell(
         shouldShowTransferActions: Boolean
     ) -> Unit,
     private val onDetailsOpened: () -> Unit,
+    private val minFillHeight: () -> Int = { 0 },
 ) : WCell(context), WThemedView, ISortableController, IHomeAssetsCell, IHomeAssetsHost {
 
     override var areAssetsShown = false
@@ -557,7 +558,10 @@ class HomePhoneAssetsCell(
                         }
                     firstHeight + (offset - currentIndex) * (secondHeight - firstHeight)
                 }
-            newHeight = (tabBarHeight + contentHeight).roundToInt()
+            newHeight = max(
+                (tabBarHeight + contentHeight).roundToInt(),
+                minFillHeight()
+            )
         }
 
         if (newHeight != prevHeight) {
@@ -566,6 +570,10 @@ class HomePhoneAssetsCell(
             }
             heightChanged()
         }
+    }
+
+    override fun relayoutHeight() {
+        updateHeight()
     }
 
     override fun scrollToFirst() {

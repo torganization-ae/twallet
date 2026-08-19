@@ -393,7 +393,6 @@ extension ApiToken {
         tokenAddress: "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
         image: TON_USDT_MAINNET_IMAGE,
         label: "TON",
-        priceUsd: 1
     )
 
     public static let TON_USDT_TESTNET = ApiToken(
@@ -404,7 +403,6 @@ extension ApiToken {
         chain: .ton,
         tokenAddress: "kQD0GKBM8ZbryVk2aESmzfU6b9b_8era_IkvBSELujFZPsyy",
         label: "TON",
-        priceUsd: 1
     )
 
     public static let TRON_USDT = ApiToken(
@@ -436,7 +434,6 @@ extension ApiToken {
         tokenAddress: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
         image: TON_USDT_MAINNET_IMAGE,
         label: "SOL",
-        priceUsd: 1
     )
 
     public static let SOLANA_USDC_MAINNET = ApiToken(
@@ -448,7 +445,6 @@ extension ApiToken {
         tokenAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
         image: SOLANA_USDC_MAINNET_IMAGE,
         label: "SOL",
-        priceUsd: 1
     )
 
     public static let ETH_USDT_MAINNET = ApiToken(
@@ -460,7 +456,6 @@ extension ApiToken {
         tokenAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
         image: TON_USDT_MAINNET_IMAGE,
         label: "ERC-20",
-        priceUsd: 1
     )
 
     public static let ETH_USDC_MAINNET = ApiToken(
@@ -472,7 +467,6 @@ extension ApiToken {
         tokenAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
         image: SOLANA_USDC_MAINNET_IMAGE,
         label: "ERC-20",
-        priceUsd: 1
     )
 
     public static let BASE_USDT_MAINNET = ApiToken(
@@ -484,7 +478,6 @@ extension ApiToken {
         tokenAddress: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
         image: TON_USDT_MAINNET_IMAGE,
         label: "ERC-20",
-        priceUsd: 1
     )
 
     public static let BASE_USDC_MAINNET = ApiToken(
@@ -496,7 +489,6 @@ extension ApiToken {
         tokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         image: SOLANA_USDC_MAINNET_IMAGE,
         label: "ERC-20",
-        priceUsd: 1
     )
 
     public static let BSC_USDT_MAINNET = ApiToken(
@@ -508,7 +500,6 @@ extension ApiToken {
         tokenAddress: "0x55d398326f99059ff775485246999027b3197955",
         image: TON_USDT_MAINNET_IMAGE,
         label: "BEP-20",
-        priceUsd: 1
     )
 
     public static let AVALANCHE_USDT_MAINNET = ApiToken(
@@ -520,7 +511,6 @@ extension ApiToken {
         tokenAddress: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
         image: TON_USDT_MAINNET_IMAGE,
         label: "ERC-20",
-        priceUsd: 1
     )
 
     public static let HYPERLIQUID_USDC_MAINNET = ApiToken(
@@ -532,7 +522,6 @@ extension ApiToken {
         tokenAddress: "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
         image: SOLANA_USDC_MAINNET_IMAGE,
         label: "ERC-20",
-        priceUsd: 1
     )
 
     public static let STAKED_TON = ApiToken(

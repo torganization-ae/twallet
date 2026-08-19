@@ -91,6 +91,8 @@ open class HomeHeaderView(
         val navDefaultHeight = WNavigationBar.DEFAULT_HEIGHT.dp - NAV_SIZE_OFFSET
         const val CARD_RATIO = 176 / 358f
         private const val COLLAPSE_PROGRESS_THRESHOLD = 0.66f
+        private const val CARD_FADE_ABOVE = 0.48f
+        private const val CARD_HIDE_BELOW = 0.32f
 
         fun expandedContentHeight(width: Int): Float {
             return NAV_SIZE_OFFSET + (width - 32.dp) * CARD_RATIO + 8.dp
@@ -933,11 +935,23 @@ open class HomeHeaderView(
             ((headerBottom - cardView.y) / cardHeight).coerceIn(0f, 1f)
         else
             1f
+        val visibleScale = min(overflowScale, expandProgress)
+        val cardFade = when {
+            visibleScale <= CARD_HIDE_BELOW -> 0f
+            visibleScale >= CARD_FADE_ABOVE -> 1f
+            else -> (visibleScale - CARD_HIDE_BELOW) / (CARD_FADE_ABOVE - CARD_HIDE_BELOW)
+        }
+        val neighborFade = when {
+            expandProgress > 0.98f -> 1f
+            expandProgress > 0.9f -> (expandProgress - 0.9f) * 10f
+            else -> 0f
+        }
         cardViews.forEach {
             it.pivotX = it.layoutParams.width / 2f
             it.pivotY = 0f
             it.scaleX = overflowScale
             it.scaleY = overflowScale
+            it.alpha = (if (it === cardView) 1f else neighborFade) * cardFade
         }
     }
 

@@ -10,6 +10,7 @@ import { getLogs, logDebugError } from '../../util/logs';
 import { pause } from '../../util/schedulers';
 import chains from '../chains';
 import { fetchStoredAccounts, fetchStoredWallet, updateStoredWallet } from '../common/accounts';
+import { getBackendHostMark } from '../common/backendHostMark';
 import { hexToBytes } from '../common/utils';
 import { SEC } from '../constants';
 import { storage } from '../storages';
@@ -140,6 +141,7 @@ export function getEnvironmentVariables() {
     appEnv: APP_ENV,
     appVersion: APP_VERSION,
     isAndroidDirect: IS_ANDROID_DIRECT,
+    apiHostMark: getBackendHostMark(),
   };
 }
 

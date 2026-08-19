@@ -2,6 +2,8 @@ import { API_BASE_URL, APP_ENV, APP_NAME, APP_VERSION, NO_BACKEND } from '../../
 import { bucketKey } from '../../util/circuit-breaker';
 import { fetchJson, fetchWithRetry, fetchWithTimeout, handleFetchErrors } from '../../util/fetch';
 import { getEnvironment } from '../environment';
+import { rememberBackendUrl } from './backendHostMark';
+import { BACKEND_NETWORK_ERROR_ASSETS, reportBackendNetworkError } from './backendNetworkError';
 import { getClientId } from './other';
 
 const BAD_REQUEST_CODE = 400;
@@ -13,12 +15,19 @@ export class BackendDisabledError extends Error {
   }
 }
 
-// The part of the `server.twallet.ae` contract our backend already implements. Extend it as the
-// backend grows; `NO_BACKEND = false` lifts the restriction entirely.
+// Paths served while `NO_BACKEND` is on. Extend as the API grows;
+// `NO_BACKEND = false` lifts the restriction entirely.
 const SUPPORTED_PATHS_RE = /^\/(assets|currency-rates|prices\/)/;
 
 function isPathSupported(path: string) {
   return !NO_BACKEND || SUPPORTED_PATHS_RE.test(path);
+}
+
+function reportAssetsFailure(path: string, err: unknown) {
+  if (err instanceof BackendDisabledError) return;
+  if (path === '/assets' || path.startsWith('/assets?') || path.startsWith('/assets/')) {
+    reportBackendNetworkError(BACKEND_NETWORK_ERROR_ASSETS);
+  }
 }
 
 export async function callBackendPost<T>(path: string, data: AnyLiteral, options?: {
@@ -37,6 +46,7 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
   } = options ?? {};
 
   const url = new URL(`${API_BASE_URL}${path}`);
+  rememberBackendUrl(url);
 
   const init: RequestInit = {
     method: method ?? 'POST',
@@ -48,18 +58,26 @@ export async function callBackendPost<T>(path: string, data: AnyLiteral, options
     body: JSON.stringify(data),
   };
 
-  const response = shouldRetry
-    ? await fetchWithRetry(url, init, {
-      timeouts: timeout,
-      shouldSkipRetryFn: (message) => !message?.includes('signal is aborted'),
-      // Per-endpoint bucket: a slow /assets must not gate /swap or /currency-rates.
-      bucketKey: bucketKey(url, { includePathPrefix: true }),
-    })
-    : await fetchWithTimeout(url.toString(), init, timeout);
+  try {
+    const response = shouldRetry
+      ? await fetchWithRetry(url, init, {
+        timeouts: timeout,
+        shouldSkipRetryFn: (message) => !message?.includes('signal is aborted'),
+        // Per-endpoint bucket: a slow /assets must not gate /swap or /currency-rates.
+        bucketKey: bucketKey(url, { includePathPrefix: true }),
+      })
+      : await fetchWithTimeout(url.toString(), init, timeout);
 
-  await handleFetchErrors(response, isAllowBadRequest ? [BAD_REQUEST_CODE] : undefined);
+    await handleFetchErrors(response, isAllowBadRequest ? [BAD_REQUEST_CODE] : undefined);
+    if (response.url) {
+      rememberBackendUrl(response.url);
+    }
 
-  return response.json();
+    return await response.json();
+  } catch (err) {
+    reportAssetsFailure(path, err);
+    throw err;
+  }
 }
 
 export function callBackendGet<T extends AnyLiteral>(path: string, data?: AnyLiteral, headers?: HeadersInit) {
@@ -68,15 +86,18 @@ export function callBackendGet<T extends AnyLiteral>(path: string, data?: AnyLit
   }
 
   const url = new URL(`${API_BASE_URL}${path}`);
+  rememberBackendUrl(url);
 
   return fetchJson<T>(url, data, {
     headers: {
       ...headers,
-      // Our backend doesn't need them, and unlisted `X-App-*` headers only cost a CORS preflight
       ...(NO_BACKEND ? undefined : getBackendHeaders()),
     },
   }, {
     bucketKey: bucketKey(url, { includePathPrefix: true }),
+  }).catch((err) => {
+    reportAssetsFailure(path, err);
+    throw err;
   });
 }
 

@@ -366,7 +366,7 @@ object WGlobalStorage {
     }
 
     fun getActiveTheme(): String {
-        return globalStorageProvider.getString(ACTIVE_THEME) ?: ThemeManager.THEME_SYSTEM
+        return globalStorageProvider.getString(ACTIVE_THEME) ?: ThemeManager.THEME_DARK
     }
 
     fun setActiveTheme(theme: String) {

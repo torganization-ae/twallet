@@ -49,12 +49,21 @@ public final class ToastController {
 
         toastView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(toastView)
-        NSLayoutConstraint.activate([
-            toastView.bottomAnchor.constraint(equalTo: containerView.keyboardLayoutGuide.topAnchor, constant: -12),
-            toastView.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor, constant: -12).withPriority(.defaultHigh),
+        var constraints: [NSLayoutConstraint] = [
             toastView.leftAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.leftAnchor, constant: 24),
             toastView.rightAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.rightAnchor, constant: -24),
-        ])
+        ]
+        if config.pinToTop {
+            constraints.append(
+                toastView.topAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.topAnchor, constant: 12)
+            )
+        } else {
+            constraints.append(contentsOf: [
+                toastView.bottomAnchor.constraint(equalTo: containerView.keyboardLayoutGuide.topAnchor, constant: -12),
+                toastView.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor, constant: -12).withPriority(.defaultHigh),
+            ])
+        }
+        NSLayoutConstraint.activate(constraints)
 
         containerView.layoutIfNeeded()
 
@@ -118,7 +127,10 @@ public class ToastView: UIView {
         layer.shadowOpacity = 0.2
         layer.shadowOffset = CGSize(width: 0, height: 1)
 
-        blurView = WBlurView.attach(to: self, background: .air.toastBackground)
+        blurView = WBlurView.attach(
+            to: self,
+            background: config.isError ? UIColor.systemRed : .air.toastBackground
+        )
         blurView.layer.masksToBounds = true
 
         heightAnchor.constraint(greaterThanOrEqualToConstant: 50).isActive = true

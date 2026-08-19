@@ -271,6 +271,14 @@ fun WalletCore.activateAccount(
     }
 }
 
+fun WalletCore.refreshAccountData(
+    callback: (String?, MBridgeError?) -> Unit = { _, _ -> }
+) {
+    bridge?.callApi("refreshAccountData", "[]") { result, error ->
+        callback(result, error)
+    }
+}
+
 fun WalletCore.fetchAccount(
     accountId: String,
     callback: (MAccount?, MBridgeError?) -> Unit

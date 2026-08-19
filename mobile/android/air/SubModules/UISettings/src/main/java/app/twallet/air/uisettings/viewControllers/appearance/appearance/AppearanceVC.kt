@@ -333,7 +333,6 @@ class AppearanceVC(context: Context) : WViewController(context), WalletCore.Even
             toCenterX(appFontView)
             topToBottom(roundedBalanceFontRow, appFontView)
             toCenterX(roundedBalanceFontRow)
-            toBottom(roundedBalanceFontRow)
         }
         v.setPadding(0, 0, 0, navigationController?.bottomInset ?: 0)
         v

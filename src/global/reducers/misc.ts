@@ -9,7 +9,7 @@ import type {
 import type { Account, AccountChain, AccountState, AccountType, GlobalState } from '../types';
 import { AuthState } from '../types';
 
-import { POPULAR_WALLET_VERSIONS, TONCOIN } from '../../config';
+import { POPULAR_WALLET_VERSIONS } from '../../config';
 import { generateAccountTitle } from '../../util/account';
 import { getDefaultEnabledSlugs } from '../../util/chain';
 import isPartialDeepEqual from '../../util/isPartialDeepEqual';
@@ -269,20 +269,6 @@ export function updateTokens(
   withDeepCompare = false,
 ): GlobalState {
   const existingTokens = global.tokenInfo?.bySlug;
-
-  // If the backend does not work, then we won't delete the old prices
-  if (!partial[TONCOIN.slug].priceUsd) {
-    partial = Object.values(partial).reduce((result, token) => {
-      const existingToken = existingTokens?.[token.slug];
-
-      result[token.slug] = {
-        ...token,
-        priceUsd: existingToken?.priceUsd ?? token.priceUsd,
-        percentChange24h: existingToken?.percentChange24h ?? token.percentChange24h,
-      };
-      return result;
-    }, {} as Record<string, ApiTokenWithPrice>);
-  }
 
   if (withDeepCompare && existingTokens && isPartialDeepEqual(existingTokens, partial)) {
     return global;

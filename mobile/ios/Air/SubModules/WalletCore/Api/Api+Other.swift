@@ -28,6 +28,10 @@ extension Api {
         try await bridge.callApi("ping", decoding: Bool.self)
     }
 
+    public static func getEnvironmentVariables() async throws -> ApiEnvironmentVariables {
+        try await bridge.callApi("getEnvironmentVariables", decoding: ApiEnvironmentVariables.self)
+    }
+
     public static func waitForLedgerApp(chain: ApiChain, options: WaitForLedgerAppOptions?) async throws -> Bool {
             try await bridge.callApi("waitForLedgerApp", chain, options, decoding: Bool.self)
     }
@@ -36,4 +40,11 @@ extension Api {
 public struct WaitForLedgerAppOptions: Encodable, Sendable {
     public var timeout: Int?
     public var attemptPause: Int?
+}
+
+public struct ApiEnvironmentVariables: Codable, Sendable {
+    public var appEnv: String
+    public var appVersion: String
+    public var isAndroidDirect: Bool
+    public var apiHostMark: String?
 }

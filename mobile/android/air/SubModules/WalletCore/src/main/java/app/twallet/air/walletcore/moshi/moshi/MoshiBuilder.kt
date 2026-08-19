@@ -6,6 +6,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import app.twallet.air.walletcore.moshi.adapter.AccountDomainUpdateAdapter
 import app.twallet.air.walletcore.moshi.adapter.BigDecimalJsonAdapter
 import app.twallet.air.walletcore.moshi.adapter.BigIntegerJsonAdapter
+import app.twallet.air.walletcore.moshi.adapter.DoubleJsonAdapter
 import app.twallet.air.walletcore.moshi.adapter.JSONArrayAdapter
 import app.twallet.air.walletcore.moshi.adapter.JSONObjectAdapter
 import app.twallet.air.walletcore.moshi.adapter.MfaUpdateAdapter
@@ -18,7 +19,10 @@ import app.twallet.air.walletcore.moshi.api.ApiUpdate
 class MoshiBuilder {
     companion object {
         fun build(): Moshi {
+            val doubleAdapter = DoubleJsonAdapter()
             return Moshi.Builder()
+                .add(Double::class.javaObjectType, doubleAdapter)
+                .add(Double::class.javaPrimitiveType!!, doubleAdapter)
                 .add(NftAttributeAdapter())
                 .add(BigIntegerJsonAdapter())
                 .add(BigDecimalJsonAdapter())

@@ -74,4 +74,48 @@ describe('backend API helpers', () => {
 
     await expect(callBackendGet('/swap/assets')).rejects.toThrow('Backend is disabled');
   });
+
+  it('reports 567 when GET /assets fails to reach our backend', async () => {
+    jest.resetModules();
+    jest.doMock('../../config', () => ({
+      ...jest.requireActual('../../config'),
+      API_BASE_URL: 'https://api.example.test',
+      NO_BACKEND: false,
+    }));
+
+    const onUpdate = jest.fn();
+    const {
+      resetBackendNetworkErrorReportsForTests,
+      setBackendNetworkErrorUpdater,
+    } = await import('./backendNetworkError');
+    resetBackendNetworkErrorReportsForTests();
+    setBackendNetworkErrorUpdater(onUpdate);
+
+    mockFetchJson.mockRejectedValueOnce(new Error('network down'));
+    const { callBackendGet } = await import('./backend');
+
+    await expect(callBackendGet('/assets')).rejects.toThrow('network down');
+    expect(onUpdate).toHaveBeenCalledWith({ type: 'backendNetworkError', code: 567 });
+
+    onUpdate.mockClear();
+    mockFetchJson.mockRejectedValueOnce(new Error('network down'));
+    await expect(callBackendGet('/currency-rates')).rejects.toThrow('network down');
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
+  it('records the host letter from the URL that is actually fetched', async () => {
+    jest.resetModules();
+    jest.doMock('../../config', () => ({
+      ...jest.requireActual('../../config'),
+      API_BASE_URL: 'https://north.example.org',
+      NO_BACKEND: false,
+    }));
+
+    mockFetchJson.mockResolvedValueOnce({});
+    const { callBackendGet } = await import('./backend');
+    const { getBackendHostMark } = await import('./backendHostMark');
+
+    await callBackendGet('/assets');
+    expect(getBackendHostMark()).toBe('n');
+  });
 });

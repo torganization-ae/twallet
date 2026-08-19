@@ -139,11 +139,17 @@ class ActivityListView<T>(
         fun onHeaderAction(identifier: HeaderActionsView.Identifier)
 
         fun onTopItemHorizontalScroll()
+        fun onPullToRefresh() {}
     }
 
     // PUBLIC //////////////////////////////////////////////////////////////////////////////////////
     var expandingProgrammatically = false
     var isInstantSwitchingAccount = false
+    private var pullRefreshArmed = false
+    private val pullRefreshMaxPx: Float
+        get() = 96.dp.toFloat()
+    private val pullRefreshThresholdPx: Float
+        get() = 64.dp.toFloat()
 
     fun configure(accountId: String?, shouldLoadNewWallets: Boolean, skipSkeletonOnCache: Boolean) {
         if (showingAccountId == accountId)
@@ -455,20 +461,33 @@ class ActivityListView<T>(
             addOnScrollListener(scrollListener)
             setOnOverScrollListener { isTouchActive, newState, suggestedOffset, velocity ->
                 val dataSource = dataSource ?: return@setOnOverScrollListener
-                if (showingTransactions == null || !isGeneralDataAvailable)
-                    return@setOnOverScrollListener
                 var offset = suggestedOffset
-                if (
-                    (suggestedOffset > 0f && dataSource.phoneHeaderView.mode == HomeHeaderView.Mode.Expanded && dataSource.phoneHeaderView.mode == dataSource.recyclerViewModeValue())
-                ) {
+                val header = dataSource.phoneHeaderView
+                val pullingToExpand =
+                    header.mode == HomeHeaderView.Mode.Collapsed && header.canExpandForHeight
+                // Top-edge overscroll (finger pulls the list down). Don't grow an already-expanded
+                // header — that's pull-to-refresh, including when the header cannot expand.
+                if (suggestedOffset > 0f && !pullingToExpand) {
                     offset = 0f
-                    recyclerView.removeOverScroll()
+                    if (isTouchActive && suggestedOffset >= pullRefreshThresholdPx) {
+                        pullRefreshArmed = true
+                    }
+                }
+                if (newState == IOverScrollState.STATE_BOUNCE_BACK && pullRefreshArmed) {
+                    pullRefreshArmed = false
+                    delegate?.onPullToRefresh()
                 }
                 if (newState == IOverScrollState.STATE_IDLE) {
+                    pullRefreshArmed = false
                     dataSource.heavyAnimationDone()
+                    if (!recyclerView.hasOverScroll) {
+                        syncOverScrollForHeaderMode()
+                    }
                 } else {
                     dataSource.heavyAnimationInProgress()
                 }
+                if (showingTransactions == null || !isGeneralDataAvailable)
+                    return@setOnOverScrollListener
                 val isGoingBack = newState == IOverScrollState.STATE_BOUNCE_BACK
                 if (isGoingBack && dataSource.recyclerViewModeValue() != dataSource.phoneHeaderView.mode) {
                     val prevOverscroll = recyclerView.getOverScrollOffset()
@@ -689,7 +708,8 @@ class ActivityListView<T>(
             onForceEndReorderingRequested = onForceEndReorderingRequested,
             onSelectionRequested = onSelectionRequested,
             onSelectionChanged = onSelectionChanged,
-            onDetailsOpened = onDetailsOpened
+            onDetailsOpened = onDetailsOpened,
+            minFillHeight = { minAssetsCellFillHeight() }
         )
         cell.onScrollToVisibleRequested = { scrollAssetsCellToVisible() }
         return cell
@@ -713,13 +733,30 @@ class ActivityListView<T>(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        val header = dataSource?.phoneHeaderView ?: return
-        header.availableHeight = height
-        if (header.mode == HomeHeaderView.Mode.Collapsed && recyclerView.hasOverScroll) {
-            recyclerView.setMaxOverscrollOffset(
-                if (header.canExpandForHeight) header.diffPx else 0f
-            )
+        dataSource?.phoneHeaderView?.availableHeight = height
+        applyMaxOverscrollOffset()
+        if (h != oldh) {
+            post { assetsCell?.relayoutHeight() }
         }
+    }
+
+    /**
+     * Minimum height of the assets card so a short token/NFT list still reaches the tab bar
+     * after the header has collapsed. Activity tab keeps a compact tab strip — the feed
+     * below fills the rest.
+     */
+    private fun minAssetsCellFillHeight(): Int {
+        if (isActivityContentTab || height <= 0) return 0
+        val ds = dataSource ?: return 0
+        val topInset = ds.navigationController?.getSystemBars()?.top ?: 0
+        val collapsedHeader = if (ds.isWideHome) {
+            topInset + HomeHeaderView.navDefaultHeight
+        } else {
+            topInset + HomeHeaderView.navDefaultHeight + ds.phoneHeaderView.collapsedHeight
+        }
+        val actions = if (showActions) ds.activityListActionsCellHeight() else 0
+        return (height - collapsedHeader - actions - ViewConstants.GAP.dp - recyclerView.paddingBottom)
+            .coerceAtLeast(0)
     }
 
     override val isTinted = true
@@ -743,6 +780,7 @@ class ActivityListView<T>(
             ViewConstants.HORIZONTAL_PADDINGS.dp + endInset,
             dataSource?.navigationController?.getSystemBars()?.bottom ?: 0
         )
+        assetsCell?.relayoutHeight()
     }
 
     private fun updateHeaderCellHeight() {
@@ -880,16 +918,31 @@ class ActivityListView<T>(
         skeletonRecyclerView.post {
             rvSkeletonAdapter.notifyItemChanged(0)
         }
-        if (dataSource.phoneHeaderView.mode == HomeHeaderView.Mode.Collapsed) {
-            recyclerView.setupOverScroll()
-            recyclerView.setMaxOverscrollOffset(
-                if (dataSource.phoneHeaderView.canExpandForHeight)
-                    dataSource.phoneHeaderView.diffPx
-                else
-                    0f
-            )
-        } else if (isInvisible) {
+        syncOverScrollForHeaderMode()
+    }
+
+    fun syncOverScrollForHeaderMode() {
+        val dataSource = dataSource ?: return
+        if (isInvisible || dataSource.isWideHome) {
             recyclerView.removeOverScroll()
+            return
+        }
+        recyclerView.setupOverScroll()
+        applyMaxOverscrollOffset()
+    }
+
+    fun applyMaxOverscrollOffset() {
+        if (recyclerView.hasOverScroll) {
+            recyclerView.setMaxOverscrollOffset(maxOverscrollOffset())
+        }
+    }
+
+    private fun maxOverscrollOffset(): Float {
+        val header = dataSource?.phoneHeaderView ?: return pullRefreshMaxPx
+        return if (header.mode == HomeHeaderView.Mode.Collapsed && header.canExpandForHeight) {
+            header.diffPx
+        } else {
+            pullRefreshMaxPx
         }
     }
 
@@ -938,9 +991,6 @@ class ActivityListView<T>(
             }
         } else {
             adjustScrollingPosition()
-            if (dataSource.phoneHeaderView.mode == HomeHeaderView.Mode.Expanded) {
-                recyclerView.removeOverScroll()
-            }
         }
     }
 

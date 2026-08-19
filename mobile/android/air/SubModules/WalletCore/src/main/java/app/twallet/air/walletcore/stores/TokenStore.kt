@@ -56,6 +56,9 @@ object TokenStore : IStore {
                 val tokensJsonArray = JSONArray(tokensString)
                 for (item in 0..<tokensJsonArray.length()) {
                     val token = MToken(tokensJsonArray.get(item) as JSONObject)
+                    token.priceUsd = 0.0
+                    token.percentChange24hReal = 0.0
+                    token.percentChange24h = 0.0
                     setToken(token.slug, token)
                 }
                 setSwapAssets(tokens.values.toList())
@@ -97,9 +100,10 @@ object TokenStore : IStore {
 
     @Volatile
     var currencyRates: Map<String, Double>? = null
-    val baseCurrencyRate: Double?
+    val baseCurrencyRate: Double
         get() {
-            return currencyRates?.get(WalletCore.baseCurrency.currencyCode)
+            val currency = WalletCore.baseCurrency
+            return currencyRates?.get(currency.currencyCode) ?: currency.fallbackExchangeRate
         }
 
     internal val _swapAssetsFlow = MutableStateFlow<List<MApiSwapAsset>?>(null)
@@ -244,12 +248,9 @@ object TokenStore : IStore {
     }
 
     fun updateCurrencyRates(update: ApiUpdate.ApiUpdateCurrencyRates) {
-        val prevCurrencyRate = baseCurrencyRate
         currencyRates = update.rates
         WGlobalStorage.setCurrencyRates(update.rates)
-        if (baseCurrencyRate != prevCurrencyRate) {
-            WalletCore.notifyEvent(WalletEvent.TokensChanged)
-        }
+        WalletCore.notifyEvent(WalletEvent.TokensChanged)
     }
 
     // Load price history from cache and update the price history instantly
@@ -258,7 +259,11 @@ object TokenStore : IStore {
         period: MHistoryTimePeriod,
         callback: (data: Array<Array<Double>>?, fromCache: Boolean, MBridgeError?) -> Unit,
     ) {
-        val cachedData = WGlobalStorage.getPriceHistory(slug, period.value)
+        val cachedData = WCacheStorage.getPriceHistory(slug, period.value)
+            ?: WGlobalStorage.getPriceHistory(slug, period.value)?.also { fromGlobal ->
+                WCacheStorage.setPriceHistory(slug, period.value, fromGlobal)
+                WGlobalStorage.setPriceHistory(slug, period.value, null)
+            }
         if (cachedData != null)
             callback(cachedData, true, null)
         updatePriceHistory(slug, period, callback)
@@ -284,7 +289,7 @@ object TokenStore : IStore {
                 }
                 return@fetchPriceHistory
             }
-            WGlobalStorage.setPriceHistory(slug, period.value, res)
+            WCacheStorage.setPriceHistory(slug, period.value, res)
             callback(res, false, null)
         }
     }

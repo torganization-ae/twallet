@@ -1,6 +1,7 @@
 
 import UIKit
 import WalletContext
+import WalletCore
 
 final class FooterView: UICollectionReusableView {
     
@@ -18,7 +19,7 @@ final class FooterView: UICollectionReusableView {
         let bundleVersion = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
         let versionLabel = UILabel()
         versionLabel.translatesAutoresizingMaskIntoConstraints = false
-        versionLabel.text = "\(APP_NAME) v\(appVersion) (\(bundleVersion))"
+        versionLabel.text = "\(APP_NAME) v\(displayedAppVersion(appVersion)) (\(bundleVersion))"
         versionLabel.textColor = .air.secondaryLabel
         versionLabel.font = .systemFont(ofSize: 14)
         addSubview(versionLabel)
@@ -28,5 +29,11 @@ final class FooterView: UICollectionReusableView {
             versionLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
         ])
         backgroundColor = UIColor.clear
+
+        Task { @MainActor in
+            guard let mark = try? await Api.getEnvironmentVariables().apiHostMark, !mark.isEmpty else { return }
+            apiHostMark = mark
+            versionLabel.text = "\(APP_NAME) v\(displayedAppVersion(appVersion)) (\(bundleVersion))"
+        }
     }
 }

@@ -1,12 +1,13 @@
-import React, { memo, useRef } from '../../lib/teact/teact';
+import React, { memo, useEffect, useRef, useState } from '../../lib/teact/teact';
 
 import {
-  APP_ENV_MARKER,
+  API_HOST_MARK,
   APP_NAME,
   APP_PROMO_URL,
   APP_REPO_URL,
   APP_VERSION,
   APP_WEBSITE_HOST,
+  formatDisplayedAppVersion,
   IS_EXTENSION,
 } from '../../config';
 import { getHelpCenterUrl } from '../../global/helpers/getHelpCenterUrl';
@@ -14,6 +15,7 @@ import renderText from '../../global/helpers/renderText';
 import buildClassName from '../../util/buildClassName';
 import { handleUrlClick } from '../../util/openUrl';
 import { getBlogUrl, getTelegramNewsChannelUrl, getTelegramTipsChannelUrl } from '../../util/url';
+import { callApi } from '../../api';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useHistoryBack from '../../hooks/useHistoryBack';
@@ -46,7 +48,15 @@ function SettingsAbout({
 
   const { isPortrait } = useDeviceScreen();
   const headerRef = useRef<HTMLHeadingElement>();
+  const [apiHostMark, setApiHostMark] = useState(API_HOST_MARK);
   const aboutExtensionTitle = lang('$about_extension_link_text', { app_name: APP_NAME });
+  const displayedVersion = formatDisplayedAppVersion(APP_VERSION, undefined, apiHostMark);
+
+  useEffect(() => {
+    void callApi('getEnvironmentVariables').then((env) => {
+      if (env?.apiHostMark) setApiHostMark(env.apiHostMark);
+    });
+  }, []);
 
   useHistoryBack({
     isActive,
@@ -58,7 +68,7 @@ function SettingsAbout({
       {isPortrait ? (
         <Header
           isActive={isActive}
-          title={`${APP_NAME} ${APP_VERSION} ${APP_ENV_MARKER || ''}`}
+          title={`${APP_NAME} ${displayedVersion}`}
           topTargetRef={headerRef}
           onBackClick={onBackClick}
         />
@@ -71,7 +81,7 @@ function SettingsAbout({
       >
         <img src={LOGO_PATH} alt={lang('Logo')} className={styles.logo} />
         <h2 ref={headerRef} className={styles.title}>
-          {APP_NAME} {APP_VERSION} {APP_ENV_MARKER}
+          {APP_NAME} {displayedVersion}
           <a href={APP_PROMO_URL} target="_blank" className={styles.titleLink} rel="noreferrer">
             {APP_WEBSITE_HOST}
           </a>

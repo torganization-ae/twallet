@@ -6,7 +6,6 @@ import android.view.Gravity
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import androidx.core.content.pm.PackageInfoCompat
 import app.twallet.air.uicomponents.base.WWindow
 import app.twallet.air.uicomponents.extensions.dp
 import app.twallet.air.uicomponents.helpers.MultiTapDetector
@@ -17,6 +16,7 @@ import app.twallet.air.walletbasecontext.R as BaseR
 import app.twallet.air.walletbasecontext.localization.LocaleController
 import app.twallet.air.walletbasecontext.theme.WColor
 import app.twallet.air.walletbasecontext.theme.color
+import app.twallet.air.walletcore.stores.EnvironmentStore
 
 @SuppressLint("ViewConstructor")
 class SettingsVersionCell(
@@ -39,17 +39,7 @@ class SettingsVersionCell(
         setStyle(14f)
         gravity = Gravity.CENTER_VERTICAL
         setPadding(8.dp, 0, 8.dp, 0)
-        text = try {
-            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            val versionName = packageInfo.versionName ?: ""
-            val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo).toString()
-            LocaleController.getFormattedString(
-                "${context.getString(BaseR.string.app_locale_name_key)} v%1$@ (%2$@)",
-                listOf(versionName, versionCode)
-            )
-        } catch (e: PackageManager.NameNotFoundException) {
-            ""
-        }
+        text = versionLabelText()
         setOnClickListener {
             multiTapDetector.registerTap()
         }
@@ -68,7 +58,24 @@ class SettingsVersionCell(
             allEdges(lbl)
         }
 
+        EnvironmentStore.loadEnvVariable {
+            lbl.text = versionLabelText()
+        }
+
         updateTheme()
+    }
+
+    private fun versionLabelText(): String {
+        return try {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            val versionName = packageInfo.versionName ?: ""
+            LocaleController.getFormattedString(
+                "${context.getString(BaseR.string.app_locale_name_key)} v%1$@",
+                listOf(EnvironmentStore.formatDisplayedVersion(versionName))
+            )
+        } catch (e: PackageManager.NameNotFoundException) {
+            ""
+        }
     }
 
     override fun updateTheme() {

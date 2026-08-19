@@ -51,6 +51,7 @@ interface WalletContextManagerDelegate {
     fun walletIsReady()
     fun isWalletReady(): Boolean
     fun showError(error: String?)
+    fun showBackendNetworkError(code: Int)
     fun switchToLegacy()
     fun recreateBridge()
 

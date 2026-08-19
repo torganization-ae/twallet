@@ -14,6 +14,9 @@ import WalletCore
 struct AboutView: View {
     
     var showLegalSection: Bool
+    @State private var versionText = displayedAppVersion(
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+    )
     
     var body: some View {
         InsetList(topPadding: 0) {
@@ -26,17 +29,23 @@ struct AboutView: View {
             }
         }
         .backportScrollBounceBehaviorBasedOnSize()
+        .task {
+            guard let mark = try? await Api.getEnvironmentVariables().apiHostMark, !mark.isEmpty else { return }
+            apiHostMark = mark
+            versionText = displayedAppVersion(
+                Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+            )
+        }
     }
     
     @ViewBuilder
     var header: some View {
-        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
         let websiteUrl = URL(string: APP_WEBSITE_URL)!
         let websiteTitle = websiteUrl.host ?? APP_WEBSITE_URL
         VStack(spacing: 14) {
             headerIcon
             VStack(spacing: 4) {
-                Text("\(APP_NAME) \(appVersion)")
+                Text("\(APP_NAME) \(versionText)")
                     .font(.system(size: 17, weight: .semibold))
                 Link(websiteTitle, destination: websiteUrl)
                     .font(.system(size: 14, weight: .regular))

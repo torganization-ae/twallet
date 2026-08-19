@@ -52,9 +52,7 @@ final class HomeHeaderViewModel {
     func scrollOffsetChanged(to y: CGFloat) {
         let p = y / collapsedHeight
         _collapseProgress = clamp(p, to: 0...1)
-        if UIDevice.current.hasDynamicIsland {
-            isCardHidden = y > 62
-        }
+        isCardHidden = y > 62
     }
 
 }

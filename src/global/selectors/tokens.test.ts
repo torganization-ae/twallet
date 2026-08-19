@@ -51,7 +51,7 @@ function buildGlobal(): GlobalState {
     },
     swapTokenInfo: {
       bySlug: {
-        [TONCOIN.slug]: { ...TONCOIN, isPopular: true },
+        [TONCOIN.slug]: { ...TONCOIN, isPopular: true, priceUsd: 0 },
       },
     },
   } as GlobalState;

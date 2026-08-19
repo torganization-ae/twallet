@@ -9,9 +9,11 @@ import type { Wallet } from './wallets/SettingsWalletVariants';
 import { SettingsState } from '../../global/types';
 
 import {
-  APP_ENV_MARKER, APP_INSTALL_URL,
+  API_HOST_MARK,
+  APP_INSTALL_URL,
   APP_NAME,
   APP_VERSION,
+  formatDisplayedAppVersion,
   IS_EXPLORER,
   IS_EXTENSION,
   LANG_LIST,
@@ -46,6 +48,7 @@ import {
   IS_TOUCH_ENV,
   IS_WEB,
 } from '../../util/windowEnvironment';
+import { callApi } from '../../api';
 
 import { useDeviceScreen } from '../../hooks/useDeviceScreen';
 import useFlag from '../../hooks/useFlag';
@@ -162,6 +165,7 @@ function Settings({
   const transitionRef = useRef<HTMLDivElement>();
   const { disableSwipeToClose, enableSwipeToClose } = useTelegramMiniAppSwipeToClose(isOpen);
   const [clicksAmount, setClicksAmount] = useState<number>(isTestnet ? AMOUNT_OF_CLICKS_FOR_DEVELOPERS_MODE : 0);
+  const [apiHostMark, setApiHostMark] = useState(API_HOST_MARK);
   const prevRenderingKeyRef = useStateRef(usePrevious2(renderingKey));
 
   const [isDeveloperModalOpen, openDeveloperModal, closeDeveloperModal] = useFlag();
@@ -309,6 +313,12 @@ function Settings({
   const [isTrayIconEnabled, setIsTrayIconEnabled] = useState(false);
   useEffect(() => {
     void window.electron?.getIsTrayIconEnabled().then(setIsTrayIconEnabled);
+  }, []);
+
+  useEffect(() => {
+    void callApi('getEnvironmentVariables').then((env) => {
+      if (env?.apiHostMark) setApiHostMark(env.apiHostMark);
+    });
   }, []);
 
   const handleTrayIconEnabledToggle = useLastCallback(() => {
@@ -580,7 +590,7 @@ function Settings({
           )}
 
           <div className={styles.version} onClick={IS_EXPLORER ? undefined : handleMultipleClick}>
-            {APP_NAME} {APP_VERSION} {APP_ENV_MARKER}
+            {APP_NAME} {formatDisplayedAppVersion(APP_VERSION, undefined, apiHostMark)}
           </div>
         </div>
       </div>

@@ -22,6 +22,7 @@ import { setBackendConfigCache } from '../../api/common/cache';
 import { initClientId } from '../../api/common/other';
 import { pollingLoop } from '../../api/common/polling/utils';
 import {
+  clearTokenPrices,
   getTokensCache,
   loadTokensCache,
   sendUpdateTokens,
@@ -152,16 +153,22 @@ async function updateMfaTokens() {
     // sequentially keeps the per-IP rate budget calm (mirrors tryUpdateTokens in polling.ts).
     let nonBackendTokenDetails: ApiTokenDetails[] | undefined;
     if (nonBackendTokenAddresses.length) {
-      nonBackendTokenDetails = [];
-      for (const chunk of split(nonBackendTokenAddresses, POST_TOKENS_CHUNK_SIZE)) {
-        const chunkDetails = await callBackendPost<ApiTokenDetails[]>('/assets', { assets: chunk });
-        nonBackendTokenDetails.push(...chunkDetails);
+      try {
+        nonBackendTokenDetails = [];
+        for (const chunk of split(nonBackendTokenAddresses, POST_TOKENS_CHUNK_SIZE)) {
+          const chunkDetails = await callBackendPost<ApiTokenDetails[]>('/assets', { assets: chunk });
+          nonBackendTokenDetails.push(...chunkDetails);
+        }
+      } catch (err) {
+        logDebugError('updateMfaTokens:post', err);
+        nonBackendTokenDetails = undefined;
       }
     }
 
     await updateTokens(tokens, () => sendUpdateTokens(onUpdate), nonBackendTokenDetails, true);
   } catch (err) {
     logDebugError('updateMfaTokens', err);
+    clearTokenPrices(() => sendUpdateTokens(onUpdate));
   }
 }
 

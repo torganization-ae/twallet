@@ -1064,7 +1064,7 @@ export const getTokenInfo = /* #__PURE__ */ withCache((): Readonly<Record<string
   };
 
   const allTokens = Object.values(CHAIN_CONFIG).flatMap((chainConfig) => {
-    return chainConfig.tokenInfo.map((token) => ({ ...commonToken, ...token }));
+    return chainConfig.tokenInfo.map((token) => ({ ...token, ...commonToken }));
   });
 
   return buildCollectionByKey(allTokens, 'slug');

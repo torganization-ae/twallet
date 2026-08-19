@@ -31,6 +31,8 @@ interface IHomeAssetsCell {
     fun updateSegmentItemsTheme()
     fun scrollToFirst()
     fun setAnimations(paused: Boolean)
+    /** Recompute cell height so a short token list still fills down to the tab bar. */
+    fun relayoutHeight() {}
 
     /** Detach/unmount only. Does NOT destroy the pooled ViewControllers. */
     fun onDestroy()

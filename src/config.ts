@@ -119,18 +119,38 @@ export const ANIMATION_LEVEL_MIN = 0;
 export const ANIMATION_LEVEL_MED = 1;
 export const ANIMATION_LEVEL_MAX = 2;
 export const ANIMATION_LEVEL_DEFAULT = ANIMATION_LEVEL_MAX;
-export const THEME_DEFAULT = 'system';
+export const THEME_DEFAULT = 'dark';
 
 export const MAIN_ACCOUNT_ID = '0-ton-mainnet';
 export const TEMPORARY_ACCOUNT_NAME = 'Wallet';
 
-export const API_BASE_URL = process.env.API_BASE_URL || 'https://nexus-ton.testprojects.org';
-export const PROXY_API_BASE_URL = process.env.PROXY_API_BASE_URL || 'https://server.twallet.ae/proxy';
+export const API_BASE_URL = process.env.API_BASE_URL || 'https://server.twallet.ae';
+export const PROXY_API_BASE_URL = process.env.PROXY_API_BASE_URL || `${API_BASE_URL.replace(/\/+$/, '')}/proxy`;
 /**
- * Our backend implements only a part of the `server.twallet.ae` contract so far — prices, the token
- * list and currency rates (see `SUPPORTED_PATHS_RE` in `api/common/backend.ts`). Everything else is
- * cut off and the features that depend on it are hidden — the same way on every platform.
- * Set to `false` once the whole contract is served.
+ * First letter of a backend hostname, shown next to the app version.
+ * Falls back to `API_BASE_URL` until a live backend fetch is observed.
+ */
+export function getApiHostMark(baseUrl: string): string | undefined {
+  try {
+    const letter = new URL(baseUrl).hostname.charAt(0);
+    return letter ? letter.toLowerCase() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+export const API_HOST_MARK = getApiHostMark(API_BASE_URL);
+
+export function formatDisplayedAppVersion(
+  version: string,
+  envMarker: string | undefined = APP_ENV_MARKER,
+  hostMark: string | undefined = API_HOST_MARK,
+): string {
+  return [version, hostMark, envMarker].filter(Boolean).join(' ');
+}
+/**
+ * When true, only the backend paths listed in `SUPPORTED_PATHS_RE` (`api/common/backend.ts`)
+ * are called. Everything else is skipped and dependent features stay hidden.
+ * Set to `false` once the full API is served.
  */
 export const NO_BACKEND = true;
 export const IPFS_GATEWAY_BASE_URL = 'https://ipfs.io/ipfs/';
@@ -327,7 +347,6 @@ export const TONCOIN = {
   decimals: 9,
   chain: 'ton',
   cmcSlug: 'toncoin',
-  priceUsd: 1.5,
 } as const;
 
 export const TRX = {
@@ -468,7 +487,6 @@ export const TON_USDT_MAINNET = {
   tokenAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
   image: 'https://tether.to/images/logoCircle.png',
   label: 'TON',
-  priceUsd: 1,
 } as const;
 
 // Where to get this token: https://t.me/testgiver_ton_usdt_bot
@@ -508,7 +526,6 @@ export const SOLANA_USDT_MAINNET = {
   tokenAddress: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
   label: 'SOL',
   image: 'https://tether.to/images/logoCircle.png',
-  priceUsd: 1,
 } as const;
 
 export const SOLANA_USDC_MAINNET = {
@@ -520,7 +537,6 @@ export const SOLANA_USDC_MAINNET = {
   tokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
   label: 'SOL',
   image: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
-  priceUsd: 1,
 } as const;
 
 export const ETH_USDT_MAINNET = {
@@ -532,7 +548,6 @@ export const ETH_USDT_MAINNET = {
   tokenAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
   label: 'ERC-20',
   image: 'https://tether.to/images/logoCircle.png',
-  priceUsd: 1,
 } as const;
 
 export const ETH_USDC_MAINNET = {
@@ -544,7 +559,6 @@ export const ETH_USDC_MAINNET = {
   tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   label: 'ERC-20',
   image: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
-  priceUsd: 1,
 } as const;
 
 export const BASE_USDT_MAINNET = {
@@ -556,7 +570,6 @@ export const BASE_USDT_MAINNET = {
   tokenAddress: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
   label: 'ERC-20',
   image: 'https://tether.to/images/logoCircle.png',
-  priceUsd: 1,
 } as const;
 
 export const BASE_USDC_MAINNET = {
@@ -568,7 +581,6 @@ export const BASE_USDC_MAINNET = {
   tokenAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
   label: 'ERC-20',
   image: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
-  priceUsd: 1,
 } as const;
 
 export const ARBITRUM_USDC_MAINNET = {
@@ -580,7 +592,6 @@ export const ARBITRUM_USDC_MAINNET = {
   tokenAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
   label: 'ERC-20',
   image: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
-  priceUsd: 1,
 } as const;
 
 export const BSC_USDT_MAINNET = {
@@ -592,7 +603,6 @@ export const BSC_USDT_MAINNET = {
   tokenAddress: '0x55d398326f99059ff775485246999027b3197955',
   label: 'BEP-20',
   image: 'https://tether.to/images/logoCircle.png',
-  priceUsd: 1,
 } as const;
 
 export const AVALANCHE_USDT_MAINNET = {
@@ -604,7 +614,6 @@ export const AVALANCHE_USDT_MAINNET = {
   tokenAddress: '0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7',
   label: 'ERC-20',
   image: 'https://tether.to/images/logoCircle.png',
-  priceUsd: 1,
 } as const;
 
 export const HYPERLIQUID_USDC_MAINNET = {
@@ -616,7 +625,6 @@ export const HYPERLIQUID_USDC_MAINNET = {
   tokenAddress: '0xb88339CB7199b77E23DB6E890353E22632Ba630f',
   label: 'ERC-20',
   image: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
-  priceUsd: 1,
 } as const;
 
 /** The properties not returned by the backend, and therefore not stored in token objects */
@@ -677,10 +685,12 @@ export const INIT_SWAP_ASSETS: Record<'in' | 'out', ApiSwapAsset> = {
   in: {
     ...TONCOIN,
     isPopular: true,
+    priceUsd: 0,
   },
   out: {
     ...TON_USDT_MAINNET,
     isPopular: true,
+    priceUsd: 0,
   },
 };
 
@@ -785,7 +795,6 @@ export const SHOULD_SHOW_ALL_ASSETS_AND_ACTIVITY = false;
 export const DEFAULT_PRICE_CURRENCY = 'USD';
 export const CURRENCIES: Record<
   ApiBaseCurrency,
-  // Get the fallback rates at https://server.twallet.ae/currency-rates
   { name: string; decimals: number; shortSymbol?: string; shortSymbolPosition?: 'start' | 'end'; fallbackRate: string }
 > = {
   USD: {

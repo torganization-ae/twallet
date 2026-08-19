@@ -211,7 +211,6 @@ class DebugMenuVC(context: Context) : WViewController(context) {
                 topToBottom(deviceModelRow, appVersionRow)
                 topToBottom(androidVersionRow, deviceModelRow)
                 topToBottom(performanceClassRow, androidVersionRow)
-                toBottomPx(performanceClassRow, navigationController?.bottomInset ?: 0)
             }
         }
     }
@@ -288,7 +287,7 @@ class DebugMenuVC(context: Context) : WViewController(context) {
             ViewConstants.HORIZONTAL_PADDINGS.dp + additionalTabletPadding + systemBarStartInset,
             0,
             ViewConstants.HORIZONTAL_PADDINGS.dp + systemBarEndInset,
-            0
+            navigationController?.bottomInset ?: 0
         )
     }
 }

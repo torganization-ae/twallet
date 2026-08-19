@@ -142,6 +142,7 @@ class SettingsVC(context: Context) : WViewController(context),
         rv.addOnScrollListener(scrollListener)
         rv.setItemAnimator(null)
         rv.clipToPadding = false
+        rv.overScrollMode = View.OVER_SCROLL_NEVER
         rv
     }
 
@@ -537,19 +538,13 @@ class SettingsVC(context: Context) : WViewController(context),
 
     private fun updatePadding() {
         view.doOnLayout {
-            val additionalPadding =
-                (SettingsHeaderView.HEIGHT_NORMAL - SettingsHeaderView.HEIGHT_COLLAPSED).dp
-            val contentHeight = settingsVM.contentHeight()
-            val topInset = (navigationController?.getSystemBars()?.top ?: 0)
-            val bottomInset = (navigationController?.bottomInset ?: 0)
-            val recyclerViewPaddingBottom =
-                (view.height - contentHeight - topInset + additionalPadding)
-                    .coerceAtLeast(bottomInset)
+            // Only clear the tab bar overlay. Extra collapse padding used to leave an empty
+            // page under the version row after the extra settings rows disappeared.
             recyclerView.setPaddingLocalized(
                 ViewConstants.HORIZONTAL_PADDINGS.dp + additionalTabletPadding + systemBarStartInset,
                 recyclerView.paddingTop,
                 ViewConstants.HORIZONTAL_PADDINGS.dp + systemBarEndInset,
-                recyclerViewPaddingBottom
+                navigationController?.bottomInset ?: 0
             )
         }
     }

@@ -162,6 +162,7 @@ open class WRecyclerView(context: Context) : RecyclerView(context) {
 
     fun removeOverScroll() {
         verticalOverScrollBounceEffectDecorator?.detach()
+        verticalOverScrollBounceEffectDecorator = null
     }
 
     val hasOverScroll: Boolean

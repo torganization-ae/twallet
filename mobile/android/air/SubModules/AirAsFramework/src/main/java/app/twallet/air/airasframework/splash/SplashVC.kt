@@ -27,6 +27,7 @@ import app.twallet.air.uicomponents.base.WNavigationController.PresentationConfi
 import app.twallet.air.uicomponents.base.WViewController
 import app.twallet.air.uicomponents.base.WWindow
 import app.twallet.air.uicomponents.base.showAlert
+import app.twallet.air.uicomponents.commonViews.toast.ToastManager
 import app.twallet.air.uicomponents.extensions.startActivityCatching
 import app.twallet.air.uicomponents.helpers.PopupHelpers
 import app.twallet.air.uicomponents.widgets.fadeOut
@@ -111,6 +112,7 @@ import app.twallet.uihome.tabs.PhoneTabsVC
 import app.twallet.uihome.walletsTabs.WalletsTabsVC
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
+import kotlin.time.Duration.Companion.seconds
 
 class SplashVC(context: Context) : WViewController(context),
     WalletContextManagerDelegate,
@@ -466,6 +468,16 @@ class SplashVC(context: Context) : WViewController(context),
             ?: error?.let { LocaleController.getString(it) }
             ?: MBridgeError.UNKNOWN.toLocalized
         showAlertOverTopVC(LocaleController.getString("Error"), message)
+    }
+
+    override fun showBackendNetworkError(code: Int) {
+        ToastManager.show(
+            ToastManager.Toast(
+                text = "Problem connect network $code",
+                duration = 10.seconds,
+                isError = true,
+            )
+        )
     }
 
     override fun openASingleWallet(

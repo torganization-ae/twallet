@@ -259,8 +259,7 @@ object BalanceStore : IStore {
         totalBalanceInBaseCurrencyPerChain.clear()
         totalBalance24hInBaseCurrency.clear()
         if (TokenStore.tokens.isEmpty() ||
-            balances.isEmpty() ||
-            TokenStore.currencyRates.isNullOrEmpty()
+            balances.isEmpty()
         ) {
             return
         }
@@ -303,7 +302,8 @@ object BalanceStore : IStore {
         if (isAccountNew(accountId)) {
             return TotalBalanceResult(total = 0.0, perChain = emptyMap())
         }
-        val currencyRate = TokenStore.currencyRates?.get(baseCurrency.currencyCode) ?: return null
+        val currencyRate = TokenStore.currencyRates?.get(baseCurrency.currencyCode)
+            ?: baseCurrency.fallbackExchangeRate
         val accountBalances = balances[accountId] ?: return null
 
         val perChain = mutableMapOf<MBlockchain, Double>()

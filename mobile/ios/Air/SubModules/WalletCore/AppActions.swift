@@ -112,11 +112,13 @@ public extension AppActionsProtocol {
     }
 
     static func showToast(style: ToastStyle? = nil, icon: ToastIcon? = nil, message: String, duration: Double? = nil,
-                          transition: ToastTransition? = nil, actionTitle: String? = nil, action: (() -> ())? = nil) {
+                          transition: ToastTransition? = nil, actionTitle: String? = nil, action: (() -> ())? = nil,
+                          isError: Bool = false) {
         showToast(.init(
             style: style, icon: icon, message: message,
             duration: duration, transition: transition,
-            actionTitle: actionTitle, action: action)
+            actionTitle: actionTitle, action: action,
+            isError: isError)
         )
     }
     

@@ -82,9 +82,7 @@ data class ApiTokenWithPrice(
     val price: Double?
         get() {
             return priceUsd?.let { priceUsd ->
-                TokenStore.baseCurrencyRate?.let { baseCurrencyRate ->
-                    priceUsd * baseCurrencyRate
-                }
+                priceUsd * TokenStore.baseCurrencyRate
             }
         }
 

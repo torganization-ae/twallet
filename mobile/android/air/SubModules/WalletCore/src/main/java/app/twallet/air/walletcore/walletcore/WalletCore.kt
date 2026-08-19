@@ -301,6 +301,7 @@ object WalletCore {
     fun switchingToLegacy() {
         WGlobalStorage.setTokenInfo(TokenStore.getTokenInfo())
         WGlobalStorage.clearPriceHistory()
+        WCacheStorage.clearPriceHistory()
         AccountStore.removeTemporaryAccounts()
         destroyBridge()
         WSecureStorage.clearCache()
