@@ -1,4 +1,5 @@
 import React, { memo } from '../../lib/teact/teact';
+import { getActions } from '../../global';
 
 import buildClassName from '../../util/buildClassName';
 import { SECOND } from '../../util/dateFormat';
@@ -10,17 +11,20 @@ import useMediaTransition from '../../hooks/useMediaTransition';
 import useTimeout from '../../hooks/useTimeout';
 
 import AnimatedIconWithPreview from '../ui/AnimatedIconWithPreview';
+import Button from '../ui/Button';
 
 import styles from './Auth.module.scss';
 
 interface OwnProps {
   isActive?: boolean;
+  error?: string;
 }
 
 const START_DELAY = 700;
 const INTERVAL = SECOND;
 
-const AuthCreatingWallet = ({ isActive }: OwnProps) => {
+const AuthCreatingWallet = ({ isActive, error }: OwnProps) => {
+  const { startCreatingWallet } = getActions();
   const lang = useLang();
   const [one, markOne] = useFlag();
   const [two, markTwo] = useFlag();
@@ -51,6 +55,18 @@ const AuthCreatingWallet = ({ isActive }: OwnProps) => {
         <b ref={twoRef} className={buildClassName(styles.counterDigit, 'rounded-font')}>2</b>
         <b ref={threeRef} className={buildClassName(styles.counterDigit, 'rounded-font')}>3</b>
       </div>
+      {error && (
+        <>
+          <p className={styles.createWalletError}>{lang(error)}</p>
+          <Button
+            isPrimary
+            className={buildClassName(styles.btn, styles.createWalletRetry)}
+            onClick={startCreatingWallet}
+          >
+            {lang('Try Again')}
+          </Button>
+        </>
+      )}
     </div>
   );
 };

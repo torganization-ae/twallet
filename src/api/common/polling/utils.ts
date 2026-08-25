@@ -11,6 +11,7 @@ export type Period = number | {
 };
 
 export const activeWalletTiming: FallbackPollingOptions = {
+  // Immediate HTTPS snapshot so a hung/blocked WebSocket (VPN) never delays first balances.
   pollOnStart: true,
   minPollDelay: { focused: 20 * SEC, notFocused: MINUTE },
   pollingStartDelay: 15 * SEC,

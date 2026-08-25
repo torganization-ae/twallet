@@ -319,6 +319,21 @@ $footerPaddingBottomMin: 1rem;
   }
 }
 
+.createWalletError {
+  margin-top: 2rem;
+  padding: 0 1rem;
+
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--color-red);
+  text-align: center;
+}
+
+.createWalletRetry {
+  width: 14.5rem;
+  margin-top: 1rem;
+}
+
 .small {
   max-width: 20rem;
   margin: 0 auto 1.25rem;

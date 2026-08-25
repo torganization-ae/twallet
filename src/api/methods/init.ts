@@ -1,6 +1,7 @@
 import type { ApiInitArgs, OnApiUpdate } from '../types';
 
 import { NO_MFA, NO_SWAP } from '../../config';
+import { logDebugError } from '../../util/logs';
 import { initWindowConnector } from '../../util/windowProvider/connector';
 import { getHiddenChainsStateSnapshot, loadChainVisibility } from '../chains/chainVisibility';
 import { loadRpcOverrides } from '../chains/rpcOverrides';
@@ -50,7 +51,11 @@ export default async function init(onUpdate: OnApiUpdate, args: ApiInitArgs) {
   if (!NO_SWAP) methods.initSwap(onUpdate);
   methods.initNfts(onUpdate);
 
-  await initProtocolManager(onUpdate, environment);
+  // WalletConnect (and any other adapter) may hang on a broken WebSocket (VPN).
+  // Do not block mnemonic generation / PIN on dApp relays — HTTP wallet APIs are enough.
+  void initProtocolManager(onUpdate, environment).catch((err) => {
+    logDebugError('initProtocolManager', err);
+  });
 
   if (environment.isDappSupported) {
     methods.initDapps(onUpdate);

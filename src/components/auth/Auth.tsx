@@ -77,7 +77,7 @@ const Auth = ({
       case AuthState.none:
         return <AuthStart isActive={isActive} />;
       case AuthState.createWallet:
-        return <AuthCreatingWallet isActive={isActive} />;
+        return <AuthCreatingWallet isActive={isActive} error={error} />;
       case AuthState.checkPassword:
         return (
           <AuthCheckPassword

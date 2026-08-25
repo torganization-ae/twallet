@@ -35,7 +35,8 @@ export interface FallbackPollingOptions {
 }
 
 /**
- * Schedules regular polling when the socket is disconnected.
+ * HTTPS fallback when WebSocket is down: `poll` fetches over plain HTTP.
+ * Starts in disconnected cadence (and `pollOnStart` if set) until `onSocketConnect`.
  */
 export class FallbackPollingScheduler {
   #rawPoll: PollCallback;

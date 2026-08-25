@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:1035649294028:android:cb616b12fd53972843ac69",
         "android_client_info": {
-          "package_name": "com.sveves.twallet"
+          "package_name": "com.tonorganizationae.wallet"
         }
       },
       "oauth_client": [],
@@ -28,7 +28,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:1035649294028:android:cb616b12fd53972843ac69",
         "android_client_info": {
-          "package_name": "com.sveves.twallet.debug"
+          "package_name": "com.tonorganizationae.wallet.debug"
         }
       },
       "oauth_client": [],
@@ -47,7 +47,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:1035649294028:android:cb616b12fd53972843ac69",
         "android_client_info": {
-          "package_name": "com.sveves.twallet.beta"
+          "package_name": "com.tonorganizationae.wallet.beta"
         }
       },
       "oauth_client": [],

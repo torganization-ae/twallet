@@ -72,10 +72,11 @@ import {
   WALLET_CONNECT_PROJECT_ID,
 } from '../../../../config';
 import { parseAccountId } from '../../../../util/account';
+import { onAppFocus } from '../../../../util/focusAwareDelay';
 import { getDappConnectionUniqueId } from '../../../../util/getDappConnectionUniqueId';
 import { logDebug, logDebugError } from '../../../../util/logs';
 import safeExec from '../../../../util/safeExec';
-import { pause } from '../../../../util/schedulers';
+import { pause, setCancellableTimeout } from '../../../../util/schedulers';
 import {
   checkIsKycUrlAllowed,
   isWalletConnectPayAccountSwitch,
@@ -139,6 +140,11 @@ const WALLET_CONNECT_DEEP_LINK_PREFIXES = [
 
 const EVM_TX_FINALIZATION_POLL_MS = 2000;
 const EVM_TX_FINALIZATION_TIMEOUT_MS = 5 * 60 * 1000;
+const WALLET_CONNECT_INIT_TIMEOUT_MS = 8000;
+const WALLET_CONNECT_RETRY_BASE_MS = 500;
+const WALLET_CONNECT_RETRY_MAX_MS = 5000;
+const WALLET_CONNECT_RETRY_IDLE_MS = 30000;
+const WALLET_CONNECT_FAST_RETRY_ATTEMPTS = 8;
 
 // Derive the EVM chain name set from the same EVM_CHAIN_IDS map the rest of the
 // adapter uses; hardcoding here would silently drift when a new chain joins the
@@ -157,7 +163,25 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
 
   private initialized = false;
 
-  private walletKit!: IWalletKit;
+  private isDestroyed = false;
+
+  private isAttemptRunning = false;
+
+  private retryAttemptCount = 0;
+
+  private cancelRetry?: NoneToVoidFunction;
+
+  private unsubscribeAppFocus?: NoneToVoidFunction;
+
+  private walletKit?: IWalletKit;
+
+  private getWalletKit(): IWalletKit {
+    if (!this.walletKit) {
+      throw new Error('WalletConnect is not ready');
+    }
+
+    return this.walletKit;
+  }
 
   private chainDappSupports: NonNullable<DappProtocolConfig['chainDappSupports']> = {};
 
@@ -172,11 +196,13 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
   // Lifecycle
   // ---------------------------------------------------------------------------
 
+  // Relay initialization intentionally continues in the background.
+  // eslint-disable-next-line @typescript-eslint/require-await
   async init(config: DappProtocolConfig): Promise<void> {
     this.onUpdate = config.onUpdate;
     this.chainDappSupports = config.chainDappSupports ?? {};
 
-    if (this.initialized) {
+    if (this.initialized || this.isDestroyed) {
       return;
     }
 
@@ -189,37 +215,121 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
       throw new Error('WalletConnect is unavailable: indexedDB is not supported');
     }
 
-    //
-    // See: https://docs.walletconnect.network/wallet-sdk/web/usage
-    //
-    const core = new Core({ projectId: WALLET_CONNECT_PROJECT_ID });
-    this.walletKit = await WalletKit.init({
-      core,
-      metadata: {
-        name: APP_NAME,
-        description: 'Multichain cryptocurrency wallet',
-        url: APP_WEBSITE_URL,
-        icons: [APP_ICON_URL],
-      },
-      payConfig: {
-        appId: WALLET_CONNECT_PAY_APP_ID,
-      },
+    // Return immediately so API init / wallet creation is not blocked on WSS to the
+    // WalletConnect relay (v2ray and similar VPNs often leave WalletKit.init pending).
+    void this.runInitAttempt();
+  }
+
+  private async runInitAttempt() {
+    if (this.isAttemptRunning || this.initialized || this.isDestroyed) {
+      return;
+    }
+
+    this.isAttemptRunning = true;
+    const attempt = this.connectWalletKit();
+
+    const outcome = await Promise.race([
+      attempt.then(() => 'ok' as const),
+      pause(WALLET_CONNECT_INIT_TIMEOUT_MS).then(() => 'timeout' as const),
+    ]);
+
+    // WalletKit.init cannot be cancelled. Release the logical slot on timeout so a
+    // later retry can run while the stale promise is still pending. connectWalletKit
+    // lets only the first successful attempt install the active WalletKit instance.
+    this.isAttemptRunning = false;
+
+    if (this.initialized || this.isDestroyed) {
+      return;
+    }
+
+    if (outcome === 'timeout') {
+      logDebugError('WalletConnectAdapter', 'init timed out, retrying in background');
+      this.scheduleInitRetry();
+      return;
+    }
+
+    if (!this.initialized) {
+      this.scheduleInitRetry();
+    }
+  }
+
+  private async connectWalletKit() {
+    try {
+      // See: https://docs.walletconnect.network/wallet-sdk/web/usage
+      const core = new Core({ projectId: WALLET_CONNECT_PROJECT_ID });
+      const walletKit = await WalletKit.init({
+        core,
+        metadata: {
+          name: APP_NAME,
+          description: 'Multichain cryptocurrency wallet',
+          url: APP_WEBSITE_URL,
+          icons: [APP_ICON_URL],
+        },
+        payConfig: {
+          appId: WALLET_CONNECT_PAY_APP_ID,
+        },
+      });
+
+      if (this.isDestroyed || this.initialized) {
+        return;
+      }
+
+      this.walletKit = walletKit;
+      this.getWalletKit().on('session_proposal', this.handleSessionProposal);
+      this.getWalletKit().on('session_request', this.handleSessionRequest);
+      this.getWalletKit().on('session_delete', this.handleSessionDelete);
+      this.getWalletKit().on('session_authenticate', this.handleSessionAuthenticate);
+      this.initialized = true;
+      this.retryAttemptCount = 0;
+      this.cancelRetry?.();
+    } catch (err) {
+      logDebugError('WalletConnectAdapter', 'init failed', err);
+    }
+  }
+
+  private scheduleInitRetry() {
+    this.cancelRetry?.();
+    if (this.isDestroyed || this.initialized) {
+      return;
+    }
+
+    if (!this.unsubscribeAppFocus) {
+      this.unsubscribeAppFocus = onAppFocus(() => {
+        if (this.initialized || this.isDestroyed) {
+          return;
+        }
+        this.retryAttemptCount = 0;
+        void this.runInitAttempt();
+      });
+    }
+
+    this.retryAttemptCount++;
+    const delay = this.retryAttemptCount > WALLET_CONNECT_FAST_RETRY_ATTEMPTS
+      ? WALLET_CONNECT_RETRY_IDLE_MS
+      : Math.min(
+        (WALLET_CONNECT_RETRY_BASE_MS + (2000 * Math.random())) * this.retryAttemptCount,
+        WALLET_CONNECT_RETRY_MAX_MS,
+      );
+
+    this.cancelRetry = setCancellableTimeout(delay, () => {
+      if (this.isAttemptRunning) {
+        this.scheduleInitRetry();
+        return;
+      }
+      void this.runInitAttempt();
     });
-
-    this.walletKit.on('session_proposal', this.handleSessionProposal);
-    this.walletKit.on('session_request', this.handleSessionRequest);
-    this.walletKit.on('session_delete', this.handleSessionDelete);
-    this.walletKit.on('session_authenticate', this.handleSessionAuthenticate);
-
-    this.initialized = true;
   }
 
   async destroy(): Promise<void> {
+    this.isDestroyed = true;
+    this.cancelRetry?.();
+    this.unsubscribeAppFocus?.();
+
     if (this.walletKit) {
-      this.walletKit.off('session_proposal', this.handleSessionProposal);
-      this.walletKit.off('session_request', this.handleSessionRequest);
-      this.walletKit.off('session_delete', this.handleSessionDelete);
-      this.walletKit.off('session_authenticate', this.handleSessionAuthenticate);
+      this.getWalletKit().off('session_proposal', this.handleSessionProposal);
+      this.getWalletKit().off('session_request', this.handleSessionRequest);
+      this.getWalletKit().off('session_delete', this.handleSessionDelete);
+      this.getWalletKit().off('session_authenticate', this.handleSessionAuthenticate);
     }
 
     this.initialized = false;
@@ -250,7 +360,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
       });
 
       if (!populatedAuthPayload.chains?.length) {
-        await this.walletKit.rejectSessionAuthenticate({
+        await this.getWalletKit().rejectSessionAuthenticate({
           id,
           reason: getSdkError('UNSUPPORTED_CHAINS'),
         });
@@ -260,7 +370,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
       const requestedChains = authPayloadChainsToSessionChains(populatedAuthPayload.chains);
 
       if (!requestedChains.length) {
-        await this.walletKit.rejectSessionAuthenticate({
+        await this.getWalletKit().rejectSessionAuthenticate({
           id,
           reason: getSdkError('UNSUPPORTED_CHAINS'),
         });
@@ -306,7 +416,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         result.session.chains,
       );
 
-      const { session } = await this.walletKit.approveSessionAuthenticate({
+      const { session } = await this.getWalletKit().approveSessionAuthenticate({
         id,
         auths,
       });
@@ -323,7 +433,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
       logDebugError('walletConnect:handleSessionAuthenticate', err);
 
       try {
-        await this.walletKit.rejectSessionAuthenticate({
+        await this.getWalletKit().rejectSessionAuthenticate({
           id: payload.id,
           reason: getSdkError('USER_REJECTED'),
         });
@@ -368,7 +478,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
     const address = account.byChain[chainEntry.chain].address;
     const iss = `${chainCaip2}:${address}`;
 
-    const message = this.walletKit.formatAuthMessage({
+    const message = this.getWalletKit().formatAuthMessage({
       request: authPayload,
       iss,
     });
@@ -444,7 +554,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
       dappAccountId = result.session.accountId;
       dappUrl = result.session.dapp.url;
 
-      const session = await this.walletKit.approveSession({
+      const session = await this.getWalletKit().approveSession({
         id,
         namespaces: result.session.protocolData,
       });
@@ -510,7 +620,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         error: getSdkError('INVALID_EVENT'),
       };
 
-      await this.walletKit.respondSessionRequest({ topic: event.topic, response });
+      await this.getWalletKit().respondSessionRequest({ topic: event.topic, response });
       return;
     }
 
@@ -522,7 +632,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         const txParams = paramsList[0];
 
         if (!txParams) {
-          await this.walletKit.respondSessionRequest({
+          await this.getWalletKit().respondSessionRequest({
             topic,
             response: {
               id,
@@ -549,7 +659,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
             return;
           }
 
-          await this.walletKit.respondSessionRequest({
+          await this.getWalletKit().respondSessionRequest({
             topic,
             response: {
               id,
@@ -570,7 +680,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
           const response = await this.sendTransaction({ url: byTopic.dapp.url }, message);
 
           if (response?.success) {
-            await this.walletKit.respondSessionRequest({
+            await this.getWalletKit().respondSessionRequest({
               topic,
               response: {
                 id,
@@ -595,7 +705,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
           return;
         }
 
-        await this.walletKit.respondSessionRequest({
+        await this.getWalletKit().respondSessionRequest({
           topic,
           response: {
             id,
@@ -621,7 +731,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
           return;
         }
 
-        await this.walletKit.respondSessionRequest({
+        await this.getWalletKit().respondSessionRequest({
           topic,
           response: {
             id,
@@ -647,7 +757,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
 
         const signedTransactions = response.result.results ?? [response.result.result];
 
-        await this.walletKit.respondSessionRequest({
+        await this.getWalletKit().respondSessionRequest({
           topic,
           response: {
             id,
@@ -665,7 +775,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         const walletAddress = account.byChain[namespace.chain].address;
 
         if (chains['ethereum'].normalizeAddress(from) !== walletAddress) {
-          await this.walletKit.respondSessionRequest({
+          await this.getWalletKit().respondSessionRequest({
             topic,
             response: {
               id,
@@ -700,7 +810,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         const walletAddress = account.byChain[namespace.chain].address;
 
         if (chains['ethereum'].normalizeAddress(from) !== walletAddress) {
-          await this.walletKit.respondSessionRequest({
+          await this.getWalletKit().respondSessionRequest({
             topic,
             response: {
               id,
@@ -736,7 +846,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         const walletAddress = account.byChain[namespace.chain].address;
 
         if (chains['ethereum'].normalizeAddress(from) !== walletAddress) {
-          await this.walletKit.respondSessionRequest({
+          await this.getWalletKit().respondSessionRequest({
             topic,
             response: {
               id,
@@ -753,7 +863,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         const eip712 = parseWalletConnectTypedData(typedRaw);
 
         if (!eip712) {
-          await this.walletKit.respondSessionRequest({
+          await this.getWalletKit().respondSessionRequest({
             topic,
             response: {
               id,
@@ -816,7 +926,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
           error: getSdkError('WC_METHOD_UNSUPPORTED'),
         };
 
-        await this.walletKit.respondSessionRequest({ topic: event.topic, response });
+        await this.getWalletKit().respondSessionRequest({ topic: event.topic, response });
       }
     }
   };
@@ -963,12 +1073,12 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
 
       if (message.transport === 'relay') {
         if (message.protocolData.isSessionAuthenticate) {
-          await this.walletKit.rejectSessionAuthenticate({
+          await this.getWalletKit().rejectSessionAuthenticate({
             id: message.protocolData.id,
             reason: getSdkError('USER_REJECTED'),
           });
         } else {
-          await this.walletKit.rejectSession({
+          await this.getWalletKit().rejectSession({
             id: message.protocolData.id,
             reason: getSdkError('USER_REJECTED'),
           });
@@ -1113,7 +1223,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
     }
 
     try {
-      await this.walletKit.disconnectSession({
+      await this.getWalletKit().disconnectSession({
         topic: dapp.wcTopic,
         reason: getSdkError('USER_DISCONNECTED'),
       });
@@ -1328,7 +1438,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         };
 
         try {
-          await this.walletKit.respondSessionRequest({ topic: message.payload.topic, response });
+          await this.getWalletKit().respondSessionRequest({ topic: message.payload.topic, response });
         } catch (respondErr) {
           logDebugError('walletConnect:sendTransaction:respondSessionRequest', respondErr);
         }
@@ -1474,7 +1584,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
           result: signatureResult,
         };
 
-        await this.walletKit.respondSessionRequest({ topic: message.payload.topic, response });
+        await this.getWalletKit().respondSessionRequest({ topic: message.payload.topic, response });
       }
 
       logDebug('walletConnect:signData:done', { host: safeHost(dapp.url), chain: message.chain });
@@ -1497,7 +1607,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         };
 
         try {
-          await this.walletKit.respondSessionRequest({ topic: message.payload.topic, response });
+          await this.getWalletKit().respondSessionRequest({ topic: message.payload.topic, response });
         } catch (respondErr) {
           logDebugError('walletConnect:signData:respondSessionRequest', respondErr);
         }
@@ -1553,7 +1663,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
     const walletAddress = account.byChain[namespace.chain].address;
 
     if (requestedAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-      await this.walletKit.respondSessionRequest({
+      await this.getWalletKit().respondSessionRequest({
         topic,
         response: {
           id,
@@ -1579,7 +1689,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
           return normalizeEip155HexChainId(e);
         });
       } catch {
-        await this.walletKit.respondSessionRequest({
+        await this.getWalletKit().respondSessionRequest({
           topic,
           response: {
             id,
@@ -1609,7 +1719,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
       };
     }
 
-    await this.walletKit.respondSessionRequest({
+    await this.getWalletKit().respondSessionRequest({
       topic,
       response: {
         id,
@@ -1632,8 +1742,10 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
     try {
       if (isPaymentLink(url)) {
         await this.processPayment(url);
+      } else if (!this.walletKit) {
+        logDebugError('walletConnect:handleDeepLink', 'WalletConnect is not ready');
       } else {
-        await this.walletKit.pair({ uri: url });
+        await this.getWalletKit().pair({ uri: url });
       }
     } catch (err) {
       logDebugError('walletConnect:handleDeepLink', err);
@@ -1653,7 +1765,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
       if (payAccounts.length === 0) {
         const fakePayAccounts = await buildPayAccounts(resolvedAccountId, true);
 
-        const previewOptions = await this.walletKit.pay.getPaymentOptions({
+        const previewOptions = await this.getWalletKit().pay.getPaymentOptions({
           paymentLink,
           accounts: fakePayAccounts,
           includePaymentInfo: true,
@@ -1675,7 +1787,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
           true,
         ));
       } else {
-        const options = await this.walletKit.pay.getPaymentOptions({
+        const options = await this.getWalletKit().pay.getPaymentOptions({
           paymentLink,
           accounts: payAccounts,
           includePaymentInfo: true,
@@ -1710,7 +1822,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
       // Take 10 seconds of safety margin to avoid expiration during requests/signing
       if (isOptionExpired) {
         const refetchedPayAccounts = await buildPayAccounts(payAccountId);
-        const refetchedOptions = await this.walletKit.pay.getPaymentOptions({
+        const refetchedOptions = await this.getWalletKit().pay.getPaymentOptions({
           paymentLink,
           accounts: refetchedPayAccounts,
           includePaymentInfo: true,
@@ -1729,7 +1841,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         paymentId = refetchedOptions.paymentId;
       }
 
-      const actions = await this.walletKit.pay.getRequiredPaymentActions({
+      const actions = await this.getWalletKit().pay.getRequiredPaymentActions({
         paymentId,
         optionId: selectedOption.id,
       });
@@ -1764,7 +1876,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
           });
         }
 
-        let result = await this.walletKit.pay.confirmPayment({
+        let result = await this.getWalletKit().pay.confirmPayment({
           paymentId,
           optionId: selectedOption.id,
           signatures,
@@ -1773,7 +1885,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
         while (!result.isFinal) {
           await pause(result.pollInMs ?? 2000);
 
-          result = await this.walletKit.pay.confirmPayment({
+          result = await this.getWalletKit().pay.confirmPayment({
             paymentId,
             optionId: selectedOption.id,
             signatures,
@@ -2372,7 +2484,7 @@ class WalletConnectAdapter implements DappProtocolAdapter<DappProtocolType.Walle
       return;
     }
 
-    const options = await this.walletKit.pay.getPaymentOptions({
+    const options = await this.getWalletKit().pay.getPaymentOptions({
       paymentLink,
       accounts: payAccounts,
       includePaymentInfo: true,

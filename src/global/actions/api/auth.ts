@@ -70,6 +70,8 @@ import {
 import { getIsPortrait } from '../../../hooks/useDeviceScreen';
 
 const CREATING_DURATION = 3300;
+/** Extra wait after the cosmetic countdown before treating generateMnemonic as hung. */
+const MNEMONIC_TIMEOUT_MS = CREATING_DURATION + 8000;
 const NATIVE_BIOMETRICS_PAUSE_MS = 750;
 const SWITHCHING_ACCOUNT_DURATION_MS = IS_IOS ? 450 : IS_ANDROID ? 350 : 300;
 
@@ -144,6 +146,7 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
   const isBip39 = !SHOULD_GENERATE_TON_MNEMONIC && !global.auth.forceAddingTonOnlyAccount;
   const mnemonicPromise = callApi('generateMnemonic', isBip39);
   const pausePromise = isPasswordPresent ? Promise.resolve() : pause(CREATING_DURATION);
+  const timeoutMs = isPasswordPresent ? MNEMONIC_TIMEOUT_MS - CREATING_DURATION : MNEMONIC_TIMEOUT_MS;
 
   setGlobal(
     updateAuth(global, {
@@ -153,11 +156,32 @@ addActionHandler('startCreatingWallet', async (global, actions) => {
     }),
   );
 
-  const [mnemonic] = await Promise.all([mnemonicPromise, pausePromise]);
+  let mnemonicError: unknown;
+  const mnemonic = await Promise.race([
+    mnemonicPromise.then(async (value) => {
+      await pausePromise;
+      return value;
+    }),
+    pause(timeoutMs).then(() => undefined),
+  ]).catch((err: unknown) => {
+    mnemonicError = err;
+    return undefined;
+  });
+
+  if (!mnemonic?.length) {
+    logDebugError(
+      'startCreatingWallet',
+      mnemonicError ?? 'generateMnemonic timed out or returned no words',
+    );
+    setGlobal(updateAuth(getGlobal(), {
+      error: 'Failed to create wallet. Check your connection and try again.',
+    }));
+    return;
+  }
 
   global = updateAuth(getGlobal(), {
     mnemonic,
-    mnemonicCheckIndexes: selectMnemonicForCheck(mnemonic?.length ?? MNEMONIC_COUNT),
+    mnemonicCheckIndexes: selectMnemonicForCheck(mnemonic.length),
   });
 
   if (isPasswordPresent) {
