@@ -8,7 +8,6 @@ More about %app_name%: Подробнее о %app_name%
 Creating Wallet...: Создаём кошелёк...
 On the count of three...: Сосчитайте до трёх...
 Failed to create wallet. Check your connection and try again.: Не удалось создать кошелёк. Проверьте соединение и попробуйте снова.
-Try Again: Попробовать снова
 $back_up_auth: Показать слова
 $back_up_security: Резервное копирование
 $2fa_security: 2FA с Telegram
